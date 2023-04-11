@@ -2,8 +2,9 @@
     "makefile.launchConfigurations": [
         {
             "cwd": "d:\\Austin\\Documents\\GitHub\\Pokemon_Mirror",
-            "binaryPath": "d:\\Austin\\Documents\\GitHub\\Pokemon_Mirror\\Pokemon_Mirror.elf",
+            "binaryPath": "d:\\Austin\\Documents\\GitHub\\Pokemon_Mirror\\Pokemon_Mirror.gba",
             "binaryArgs": []
         }
-    ]
+    ],
+    "C_Cpp.errorSquiggles": "enabled"
 }
