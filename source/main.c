@@ -1,5 +1,6 @@
 #include <tonc.h>
 
+
 #include "debug.h"
 #include "mirror.h"
 
@@ -32,21 +33,9 @@ void load_sprite(void)
 
 int main(void)
 {
-	irq_init(NULL);
-	irq_enable(II_VBLANK);
+	initalize_memory_locations();
 
-	tte_init_chr4c_default(0, BG_CBB(0) | BG_SBB(31));
-	tte_set_pos(92, 68);
-
-	vu8 testNum = *(vu8*)(MEM_CRAM+SAVE_RECENT+SAVE_INDEX_OFFSET);
-	
-	char output[2] = {
-		intToHex((testNum>>4) & 0xF),
-		intToHex( testNum     & 0xF)
-	};
-
-	tte_write(output);
-
+	printValueAt(newest_save_offset - 1);
 	load_sprite();
 
 	REG_DISPCNT = DCNT_MODE0 | DCNT_BG0 | DCNT_OBJ | DCNT_OBJ_1D;
