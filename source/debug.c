@@ -1,4 +1,5 @@
 #include <tonc.h>
+#include "mirror.h"
 
 char arr[16] = {
     '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'
@@ -15,7 +16,7 @@ void printValueAt(vu32 testAdd){
 	tte_init_chr4c_default(0, BG_CBB(0) | BG_SBB(31));
 	tte_set_pos(52, 68);
 
-	vu32 testNum = *(vu32*)testAdd;
+	vu32 testNum = read_four_bytes(testAdd, false);
 
 	char output[22] = {
 		'$',

@@ -35,7 +35,7 @@ int main(void)
 {
 	initalize_memory_locations();
 
-	printValueAt(newest_save_offset - 1);
+	printValueAt(memory_section_array[5]);
 	load_sprite();
 
 	REG_DISPCNT = DCNT_MODE0 | DCNT_BG0 | DCNT_OBJ | DCNT_OBJ_1D;
