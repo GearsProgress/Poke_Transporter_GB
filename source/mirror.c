@@ -3,7 +3,7 @@
 
 vu32 newest_save_offset = MEM_CRAM + SAVE_A_OFFSET;
 vu32 memory_section_array[14] = {};
-vu32 pkmn[20] = {};
+vu8 pkmn[80] = {};
 
 void initalize_memory_locations(){
     if(read_four_bytes(MEM_CRAM + SAVE_B_OFFSET + SAVE_INDEX_OFFSET, true) > read_four_bytes(MEM_CRAM + SAVE_A_OFFSET + SAVE_INDEX_OFFSET, true)){
@@ -24,5 +24,5 @@ vu32 read_four_bytes(vu32 address, bool flip_endian){
 }
 
 void insert_pokemon(int box_num, int box_spot){
-    
+
 }
