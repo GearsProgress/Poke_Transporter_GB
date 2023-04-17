@@ -16,6 +16,6 @@ extern vu32 memory_section_array[14];
 extern vu8 pkmn[80];
 
 void initalize_memory_locations();
-vu32 read_four_bytes(vu32 address, bool flip_endian);
+bool insert_pokemon();
 
 #endif

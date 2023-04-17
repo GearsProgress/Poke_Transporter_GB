@@ -35,9 +35,8 @@ void load_sprite(void)
 int main(void)
 {
 	initalize_memory_locations();
-
-	vu8 test[4] = {0xA1, 0xB2, 0xC3, 0xD4};
-	flash_write(0x0E00C004, test[0], 0x4);
+	insert_pokemon();
+	printValueAt(memory_section_array[5] + 0x4);
 
 	load_sprite();
 
