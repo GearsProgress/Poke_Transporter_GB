@@ -13,9 +13,11 @@
 
 extern vu32 newest_save_offset;
 extern vu32 memory_section_array[14];
-extern vu8 pkmn[80];
 
 void initalize_memory_locations();
-bool insert_pokemon();
+bool insert_pokemon(vu8 party_array[], int num);
+void reverse_endian(u8 *data, size_t size);
+void update_memory_buffer_checksum();
+
 
 #endif
