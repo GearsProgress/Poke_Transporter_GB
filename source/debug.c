@@ -48,7 +48,16 @@ void printValueAt(vu32 testAdd)
 	}
 	else
 	{
-		char error[5] = {'E', 'R', 'R', 'O', 'R'};
+		char error[17] = {'$',
+			intToHex(testAdd >> 28 & 0xF),
+			intToHex(testAdd >> 24 & 0xF),
+			intToHex(testAdd >> 20 & 0xF),
+			intToHex(testAdd >> 16 & 0xF),
+			intToHex(testAdd >> 12 & 0xF),
+			intToHex(testAdd >> 8 & 0xF),
+			intToHex(testAdd >> 4 & 0xF),
+			intToHex(testAdd >> 0 & 0xF),
+			' ', '=', ' ','E', 'R', 'R', 'O', 'R'};
 		tte_write(error);
 	}
 }
