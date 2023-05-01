@@ -12,12 +12,6 @@ char intToHex(unsigned int num)
 
 void printValueAt(vu32 testAdd)
 {
-	irq_init(NULL);
-	irq_enable(II_VBLANK);
-
-	tte_init_chr4c_default(0, BG_CBB(0) | BG_SBB(31));
-	tte_set_pos(52, 68);
-
 	u8 mem[4];
 
 	if (!flash_read(testAdd, &mem[0], 0x04))

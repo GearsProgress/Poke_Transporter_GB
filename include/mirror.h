@@ -13,6 +13,7 @@
 
 extern vu32 newest_save_offset;
 extern vu32 memory_section_array[14];
+extern char mem_name;
 
 void initalize_memory_locations();
 bool insert_pokemon(vu8 party_array[], int num);
