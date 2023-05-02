@@ -24,31 +24,18 @@ void initalize_memory_locations(){
         newest_save_offset = MEM_CRAM + SAVE_B_OFFSET;
         mem_name = 'B';
     }
+
     // Populates the memory_section_array with the correct pointer locations
-    
-    for (vu32 i = 0; i < 14; i++){
-        memory_section_array[*(vu8*)(newest_save_offset + (i * 0x1000) + SECTION_ID_OFFSET)] = newest_save_offset + (i * 0x1000);
+    vu8 mem_id = *(vu8*)(newest_save_offset + SECTION_ID_OFFSET);
+    for (int i = 0; i < 14; i++){
+        memory_section_array[mem_id] = newest_save_offset + (i * 0x1000);
+        mem_id = (mem_id + 1) % 14;
     }
-    
-   /*
-   memory_section_array[2] = 0x0E01B000;
-   memory_section_array[3] = 0x0E00E000;
-   memory_section_array[4] = 0x0E00F000;
-   memory_section_array[5] = 0x0E010000;
-   memory_section_array[6] = 0x0E011000;
-   memory_section_array[7] = 0x0E012000;
-   memory_section_array[8] = 0x0E013000;
-   memory_section_array[9] = 0x0E014000;
-   memory_section_array[10] = 0x0E015000;
-   memory_section_array[11] = 0x0E016000;
-   memory_section_array[12] = 0x0E017000;
-   memory_section_array[13] = 0x0E018000;
-   memory_section_array[0] = 0x0E019000;
-   memory_section_array[1] = 0x0E01A000;
-   */
 
 
-
+    //for (vu32 i = 0; i < 14; i++){
+    //    memory_section_array[*(vu8*)(newest_save_offset + (i * 0x1000) + SECTION_ID_OFFSET)] = newest_save_offset + (i * 0x1000);
+    //}
 }
 
 // Reverses the endian of the given array
