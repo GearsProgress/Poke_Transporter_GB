@@ -110,7 +110,7 @@ int main(void)
 			}
 		}
 		if (key_released(KEY_A)){
-			//insert_pokemon(pkmn, 6);
+			insert_pokemon(pkmn, 1);
 			print = true;
 		}
 

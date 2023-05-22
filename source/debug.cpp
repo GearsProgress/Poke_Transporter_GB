@@ -1,4 +1,5 @@
 #include <tonc.h>
+#include <string>
 #include "mirror.h"
 #include "gba_flash.h"
 
@@ -54,4 +55,12 @@ void printValueAt(vu32 testAdd)
 			' ', '=', ' ','E', 'R', 'R', 'O', 'R'};
 		tte_write(error);
 	}
+}
+
+std::string u32ToHexStr(vu32 inputNum){
+	std::string output = "";
+	for (int i = 0; i < 8; i++){
+		output = arr[(inputNum>>(i*4)) & 0x0000000F] + output;
+	}
+	return "0x" + output;
 }
