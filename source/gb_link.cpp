@@ -107,10 +107,21 @@ int start_link()
           break;
 
         default:
-          SPIout = 0x01234567;
+          SPIout = 0x00000000;
         }
       }
-      else if (mode == 1)
+
+      else if (mode == 1){
+        if ((SPIin & 0xFF) != 0xFD){
+          SPIout = 0x02020202;
+          //mode = 2;
+        }
+      } else if (mode == 2){
+        if ((SPIin & 0xFF) == 0xFD){
+          mode = 3;
+        }
+      }
+      else if (mode == 3)
       {
         if (index < 111){
         SPIout = trainerData[index];
@@ -130,7 +141,7 @@ int start_link()
         outputSArr[i] = outputSArr[i - 1];
         outputRArr[i] = outputRArr[i - 1];
       }
-      outputSArr[0] = "S(" + std::to_string(index) + "): " + u32ToHexStr(SPIout);
+      outputSArr[0] = "S" + std::to_string(index) + ": " + u32ToHexStr(SPIout);
       outputRArr[0] = "R: " + u32ToHexStr(SPIin);
 
       // Cancel
@@ -148,11 +159,13 @@ int start_link()
     {
       output += (outputSArr[i] + " " + outputRArr[i] + "\n");
     }
-    if (mode == 1){
+    if (mode == -1){ //TODO
       bigOut = bigOut + u32ToHexStr(SPIin);
       log(bigOut);
     } else {
+      if (index < 11){
       log(output);
+      }
     }
   }
 
