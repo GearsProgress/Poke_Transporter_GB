@@ -57,10 +57,10 @@ void printValueAt(vu32 testAdd)
 	}
 }
 
-std::string u32ToHexStr(vu32 inputNum){
+std::string u8ToHexStr(vu8 inputNum){
 	std::string output = "";
-	for (int i = 0; i < 8; i++){
-		output = arr[(inputNum>>(i*4)) & 0x0000000F] + output;
+	for (int i = 0; i < 2; i++){
+		output = arr[(inputNum>>(i*4)) & 0xF] + output;
 	}
 	return "0x" + output;
 }

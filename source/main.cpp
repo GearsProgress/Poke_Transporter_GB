@@ -148,6 +148,7 @@ int main(void)
 /*Credits:
 https://github.com/laqieer/libsavgba
 https://github.com/rodri042/gba-link-connection
+arduino-boy
 
 Notes:
 - GBA and GBC link cables are different, that's why it didn't work initally on mGBA
