@@ -5,6 +5,7 @@
 #include "interrupt.h"
 #include "LinkSPI.h"
 #include "debug.h"
+#include "sio.h"
 
 // (1) Create a LinkSPI instance
 LinkSPI *linkSPI = new LinkSPI();
@@ -17,11 +18,11 @@ void init()
   tte_init_se_default(0, BG_CBB(0) | BG_SBB(31));
 
   // (2) Add the interrupt service routines
-  interrupt_init();
-  interrupt_set_handler(INTR_VBLANK, VBLANK);
-  interrupt_enable(INTR_VBLANK);
-  interrupt_set_handler(INTR_SERIAL, LINK_SPI_ISR_SERIAL);
-  interrupt_enable(INTR_SERIAL);
+  //interrupt_init();
+  //interrupt_set_handler(INTR_VBLANK, VBLANK);
+  //interrupt_enable(INTR_VBLANK);
+  //interrupt_set_handler(INTR_SERIAL, LINK_SPI_ISR_SERIAL);
+  //interrupt_enable(INTR_SERIAL);
 }
 
 std::string convertToString(char *a, int size)
@@ -58,6 +59,7 @@ int trade_pokemon = -1;
 
   while (true)
   {
+    
     std::string output = "";
 
     u16 keys = ~REG_KEYS & KEY_ANY;
@@ -79,8 +81,8 @@ int trade_pokemon = -1;
         firstTransfer = false;
       }
 
-      // (4)/(5) Exchange 32-bit data with the other end
-      SPIin = linkSPI->transfer(SPIout, []()
+      // (4)/(5) Exchange 8-bit data with the other end
+      /*SPIin = linkSPI->transfer(SPIout, []()
                                 {
         bool exit = false;
           u16 keys = ~REG_KEYS & KEY_ANY;
@@ -88,10 +90,12 @@ int trade_pokemon = -1;
             exit = true;
           }
           return exit; });
+      */
+      // - - - - - - - - - - - - -
 
       in = SPIin;
 
-      byte send = 0x00;
+      byte send = 0x07;
 
   switch(connection_state) {
   case NOT_CONNECTED:
@@ -215,6 +219,7 @@ int trade_pokemon = -1;
   }
 
       SPIout = send;
+      //SPIin = sio_send_master(0x75, SIO_8);
 
       for (int i = 7; i > 0; i--)
       {
