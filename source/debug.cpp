@@ -1,4 +1,4 @@
-#include <tonc.h>
+#include <gba.h>
 #include <string>
 #include "mirror.h"
 #include "gba_flash.h"

@@ -1,6 +1,6 @@
 #ifndef MIRROR_H
 #define MIRROR_H
-#include <tonc.h>
+#include <gba.h>
 
 
 #define MEM_CRAM	        0x0E000000	//!< Cart RAM
