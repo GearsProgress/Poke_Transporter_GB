@@ -1,4 +1,4 @@
-#include <gba.h>
+#include <tonc.h>
 #include "mirror.h"
 #include "gba_flash.h"
 
@@ -39,7 +39,7 @@ void initalize_memory_locations(){
 }
 
 // Reverses the endian of the given array
-void reverse_endian(u8 *data, u8 size){
+void reverse_endian(u8 *data, size_t size){
     u8 temp;
     for (int i = 0; i < (size/2); i++){
         temp = data[i];
