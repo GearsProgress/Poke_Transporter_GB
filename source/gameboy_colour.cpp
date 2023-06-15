@@ -3,15 +3,13 @@
 #include "gameboy_colour.h"
 #include "pokemon.h"
 #include "output.h"
+#include "LinkGPIO.h"
 
-// Reads the given bit at the given register
-INLINE bool LINK_SPI_READ(vu16 REG, u32 BIT)
-{
-  return REG & (1 << BIT);
-}
 
-const int MODE = 0; // mode=0 will transfer pokemon data from pokemon.h
+const int MODE = 1; // mode=0 will transfer pokemon data from pokemon.h
                     // mode=1 will copy pokemon party data being received
+
+LinkGPIO* linkGPIO = new LinkGPIO();
 
 uint8_t shift = 0;
 uint8_t in_data = 0;
@@ -26,27 +24,60 @@ int trade_pokemon = -1;
 
 unsigned long last_bit;
 
+char hexArr[16] = {
+	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+
+char output[2];
+
+std::string outHexStr(vu8 inputNum){
+  std::string out = "XX";
+  out[0] = (inputNum) & 0xF;
+  out[1] = (inputNum>>4) & 0xF;
+	return out;
+}
+
+std::string out_array[10];
+
+void print(std::string str){
+  for (int i = 10; i > 0; i--){
+    out_array[i] = out_array[i - 1];
+  }
+  out_array[0] = std::to_string(frame) + ": " + str + "\n";
+    tte_erase_screen();
+    tte_set_pos(0, 0);
+  for (int j = 0; j < 10; j++){
+    tte_write(out_array[j].c_str());
+  }
+}
+
 void setup()
 {
 
   // pinMode(SCLK_, INPUT);
   // pinMode(MISO_, INPUT);
   // pinMode(MOSI_, OUTPUT);
+
+  linkGPIO->reset();
+
+  linkGPIO->setMode(LinkGPIO::Pin::SC, LinkGPIO::Direction::OUTPUT);
+  linkGPIO->setMode(LinkGPIO::Pin::SO, LinkGPIO::Direction::OUTPUT);
+  linkGPIO->setMode(LinkGPIO::Pin::SI, LinkGPIO::Direction::INPUT);
+
+  /*
   LINK_SPI_SET_LOW(REG_RCNT, 4);
   LINK_SPI_SET_LOW(REG_RCNT, 6);
   LINK_SPI_SET_HIGH(REG_RCNT, 7);
 
   LINK_SPI_SET_LOW(REG_RCNT, LINK_SPI_BIT_GENERAL_PURPOSE_LOW);
   LINK_SPI_SET_HIGH(REG_RCNT, LINK_SPI_BIT_GENERAL_PURPOSE_HIGH);
-
+  */
 
   tte_erase_screen();
   tte_set_pos(0, 0);
   tte_write("FEED ME POKEMON, I HUNGER!\n");
 
   // digitalWrite(MOSI_, LOW);
-  LINK_SPI_SET_LOW(REG_RCNT, LINK_SPI_BIT_SI);
-
+  linkGPIO->writePin(LinkGPIO::Pin::SO, 0);
   out_data <<= 1;
 }
 
@@ -216,28 +247,23 @@ byte handleIncomingByte(byte in)
 
 void transferBit(void)
 {        
-  in_data |= LINK_SPI_READ(REG_RCNT, LINK_SPI_BIT_SO) /*digitalRead(MISO_)*/ << (7 - shift);
+  in_data |=  (linkGPIO->readPin(LinkGPIO::Pin::SI)) << (7 - shift);  /*digitalRead(MISO_)*/
   if (++shift > 7)
   {
     shift = 0;
-    out_data = handleIncomingByte(in_data);
-    tte_set_pos(0, 0);
-    tte_erase_screen();
-    tte_write(trade_centre_state_gen_II);
-    tte_write(" ");
-    tte_write(connection_state);
-    tte_write(" ");
-    tte_write(in_data, HEX);
-    tte_write(" ");
-    tte_write(out_data, HEX);
-    tte_write("\n");
+    out_data = handleIncomingByte(in_data); //in_data
+    print(
+      std::to_string(trade_centre_state_gen_II) + " " + 
+      std::to_string(connection_state) + " " +
+      std::to_string(in_data) + " " +
+      std::to_string(out_data) + "\n");
     in_data = 0;
   }
 
-  while (/*!digitalRead(SCLK_)*/!LINK_SPI_READ(REG_RCNT, LINK_SPI_BIT_CLOCK)) // no activity when clock is low
-
+  while (!linkGPIO->readPin(LinkGPIO::Pin::SC)){} // no activity when clock is low //!digitalRead(SCLK_)
   //digitalWrite(MOSI_, out_data & 0x80 ? HIGH : LOW);
-  LINK_SPI_SET(REG_RCNT, LINK_SPI_BIT_SI, out_data & 0x80);
+
+  linkGPIO->writePin(LinkGPIO::Pin::SO, (out_data >> 7));
   out_data <<= 1;
 }
 
@@ -246,11 +272,11 @@ void loop()
   while (true)
   {
     last_bit = frame;
-    while (LINK_SPI_READ(REG_RCNT, LINK_SPI_BIT_CLOCK) /*digitalRead(SCLK_)*/)
+    while (linkGPIO->readPin(LinkGPIO::Pin::SC)) /*digitalRead(SCLK_)*/
     {
-      if (frame - last_bit > 1000000)
+      if (frame - last_bit > 999999)
       { // show when the clock is inactive
-        tte_write("idle\n");
+        print("idle\n");
         last_bit = frame;
         shift = 0;
         in_data = 0;
@@ -259,6 +285,6 @@ void loop()
     }
     frame++;
     transferBit();
-    //tte_erase_screen();
   }
 }
+
