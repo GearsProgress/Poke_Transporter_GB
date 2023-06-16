@@ -30,5 +30,6 @@ byte handleIncomingByte(byte in);
 void transferBit(void);
 void loop();
 std::string outHexStr(vu8 inputNum);
+void updateFrames();
 
 #endif /* GAMEBOY_COLOUR_H_ */

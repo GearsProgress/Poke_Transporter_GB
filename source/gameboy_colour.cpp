@@ -16,7 +16,9 @@ uint8_t in_data = 0;
 uint8_t out_data = 0;
 uint frame = 0;
 
-connection_state_t connection_state = NOT_CONNECTED;
+bool SC_state = 0;
+
+connection_state_t connection_state = PRE_CONNECT_ONE;
 trade_centre_state_gen_II_t trade_centre_state_gen_II = INIT;
 int counter = 0;
 
@@ -50,6 +52,17 @@ void print(std::string str){
   }
 }
 
+void updateFrames(){
+   if (((connection_state > 1) && (frame - last_bit > 999)) /*|| connection_state == PRE_CONNECTED*/)
+      {
+        SC_state = !SC_state;
+        linkGPIO->writePin(LinkGPIO::Pin::SC, SC_state);
+        //print(SC_state ? "True" : "False");
+        last_bit = frame;
+      }
+  frame++;
+}
+
 void setup()
 {
 
@@ -59,7 +72,7 @@ void setup()
 
   linkGPIO->reset();
 
-  linkGPIO->setMode(LinkGPIO::Pin::SC, LinkGPIO::Direction::OUTPUT);
+  linkGPIO->setMode(LinkGPIO::Pin::SC, LinkGPIO::Direction::INPUT);
   linkGPIO->setMode(LinkGPIO::Pin::SO, LinkGPIO::Direction::OUTPUT);
   linkGPIO->setMode(LinkGPIO::Pin::SI, LinkGPIO::Direction::INPUT);
 
@@ -79,19 +92,38 @@ void setup()
   // digitalWrite(MOSI_, LOW);
   linkGPIO->writePin(LinkGPIO::Pin::SO, 0);
   out_data <<= 1;
+  
 }
+
 
 byte handleIncomingByte(byte in)
 {
   byte send = 0x00;
-
+ 
   switch (connection_state)
-  {
+  {  
+  case PRE_CONNECT_ONE:
+  if (in == PKMN_MASTER){
+    connection_state = PRE_CONNECT_TWO;
+  }
+    send = PKMN_MASTER;
+  break;
+
+  case PRE_CONNECT_TWO:
+    if (in == PKMN_MASTER){
+    connection_state = NOT_CONNECTED;
+    linkGPIO->setMode(LinkGPIO::Pin::SC, LinkGPIO::Direction::OUTPUT);
+    shift++;
+  }
+    send = PKMN_MASTER;
+  break;
+
   case NOT_CONNECTED:
-    if (in == PKMN_MASTER)
-      send = PKMN_SLAVE;
-    else if (in == PKMN_BLANK)
+    if (in == PKMN_SLAVE)
+      send = PKMN_MASTER;
+    else if (in == PKMN_BLANK){
       send = PKMN_BLANK;
+    }
     else if (in == PKMN_CONNECTED_II)
     {
       send = PKMN_CONNECTED_II;
@@ -260,7 +292,9 @@ void transferBit(void)
     in_data = 0;
   }
 
-  while (!linkGPIO->readPin(LinkGPIO::Pin::SC)){} // no activity when clock is low //!digitalRead(SCLK_)
+  while (!linkGPIO->readPin(LinkGPIO::Pin::SC)){
+    updateFrames();
+  } // no activity when clock is low //!digitalRead(SCLK_)
   //digitalWrite(MOSI_, out_data & 0x80 ? HIGH : LOW);
 
   linkGPIO->writePin(LinkGPIO::Pin::SO, (out_data >> 7));
@@ -274,17 +308,11 @@ void loop()
     last_bit = frame;
     while (linkGPIO->readPin(LinkGPIO::Pin::SC)) /*digitalRead(SCLK_)*/
     {
-      if (frame - last_bit > 999999)
-      { // show when the clock is inactive
-        print("idle\n");
-        last_bit = frame;
-        shift = 0;
-        in_data = 0;
-      }
-      frame++;
+      updateFrames();
     }
-    frame++;
+    updateFrames();
     transferBit();
   }
 }
+
 
