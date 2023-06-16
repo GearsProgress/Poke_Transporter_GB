@@ -53,7 +53,7 @@ void print(std::string str){
 }
 
 void updateFrames(){
-   if (((connection_state > 1) && (frame - last_bit > 999)) /*|| connection_state == PRE_CONNECTED*/)
+   if (((connection_state > 1) && (frame - last_bit >= 400)) /*|| connection_state == PRE_CONNECTED*/)
       {
         SC_state = !SC_state;
         linkGPIO->writePin(LinkGPIO::Pin::SC, SC_state);
@@ -113,7 +113,7 @@ byte handleIncomingByte(byte in)
     if (in == PKMN_MASTER){
     connection_state = NOT_CONNECTED;
     linkGPIO->setMode(LinkGPIO::Pin::SC, LinkGPIO::Direction::OUTPUT);
-    shift++;
+    shift = shift + 1;
   }
     send = PKMN_MASTER;
   break;
