@@ -1,7 +1,7 @@
 #include <tonc.h>
 #include <string>
 #include "gameboy_colour.h"
-#include "pokemon.h"
+#include "pokemon_trade.h"
 #include "output.h"
 #include "LinkGPIO.h"
 
@@ -21,6 +21,8 @@ bool SC_state = 0;
 connection_state_t connection_state = PRE_CONNECT_ONE;
 trade_centre_state_gen_II_t trade_centre_state_gen_II = INIT;
 int counter = 0;
+
+int gen = 0;
 
 int trade_pokemon = -1;
 
@@ -53,7 +55,7 @@ void print(std::string str){
 }
 
 void updateFrames(){
-   if (((connection_state > 1) && (frame - last_bit >= 400)) /*|| connection_state == PRE_CONNECTED*/)
+   if (((connection_state > 1) && (frame - last_bit >= ((trade_centre_state_gen_II >= WAITING_TO_SEND_DATA) ? 10 : 1000))) /*|| connection_state == PRE_CONNECTED*/)
       {
         SC_state = !SC_state;
         linkGPIO->writePin(LinkGPIO::Pin::SC, SC_state);
@@ -124,15 +126,28 @@ byte handleIncomingByte(byte in)
     else if (in == PKMN_BLANK){
       send = PKMN_BLANK;
     }
+    else if (in == PKMN_CONNECTED_I)
+    {
+      send = PKMN_CONNECTED_I;
+      gen = 1;
+      connection_state = CONNECTED;
+    }
     else if (in == PKMN_CONNECTED_II)
     {
       send = PKMN_CONNECTED_II;
+      gen = 2;
       connection_state = CONNECTED;
+    }
+    else if (in == 127)
+    {
+      shift++;
     }
     break;
 
   case CONNECTED:
-    if (in == PKMN_CONNECTED_II) // acknowledge connection
+    if (in == PKMN_CONNECTED_I) // acknowledge connection
+      send = PKMN_CONNECTED_I;
+    else if (in == PKMN_CONNECTED_II) // acknowledge connection
       send = PKMN_CONNECTED_II;
     else if (in == GEN_II_CABLE_TRADE_CENTER)
     { // acknowledge trade center selection
@@ -292,7 +307,7 @@ void transferBit(void)
     in_data = 0;
   }
 
-  while (!linkGPIO->readPin(LinkGPIO::Pin::SC)){
+  while (!((connection_state >= 2) ? SC_state : linkGPIO->readPin(LinkGPIO::Pin::SC))){
     updateFrames();
   } // no activity when clock is low //!digitalRead(SCLK_)
   //digitalWrite(MOSI_, out_data & 0x80 ? HIGH : LOW);
@@ -306,12 +321,16 @@ void loop()
   while (true)
   {
     last_bit = frame;
-    while (linkGPIO->readPin(LinkGPIO::Pin::SC)) /*digitalRead(SCLK_)*/
+    while (((connection_state >= 2) ? SC_state : linkGPIO->readPin(LinkGPIO::Pin::SC))) /*digitalRead(SCLK_)*/
     {
       updateFrames();
     }
-    updateFrames();
+    //updateFrames();
     transferBit();
+    if (key_held(KEY_B)){
+      connection_state = PRE_CONNECT_ONE;
+      trade_centre_state_gen_II = INIT;
+    }
   }
 }
 

@@ -1,7 +1,7 @@
 //Created by StevenChaulk? https://github.com/stevenchaulk/arduino-poke-gen2
 
-#ifndef POKEMON_H_
-#define POKEMON_H_
+#ifndef POKEMON_TRADE_H_
+#define POKEMON_TRADE_H_
 
 typedef enum {
 	PRE_CONNECT_ONE,
