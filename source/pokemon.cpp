@@ -24,20 +24,31 @@ public:
             break;
             case 2:
                 species_index = gen_one_pkmn_index[party_data[party_offset + 0x00];
-                std::copy(party_data[party_offset + 0x02], party_data[party_offset + 0x05], moves[0]);
-                std::copy(party_data[party_offset + 0x06], party_data[party_offset + 0x07], trainer_id[0];
+                std::copy(party_data[party_offset + 0x02], party_data[party_offset + 0x06], moves[0]);
+                std::copy(party_data[party_offset + 0x06], party_data[party_offset + 0x08], trainer_id[0];
                 exp[3]; //??
                 std::copy(party_data[name_offset + 0x00], party_data[name_offset + 0x0A], nickname[0]);
                 std::copy(party_data[ot_offset + 0x00], party_data[name_offset + 0x0A], trainer_name[11]);
                 pokerus = party_data[party_offset + 0x1C];
-                std::copy(party_data[party_offset + 0x1D], party_data[party_offset + 0x1C], caught_data[0]);
+                std::copy(party_data[party_offset + 0x1D], party_data[party_offset + 0x1F], caught_data[0]);
                 level; //??
             break;
         
     }
 
     void convert_to_gen_three(){
-        
+        std::copy(gen_3_pkmn[0], gen_3_pkmn[3], blank_word[0]); // Personality Value
+        std::copy(gen_3_pkmn[4], gen_3_pkmn[5], blank_word[0]); // SID
+        std::copy(gen_3_pkmn[6], gen_3_pkmn[7], blank_word[0]); // TID
+        gen_3_pkmn[8] = 0xBB;
+        gen_3_pkmn[9] = 0xFF; // Nickname
+        // Language
+        // Egg Name(?)
+        // OT Name
+        // Markings
+        // Checksum
+        // ???
+        // Data
         {
         
 private:
@@ -52,6 +63,7 @@ private:
     byte caught_data[2];
     byte level;
     byte gen_3_pkmn[80];
+    byte blank_word[4] = {0};
 
     }
 };
