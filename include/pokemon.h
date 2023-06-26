@@ -7,8 +7,13 @@ class Pokemon
 {
 public:
     Pokemon(byte gen, int index, byte *party_data);
-    byte* convert_to_gen_three();
-    void copy_from_to(byte *source, byte *destination, int size);
+    void convert_to_gen_three();
+    void copy_from_to(byte *source, byte *destination, int size, bool reverse_endian);
+    void alocate_data_chunks(byte *G, byte *A, byte *E, byte *M);
+    void insert_data(byte *first, byte *second, byte *third, byte *fourth);
+    byte get_gen_3_data(int index);
+    byte* get_full_gen_3_array();
+    byte get_unencrypted_data(int index);
 
 private:
     byte gen;
@@ -16,13 +21,14 @@ private:
     byte moves[4];
     byte trainer_id[2];
     byte exp[3];
-    byte nickname[11];
-    byte trainer_name[11];
+    byte nickname[10];
+    byte trainer_name[7];
     byte pokerus;
     byte caught_data[2];
     byte level;
     byte gen_3_pkmn[80];
-    byte PID[4] = {0};
+    byte unencrypted_data[49]; // Contains the 48 GAEM bytes, along with the modulo int
+    byte pid[4] = {0b00000001, 0b10101010, 0b11111111, 0b10011001}; //Little Endian, reverse of Bulbapedia
     byte blank_word[4] = {0};
     byte data_section_G[12];
     byte data_section_A[12];

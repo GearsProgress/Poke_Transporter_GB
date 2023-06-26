@@ -91,7 +91,7 @@ int main(void)
 	flash_init(FLASH_SIZE_128KB);
 	initalize_memory_locations();
 
-	load_sprite();
+	//load_sprite();
 
 	int frame = 0;
 	int arr = 0;
@@ -123,7 +123,8 @@ int main(void)
 		}
 		if (key_released(KEY_A))
 		{
-			insert_pokemon(test.convert_to_gen_three(), 1);
+			test.convert_to_gen_three();
+			insert_pokemon(test.get_full_gen_3_array(), 1);
 			print = true;
 		}
 
@@ -146,10 +147,22 @@ int main(void)
 		{
 			tte_set_pos(0, 20);
 			tte_write("Pokemon Injected!");
+			tte_set_pos(0,30);
+			for(int i = 0; i < 80; i++){
+				tte_write(intToHex(test.get_gen_3_data(i)).c_str());
+				tte_write(" ");
+			}
+			tte_set_pos(0, 110);
+			for(int i = 0; i < 49; i++){
+				tte_write(intToHex(test.get_unencrypted_data(i)).c_str());
+				tte_write(" ");
+			}
+
+			
 		}
+			
 
 		tte_set_pos(0, 30);
-		tte_write(str);
 
 		frame++;
 		VBlankIntrWait();
