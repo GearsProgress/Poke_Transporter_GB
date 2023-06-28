@@ -5,13 +5,20 @@
 #define pkmn_size ((gen == 1) ? 44 : 48)
 #define name_size 11
 
-byte gen_one_pkmn_index[255] = {0};
-
-byte gen_two_char_index[255] = {};
+byte gen_2_char_array[0x80]{
+    0xBB, 0xBC, 0xBD, 0xBE, 0xBF, 0xC0, 0xC1, 0xC2, 0xC3, 0xC4, 0xC5, 0xC6, 0xC7, 0xC8, 0xC9, 0xCA,
+    0xCB, 0xCC, 0xCD, 0xCE, 0xCF, 0xD0, 0xD1, 0xD2, 0xD3, 0xD4, 0x5C, 0x5D, 0xF0, 0x36, 0x5C, 0x5D, 
+    0xD5, 0xD6, 0xD7, 0xD8, 0xD9, 0xDA, 0xDB, 0xDC, 0xDD, 0xDE, 0xDF, 0xE0, 0xE1, 0xE2, 0xE3, 0xE4, 
+    0xE5, 0xE6, 0xE7, 0xE8, 0xE9, 0xEA, 0xEB, 0xEC, 0xED, 0xEE, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+    0xF1, 0xF2, 0xF3, 0xF4, 0xF5, 0xF6, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+    0xD8, 0xE0, 0xE1, 0xE6, 0xE7, 0xE8, 0xEA, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x7B,
+    0xB4, 0xCA, 0xC7, 0xAE, 0x00, 0x00, 0xAC, 0xAB, 0xAD, 0x2D, 0x1B, 0x7C, 0x00, 0xEF, 0x00, 0xB5, 
+    0xB7, 0xEC, 0xAD, 0xBA, 0xB8, 0xB6, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6, 0xA7, 0xA8, 0xA9, 0xAA
+};
 
 Pokemon::Pokemon(byte gen, int index, byte *party_data)
     {
-        int party_offset = 21 + (index * 48);
+        int party_offset = 21 + (index * pkmn_size);
         int ot_offset = 21 + (6 * pkmn_size) + (index * name_size);
         int name_offset = 21 + (6 * pkmn_size) + (6 * name_size) + (index * name_size);
 
@@ -24,8 +31,8 @@ Pokemon::Pokemon(byte gen, int index, byte *party_data)
             species_index = party_data[party_offset + 0x00];
             copy_from_to(&party_data[party_offset + 0x02], &moves[0], 4, false);
             copy_from_to(&party_data[party_offset + 0x06], &trainer_id[0], 2, false);
-            exp[3]; //??
-            copy_from_to(&party_data[name_offset + 8], &nickname[0], 10, false);
+            exp[3];
+            copy_from_to(&party_data[name_offset], &nickname[0], 10, false);
             copy_from_to(&party_data[ot_offset + 0x00], &trainer_name[0], 7, false);
             pokerus = party_data[party_offset + 0x1C];
             copy_from_to(&party_data[party_offset + 0x1D], &caught_data[0], 2, false);
@@ -40,15 +47,15 @@ void Pokemon::convert_to_gen_three()
         copy_from_to(&pid[0], &gen_3_pkmn[0], 4, false); // Personality Value
         copy_from_to(&trainer_id[0], &gen_3_pkmn[4], 2, true); // TID
         copy_from_to(&blank_word[0], &gen_3_pkmn[6], 2, false); // SID
-        copy_from_to(&nickname[0], &gen_3_pkmn[8], 10, false); // Nickname
+        copy_from_to(convert_text(&nickname[0], 10, 2), &gen_3_pkmn[8], 10, false); // Nickname
         gen_3_pkmn[18] = 2; // Language, set to English
         gen_3_pkmn[19] = 0b00000010; // Egg Name
-        copy_from_to(&trainer_name[0], &gen_3_pkmn[20], 7, false);// OT Name
+        copy_from_to(convert_text(&trainer_name[0], 7, 2), &gen_3_pkmn[20], 7, false);// OT Name
         gen_3_pkmn[27] = 0b00000000; // Markings
         // ???
         // Data:
         data_section_G[0] = species_index;
-        data_section_G[1] = 0x00; // Species Index, the largest byte will always be zero since there are only up to 251 Pokemon in gen 2
+        data_section_G[1] = 0x00; // Species Index, check for glitch Pokemon
         copy_from_to(&exp[0], &data_section_G[4], 4, false);
 
         data_section_A[0] = moves[0]; // Move 1
@@ -59,7 +66,15 @@ void Pokemon::convert_to_gen_three()
         // Data section E is all zero
 
         //data_section_M[0] = pokerus;
-        data_section_M[3] = 0x20;
+
+        origin_info |= (32767 << 1);
+        origin_info |= (1 << 15); // OT gender
+        origin_info |= (3 << 11); // Ball
+        origin_info |= (2 << 7); // Game
+        origin_info |= 0;         // Level met
+        data_section_M[3] = origin_info & 0x00FF; // Lower origins info
+        data_section_M[4] = origin_info & 0xFF;   // Upper origins info
+
 
         // Checksum:
         checksum = 0x0000;
@@ -155,4 +170,21 @@ byte* Pokemon::get_full_gen_3_array(){
 
 byte Pokemon::get_unencrypted_data(int index){
     return unencrypted_data[index];
+}
+
+byte* Pokemon::convert_text(byte *text_array, int size, int gen){
+    switch(gen){
+        case 2:
+        for (int i = 0; i < size; i++){
+            if (text_array[i] == 0x50){
+                text_array[i] = 0xFF;
+            } else if (text_array[i] >= 0x80){
+                text_array[i] = gen_2_char_array[text_array[i] - 0x80];
+            } else {
+                text_array[i] = 0x00;
+            }
+        }
+        break;
+    }
+    return text_array;
 }

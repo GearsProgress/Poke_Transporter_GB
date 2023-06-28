@@ -14,13 +14,14 @@ public:
     byte get_gen_3_data(int index);
     byte* get_full_gen_3_array();
     byte get_unencrypted_data(int index);
+    byte* convert_text(byte *text_array, int size, int gen);
 
 private:
     byte gen;
     byte species_index;
     byte moves[4];
     byte trainer_id[2];
-    byte exp[3];
+    byte exp[4] = {0x1C, 0x00, 0x00, 0x00};
     byte nickname[10];
     byte trainer_name[7];
     byte pokerus;
@@ -36,6 +37,7 @@ private:
     byte data_section_M[12];
     hword checksum;
     byte encryption_key[4];
+    hword origin_info = 0;
 };
 
 #endif
