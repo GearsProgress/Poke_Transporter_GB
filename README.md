@@ -1,11 +1,11 @@
-## Hey you! Yes you! I have *no* Idea how you found this repository. Unforunately, this is stil very much a work in progress. It's very much on it's way, but it isn't ready for release yet. Because of this, not all this information is accurate or up to date... The biggest thing I want to stress is that there are credits that I need to add still- please don't sue me, they will be there by release! Or hopefully by the end of this week. Thank you.
+## Hey you! Yes you! I have *no* idea how you found this repository. Unforunately, this is stil very much a work in progress. It's very much on it's way, but it isn't ready for release yet. Because of this, not all this information is accurate or up to date... The biggest thing I want to stress is that there are credits that I need to add still- please don't sue me, they will be there by release! Or hopefully by the end of this week. Thank you.
 
 ## About
 Pokemon Mirror is a transfer tool for created to transfer Pokemon from Pokemon Red, Blue, Yellow, Gold, Silver, and Crystal to Pokemon Ruby, Sapphire, FireRed, LeafGreen, and Emerald.
 
 This is not the first time that the gap between Generation 1/2 and 3 has been bridged (Credit to Goppier and Lorenzooone for that!), but Pokemon Mirror is the first program designed to emulate what GameFreak may have released should they persued it. Many inspirations were taken from the Pal Park, PokeTransfer Lab, and PokeTransporte to keep a "GameFreak" feeling.
 
-#### Pokemon Transfered using Pokemon Mirror will *not* be removed from Red, Blue, Yellow, Gold Silver, or Crystal. This is not only to save on time when transfering, but also to guarentee that Pokemon are not lost and are able to be transfered again if a large update is made to the program.
+_**Pokemon Transfered using Pokemon Mirror will *not* be removed from Red, Blue, Yellow, Gold Silver, or Crystal. This is not only to save on time when transfering, but also to guarentee that Pokemon are not lost and are able to be transfered again if a large update is made to the program.**_
 
 *Currently the only release is in English. Releases supporting other languages is planned for the near future.*
 
