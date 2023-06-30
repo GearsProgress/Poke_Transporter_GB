@@ -3,7 +3,7 @@
 ## About
 Pokemon Mirror is a transfer tool for created to transfer Pokemon from Pokemon Red, Blue, Yellow, Gold, Silver, and Crystal to Pokemon Ruby, Sapphire, FireRed, LeafGreen, and Emerald.
 
-This is not the first time that the gap between Generation 1/2 and 3 has been bridged (Credit to Goppier and Lorenzooone for that!), but Pokemon Mirror is the first program designed to emulate what GameFreak may have released should they persued it. Many inspirations were taken from the Pal Park, PokeTransfer Lab, and PokeTransporte to keep a "GameFreak" feeling.
+This is not the first time that the gap between Generation 1/2 and 3 has been bridged. [Goppier](https://www.youtube.com/@Goppier) was the first to make the gap with a computer between the two link cables, and [Lorenzooone](https://www.youtube.com/@Lorenzooone) was able to push it further by communicating directly between the GameBoy and GameBoy Advance. However, Pokemon Mirror is the first program designed to emulate what GameFreak may have released should they persued it. Many inspirations were taken from the Pal Park, PokeTransfer Lab, and PokeTransporte to keep a "GameFreak" feeling.
 
 _**Pokemon Transfered using Pokemon Mirror will *not* be removed from Red, Blue, Yellow, Gold Silver, or Crystal. This is not only to save on time when transfering, but also to guarentee that Pokemon are not lost and are able to be transfered again if a large update is made to the program.**_
 
@@ -36,13 +36,21 @@ There are two releases of Pokemon Mirror: A GameBoy Advance ROM and a Wii Channe
 ## Why?
 One of my favorite aspects of the Pokemon franchise is the ability to send Pokemon forward into the most recent generation. Of course, this isn't possible from the Gameboy games into the Gameboy Advance era- and I want to fix that. A handful of Poeople have bridged the gap before, but Pokemon Mirror is the first tool designed to be the Pal Park, PokeTransport Lab, and PokeTransporter for Generation 1 and 2 to Generation 3.
 
-## Credits
-- Lorenzooone (Inspiration and answered some questions)
-- Goppier (Inspiration)
-- tonc
-- arduino code
-- save file management
+# Credits
 
-all the other stuff I need to add still
+## Libraries used
+- [libtonc](https://github.com/devkitPro/libtonc)
+- [libsavgba](https://github.com/laqieer/libsavgba)
+- [gba-link-connection](https://github.com/rodri042/gba-link-connection)
+- [arduino-boy](https://github.com/pepijndevos/arduino-boy)
+- [arduino-boy-gen-2](https://github.com/stevenchaulk/arduino-poke-gen2)
+
+## License
+All Pokémon names, sprites, names of related resources are © Nintendo/Creatures Inc./GAME FREAK Inc.
+
+Everything else, and the programming code, is governed by the MIT license
 
 _This project is not endorsed or supported by GameFreak or Nintendo. Please support the original developers._
+
+## Special Mentions
+A huge thank you to [Goppier](https://www.youtube.com/@Goppier) for being the first one to bridge the gap between generation 2 and generation 3 and for provide exremely useful documentation about both versions of the Link Cable, and a huge thank you to [Lorenzooone](https://www.youtube.com/@Lorenzooone) for being the direct inspiration for this project, as well as answering some questions I had during development. This project would never have happened without either of them, and I cannot thank them enough.
