@@ -28,7 +28,7 @@ There are two releases of Pokemon Mirror: A GameBoy Advance ROM and a Wii Channe
 - If the player is playing as Kris in Pokemon Crystal, the OT gender of the Pokemon will be set to female
 - The transfered Pokemon will be caught in a Pokeball
 - IVs are generated based on the Pokemon's DVs. Each DV is multiplied by two and increased by one, which is simmilar to how Pokemon HOME converts IVs when transfering from Pokemon GO.
-- Met level is set to the Pokemon's current level, and met location is set to "Hatched from an Egg". When transfered to Diamond, Pearl, Platinum, HeartGold, or SoulSilver this will be replaced by "Met at Pal Park", so Pokemon in the undiscovered egg group will have no issues.
+- Met level is set to the Pokemon's current level, and met location is set to "Fateful Encounter". This value is invisible to the palyer, and when transfered to Diamond, Pearl, Platinum, HeartGold, or SoulSilver this will be replaced by "Met at Pal Park".
 - Game of Origin is set to FireRed/LeafGreen for Pokemon transfered from Red, Blue, and Yellow. Pokemon from Gold, Silver, and Crystal will have their Game of Origin set to HeartGold/SoulSilver. This will display as "A far off land" in Ruby, Sapphire, FireRed, LeafGreen, and Emerald- much like how a Game of Origin of FireRed/LeafGreen displays in Ruby and Sapphire.
 - Mew and Celebi are given Fateful Encounters so that they obey the player
 - Each Pokemon will be given an Artist ribbon. This ribbon is obtainable on any Pokemon, but is rarely obtained by players. Thus it makes it a great way to identify Pokemon transfered with this method.
