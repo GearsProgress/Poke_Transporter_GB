@@ -16,7 +16,7 @@ byte gen_2_char_array[0x80]{
     0xB7, 0xEC, 0xAD, 0xBA, 0xB8, 0xB6, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6, 0xA7, 0xA8, 0xA9, 0xAA
 };
 
-Pokemon::Pokemon(byte gen, int index, byte *party_data)
+Pokemon::Pokemon(int gen, int index, byte *party_data)
     {
         int party_offset = 21 + (index * pkmn_size);
         int ot_offset = 21 + (6 * pkmn_size) + (index * name_size);
@@ -31,12 +31,12 @@ Pokemon::Pokemon(byte gen, int index, byte *party_data)
             species_index = party_data[party_offset + 0x00];
             copy_from_to(&party_data[party_offset + 0x02], &moves[0], 4, false);
             copy_from_to(&party_data[party_offset + 0x06], &trainer_id[0], 2, false);
-            exp[3];
+            copy_from_to(&party_data[party_offset + 0x08], &exp[0], 3, false);
             copy_from_to(&party_data[name_offset], &nickname[0], 10, false);
             copy_from_to(&party_data[ot_offset + 0x00], &trainer_name[0], 7, false);
             pokerus = party_data[party_offset + 0x1C];
             copy_from_to(&party_data[party_offset + 0x1D], &caught_data[0], 2, false);
-            level; //??
+            level = party_data[party_offset + 0x1F];
             break;
         }
     }
@@ -56,7 +56,7 @@ void Pokemon::convert_to_gen_three()
         // Data:
         data_section_G[0] = species_index;
         data_section_G[1] = 0x00; // Species Index, check for glitch Pokemon
-        copy_from_to(&exp[0], &data_section_G[4], 4, false);
+        copy_from_to(&exp[0], &data_section_G[4], 3, true);
 
         data_section_A[0] = moves[0]; // Move 1
         data_section_A[2] = moves[1]; // Move 2
@@ -67,13 +67,12 @@ void Pokemon::convert_to_gen_three()
 
         //data_section_M[0] = pokerus;
 
-        origin_info |= (32767 << 1);
-        origin_info |= (1 << 15); // OT gender
-        origin_info |= (3 << 11); // Ball
-        origin_info |= (2 << 7); // Game
-        origin_info |= 0;         // Level met
-        data_section_M[3] = origin_info & 0x00FF; // Lower origins info
-        data_section_M[4] = origin_info & 0xFF;   // Upper origins info
+        origin_info |= ((caught_data[0] & 0b10000000) << 8);    // OT gender - We would shift left 15 bits, but the bit is already shifted over 7
+        origin_info |= (4 << 11);                               // Ball
+        origin_info |= (((gen == 1) ? 4 : 7) <<  7);            // Game
+        origin_info |=  level;                                  // Level met
+        data_section_M[4] =  origin_info & 0x00FF;         // Lower origins info
+        data_section_M[3] = (origin_info & 0xFF00) >> 8;   // Upper origins info
 
 
         // Checksum:

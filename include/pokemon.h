@@ -6,7 +6,7 @@
 class Pokemon
 {
 public:
-    Pokemon(byte gen, int index, byte *party_data);
+    Pokemon(int gen, int index, byte *party_data);
     void convert_to_gen_three();
     void copy_from_to(byte *source, byte *destination, int size, bool reverse_endian);
     void alocate_data_chunks(byte *G, byte *A, byte *E, byte *M);
@@ -21,7 +21,7 @@ private:
     byte species_index;
     byte moves[4];
     byte trainer_id[2];
-    byte exp[4] = {0x1C, 0x00, 0x00, 0x00};
+    byte exp[3];
     byte nickname[10];
     byte trainer_name[7];
     byte pokerus;
