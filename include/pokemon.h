@@ -21,7 +21,7 @@ private:
     byte species_index;
     byte moves[4];
     byte trainer_id[2];
-    byte exp[3];
+    byte exp[4];
     byte nickname[10];
     byte trainer_name[7];
     byte pokerus;
@@ -38,6 +38,14 @@ private:
     hword checksum;
     byte encryption_key[4];
     hword origin_info = 0;
+    bool is_shiny = false;
+    byte pp_values[4];
+    byte pp_bonus;
+    byte pure_pp_values[4];
+    byte dvs[2];
+    byte ivs[6];
+    byte ribbons[4];
+    u32 iv_egg_ability;
 };
 
 #endif
