@@ -20,7 +20,7 @@ There are two releases of Pokemon Mirror: A GameBoy Advance ROM and a Wii Channe
 - Nicknames are retained, however some special characters have been replaced
 - Language is set to match whatever the language is in Ruby, Sapphire, FireRed, LeafGreen, or Emerald
 - Items are not transfered
-- Level is retained, but EXP is truncated to match the current level. Any levels above 100 are brought back to 100.
+- Level and EXP are retained, but any level greater than 100 are set to 100.
 - Moves are retained. This does mean that there are some Pokemon that will have illegal movesets in Ruby, Sapphire, FireRed, LeafGreen, and Emerald. However, the program will mention these moves to the user.
 - Stat Experience is erased and EVs are set to zero
 - PP Ups are retained
