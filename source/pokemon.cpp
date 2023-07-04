@@ -1,6 +1,6 @@
 #include <tonc.h>
 #include "pokemon.h"
-#include "exp_groups.h"
+#include "pokemon_data.h"
 
 #define pkmn_size ((gen == 1) ? 44 : 48)
 #define name_size 11
@@ -14,6 +14,7 @@ byte gen_2_char_array[0x80]{
     0xD8, 0xE0, 0xE1, 0xE6, 0xE7, 0xE8, 0xEA, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x7B,
     0xB4, 0xCA, 0xC7, 0xAE, 0x00, 0x00, 0xAC, 0xAB, 0xAD, 0x2D, 0x1B, 0x7C, 0x00, 0xEF, 0x00, 0xB5,
     0xB7, 0xEC, 0xAD, 0xBA, 0xB8, 0xB6, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6, 0xA7, 0xA8, 0xA9, 0xAA};
+
 
 Pokemon::Pokemon(int gen, int index, byte *party_data)
 {
@@ -42,8 +43,14 @@ Pokemon::Pokemon(int gen, int index, byte *party_data)
     }
 }
 
-void Pokemon::convert_to_gen_three()
+void Pokemon::convert_to_gen_three(u32 random_32)
 {
+
+    u32 n_pid = generate_pid(species_index, 0, &dvs[0], random_32);
+    for(int i = 0; i < 4; i++){
+        pid[i] = (n_pid >> (i * 8)) & 0xFF;
+    }
+
     if (*(vu32 *)exp > get_max_exp(species_index))
     {
         *(vu32 *)exp = get_max_exp(species_index);
@@ -305,4 +312,30 @@ byte *Pokemon::convert_text(byte *text_array, int size, int gen)
         break;
     }
     return text_array;
+}
+
+u32 Pokemon::generate_pid(byte pid_species_index, byte nature, byte *pid_dvs, u32 seed){
+    u32 new_pid = 0;
+    byte letter = 0;
+    Poke_Random random_num(seed);
+    if(pid_species_index == 0xC9){
+        letter |= ((pid_dvs[0] >> 5) & 0b11) << 6;
+        letter |= ((pid_dvs[0] >> 1) & 0b11) << 4;
+        letter |= ((pid_dvs[1] >> 5) & 0b11) << 2;
+        letter |= ((pid_dvs[1] >> 1) & 0b11);
+        letter = letter / 10;
+
+        byte letter_mod = rand_reverse_mod(28, letter, random_num.get_rand());
+        for(int i = 0; i < 4; i++){
+            new_pid |= ((letter_mod >> (i * 2)) & 0b11) << (8 * i);
+        }
+        new_pid |= random_num.get_rand() & 0xFCFCFCFC;
+        return new_pid;
+    } else {
+        return 0xFEFCFDFA;
+    }
+}
+
+byte Pokemon::rand_reverse_mod(byte modulo_divisor, byte target_mod, u32 seed){
+    return (modulo_divisor * convert_random(seed, 0, (255 - target_mod) / modulo_divisor)) + target_mod;
 }

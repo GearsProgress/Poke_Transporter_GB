@@ -1,5 +1,5 @@
-#ifndef EXP_GROUPS_H
-#define EXP_GROUPS_H
+#ifndef POKEMON_DATA_H
+#define POKEMON_DATA_H
 
 #include <tonc.h>
 
@@ -10,9 +10,11 @@
 #define slow_max        1250000
 #define flux_max        1640000
 
+
+
 extern const u8 EXP_MAX[251];
 extern const u32 EXP_TYPES[6];
 
 u32 get_max_exp(int index_num);
 
-#endif /* EXP_GROUPS_H */
+#endif

@@ -1,4 +1,4 @@
-#include "exp_groups.h"
+#include "pokemon_data.h"
 #include <tonc.h>
 
 const u32 EXP_TYPES[6] = {
