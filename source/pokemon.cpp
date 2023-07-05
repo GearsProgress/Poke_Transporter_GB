@@ -15,8 +15,10 @@ byte gen_2_char_array[0x80]{
     0xB4, 0xCA, 0xC7, 0xAE, 0x00, 0x00, 0xAC, 0xAB, 0xAD, 0x2D, 0x1B, 0x7C, 0x00, 0xEF, 0x00, 0xB5,
     0xB7, 0xEC, 0xAD, 0xBA, 0xB8, 0xB6, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6, 0xA7, 0xA8, 0xA9, 0xAA};
 
-Pokemon::Pokemon(){
+bool not_blank;
 
+Pokemon::Pokemon(){
+    not_blank = false;
 };
 
 void Pokemon::load_data(int gen, int index, byte *party_data)
@@ -48,6 +50,8 @@ void Pokemon::load_data(int gen, int index, byte *party_data)
 
 void Pokemon::convert_to_gen_three(u32 random_32)
 {
+
+    not_blank = true;
 
     // Generate PID
     u32 n_pid = generate_pid(species_index, *(vu32 *)exp % 25, &dvs[0], random_32);
