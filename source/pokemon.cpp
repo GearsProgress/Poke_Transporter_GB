@@ -101,6 +101,7 @@ void Pokemon::convert_to_gen_three(u32 random_32)
     copy_from_to(&trainer_id[0], &gen_3_pkmn[4], 2, true); // TID
     if (is_shiny)
     {
+        
     }
     else
     {
