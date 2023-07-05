@@ -14,7 +14,12 @@
 
 extern const u8 EXP_MAX[251];
 extern const u32 EXP_TYPES[6];
+extern const int GENDER_THRESHOLDS[2][8];
+extern const u8 GENDER_RATIO[251];
+extern const bool NUM_ABILITIES[251];
 
 u32 get_max_exp(int index_num);
+u8 get_gender_threshold(int index_num, bool is_gen_3);
+bool get_num_abilities(int index_num);
 
 #endif

@@ -1,6 +1,7 @@
 #ifndef MIRROR_H
 #define MIRROR_H
 #include <tonc.h>
+#include "pokemon.h"
 
 
 #define MEM_CRAM	        0x0E000000	//!< Cart RAM
@@ -16,7 +17,7 @@ extern vu32 memory_section_array[14];
 extern char mem_name;
 
 void initalize_memory_locations();
-bool insert_pokemon(vu8 party_array[], int num);
+bool insert_pokemon(Pokemon party_array[], int num);
 void reverse_endian(u8 *data, size_t size);
 void update_memory_buffer_checksum();
 

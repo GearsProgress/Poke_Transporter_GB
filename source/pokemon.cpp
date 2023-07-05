@@ -15,8 +15,11 @@ byte gen_2_char_array[0x80]{
     0xB4, 0xCA, 0xC7, 0xAE, 0x00, 0x00, 0xAC, 0xAB, 0xAD, 0x2D, 0x1B, 0x7C, 0x00, 0xEF, 0x00, 0xB5,
     0xB7, 0xEC, 0xAD, 0xBA, 0xB8, 0xB6, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6, 0xA7, 0xA8, 0xA9, 0xAA};
 
+Pokemon::Pokemon(){
 
-Pokemon::Pokemon(int gen, int index, byte *party_data)
+};
+
+void Pokemon::load_data(int gen, int index, byte *party_data)
 {
     int party_offset = 21 + (index * pkmn_size);
     int ot_offset = 21 + (6 * pkmn_size) + (index * name_size);
@@ -46,23 +49,27 @@ Pokemon::Pokemon(int gen, int index, byte *party_data)
 void Pokemon::convert_to_gen_three(u32 random_32)
 {
 
-    u32 n_pid = generate_pid(species_index, 0, &dvs[0], random_32);
-    for(int i = 0; i < 4; i++){
+    // Generate PID
+    u32 n_pid = generate_pid(species_index, *(vu32 *)exp % 25, &dvs[0], random_32);
+    for (int i = 0; i < 4; i++)
+    {
         pid[i] = (n_pid >> (i * 8)) & 0xFF;
     }
 
+    // Make sure Level is not over 100 based on EXP
     if (*(vu32 *)exp > get_max_exp(species_index))
     {
         *(vu32 *)exp = get_max_exp(species_index);
     }
 
+    // Separate the PP Up values from the Move PP values
     for (int i = 0; i < 4; i++)
     {
         pure_pp_values[i] = (pp_values[i] & 0b00111111);
         pp_bonus |= (pp_values[i] & 0b11000000) >> (6 - i * 2);
     }
 
-    // Convert IVs
+    // Convert and set IVs
     int hp_iv = 0;
     for (int i = 0; i < 4; i++)
     {
@@ -77,7 +84,9 @@ void Pokemon::convert_to_gen_three(u32 random_32)
         ivs[i] = (ivs[i] * 2) + 1;
         iv_egg_ability |= ((ivs[i] & 0b11111) << (i * 5));
     }
-    iv_egg_ability |= (pid[0] & 0x1) << 31; // Ability
+    
+    // Determine and set Ability
+    iv_egg_ability |= ((pid[0] & 0x1) ? get_num_abilities(species_index) : 1) << 31;
 
     // Origin info
     origin_info |= ((caught_data[0] & 0b10000000) << 8); // OT gender - We would shift left 15 bits, but the bit is already shifted over 7
@@ -128,7 +137,7 @@ void Pokemon::convert_to_gen_three(u32 random_32)
     {
         data_section_M[i + 4] = (iv_egg_ability >> (i * 8) & 0xFF); // Set IVs, Egg, and Ability
     }
-    copy_from_to(&ribbons[0], &data_section_M[8], 4, false); //Ribbons and Fateful Encounter
+    copy_from_to(&ribbons[0], &data_section_M[8], 4, false); // Ribbons and Fateful Encounter
 
     // Checksum:
     checksum = 0x0000;
@@ -314,11 +323,14 @@ byte *Pokemon::convert_text(byte *text_array, int size, int gen)
     return text_array;
 }
 
-u32 Pokemon::generate_pid(byte pid_species_index, byte nature, byte *pid_dvs, u32 seed){
+u32 Pokemon::generate_pid(byte pid_species_index, byte nature, byte *pid_dvs, u32 seed)
+{
+    // Set Unown Letter
     u32 new_pid = 0;
     byte letter = 0;
     Poke_Random random_num(seed);
-    if(pid_species_index == 0xC9){
+    if (pid_species_index == 0xC9)
+    {
         letter |= ((pid_dvs[0] >> 5) & 0b11) << 6;
         letter |= ((pid_dvs[0] >> 1) & 0b11) << 4;
         letter |= ((pid_dvs[1] >> 5) & 0b11) << 2;
@@ -326,16 +338,55 @@ u32 Pokemon::generate_pid(byte pid_species_index, byte nature, byte *pid_dvs, u3
         letter = letter / 10;
 
         byte letter_mod = rand_reverse_mod(28, letter, random_num.get_rand());
-        for(int i = 0; i < 4; i++){
+        for (int i = 0; i < 4; i++)
+        {
             new_pid |= ((letter_mod >> (i * 2)) & 0b11) << (8 * i);
         }
+
+        // Randomize rest of PID
         new_pid |= random_num.get_rand() & 0xFCFCFCFC;
+
+        // Set Nature
+        while ((new_pid % 25) != nature)
+        {
+            new_pid = (new_pid & 0xFFFFFF00) | ((new_pid & 0xFF) + 4);
+        }
         return new_pid;
-    } else {
-        return 0xFEFCFDFA;
+    }
+    else
+    {
+        // Set the correct gender for the Pokemon
+        new_pid |= get_rand_gender_byte(pid_species_index, ((pid_dvs[0] >> 4) & 0b1111), seed);
+        
+        // Randomize rest of PID
+        new_pid |= random_num.get_rand() & 0xFFFFFF00;
+
+        while(new_pid % 25 != nature)
+        {
+            new_pid = new_pid + 256;
+        }
+        return new_pid;
     }
 }
 
-byte Pokemon::rand_reverse_mod(byte modulo_divisor, byte target_mod, u32 seed){
+byte Pokemon::rand_reverse_mod(byte modulo_divisor, byte target_mod, u32 seed)
+{
     return (modulo_divisor * convert_random(seed, 0, (255 - target_mod) / modulo_divisor)) + target_mod;
+}
+
+byte Pokemon::get_rand_gender_byte(byte index_num, byte attack_DVs, u32 seed)
+{
+    byte gen2_threshold = get_gender_threshold(index_num, false);
+    byte gen3_threshold = get_gender_threshold(index_num, true);
+    if (gen2_threshold == -1) // Is one gender or is genderless
+    {
+        return convert_random(seed, 0, 256);
+    } else if (attack_DVs < gen2_threshold) // Is Female
+    {
+        return convert_random(seed, 0, gen3_threshold);
+    }
+    else // Is Male
+    {
+        return convert_random(seed, gen3_threshold, 256);
+    }
 }

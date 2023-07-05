@@ -7,7 +7,8 @@
 class Pokemon
 {
 public:
-    Pokemon(int gen, int index, byte *party_data);
+    Pokemon();
+    void load_data(int gen, int index, byte *party_data);
     void convert_to_gen_three(u32 random_32);
     void copy_from_to(byte *source, byte *destination, int size, bool reverse_endian);
     void alocate_data_chunks(byte *G, byte *A, byte *E, byte *M);
@@ -18,6 +19,7 @@ public:
     byte* convert_text(byte *text_array, int size, int gen);
     u32 generate_pid(byte pid_species_index, byte nature, byte *pid_ivs, u32 seed);
     byte rand_reverse_mod(byte modulo_divisor, byte target_mod, u32 seed);
+    byte get_rand_gender_byte(byte index_num, byte attack_DVs, u32 seed);
 
 private:
     byte gen;

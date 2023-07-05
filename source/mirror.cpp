@@ -1,6 +1,9 @@
 #include <tonc.h>
 #include "mirror.h"
 #include "gba_flash.h"
+#include "pokemon.h"
+
+#define pkmn_length 80
 
 vu32 newest_save_offset = MEM_CRAM + SAVE_A_OFFSET;
 
@@ -8,7 +11,6 @@ vu32 memory_section_array[14] = {};
 u8 memory_buffer[0x1000];
 char mem_name = 'A';
 
-vu8 pkmn_length = 80;
 
 // Fills the variables with the current offset information
 void initalize_memory_locations(){
@@ -31,11 +33,6 @@ void initalize_memory_locations(){
         memory_section_array[mem_id] = newest_save_offset + (i * 0x1000);
         mem_id = (mem_id + 1) % 14;
     }
-
-
-    //for (vu32 i = 0; i < 14; i++){
-    //    memory_section_array[*(vu8*)(newest_save_offset + (i * 0x1000) + SECTION_ID_OFFSET)] = newest_save_offset + (i * 0x1000);
-    //}
 }
 
 // Reverses the endian of the given array
@@ -49,7 +46,7 @@ void reverse_endian(u8 *data, size_t size){
 }
 
 // Inserts "total_num" Pokemon from the party array
-bool insert_pokemon(vu8 party_array[], int total_num){
+bool insert_pokemon(Pokemon party[], int total_num){
     int pkmn_num = 0;
     int mem_section = 5;
     int byte_location = 4;
@@ -71,7 +68,7 @@ bool insert_pokemon(vu8 party_array[], int total_num){
         
         // Writes a byte of the current Pokemon to the current spot
         if (write_pkmn){
-            memory_buffer[byte_location] = party_array[(pkmn_length * pkmn_num) + pkmn_byte];
+            memory_buffer[byte_location] = party[pkmn_num].get_full_gen_3_array()[pkmn_byte];
             byte_location++;
             pkmn_byte++;
             // Determines if the whole Pokemon has been written
