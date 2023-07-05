@@ -84,7 +84,7 @@ void Pokemon::convert_to_gen_three(u32 random_32)
     }
     
     // Determine and set Ability
-    iv_egg_ability |= ((pid[0] & 0x1) ? get_num_abilities(species_index) : 1) << 31;
+    iv_egg_ability |= ((pid[0] & 0x1) ? get_num_abilities(species_index) : 0) << 31;
 
     // Origin info
     origin_info |= ((caught_data[0] & 0b10000000) << 8); // OT gender - We would shift left 15 bits, but the bit is already shifted over 7
