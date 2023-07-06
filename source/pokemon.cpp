@@ -15,8 +15,7 @@ byte gen_2_char_array[0x80]{
     0xB4, 0xCA, 0xC7, 0xAE, 0x00, 0x00, 0xAC, 0xAB, 0xAD, 0x2D, 0x1B, 0x7C, 0x00, 0xEF, 0x00, 0xB5,
     0xB7, 0xEC, 0xAD, 0xBA, 0xB8, 0xB6, 0xA1, 0xA2, 0xA3, 0xA4, 0xA5, 0xA6, 0xA7, 0xA8, 0xA9, 0xAA};
 
-Pokemon::Pokemon(){
-};
+Pokemon::Pokemon(){};
 
 void Pokemon::load_data(int gen, int index, byte *party_data)
 {
@@ -82,7 +81,7 @@ void Pokemon::convert_to_gen_three(u32 random_32)
         ivs[i] = (ivs[i] * 2) + 1;
         iv_egg_ability |= ((ivs[i] & 0b11111) << (i * 5));
     }
-    
+
     // Determine and set Ability
     iv_egg_ability |= ((pid[0] & 0x1) ? get_num_abilities(species_index) : 0) << 31;
 
@@ -93,20 +92,36 @@ void Pokemon::convert_to_gen_three(u32 random_32)
     origin_info |= level;                                // Level met
 
     // Ribbons and Obedience
-    ribbons[1] |= 0b00000100;                         // Artist Ribbon
+    ribbons[2] |= 0b00000100;                         // Artist Ribbon
     if (species_index == 151 || species_index == 251) // Checks for Mew or Celebi
         ribbons[3] |= 0x10000000;                     // Fateful Encounter flag
 
-    copy_from_to(&pid[0], &gen_3_pkmn[0], 4, false);       // Personality Value
-    copy_from_to(&trainer_id[0], &gen_3_pkmn[4], 2, true); // TID
-    if (is_shiny)
+    // Personality Value
+    copy_from_to(&pid[0], &gen_3_pkmn[0], 4, false);
+    // Trainer ID
+    copy_from_to(&trainer_id[0], &gen_3_pkmn[4], 2, true);
+
+    // Check if the Pokemon is shiny
+    if (                                                                   // Is shiny
+        (dvs[1] == 0b10101010) &&                                          // Checks if the Speed and Special DVs equal 10
+        ((dvs[0] & 0xF) == 0b1010) &&                                      // Checks if the Defense DVs equal 10
+        (((dvs[0] & 0b11000000) >> 6) | ((dvs[0] & 0b00110000) >> 2) > 7)) // Reorganizes the Attack DV bits so that they will be >7 if the Pokemon is shiny
     {
-        
+        secret_id[0] = trainer_id[0] ^ pid[0] ^ pid[2] ^ 0xFF;
+        secret_id[1] = trainer_id[1] ^ pid[1] ^ pid[3] ^ 0xFF;
+        // Randomly shift by 16 (maybe)
     }
-    else
+    else // Not shiny, make sure it isn't
     {
-        copy_from_to(&blank_word[0], &gen_3_pkmn[6], 2, false); // SID
+        if (((trainer_id[0] ^ secret_id[0] ^ pid[0] ^ pid[2]) == 0) &&
+            ((trainer_id[1] ^ secret_id[1] ^ pid[1] ^ pid[3]) > 7))
+        {
+            secret_id[0] = 0xFF;
+            secret_id[1] = 0xFF;
+        }
     }
+    copy_from_to(&secret_id[0], &gen_3_pkmn[6], 2, false); // Set SID
+
     copy_from_to(convert_text(&nickname[0], 10, 2), &gen_3_pkmn[8], 10, false);    // Nickname
     gen_3_pkmn[18] = 2;                                                            // Language, set to English
     gen_3_pkmn[19] = 0b00000010;                                                   // Egg Name
@@ -356,11 +371,11 @@ u32 Pokemon::generate_pid(byte pid_species_index, byte nature, byte *pid_dvs, u3
     {
         // Set the correct gender for the Pokemon
         new_pid |= get_rand_gender_byte(pid_species_index, ((pid_dvs[0] >> 4) & 0b1111), seed);
-        
+
         // Randomize rest of PID
         new_pid |= random_num.get_rand() & 0xFFFFFF00;
 
-        while(new_pid % 25 != nature)
+        while (new_pid % 25 != nature)
         {
             new_pid = new_pid + 256;
         }
@@ -380,7 +395,8 @@ byte Pokemon::get_rand_gender_byte(byte index_num, byte attack_DVs, u32 seed)
     if (gen2_threshold == -1) // Is one gender or is genderless
     {
         return convert_random(seed, 0, 256);
-    } else if (attack_DVs < gen2_threshold) // Is Female
+    }
+    else if (attack_DVs < gen2_threshold) // Is Female
     {
         return convert_random(seed, 0, gen3_threshold);
     }

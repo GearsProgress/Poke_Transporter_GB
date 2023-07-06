@@ -26,6 +26,7 @@ private:
     byte species_index;
     byte moves[4];
     byte trainer_id[2];
+    byte secret_id[2];
     byte exp[4];
     byte nickname[10];
     byte trainer_name[7];
