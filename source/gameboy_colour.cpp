@@ -292,8 +292,9 @@ byte handleIncomingByte(byte in)
   return send;
 }
 
-void transferBit(void)
+bool transferBit(byte *party_data)
 {        
+  bool flag = false;
   in_data |=  (linkGPIO->readPin(LinkGPIO::Pin::SI)) << (7 - shift);  /*digitalRead(MISO_)*/
   if (++shift > 7)
   {
@@ -304,7 +305,12 @@ void transferBit(void)
       std::to_string(connection_state) + " " +
       std::to_string(in_data) + " " +
       std::to_string(out_data) + "\n");
-    in_data = 0;
+    if (trade_centre_state_gen_II == SENDING_DATA){
+      party_data[0] = in_data;
+      flag = true;
+    }
+      in_data = 0;
+
   }
 
   while (!((connection_state >= 2) ? SC_state : linkGPIO->readPin(LinkGPIO::Pin::SC))){
@@ -314,10 +320,13 @@ void transferBit(void)
 
   linkGPIO->writePin(LinkGPIO::Pin::SO, (out_data >> 7));
   out_data <<= 1;
+
+  return flag;
 }
 
-void loop()
+byte *loop(byte *party_data)
 {
+  int counter = 0;
   while (true)
   {
     last_bit = frame;
@@ -326,10 +335,12 @@ void loop()
       updateFrames();
     }
     //updateFrames();
-    transferBit();
-    if (key_held(KEY_B)){
-      connection_state = PRE_CONNECT_ONE;
-      trade_centre_state_gen_II = INIT;
+    if (transferBit(&party_data[counter])){
+      counter++;
+    }
+
+    if (trade_centre_state_gen_II == SENDING_PATCH_DATA){
+      return &party_data[0];
     }
   }
 }
