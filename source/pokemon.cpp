@@ -5,6 +5,201 @@
 #define pkmn_size ((gen == 1) ? 44 : 48)
 #define name_size 11
 
+byte gen_1_index_array[190]{
+    0x70, // Rhydon
+    0x73, // Kangaskhan
+    0x20, // Nidoran♂
+    0x23, // Clefairy
+    0x15, // Spearow
+    0x64, // Voltorb
+    0x22, // Nidoking
+    0x50, // Slowbro
+    0x02, // Ivysaur
+    0x67, // Exeggutor
+    0x6C, // Lickitung
+    0x66, // Exeggcute
+    0x58, // Grimer
+    0x5E, // Gengar
+    0x1D, // Nidoran♀
+    0x1F, // Nidoqueen
+    0x68, // Cubone
+    0x6F, // Rhyhorn
+    0x83, // Lapras
+    0x3B, // Arcanine
+    0x97, // Mew
+    0x82, // Gyarados
+    0x5A, // Shellder
+    0x48, // Tentacool
+    0x5C, // Gastly
+    0x7B, // Scyther
+    0x78, // Staryu
+    0x09, // Blastoise
+    0x7F, // Pinsir
+    0x72, // Tangela
+    0xFF, // MissingNo.
+    0xFF, // MissingNo.
+    0x3A, // Growlithe
+    0x5F, // Onix
+    0x16, // Fearow
+    0x10, // Pidgey
+    0x4F, // Slowpoke
+    0x40, // Kadabra
+    0x4B, // Graveler
+    0x71, // Chansey
+    0x43, // Machoke
+    0x7A, // Mr. Mime
+    0x6A, // Hitmonlee
+    0x6B, // Hitmonchan
+    0x18, // Arbok
+    0x2F, // Parasect
+    0x36, // Psyduck
+    0x60, // Drowzee
+    0x4C, // Golem
+    0xFF, // MissingNo.
+    0x7E, // Magmar
+    0xFF, // MissingNo.
+    0x7D, // Electabuzz
+    0x52, // Magneton
+    0x6D, // Koffing
+    0xFF, // MissingNo.
+    0x38, // Mankey
+    0x56, // Seel
+    0x32, // Diglett
+    0x80, // Tauros
+    0xFF, // MissingNo.
+    0xFF, // MissingNo.
+    0xFF, // MissingNo.
+    0x53, // Farfetch'd
+    0x30, // Venonat
+    0x95, // Dragonite
+    0xFF, // MissingNo.
+    0xFF, // MissingNo.
+    0xFF, // MissingNo.
+    0x54, // Doduo
+    0x3C, // Poliwag
+    0x7C, // Jynx
+    0x92, // Moltres
+    0x90, // Articuno
+    0x91, // Zapdos
+    0x84, // Ditto
+    0x34, // Meowth
+    0x62, // Krabby
+    0xFF, // MissingNo.
+    0xFF, // MissingNo.
+    0xFF, // MissingNo.
+    0x25, // Vulpix
+    0x26, // Ninetales
+    0x19, // Pikachu
+    0x1A, // Raichu
+    0xFF, // MissingNo.
+    0xFF, // MissingNo.
+    0x93, // Dratini
+    0x94, // Dragonair
+    0x8C, // Kabuto
+    0x8D, // Kabutops
+    0x74, // Horsea
+    0x75, // Seadra
+    0xFF, // MissingNo.
+    0xFF, // MissingNo.
+    0x1B, // Sandshrew
+    0x1C, // Sandslash
+    0x8A, // Omanyte
+    0x8B, // Omastar
+    0x27, // Jigglypuff
+    0x28, // Wigglytuff
+    0x85, // Eevee
+    0x88, // Flareon
+    0x87, // Jolteon
+    0x86, // Vaporeon
+    0x42, // Machop
+    0x29, // Zubat
+    0x17, // Ekans
+    0x2E, // Paras
+    0x3D, // Poliwhirl
+    0x3E, // Poliwrath
+    0x0D, // Weedle
+    0x0E, // Kakuna
+    0x0F, // Beedrill
+    0xFF, // MissingNo.
+    0x55, // Dodrio
+    0x39, // Primeape
+    0x33, // Dugtrio
+    0x31, // Venomoth
+    0x57, // Dewgong
+    0xFF, // MissingNo.
+    0xFF, // MissingNo.
+    0x0A, // Caterpie
+    0x0B, // Metapod
+    0x0C, // Butterfree
+    0x44, // Machamp
+    0xFF, // MissingNo.
+    0x37, // Golduck
+    0x61, // Hypno
+    0x2A, // Golbat
+    0x96, // Mewtwo
+    0x8F, // Snorlax
+    0x81, // Magikarp
+    0xFF, // MissingNo.
+    0xFF, // MissingNo.
+    0x59, // Muk
+    0xFF, // MissingNo.
+    0x63, // Kingler
+    0x5B, // Cloyster
+    0xFF, // MissingNo.
+    0x65, // Electrode
+    0x24, // Clefable
+    0x6E, // Weezing
+    0x35, // Persian
+    0x69, // Marowak
+    0xFF, // MissingNo.
+    0x5D, // Haunter
+    0x3F, // Abra
+    0x41, // Alakazam
+    0x11, // Pidgeotto
+    0x12, // Pidgeot
+    0x79, // Starmie
+    0x01, // Bulbasaur
+    0x03, // Venusaur
+    0x49, // Tentacruel
+    0xFF, // MissingNo.
+    0x76, // Goldeen
+    0x77, // Seaking
+    0xFF, // MissingNo.
+    0xFF, // MissingNo.
+    0xFF, // MissingNo.
+    0xFF, // MissingNo.
+    0x4D, // Ponyta
+    0x4E, // Rapidash
+    0x13, // Rattata
+    0x14, // Raticate
+    0x21, // Nidorino
+    0x1E, // Nidorina
+    0x4A, // Geodude
+    0x89, // Porygon
+    0x8E, // Aerodactyl
+    0xFF, // MissingNo.
+    0x51, // Magnemite
+    0xFF, // MissingNo.
+    0xFF, // MissingNo.
+    0x04, // Charmander
+    0x07, // Squirtle
+    0x05, // Charmeleon
+    0x08, // Wartortle
+    0x06, // Charizard
+    0xFF, // MissingNo.
+    0xFF, // Kabutops Fossil MissingNo.
+    0xFF, // Aerodactyl Fossil MissingNo.
+    0xFF, // Ghost MissingNo.
+    0x2B, // Oddish
+    0x2C, // Gloom
+    0x2D, // Vileplume
+    0x45, // Bellsprout
+    0x46, // Weepinbell
+    0x47, // Victreebel
+};
+
+byte gen_1_char_array[0x80]{};
+
 byte gen_2_char_array[0x80]{
     0xBB, 0xBC, 0xBD, 0xBE, 0xBF, 0xC0, 0xC1, 0xC2, 0xC3, 0xC4, 0xC5, 0xC6, 0xC7, 0xC8, 0xC9, 0xCA,
     0xCB, 0xCC, 0xCD, 0xCE, 0xCF, 0xD0, 0xD1, 0xD2, 0xD3, 0xD4, 0x5C, 0x5D, 0xF0, 0x36, 0x5C, 0x5D,
@@ -66,6 +261,37 @@ void Pokemon::convert_to_gen_three(u32 random_32)
         pp_bonus |= (pp_values[i] & 0b11000000) >> (6 - i * 2);
     }
 
+    // Check that the moves are valid
+    for (int i = 0; i < 4; i++){
+        if((!can_learn_move(moves[i], species_index)) && (moves[i] != 0)){
+            moves[i] = 12;
+        }
+    }
+
+    // Make sure it has at least one move
+    if (moves[0] + moves[1] + moves[2] + moves[3] == 0){
+        moves[0] = get_earliest_move(species_index);
+    }
+
+    // Bubble valid moves to the top
+    int i, j;
+    bool swapped;
+    for (i = 0; i < 3; i++) {
+        swapped = false;
+        for (j = 0; j < 3 - i; j++) {
+            if ((moves[j] < moves[j + 1]) && moves[j] == 0) {
+                moves[j] = moves[j + 1];
+                moves[j + 1] = 0;
+                swapped = true;
+            }
+        }
+  
+        // If no two elements were swapped
+        // by inner loop, then break
+        if (swapped == false)
+            break;
+    }
+
     // Convert and set IVs
     int hp_iv = 0;
     for (int i = 0; i < 4; i++)
@@ -105,7 +331,7 @@ void Pokemon::convert_to_gen_three(u32 random_32)
     if (                                                                   // Is shiny
         (dvs[1] == 0b10101010) &&                                          // Checks if the Speed and Special DVs equal 10
         ((dvs[0] & 0xF) == 0b1010) &&                                      // Checks if the Defense DVs equal 10
-        (((dvs[0] & 0b11000000) >> 6) | ((dvs[0] & 0b00110000) >> 2) > 7)) // Reorganizes the Attack DV bits so that they will be >7 if the Pokemon is shiny
+        (((dvs[0] & 0b11000000) >> 6) | (((dvs[0] & 0b00110000) >> 2) > 7))) // Reorganizes the Attack DV bits so that they will be >7 if the Pokemon is shiny
     {
         secret_id[0] = trainer_id[0] ^ pid[0] ^ pid[2] ^ 0xFF;
         secret_id[1] = trainer_id[1] ^ pid[1] ^ pid[3] ^ 0xFF;
@@ -343,7 +569,7 @@ u32 Pokemon::generate_pid(byte pid_species_index, byte nature, byte *pid_dvs, u3
     u32 new_pid = 0;
     byte letter = 0;
     Poke_Random random_num(seed);
-    if (pid_species_index == 0xC9)
+    if (pid_species_index == 0xC9) // Checks if the Pokemon is Unown
     {
         letter |= ((pid_dvs[0] >> 5) & 0b11) << 6;
         letter |= ((pid_dvs[0] >> 1) & 0b11) << 4;

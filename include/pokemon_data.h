@@ -17,9 +17,13 @@ extern const u32 EXP_TYPES[6];
 extern const int GENDER_THRESHOLDS[2][8];
 extern const u8 GENDER_RATIO[251];
 extern const bool NUM_ABILITIES[251];
+extern const byte MOVESETS[251][32];
+extern const byte FIRST_MOVES[251];
 
 u32 get_max_exp(int index_num);
 u8 get_gender_threshold(int index_num, bool is_gen_3);
 bool get_num_abilities(int index_num);
+bool can_learn_move(int pkmn_index, int move_index);
+byte get_earliest_move(int index_num);
 
 #endif
