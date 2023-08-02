@@ -4,16 +4,18 @@
 #include <tonc.h>
 #include <string>
 
+#include "script_obj.h"
+
 class text_engine
 {
 public:
     text_engine();
-    void next_frame();
+    int next_frame();
 
 private:
-    std::string curr_string;
-    std::string next_string;
+    script_obj curr_line;
     int frame_count;
+    void set_next_line(std::string next);
 };
 
 #endif

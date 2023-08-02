@@ -1,6 +1,8 @@
 #include <tonc.h>
+#include <string>
 
 #include "text_engine.h"
+#include "script_array.h"
 
 const int H_MAX = 240;
 const int V_MAX = 160;
@@ -15,29 +17,39 @@ text_engine::text_engine()
 {
     OBJ_ATTR *objs = &oam_mem[127];
     tte_init_obj_default(objs);
+
     tte_set_margins(LEFT, TOP, RIGHT, BOTTOM);
     tte_set_pos(LEFT, TOP);
-    curr_string = "Hello there! Welcome to\nthe world of Pokemon!";
-    next_string = "My name is OAK, but you\ncan call me professor.";
+
+    curr_line = script[0];
     frame_count = 0;
 }
 
-void text_engine::next_frame()
+int text_engine::next_frame()
 {
     tte_set_pos(LEFT, TOP);
-    if(char_count < curr_string.length()){
-    if (frame_count % 2 == 0 || key_held(KEY_B))
+    int out_code = 0;
+    if (char_count < curr_line.get_text().length())
     {
-        char_count++;
-        tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
-        tte_write(curr_string.substr(0, char_count).c_str());
+        if (frame_count % 2 == 0 || key_held(KEY_B))
+        {
+            char_count++;
+            tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
+            tte_write(curr_line.get_text().substr(0, char_count).c_str());
+        }
     }
-    } else {
-        if(key_hit(KEY_A)){
-            curr_string = next_string;
+    else
+    {
+        if (key_hit(KEY_A) || frame_count <= 1)
+        {
+            int new_index = curr_line.get_next_obj_id();
+            out_code = curr_line.get_out_code();
+            curr_line = script[new_index];
             char_count = 0;
         }
     }
 
     frame_count++;
+
+    return out_code;
 }

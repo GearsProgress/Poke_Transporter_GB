@@ -82,6 +82,7 @@ byte party_data[444] = {
 	0x00, 0x00, 0x00};
 
 Poke_Random poke_rand(0x12162001);
+text_engine main_text = text_engine();
 
 Pokemon party[6] = {};
 
@@ -137,7 +138,7 @@ void load_sprite(void)
 				 ATTR2_PALBANK(0) | 0); // palette index 0, tile index 0
 
 	// Set position
-	obj_set_pos(metr, 100, 100);
+	obj_set_pos(metr, 0, 0);
 
 	oam_copy(oam_mem, obj_buffer, 1); // Update first OAM object
 }
@@ -169,11 +170,9 @@ int main(void)
 	flash_init(FLASH_SIZE_128KB);
 	initalize_memory_locations();
 
-	text_engine main_text = text_engine();
-
-	load_sprite();
-
 	back_main();
+
+	// load_sprite();
 
 	if (!DEBUG_MODE)
 	{
@@ -183,8 +182,18 @@ int main(void)
 			key_poll();
 			poke_rand.next_frame();
 			back_frame();
-			main_text.next_frame();
-			// text next frame
+			int out_code = main_text.next_frame();
+
+			switch (out_code)
+			{
+			case 1:
+				setup();
+				loop(&party_data[0]);
+			break;
+			
+			default:
+				break;
+			}
 		}
 	}
 	else
