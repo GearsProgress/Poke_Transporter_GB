@@ -6,6 +6,7 @@
 #include <tonc.h>
 #include <string>
 #include "LinkGPIO.h"
+
 /*
 #define LINK_SPI_NO_DATA 0xffffffff
 #define LINK_SPI_SIOCNT_NORMAL 0

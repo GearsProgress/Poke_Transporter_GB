@@ -4,14 +4,17 @@
 #include <tonc.h>
 #include "pokemon.h"
 
-class Pokemon_Party{
-    public:
+class Pokemon_Party
+{
+public:
     Pokemon_Party();
-    int start_link();
+    void start_link();
+    int get_last_error();
 
-    private:
+private:
     Pokemon party[6];
-    byte party_data[444];
+    byte party_data_array[444];
+    int last_error;
 };
 
 #endif

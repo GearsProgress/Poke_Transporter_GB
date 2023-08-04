@@ -4,8 +4,9 @@
 #include "script_obj.h"
 #include "pokemon_party.h"
 
-extern script_obj script[11];
+extern script_obj script[13];
 
 void add_script_party_var(Pokemon_Party var);
+bool run_conditional(int index);
 
 #endif

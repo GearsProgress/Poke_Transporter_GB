@@ -2,7 +2,6 @@
 #include <string>
 
 #include "text_engine.h"
-#include "script_array.h"
 
 const int H_MAX = 240;
 const int V_MAX = 160;
@@ -12,7 +11,6 @@ const int TOP = 122;
 const int BOTTOM = V_MAX;
 
 uint char_count = 0;
-Pokemon_Party party_data;
 
 text_engine::text_engine()
 {
@@ -40,12 +38,29 @@ void text_engine::next_frame()
     }
     else
     {
-        if (key_hit(KEY_A) || frame_count <= 1)
+        if (key_hit(KEY_A) || char_count == 0)
         {
-            curr_line = script[curr_line.get_next_obj_id()];
+            curr_line = script[get_next_obj_id(curr_line)];
             char_count = 0;
         }
     }
 
     frame_count++;
 }
+
+int text_engine::get_next_obj_id(script_obj current_line)
+{
+    if (current_line.get_cond_id() == 0)
+    {
+        return current_line.get_true_index();
+    }
+    else
+    {
+        if (run_conditional(current_line.get_cond_id()))
+        {
+            return current_line.get_true_index();
+        }
+        return current_line.get_false_index();
+    }
+}
+

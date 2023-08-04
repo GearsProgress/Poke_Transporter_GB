@@ -9,7 +9,8 @@
 #define BYTE_INCOMPLETE 0
 #define BYTE_COMPLETE 1
 #define TIMEOUT 2
-#define TIMEOUT_LENGTH 1000000
+#define TIMEOUT_ONE_LENGTH 1000000 // Maybe keep a 10:1 ratio between ONE and TWO?
+#define TIMEOUT_TWO_LENGTH 100000
 
 const int MODE = 1; // mode=0 will transfer pokemon data from pokemon.h
                     // mode=1 will copy pokemon party data being received
@@ -361,29 +362,34 @@ int transferBit(byte *party_data)
     }
     in_data = 0;
   }
-
   while (!((connection_state >= 2) ? SC_state : linkGPIO->readPin(LinkGPIO::Pin::SC)))
   {
     updateFrames();
     timeout++;
-    if (timeout > TIMEOUT_LENGTH)
+    if (timeout > TIMEOUT_TWO_LENGTH)
     {
       timeout = 0;
       return TIMEOUT;
     }
+    /*
+    if (timeout % 100 == 0)
+    {
+      tte_set_pos(0, 0);
+      tte_erase_line();
+      tte_write(std::to_string(timeout).c_str());
+    }*/
   } // no activity when clock is low //!digitalRead(SCLK_)
   // digitalWrite(MOSI_, out_data & 0x80 ? HIGH : LOW);
 
   linkGPIO->writePin(LinkGPIO::Pin::SO, (out_data >> 7));
   out_data <<= 1;
-
   return flag;
 }
 
 int loop(byte *party_data)
 {
-  byte small_array[12];
   int counter = 0;
+  int timeout;
   int transfer_state = BYTE_INCOMPLETE;
   while (true)
   {
@@ -391,19 +397,23 @@ int loop(byte *party_data)
     while (((connection_state >= 2) ? SC_state : linkGPIO->readPin(LinkGPIO::Pin::SC))) /*digitalRead(SCLK_)*/
     {
       updateFrames();
+      timeout++;
+      if (timeout > TIMEOUT_ONE_LENGTH){
+        return ERROR_TIMEOUT_ONE;
+      }
     }
+    timeout = 0;
     // updateFrames();
-
-    transfer_state = transferBit(&party_data[counter]);
+    transfer_state = transferBit(&party_data[counter]); // This statement will cause a loop. If that loop takes too long, then the transfer state will be TIMEOUT
 
     if (transfer_state == BYTE_COMPLETE)
     {
       counter++;
     }
     else if (
-        transfer_state == TIMEOUT || FF_count > 25 || zero_count > 25)
+        transfer_state == TIMEOUT)
     {
-      return ERROR_TIMEOUT;
+      return ERROR_TIMEOUT_TWO;
     }
     if (FF_count > 25)
     {

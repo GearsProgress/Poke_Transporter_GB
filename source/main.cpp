@@ -175,8 +175,7 @@ int main(void)
 	initalize_memory_locations();
 
 	back_main();
-	//add_script_party_var(party);
-
+	add_script_party_var(party);
 	// load_sprite();
 
 	// MAIN LOOP
@@ -186,8 +185,6 @@ int main(void)
 		poke_rand.next_frame();
 		back_frame();
 		main_text.next_frame();
-
-
 	}
 }
 
