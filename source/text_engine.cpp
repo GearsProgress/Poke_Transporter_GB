@@ -12,6 +12,7 @@ const int TOP = 122;
 const int BOTTOM = V_MAX;
 
 uint char_count = 0;
+Pokemon_Party party_data;
 
 text_engine::text_engine()
 {
@@ -25,10 +26,9 @@ text_engine::text_engine()
     frame_count = 0;
 }
 
-int text_engine::next_frame()
+void text_engine::next_frame()
 {
     tte_set_pos(LEFT, TOP);
-    int out_code = 0;
     if (char_count < curr_line.get_text().length())
     {
         if (frame_count % 2 == 0 || key_held(KEY_B))
@@ -42,14 +42,10 @@ int text_engine::next_frame()
     {
         if (key_hit(KEY_A) || frame_count <= 1)
         {
-            int new_index = curr_line.get_next_obj_id();
-            out_code = curr_line.get_out_code();
-            curr_line = script[new_index];
+            curr_line = script[curr_line.get_next_obj_id()];
             char_count = 0;
         }
     }
 
     frame_count++;
-
-    return out_code;
 }

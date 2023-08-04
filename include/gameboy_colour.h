@@ -27,8 +27,8 @@
 
 void setup();
 byte handleIncomingByte(byte in);
-bool transferBit(byte *party_data);
-byte *loop(byte *party_data);
+int transferBit(byte *party_data);
+int loop(byte *party_data);
 std::string outHexStr(vu8 inputNum);
 void updateFrames();
 

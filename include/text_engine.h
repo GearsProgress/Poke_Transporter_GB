@@ -10,11 +10,12 @@ class text_engine
 {
 public:
     text_engine();
-    int next_frame();
+    void next_frame();
 
 private:
     script_obj curr_line;
     int frame_count;
+    Pokemon_Party *party_data;
     void set_next_line(std::string next);
 };
 

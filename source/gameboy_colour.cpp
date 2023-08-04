@@ -4,69 +4,100 @@
 #include "pokemon_trade.h"
 #include "output.h"
 #include "LinkGPIO.h"
+#include "script_obj.h"
 
+#define BYTE_INCOMPLETE 0
+#define BYTE_COMPLETE 1
+#define TIMEOUT 2
+#define TIMEOUT_LENGTH 1000000
 
 const int MODE = 1; // mode=0 will transfer pokemon data from pokemon.h
                     // mode=1 will copy pokemon party data being received
 
-LinkGPIO* linkGPIO = new LinkGPIO();
+LinkGPIO *linkGPIO = new LinkGPIO();
 
-uint8_t shift = 0;
-uint8_t in_data = 0;
-uint8_t out_data = 0;
-uint frame = 0;
+uint8_t shift;
+uint8_t in_data;
+uint8_t out_data;
+uint frame;
 
-bool SC_state = 0;
+bool SC_state;
 
-connection_state_t connection_state = PRE_CONNECT_ONE;
-trade_centre_state_gen_II_t trade_centre_state_gen_II = INIT;
-int counter = 0;
+connection_state_t connection_state;
+trade_centre_state_gen_II_t trade_centre_state_gen_II;
+int counter;
 
-int gen = 0;
+int gen;
 
-int trade_pokemon = -1;
+int trade_pokemon;
 
 unsigned long last_bit;
 
+int FF_count;
+int zero_count;
+
 char hexArr[16] = {
-	'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
+    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
 
 char output[2];
 
-std::string outHexStr(vu8 inputNum){
+std::string outHexStr(vu8 inputNum)
+{
   std::string out = "XX";
-  out[0] = (inputNum) & 0xF;
-  out[1] = (inputNum>>4) & 0xF;
-	return out;
+  out[0] = (inputNum)&0xF;
+  out[1] = (inputNum >> 4) & 0xF;
+  return out;
 }
 
 std::string out_array[10];
 
-void print(std::string str){
-  for (int i = 10; i > 0; i--){
+void print(std::string str)
+{
+  for (int i = 10; i > 0; i--)
+  {
     out_array[i] = out_array[i - 1];
   }
   out_array[0] = std::to_string(frame) + ": " + str + "\n";
-    tte_erase_screen();
-    tte_set_pos(0, 0);
-  for (int j = 0; j < 10; j++){
+  tte_erase_screen();
+  tte_set_pos(0, 0);
+  for (int j = 0; j < 10; j++)
+  {
     tte_write(out_array[j].c_str());
   }
 }
 
-void updateFrames(){
-   if (((connection_state > 1) && (frame - last_bit >= ((trade_centre_state_gen_II >= WAITING_TO_SEND_DATA) ? 10 : 1000))) /*|| connection_state == PRE_CONNECTED*/)
-      {
-        SC_state = !SC_state;
-        linkGPIO->writePin(LinkGPIO::Pin::SC, SC_state);
-        //print(SC_state ? "True" : "False");
-        last_bit = frame;
-      }
+void updateFrames()
+{
+  if (((connection_state > 1) && (frame - last_bit >= ((trade_centre_state_gen_II >= WAITING_TO_SEND_DATA) ? 10 : 1000))) /*|| connection_state == PRE_CONNECTED*/)
+  {
+    SC_state = !SC_state;
+    linkGPIO->writePin(LinkGPIO::Pin::SC, SC_state);
+    // print(SC_state ? "True" : "False");
+    last_bit = frame;
+  }
   frame++;
 }
 
 void setup()
 {
+
+  shift = 0;
+  in_data = 0;
+  out_data = 0;
+  frame = 0;
+
+  SC_state = 0;
+
+  connection_state = PRE_CONNECT_ONE;
+  trade_centre_state_gen_II = INIT;
+  counter = 0;
+
+  gen = 0;
+
+  trade_pokemon = -1;
+
+  FF_count = 0;
+  zero_count = 0;
 
   // pinMode(SCLK_, INPUT);
   // pinMode(MISO_, INPUT);
@@ -94,36 +125,53 @@ void setup()
   // digitalWrite(MOSI_, LOW);
   linkGPIO->writePin(LinkGPIO::Pin::SO, 0);
   out_data <<= 1;
-  
 }
-
 
 byte handleIncomingByte(byte in)
 {
   byte send = 0x00;
- 
-  switch (connection_state)
-  {  
-  case PRE_CONNECT_ONE:
-  if (in == PKMN_MASTER){
-    connection_state = PRE_CONNECT_TWO;
+
+  if (trade_centre_state_gen_II < WAITING_TO_SEND_DATA)
+  {
+    switch (in)
+    {
+    case 0x00:
+      FF_count = 0;
+      zero_count++;
+      break;
+
+    case 0xFF:
+      zero_count = 0;
+      FF_count++;
+      break;
+    }
   }
+
+  switch (connection_state)
+  {
+  case PRE_CONNECT_ONE:
+    if (in == PKMN_MASTER)
+    {
+      connection_state = PRE_CONNECT_TWO;
+    }
     send = PKMN_MASTER;
-  break;
+    break;
 
   case PRE_CONNECT_TWO:
-    if (in == PKMN_MASTER){
-    connection_state = NOT_CONNECTED;
-    linkGPIO->setMode(LinkGPIO::Pin::SC, LinkGPIO::Direction::OUTPUT);
-    shift = shift + 1;
-  }
+    if (in == PKMN_MASTER)
+    {
+      connection_state = NOT_CONNECTED;
+      linkGPIO->setMode(LinkGPIO::Pin::SC, LinkGPIO::Direction::OUTPUT);
+      shift = shift + 1;
+    }
     send = PKMN_MASTER;
-  break;
+    break;
 
   case NOT_CONNECTED:
     if (in == PKMN_SLAVE)
       send = PKMN_MASTER;
-    else if (in == PKMN_BLANK){
+    else if (in == PKMN_BLANK)
+    {
       send = PKMN_BLANK;
     }
     else if (in == PKMN_CONNECTED_I)
@@ -292,31 +340,39 @@ byte handleIncomingByte(byte in)
   return send;
 }
 
-bool transferBit(byte *party_data)
-{        
-  bool flag = false;
-  in_data |=  (linkGPIO->readPin(LinkGPIO::Pin::SI)) << (7 - shift);  /*digitalRead(MISO_)*/
+int transferBit(byte *party_data)
+{
+  int timeout = 0;
+  int flag = BYTE_INCOMPLETE;
+  in_data |= (linkGPIO->readPin(LinkGPIO::Pin::SI)) << (7 - shift); /*digitalRead(MISO_)*/
   if (++shift > 7)
   {
     shift = 0;
-    out_data = handleIncomingByte(in_data); //in_data
+    out_data = handleIncomingByte(in_data); // in_data
     print(
-      std::to_string(trade_centre_state_gen_II) + " " + 
-      std::to_string(connection_state) + " " +
-      std::to_string(in_data) + " " +
-      std::to_string(out_data) + "\n");
-    if (trade_centre_state_gen_II == SENDING_DATA){
+        std::to_string(trade_centre_state_gen_II) + " " +
+        std::to_string(connection_state) + " " +
+        std::to_string(in_data) + " " +
+        std::to_string(out_data) + "\n");
+    if (trade_centre_state_gen_II == SENDING_DATA)
+    {
       party_data[0] = in_data;
-      flag = true;
+      flag = BYTE_COMPLETE;
     }
-      in_data = 0;
-
+    in_data = 0;
   }
 
-  while (!((connection_state >= 2) ? SC_state : linkGPIO->readPin(LinkGPIO::Pin::SC))){
+  while (!((connection_state >= 2) ? SC_state : linkGPIO->readPin(LinkGPIO::Pin::SC)))
+  {
     updateFrames();
+    timeout++;
+    if (timeout > TIMEOUT_LENGTH)
+    {
+      timeout = 0;
+      return TIMEOUT;
+    }
   } // no activity when clock is low //!digitalRead(SCLK_)
-  //digitalWrite(MOSI_, out_data & 0x80 ? HIGH : LOW);
+  // digitalWrite(MOSI_, out_data & 0x80 ? HIGH : LOW);
 
   linkGPIO->writePin(LinkGPIO::Pin::SO, (out_data >> 7));
   out_data <<= 1;
@@ -324,9 +380,11 @@ bool transferBit(byte *party_data)
   return flag;
 }
 
-byte *loop(byte *party_data)
+int loop(byte *party_data)
 {
+  byte small_array[12];
   int counter = 0;
+  int transfer_state = BYTE_INCOMPLETE;
   while (true)
   {
     last_bit = frame;
@@ -334,15 +392,31 @@ byte *loop(byte *party_data)
     {
       updateFrames();
     }
-    //updateFrames();
-    if (transferBit(&party_data[counter])){
+    // updateFrames();
+
+    transfer_state = transferBit(&party_data[counter]);
+
+    if (transfer_state == BYTE_COMPLETE)
+    {
       counter++;
     }
+    else if (
+        transfer_state == TIMEOUT || FF_count > 25 || zero_count > 25)
+    {
+      return ERROR_TIMEOUT;
+    }
+    if (FF_count > 25)
+    {
+      return ERROR_DISCONNECT;
+    }
+    if (zero_count > 25)
+    {
+      return ERROR_COM_ENDED;
+    }
 
-    if (trade_centre_state_gen_II == SENDING_PATCH_DATA){
-      return &party_data[0];
+    if (trade_centre_state_gen_II == SENDING_PATCH_DATA)
+    {
+      return 0;
     }
   }
 }
-
-
