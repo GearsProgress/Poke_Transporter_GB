@@ -1,15 +1,10 @@
 #ifndef RANDOM_H
 #define RANDOM_H
 
-class Poke_Random{
-    public:
-        Poke_Random(unsigned int init_seed);
-        void next_frame();
-        unsigned int get_rand();
-    private:
-        unsigned int rand;
-};
+void rand_set_seed(unsigned int init_seed);
+void rand_next_frame();
+unsigned int get_rand_u32();
 
-unsigned int convert_random(unsigned int seed, unsigned int inc_min, unsigned int exc_max);
+unsigned int get_rand_range(unsigned int inc_min, unsigned int exc_max);
 
 #endif

@@ -1,6 +1,6 @@
 #include <tonc.h>
 #include <string>
-#include "mirror.h"
+#include "flash_mem.h"
 #include "gba_flash.h"
 #include "debug.h"
 

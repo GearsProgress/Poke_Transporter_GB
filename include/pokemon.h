@@ -8,8 +8,8 @@ class Pokemon
 {
 public:
     Pokemon();
-    void load_data(int gen, int index, byte *party_data);
-    void convert_to_gen_three(u32 random_32);
+    void load_data(int index, byte *party_data);
+    void convert_to_gen_three();
     void copy_from_to(byte *source, byte *destination, int size, bool reverse_endian);
     void alocate_data_chunks(byte *G, byte *A, byte *E, byte *M);
     void insert_data(byte *first, byte *second, byte *third, byte *fourth);
@@ -17,12 +17,12 @@ public:
     byte* get_full_gen_3_array();
     byte get_unencrypted_data(int index);
     byte* convert_text(byte *text_array, int size, int gen);
-    u32 generate_pid(byte pid_species_index, byte nature, byte *pid_ivs, u32 seed);
-    byte rand_reverse_mod(byte modulo_divisor, byte target_mod, u32 seed);
-    byte get_rand_gender_byte(byte index_num, byte attack_DVs, u32 seed);
+    u32 generate_pid(byte pid_species_index, byte nature, byte *pid_ivs);
+    byte rand_reverse_mod(byte modulo_divisor, byte target_mod);
+    byte get_rand_gender_byte(byte index_num, byte attack_DVs);
 
 private:
-    byte gen;
+    byte gen = 2;
     byte species_index;
     byte moves[4];
     byte trainer_id[2];

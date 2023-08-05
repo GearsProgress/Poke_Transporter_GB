@@ -423,6 +423,9 @@ int loop(byte *party_data)
     {
       return ERROR_COM_ENDED;
     }
+    if (connection_state == COLOSSEUM){
+      return ERROR_COLOSSEUM;
+    }
 
     if (trade_centre_state_gen_II == SENDING_PATCH_DATA)
     {

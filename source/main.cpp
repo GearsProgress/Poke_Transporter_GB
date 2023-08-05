@@ -2,7 +2,7 @@
 #include <string>
 
 #include "debug.h"
-#include "mirror.h"
+#include "flash_mem.h"
 #include "gba_flash.h"
 #include "interrupt.h"
 #include "gb_link.h"
@@ -85,7 +85,6 @@ OBJ_AFFINE *obj_aff_buffer = (OBJ_AFFINE *)obj_buffer;
 
 	0x00, 0x00, 0x00};
 */
-Poke_Random poke_rand(0x12162001);
 Pokemon_Party party = Pokemon_Party();
 text_engine main_text = text_engine();
 
@@ -173,6 +172,7 @@ int main(void)
 
 	flash_init(FLASH_SIZE_128KB);
 	initalize_memory_locations();
+	rand_set_seed(0x12162001);
 
 	back_main();
 	add_script_party_var(party);
@@ -182,7 +182,7 @@ int main(void)
 	while (1)
 	{
 		key_poll();
-		poke_rand.next_frame();
+		rand_next_frame();
 		back_frame();
 		main_text.next_frame();
 	}

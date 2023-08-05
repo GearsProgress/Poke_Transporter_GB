@@ -1,5 +1,5 @@
 #include <tonc.h>
-#include "mirror.h"
+#include "flash_mem.h"
 #include "gba_flash.h"
 #include "pokemon.h"
 
@@ -38,7 +38,7 @@ void initalize_memory_locations(){
 // Reverses the endian of the given array
 void reverse_endian(u8 *data, size_t size){
     u8 temp;
-    for (int i = 0; i < (size/2); i++){
+    for (unsigned int i = 0; i < (size/2); i++){
         temp = data[i];
         data[i] = data[(size - 1) - i];
         data[(size - 1) - i] = temp;
@@ -104,7 +104,7 @@ void update_memory_buffer_checksum(){
         num_of_bytes = 2000;
     }
 
-    for (int i = 0; i < num_of_bytes / 4; i++){
+    for (unsigned int i = 0; i < num_of_bytes / 4; i++){
         checksum += (memory_buffer[(4*i) + 3] << 24) | (memory_buffer[(4*i) + 2] << 16) | (memory_buffer[(4*i) + 1] << 8) | (memory_buffer[(4*i) + 0] << 0);
     }
 

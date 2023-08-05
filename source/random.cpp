@@ -1,19 +1,19 @@
 #include "random.h"
 
-unsigned int rand;
+unsigned int u32_rand;
 
-Poke_Random::Poke_Random(unsigned int init_seed){
-    rand = init_seed;
+void rand_set_seed(unsigned int init_seed){
+    u32_rand = init_seed;
 }
 
-void Poke_Random::next_frame(){
-    rand =  0x41C64E6D * rand + 0x00006073; // This is the randomization method used in Gen 3
+void rand_next_frame(){
+    u32_rand =  0x41C64E6D * u32_rand + 0x00006073; // This is the randomization method used in Gen 3
 }
 
-unsigned int Poke_Random::get_rand(){
-    return rand;
+unsigned int get_rand_u32(){
+    return u32_rand;
 }
 
-unsigned int convert_random(unsigned int seed, unsigned int inc_min, unsigned int exc_max){
-    return ((double)((seed / (double)0x100000000) * (exc_max - inc_min)) + inc_min);
+unsigned int get_rand_range(unsigned int inc_min, unsigned int exc_max){
+    return ((double)((get_rand_u32() / (double)0x100000000) * (exc_max - inc_min)) + inc_min);
 }

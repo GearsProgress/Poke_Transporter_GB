@@ -10,6 +10,8 @@
 #define ERROR_DISCONNECT 4
 #define ERROR_COM_ENDED 5
 #define ERROR_TIMEOUT_TWO 6
+#define ERROR_COLOSSEUM 7
+#define IMPORT_POKEMON 8
 
 class script_obj
 {

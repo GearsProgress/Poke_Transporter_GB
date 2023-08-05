@@ -1,6 +1,7 @@
 #include <tonc.h>
 #include "pokemon.h"
 #include "pokemon_data.h"
+#include "random.h"
 
 #define pkmn_size ((gen == 1) ? 44 : 48)
 #define name_size 11
@@ -212,7 +213,7 @@ byte gen_2_char_array[0x80]{
 
 Pokemon::Pokemon(){};
 
-void Pokemon::load_data(int gen, int index, byte *party_data)
+void Pokemon::load_data(int index, byte *party_data)
 {
     int party_offset = 21 + (index * pkmn_size);
     int ot_offset = 21 + (6 * pkmn_size) + (index * name_size);
@@ -239,10 +240,10 @@ void Pokemon::load_data(int gen, int index, byte *party_data)
     }
 }
 
-void Pokemon::convert_to_gen_three(u32 random_32)
+void Pokemon::convert_to_gen_three()
 {
     // Generate PID
-    u32 n_pid = generate_pid(species_index, *(vu32 *)exp % 25, &dvs[0], random_32);
+    u32 n_pid = generate_pid(species_index, *(vu32 *)exp % 25, &dvs[0]);
     for (int i = 0; i < 4; i++)
     {
         pid[i] = (n_pid >> (i * 8)) & 0xFF;
@@ -563,12 +564,11 @@ byte *Pokemon::convert_text(byte *text_array, int size, int gen)
     return text_array;
 }
 
-u32 Pokemon::generate_pid(byte pid_species_index, byte nature, byte *pid_dvs, u32 seed)
+u32 Pokemon::generate_pid(byte pid_species_index, byte nature, byte *pid_dvs)
 {
     // Set Unown Letter
     u32 new_pid = 0;
     byte letter = 0;
-    Poke_Random random_num(seed);
     if (pid_species_index == 0xC9) // Checks if the Pokemon is Unown
     {
         letter |= ((pid_dvs[0] >> 5) & 0b11) << 6;
@@ -577,14 +577,14 @@ u32 Pokemon::generate_pid(byte pid_species_index, byte nature, byte *pid_dvs, u3
         letter |= ((pid_dvs[1] >> 1) & 0b11);
         letter = letter / 10;
 
-        byte letter_mod = rand_reverse_mod(28, letter, random_num.get_rand());
+        byte letter_mod = rand_reverse_mod(28, letter);
         for (int i = 0; i < 4; i++)
         {
             new_pid |= ((letter_mod >> (i * 2)) & 0b11) << (8 * i);
         }
 
         // Randomize rest of PID
-        new_pid |= random_num.get_rand() & 0xFCFCFCFC;
+        new_pid |= get_rand_u32() & 0xFCFCFCFC;
 
         // Set Nature
         while ((new_pid % 25) != nature)
@@ -596,10 +596,10 @@ u32 Pokemon::generate_pid(byte pid_species_index, byte nature, byte *pid_dvs, u3
     else
     {
         // Set the correct gender for the Pokemon
-        new_pid |= get_rand_gender_byte(pid_species_index, ((pid_dvs[0] >> 4) & 0b1111), seed);
+        new_pid |= get_rand_gender_byte(pid_species_index, ((pid_dvs[0] >> 4) & 0b1111));
 
         // Randomize rest of PID
-        new_pid |= random_num.get_rand() & 0xFFFFFF00;
+        new_pid |= get_rand_u32() & 0xFFFFFF00;
 
         while (new_pid % 25 != nature)
         {
@@ -609,25 +609,25 @@ u32 Pokemon::generate_pid(byte pid_species_index, byte nature, byte *pid_dvs, u3
     }
 }
 
-byte Pokemon::rand_reverse_mod(byte modulo_divisor, byte target_mod, u32 seed)
+byte Pokemon::rand_reverse_mod(byte modulo_divisor, byte target_mod)
 {
-    return (modulo_divisor * convert_random(seed, 0, (255 - target_mod) / modulo_divisor)) + target_mod;
+    return (modulo_divisor * get_rand_range(0, (255 - target_mod) / modulo_divisor)) + target_mod;
 }
 
-byte Pokemon::get_rand_gender_byte(byte index_num, byte attack_DVs, u32 seed)
+byte Pokemon::get_rand_gender_byte(byte index_num, byte attack_DVs)
 {
     byte gen2_threshold = get_gender_threshold(index_num, false);
     byte gen3_threshold = get_gender_threshold(index_num, true);
     if (gen2_threshold == -1) // Is one gender or is genderless
     {
-        return convert_random(seed, 0, 256);
+        return get_rand_range(0, 256);
     }
     else if (attack_DVs < gen2_threshold) // Is Female
     {
-        return convert_random(seed, 0, gen3_threshold);
+        return get_rand_range(0, gen3_threshold);
     }
     else // Is Male
     {
-        return convert_random(seed, gen3_threshold, 256);
+        return get_rand_range(gen3_threshold, 256);
     }
 }

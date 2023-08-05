@@ -52,8 +52,12 @@ typedef unsigned char byte;
 #define ITEM_2_SELECTED					0xD5
 #define ITEM_3_SELECTED					0xD6
 
+#define GEN_I_CABLE_TRADE_CENTER			0xD4
+#define GEN_I_CABLE_CLUB_COLOSSEUM			0xD5
+
 #define GEN_II_CABLE_TRADE_CENTER			0xD1
 #define GEN_II_CABLE_CLUB_COLOSSEUM			0xD2
+#define GEN_II_TIME_CAPSULE			0xD2
 
 #define PKMN_MASTER					0x01
 #define PKMN_SLAVE					0x02
