@@ -27,6 +27,7 @@ bool SC_state;
 connection_state_t connection_state;
 trade_centre_state_gen_II_t trade_centre_state_gen_II;
 int counter;
+int gen_1_room_counter = 0;
 
 int gen;
 
@@ -145,6 +146,11 @@ byte handleIncomingByte(byte in)
       zero_count = 0;
       FF_count++;
       break;
+
+    default:
+      FF_count = 0;
+      zero_count = 0;
+      break;
     }
   }
 
@@ -194,10 +200,25 @@ byte handleIncomingByte(byte in)
     break;
 
   case CONNECTED:
-    if (in == PKMN_CONNECTED_I) // acknowledge connection
+    if (in == PKMN_CONNECTED_I)
+    { // acknowledge connection
       send = PKMN_CONNECTED_I;
-    else if (in == PKMN_CONNECTED_II) // acknowledge connection
+      gen_1_room_counter = 0;
+    }
+    else if (in == PKMN_CONNECTED_II)
+    { // acknowledge connection
       send = PKMN_CONNECTED_II;
+      gen_1_room_counter = 0;
+    }
+    else if (in == ITEM_1_HIGHLIGHTED)
+    { // select gen 1 trade room automatically
+      send = ITEM_1_SELECTED;
+      if (gen_1_room_counter >= 3)
+      {
+        connection_state = TRADE_CENTRE;
+      }
+      gen_1_room_counter++;
+    }
     else if (in == GEN_II_CABLE_TRADE_CENTER)
     { // acknowledge trade center selection
       connection_state = TRADE_CENTRE;
@@ -398,7 +419,8 @@ int loop(byte *party_data)
     {
       updateFrames();
       timeout++;
-      if (timeout > TIMEOUT_ONE_LENGTH){
+      if (timeout > TIMEOUT_ONE_LENGTH)
+      {
         return ERROR_TIMEOUT_ONE;
       }
     }
@@ -423,7 +445,8 @@ int loop(byte *party_data)
     {
       return ERROR_COM_ENDED;
     }
-    if (connection_state == COLOSSEUM){
+    if (connection_state == COLOSSEUM)
+    {
       return ERROR_COLOSSEUM;
     }
 

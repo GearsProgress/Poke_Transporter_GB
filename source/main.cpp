@@ -19,22 +19,22 @@
 --------
 ACCURACY:
 - See if shiny Pokemon from gen 2 can be square shinies or if they're all normal
+- See what happens with hybrid Pokemon
 
 LINK CABLE:
-- Prevent trading through time capsule
-- Prevent going to the battle area
-- Implement gen 1 lol
+- Figure out JP Green
 
 CONVERSION:
 - Fix fateful encounter so Mew and Celebi work
 - Fix unown sometimes not being right (J becomes N)
 - Add in check for glitch Pokemon
-- Add in gen 1
-	- Gen 1 character array
+- Add in check for egg
 - Restrict illegal moves
 - Set full default PP points for ALL moves (and PP ups)
 - Check for duplicate moves?
 - What happens with Smeargle?
+- Check Pokerus
+- Fix egg moves only being on the baby Pokemon. TLDR anything Horsea can learn Seadra can too
 
 INJECTION:
 - Redo injection to be picked up like a Mystery Gift
