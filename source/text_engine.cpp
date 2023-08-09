@@ -2,24 +2,28 @@
 #include <string>
 
 #include "text_engine.h"
+#include <cstring>
+
+#define TEXT_CBB 3
+#define TEXT_SBB 28
 
 const int H_MAX = 240;
 const int V_MAX = 160;
-const int LEFT = 16;
+const int LEFT = 8;
 const int RIGHT = H_MAX - LEFT;
-const int TOP = 122;
+const int TOP = 120;
 const int BOTTOM = V_MAX;
 
 uint char_count = 0;
 
 text_engine::text_engine()
 {
-    OBJ_ATTR *objs = &oam_mem[127];
-    tte_init_obj_default(objs);
-
+    // Load the TTE
+    tte_init_se(3, BG_CBB(TEXT_CBB)|BG_SBB(TEXT_SBB)|BG_PRIO(0), 0xF000, CLR_PURPLE, 0, &fwf_default, NULL);
     tte_set_margins(LEFT, TOP, RIGHT, BOTTOM);
     tte_set_pos(LEFT, TOP);
 
+    // Set default variables
     curr_line = script[0];
     frame_count = 0;
 }
@@ -33,6 +37,7 @@ void text_engine::next_frame()
         {
             char_count++;
             tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
+            tte_set_ink(CLR_RED);
             tte_write(curr_line.get_text().substr(0, char_count).c_str());
         }
     }
