@@ -1,5 +1,6 @@
 #include <tonc.h>
 #include <string>
+#include <cstring>
 
 #include "debug.h"
 #include "flash_mem.h"
@@ -15,7 +16,8 @@
 #include "pokemon_party.h"
 #include "script_array.h"
 #include "sprite_data.h"
-#include <cstring>
+#include "button_handler.h"
+#include "main_menu.h"
 
 /*TODO:
 --------
@@ -53,9 +55,6 @@ TESTING:
 --------
 */
 
-OBJ_ATTR obj_buffer[128];
-OBJ_AFFINE *obj_aff_buffer = (OBJ_AFFINE *)obj_buffer;
-
 Pokemon_Party party = Pokemon_Party();
 text_engine main_text = text_engine();
 
@@ -76,18 +75,48 @@ int main(void)
 
 	add_script_party_var(party);
 
+	oam_init(obj_buffer, 128);
+
 	load_background();
 	load_textbox_background();
-	load_testroid(obj_buffer);
+	load_testroid();
+	load_professor();
+	load_btn_t_l();
+	load_btn_t_r();
+	load_btn_p_l();
+	load_btn_p_r();
+	load_btn_c_l();
+	load_btn_c_r();
+
+	Button transfer_btn = Button(btn_t_l, btn_t_r, 128, 160);
+	Button pokedex_btn = Button(btn_p_l, btn_p_r, 192, 224);
+	Button credits_btn = Button(btn_c_l, btn_c_r, 256, 288);
+
+	main_menu_init(transfer_btn, pokedex_btn, credits_btn);
+	
+
+	// Set up blend to fade to white/black
 
 	// MAIN LOOP
 	while (1)
 	{
+		switch (main_menu_loop())
+		{
+		case (TRANSFER):
+			break;
+		case (POKEDEX):
+
+			break;
+		case (CREDITS):
+
+			break;
+		}
+
 		key_poll();
 		rand_next_frame();
 		background_frame();
-		main_text.next_frame();
-		oam_copy(oam_mem, obj_buffer, 1);
+		//main_text.next_frame();
+		oam_copy(oam_mem, obj_buffer, 8);
 	}
 }
 
