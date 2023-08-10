@@ -12,7 +12,6 @@ include $(DEVKITARM)/gba_rules
 # the LIBGBA path is defined in gba_rules, but we have to define LIBTONC ourselves
 #---------------------------------------------------------------------------------
 LIBTONC := $(DEVKITPRO)/libtonc
-LIBUGBA := $(DEVKITPRO)/libugba
 
 #---------------------------------------------------------------------------------
 # TARGET is the name of the output
@@ -53,7 +52,7 @@ LDFLAGS	=	-g $(ARCH) -Wl,-Map,$(notdir $*.map)
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
-LIBS	:= -ltonc -lugba
+LIBS	:= -ltonc 
 
 
 #---------------------------------------------------------------------------------
@@ -61,7 +60,7 @@ LIBS	:= -ltonc -lugba
 # include and lib.
 # the LIBGBA path should remain in this list if you want to use maxmod
 #---------------------------------------------------------------------------------
-LIBDIRS	:=	$(LIBGBA) $(LIBTONC) $(LIBUGBA)
+LIBDIRS	:=	$(LIBGBA) $(LIBTONC) 
 
 #---------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional
