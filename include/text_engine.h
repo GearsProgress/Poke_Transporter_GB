@@ -7,17 +7,10 @@
 #include "script_obj.h"
 #include "script_array.h"
 
-class text_engine
-{
-public:
-    text_engine();
-    void next_frame();
-    int get_next_obj_id(script_obj current_line);
-
-private:
-    script_obj curr_line;
-    int frame_count;
-    void set_next_line(std::string next);
-};
+    void init_text_engine();
+    void text_next_frame();
+    int text_next_obj_id(script_obj current_line);
+    void text_enable();
+    void text_disable();
 
 #endif

@@ -20,10 +20,25 @@ void load_background(){
     REG_BG0CNT= BG_CBB(CBB) | BG_SBB(SBB) | BG_4BPP | BG_REG_32x32 | BG_PRIO(2);
 }
 
-#include "textboxBG.h"
-void load_textbox_background(){
+#include "openingBG.h"
+void load_opening_background(){
     int CBB = 1;
     int SBB = 9;
+    // Load palette
+    memcpy(pal_bg_mem + 32, openingBGPal, openingBGPalLen);
+    // Load tiles into CBB 0
+    memcpy(&tile_mem[CBB][0], openingBGTiles, openingBGTilesLen);
+    // Load map into SBB 0
+    memcpy(&se_mem[SBB][0], openingBGMap, openingBGMapLen);
+
+    REG_BG1VOFS = 96;
+    REG_BG1CNT = BG_CBB(CBB) | BG_SBB(SBB) | BG_4BPP | BG_REG_32x32 | BG_PRIO(1);
+}
+
+#include "textboxBG.h"
+void load_textbox_background(){
+    int CBB = 2;
+    int SBB = 17;
     // Load palette
     memcpy(pal_bg_mem + 16, textBoxBGPal, textBoxBGPalLen);
     // Load tiles into CBB 0

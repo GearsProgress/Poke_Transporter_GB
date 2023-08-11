@@ -1,0 +1,6 @@
+#
+# Text Box (Background) : 64x64t, 4bpp, SBB-layout, not compressed. 
+# Pallet bank 2, copy from 32 to 48.
+#
+-gt -gB4 -mR4 -mLs -mp2 -ps32 -pe48
+

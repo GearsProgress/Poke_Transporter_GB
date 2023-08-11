@@ -4,14 +4,14 @@
 #include <string>
 #include "pokemon_party.h"
 
-#define CHECK_GAME 1
-#define START_LINK 2
-#define ERROR_TIMEOUT_ONE 3
-#define ERROR_DISCONNECT 4
-#define ERROR_COM_ENDED 5
-#define ERROR_TIMEOUT_TWO 6
-#define ERROR_COLOSSEUM 7
-#define IMPORT_POKEMON 8
+#define START_LINK 1
+#define ERROR_TIMEOUT_ONE 2
+#define ERROR_DISCONNECT 3
+#define ERROR_COM_ENDED 4
+#define ERROR_TIMEOUT_TWO 5
+#define ERROR_COLOSSEUM 6
+#define IMPORT_POKEMON 7
+#define BACK_TO_MENU 8
 
 class script_obj
 {

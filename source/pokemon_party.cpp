@@ -2,8 +2,7 @@
 #include "pokemon_party.h"
 #include "pokemon.h"
 #include "flash_mem.h"
-
-static bool DEBUG = false;
+#include "debug_mode.h"
 
 byte debug_party_data[444] = {
 	0x8A, 0x91, 0x88, 0x92, 0x50, 0x50, 0x50, 0x50, 0x50, 0x50, 0x50, 0x06, 0x9B, 0x13, 0xA1, 0xA1, 0xA1, 0xA1, 0xFF, 0x25, 0xDA,
@@ -34,7 +33,7 @@ byte debug_party_data[444] = {
 Pokemon_Party::Pokemon_Party(){};
 void Pokemon_Party::start_link()
 {
-	if (DEBUG)
+	if (DEBUG_MODE)
 	{
 		for (int i = 0; i < 444; i++)
 		{

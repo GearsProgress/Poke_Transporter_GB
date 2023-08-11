@@ -18,6 +18,7 @@
 #include "sprite_data.h"
 #include "button_handler.h"
 #include "main_menu.h"
+#include "debug_mode.h"
 
 /*TODO:
 --------
@@ -56,15 +57,15 @@ TESTING:
 */
 
 Pokemon_Party party = Pokemon_Party();
-text_engine main_text = text_engine();
 
 int main(void)
 {
+	int delay_counter = 0;
 
 	// Initalizations
 	linkGPIO->reset();
 
-	REG_DISPCNT = DCNT_MODE0 | DCNT_BG0 | DCNT_BG2 | DCNT_BG3 | DCNT_OBJ | DCNT_OBJ_1D;
+	REG_DISPCNT = DCNT_MODE0 | DCNT_BG0 | DCNT_BG1 | DCNT_BG2 | DCNT_BG3 | DCNT_OBJ | DCNT_OBJ_1D;
 
 	irq_init(NULL);
 	irq_enable(II_VBLANK);
@@ -72,6 +73,7 @@ int main(void)
 	flash_init(FLASH_SIZE_128KB);
 	initalize_memory_locations();
 	rand_set_seed(0x12162001);
+	init_text_engine();
 
 	add_script_party_var(party);
 
@@ -79,6 +81,7 @@ int main(void)
 
 	load_background();
 	load_textbox_background();
+	load_opening_background();
 	load_testroid();
 	load_professor();
 	load_btn_t_l();
@@ -93,7 +96,61 @@ int main(void)
 	Button credits_btn = Button(btn_c_l, btn_c_r, 256, 288);
 
 	main_menu_init(transfer_btn, pokedex_btn, credits_btn);
-	
+
+	text_disable();
+
+	// Check if the game has been loaded correctly.
+	u32 game_code = (*(vu32 *)(0x80000AC)) & 0xFFFFFF;
+	if (!(game_code == 0x565841 || // Ruby
+		  game_code == 0x505841 || // Sapphire
+		  game_code == 0x525042 || // FireRed
+		  game_code == 0x475042 || // LeafGreen
+		  game_code == 0x455042 || // Emerald
+		  DEBUG_MODE			   // Ignore if in debug mode
+		  ))
+	{
+		REG_BG0CNT = (REG_BG0CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
+		REG_BG1CNT = (REG_BG1CNT & ~BG_PRIO_MASK) | BG_PRIO(2);
+		REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(1);
+		REG_BG2VOFS = 0;
+		tte_set_pos(40, 24);
+		tte_set_margins(40, 24, 206, 104);
+		tte_write("The Pokemon save\nfile was not loaded successfully. Please\nrestart the console,\nload the Pokemon\ngame normally, and\nthen upload the\nprogram again.");
+		while (1)
+		{
+		};
+	}
+
+	// Legal mumbo jumbo
+	tte_set_pos(8, 0);
+	tte_write("\n\nPokemon Mirror was created\nout of love and appreciation\nfor the Pokemon franchise\nwith no profit in mind.\nIt will ALWAYS be free.\n\nPlease support the original developers-\nNintendo and GAME FREAK.\n\nAll Pokemon names, sprites, and music are owned by \nNintendo, Creatures Inc, and\nGAME FREAK Inc.");
+	while (delay_counter < 2500000)
+	{
+		delay_counter++;
+		rand_next_frame();
+		key_poll();
+		if (key_hit(KEY_A))
+		{
+			delay_counter = 2500000;
+		}
+	}
+	key_poll();
+	// Gears of Progress
+	tte_erase_rect(0, 0, 240, 160);
+	REG_BG1VOFS = 0;
+	delay_counter = 0;
+	while (delay_counter < 2500000)
+	{
+		delay_counter++;
+		rand_next_frame();
+		key_poll();
+		if (key_hit(KEY_A))
+		{
+			delay_counter = 2500000;
+		}
+	}
+	key_poll();
+	REG_BG1CNT = REG_BG1CNT | BG_PRIO(3);
 
 	// Set up blend to fade to white/black
 
@@ -103,19 +160,26 @@ int main(void)
 		switch (main_menu_loop())
 		{
 		case (TRANSFER):
+			text_enable();
 			break;
 		case (POKEDEX):
-
+			main_menu_exit();
 			break;
 		case (CREDITS):
-
+			tte_set_pos(0, 0);
+			tte_write("wow cool credits man");
+			if (key_hit(KEY_B))
+			{
+				tte_erase_rect(0, 0, 240, 160);
+				main_menu_exit();
+			}
 			break;
 		}
 
 		key_poll();
 		rand_next_frame();
 		background_frame();
-		//main_text.next_frame();
+		text_next_frame();
 		oam_copy(oam_mem, obj_buffer, 8);
 	}
 }

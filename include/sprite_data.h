@@ -14,6 +14,7 @@ extern OBJ_ATTR *btn_c_r;
 
 void load_background();
 void load_textbox_background();
+void load_opening_background();
 void load_testroid();
 void load_professor();
 void load_btn_t_l();
