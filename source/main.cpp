@@ -1,6 +1,7 @@
 #include <tonc.h>
 #include <string>
 #include <cstring>
+#include <maxmod.h>
 
 #include "debug.h"
 #include "flash_mem.h"
@@ -19,6 +20,8 @@
 #include "button_handler.h"
 #include "main_menu.h"
 #include "debug_mode.h"
+#include "soundbank.h"
+#include "soundbank_bin.h"
 
 /*TODO:
 --------
@@ -56,7 +59,37 @@ TESTING:
 --------
 */
 
+
 Pokemon_Party party = Pokemon_Party();
+
+int test_main(void)
+{
+
+	irq_init(NULL);
+	// Initialize maxmod with default settings
+	// pass soundbank address, and allocate 8 channels.
+
+	irq_set(II_VBLANK, mmVBlank, 0);
+	irq_enable(II_VBLANK);
+
+	mmInitDefault((mm_addr)soundbank_bin, 8);
+
+
+	mmStart(MOD_FLATOUTLIES, MM_PLAY_LOOP);
+	// Song is playing now (well... almost)
+	while (1)
+	{
+		// ..process game logic..
+
+		// Update Maxmod
+		mmFrame();
+
+		// Wait for new frame (SWI 5)
+		VBlankIntrWait();
+
+		// ..update graphical data..
+	}
+}
 
 int main(void)
 {
@@ -77,6 +110,14 @@ int main(void)
 
 	add_script_party_var(party);
 
+// Sound bank init
+	irq_init(NULL);
+	irq_set(II_VBLANK, mmVBlank, 0);
+	irq_enable(II_VBLANK);
+	mmInitDefault((mm_addr)soundbank_bin, 8);
+	mmStart(MOD_FLATOUTLIES, MM_PLAY_LOOP);
+
+// Graphics init
 	oam_init(obj_buffer, 128);
 
 	load_background();
@@ -176,11 +217,17 @@ int main(void)
 			break;
 		}
 
+
 		key_poll();
 		rand_next_frame();
 		background_frame();
 		text_next_frame();
 		oam_copy(oam_mem, obj_buffer, 8);
+
+		VBlankIntrWait();
+		mmFrame();
+
+
 	}
 }
 

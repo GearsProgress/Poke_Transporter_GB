@@ -9,9 +9,6 @@ int x, y;
 
 void background_frame()
 {
-     vid_vsync();
-        key_poll();
-
         x += key_tri_horz();
         y += key_tri_vert();
 
