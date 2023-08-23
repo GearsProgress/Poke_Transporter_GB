@@ -24,9 +24,9 @@ void Button::set_highlight(bool highlight)
 }
 void Button::hide()
 {
-    obj_hide_multi(button_L, 3);
+    obj_hide_multi(button_L, 2);
 }
 void Button::show()
 {
-    obj_unhide_multi(button_L, 0, 3);
+    obj_unhide_multi(button_L, 0, 2);
 }

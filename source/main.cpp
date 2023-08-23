@@ -22,6 +22,9 @@
 #include "debug_mode.h"
 #include "soundbank.h"
 #include "soundbank_bin.h"
+#include "dex_handler.h"
+#include "pokedex.h"
+#include "global_frame_counter.h"
 
 /*TODO:
 --------
@@ -59,7 +62,6 @@ TESTING:
 --------
 */
 
-
 Pokemon_Party party = Pokemon_Party();
 
 int test_main(void)
@@ -73,7 +75,6 @@ int test_main(void)
 	irq_enable(II_VBLANK);
 
 	mmInitDefault((mm_addr)soundbank_bin, 8);
-
 
 	mmStart(MOD_FLATOUTLIES, MM_PLAY_LOOP);
 	// Song is playing now (well... almost)
@@ -110,14 +111,14 @@ int main(void)
 
 	add_script_party_var(party);
 
-// Sound bank init
+	// Sound bank init
 	irq_init(NULL);
 	irq_set(II_VBLANK, mmVBlank, 0);
 	irq_enable(II_VBLANK);
 	mmInitDefault((mm_addr)soundbank_bin, 8);
 	mmStart(MOD_FLATOUTLIES, MM_PLAY_LOOP);
 
-// Graphics init
+	// Graphics init
 	oam_init(obj_buffer, 128);
 
 	load_background();
@@ -131,10 +132,15 @@ int main(void)
 	load_btn_p_r();
 	load_btn_c_l();
 	load_btn_c_r();
+	load_dex_l();
+	load_dex_m();
+	load_dex_r();
 
 	Button transfer_btn = Button(btn_t_l, btn_t_r, 128, 160);
 	Button pokedex_btn = Button(btn_p_l, btn_p_r, 192, 224);
 	Button credits_btn = Button(btn_c_l, btn_c_r, 256, 288);
+
+	pokedex_init();
 
 	main_menu_init(transfer_btn, pokedex_btn, credits_btn);
 
@@ -204,7 +210,12 @@ int main(void)
 			text_enable();
 			break;
 		case (POKEDEX):
-			main_menu_exit();
+			pokedex_show();
+			pokedex_loop();
+			if(key_hit(KEY_B)){
+				pokedex_hide();
+				main_menu_exit();
+			}
 			break;
 		case (CREDITS):
 			tte_set_pos(0, 0);
@@ -217,17 +228,15 @@ int main(void)
 			break;
 		}
 
-
 		key_poll();
 		rand_next_frame();
 		background_frame();
 		text_next_frame();
-		oam_copy(oam_mem, obj_buffer, 8);
+		oam_copy(oam_mem, obj_buffer, 26);
 
 		VBlankIntrWait();
 		mmFrame();
-
-
+		global_next_frame();
 	}
 }
 

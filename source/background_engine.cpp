@@ -9,9 +9,9 @@ int x, y;
 
 void background_frame()
 {
-        x += key_tri_horz();
-        y += key_tri_vert();
+        x++;
+        y++;
 
-        REG_BG0HOFS= x;
-        REG_BG0VOFS= y;
+        REG_BG0HOFS = x;
+        REG_BG0VOFS = y;
 }

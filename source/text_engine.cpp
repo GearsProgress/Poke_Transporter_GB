@@ -2,6 +2,7 @@
 #include <string>
 
 #include "text_engine.h"
+#include "global_frame_counter.h"
 #include <cstring>
 
 #define TEXT_CBB 3
@@ -15,7 +16,6 @@ const int TOP = 120;
 const int BOTTOM = V_MAX;
 
 script_obj curr_line;
-int frame_count;
 uint char_count;
 bool disabled;
 
@@ -28,7 +28,6 @@ void init_text_engine()
 
     // Set default variables
     curr_line = script[0];
-    frame_count = 0;
     char_count = 0;
     disabled = false;
 }
@@ -40,7 +39,7 @@ void text_next_frame()
         tte_set_pos(LEFT, TOP);
         if (char_count < curr_line.get_text().length())
         {
-            if (frame_count % 2 == 0 || key_held(KEY_B))
+            if (get_frame_count() % 2 == 0 || key_held(KEY_B))
             {
                 char_count++;
                 tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
@@ -56,8 +55,6 @@ void text_next_frame()
                 char_count = 0;
             }
         }
-
-        frame_count++;
     }
 }
 

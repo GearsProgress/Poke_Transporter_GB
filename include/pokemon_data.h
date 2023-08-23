@@ -2,6 +2,7 @@
 #define POKEMON_DATA_H
 
 #include <tonc.h>
+#include <string>
 
 #define erratic_max      600000
 #define fast_max         800000
@@ -19,6 +20,7 @@ extern const u8 GENDER_RATIO[251];
 extern const bool NUM_ABILITIES[251];
 extern const byte MOVESETS[251][32];
 extern const byte FIRST_MOVES[251];
+extern const std::string_view NAMES[251];
 
 u32 get_max_exp(int index_num);
 u8 get_gender_threshold(int index_num, bool is_gen_3);

@@ -11,6 +11,9 @@ extern OBJ_ATTR *btn_p_l;
 extern OBJ_ATTR *btn_p_r;
 extern OBJ_ATTR *btn_c_l;
 extern OBJ_ATTR *btn_c_r;
+extern OBJ_ATTR *dex_l[];
+extern OBJ_ATTR *dex_m[];
+extern OBJ_ATTR *dex_r[];
 
 void load_background();
 void load_textbox_background();
@@ -23,3 +26,6 @@ void load_btn_p_l();
 void load_btn_p_r();
 void load_btn_c_l();
 void load_btn_c_r();
+void load_dex_l();
+void load_dex_m();
+void load_dex_r();

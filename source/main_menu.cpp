@@ -6,7 +6,7 @@ int menu_slot = 1;
 int old_menu_slot = 0;
 int menu_mode = MAIN_MENU;
 int ani_mode = 0;
-int x_cord = 128;
+int menu_x_cord = 128;
 
 Button button_array[4];
 
@@ -29,12 +29,12 @@ int main_menu_loop()
     {
     case ENTERING:
     {
-        x_cord = x_cord + 4;
+        menu_x_cord = menu_x_cord + 4;
         for (int i = 1; i < 4; i++)
         {
-            button_array[i].set_location(x_cord, 16 + (48 * (i - 1)));
+            button_array[i].set_location(menu_x_cord, 16 + (48 * (i - 1)));
         }
-        if (x_cord > 220)
+        if (menu_x_cord > 240)
         {
             ani_mode = DISABLE;
         }
@@ -42,12 +42,12 @@ int main_menu_loop()
     }
     case EXITING:
     {
-        x_cord = x_cord - 4;
+        menu_x_cord = menu_x_cord - 4;
         for (int i = 1; i < 4; i++)
         {
-            button_array[i].set_location(x_cord, 16 + (48 * (i - 1)));
+            button_array[i].set_location(menu_x_cord, 16 + (48 * (i - 1)));
         }
-        if (x_cord <= 128)
+        if (menu_x_cord <= 128)
         {
             ani_mode = MAIN_MENU;
         }
