@@ -1,9 +1,10 @@
 #include <tonc.h>
 #include <string>
+#include <cstring>
 
 #include "text_engine.h"
 #include "global_frame_counter.h"
-#include <cstring>
+#include "pkmn_font.h"
 
 #define TEXT_CBB 3
 #define TEXT_SBB 28
@@ -22,7 +23,7 @@ bool disabled;
 void init_text_engine()
 {
     // Load the TTE
-    tte_init_se(3, BG_CBB(TEXT_CBB) | BG_SBB(TEXT_SBB) | BG_PRIO(0), 0xF000, CLR_ORANGE, 0, &fwf_default, NULL);
+    tte_init_se(3, BG_CBB(TEXT_CBB) | BG_SBB(TEXT_SBB) | BG_PRIO(0), 0xF000, 0b0001100011100110, 0, &pkmn_fontFont, NULL);
     tte_set_margins(LEFT, TOP, RIGHT, BOTTOM);
     tte_set_pos(LEFT, TOP);
 

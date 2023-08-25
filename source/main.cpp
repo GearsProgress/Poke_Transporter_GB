@@ -25,6 +25,7 @@
 #include "dex_handler.h"
 #include "pokedex.h"
 #include "global_frame_counter.h"
+#include "pkmn_font.h"
 
 /*TODO:
 --------

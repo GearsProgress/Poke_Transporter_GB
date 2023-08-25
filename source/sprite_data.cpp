@@ -5,17 +5,17 @@
 OBJ_ATTR obj_buffer[128];
 OBJ_AFFINE *obj_aff_buffer = (OBJ_AFFINE *)obj_buffer;
 
-#include "brin.h"
+#include "background.h"
 void load_background()
 {
     int CBB = 0;
     int SBB = 1;
     // Load palette
-    memcpy(pal_bg_mem, brinPal, brinPalLen);
+    memcpy(pal_bg_mem, backgroundPal, backgroundPalLen);
     // Load tiles into CBB 0
-    memcpy(&tile_mem[CBB][0], brinTiles, brinTilesLen);
+    memcpy(&tile_mem[CBB][0], backgroundTiles, backgroundTilesLen);
     // Load map into SBB 30
-    memcpy(&se_mem[SBB][0], brinMap, brinMapLen);
+    memcpy(&se_mem[SBB][0], backgroundMap, backgroundMapLen);
 
     REG_BG0CNT = BG_CBB(CBB) | BG_SBB(SBB) | BG_4BPP | BG_REG_32x32 | BG_PRIO(2);
 }

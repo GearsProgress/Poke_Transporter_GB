@@ -14,6 +14,7 @@ int dex_x_cord = 48;
 int speed = 0;
 int delay = 0;
 int count = 0;
+int leading_zeros = 0;
 
 void pokedex_init()
 {
@@ -69,19 +70,24 @@ int pokedex_loop()
         dex_shift = 0;
     }
 
+    tte_erase_rect(0, 0, 240, 160);
     for (int i = 0; i < DEX_MAX; i++)
     {
-        tte_set_pos(dex_x_cord + 8, (i * 8 * 3) + 16);
-        std::string blanks(MAX_NAME_SIZE - NAMES[dex_shift + i].size(), ' ');
-        std::string zeros(3 - (log10(dex_shift + i + 1 + 1)), '0');
-        tte_write("X");
-        tte_write(" ");
+        tte_set_pos(dex_x_cord + (1 * 8), (i * 8 * 3) + 16);
+        tte_write("^");
+        tte_set_pos(dex_x_cord + (3 * 8), (i * 8 * 3) + 16);
         tte_write(std::string(NAMES[dex_shift + i]).data());
-        tte_write(blanks.c_str());
-        tte_write(" ");
-        tte_write(zeros.c_str());
+        tte_set_pos(dex_x_cord + (14 * 8), (i * 8 * 3) + 16);
+        tte_write("000");
+        if(dex_shift + i + 1 < 10){
+            leading_zeros = 2;
+        } else if (dex_shift + i + 1 < 100){
+            leading_zeros = 1;
+        } else {
+            leading_zeros = 0;
+        }
+        tte_set_pos(dex_x_cord + ((14 + leading_zeros) * 8), (i * 8 * 3) + 16);
         tte_write(std::to_string(dex_shift + i + 1).c_str());
-        
     }
     return 0;
 }
