@@ -7,6 +7,7 @@
 #include "sprite_data.h"
 #include "pokemon_data.h"
 #include "global_frame_counter.h"
+#include "save_data_manager.h"
 
 Dex dex_array[DEX_MAX];
 int dex_shift = 0;
@@ -74,9 +75,9 @@ int pokedex_loop()
     for (int i = 0; i < DEX_MAX; i++)
     {
         tte_set_pos(dex_x_cord + (1 * 8), (i * 8 * 3) + 16);
-        tte_write("^");
+        tte_write(is_caught(dex_shift + i + 1) ? "^" : " ");
         tte_set_pos(dex_x_cord + (3 * 8), (i * 8 * 3) + 16);
-        tte_write(std::string(NAMES[dex_shift + i]).data());
+        tte_write(is_caught(dex_shift + i + 1) ? std::string(NAMES[dex_shift + i]).data() : "----------");
         tte_set_pos(dex_x_cord + (14 * 8), (i * 8 * 3) + 16);
         tte_write("000");
         if(dex_shift + i + 1 < 10){

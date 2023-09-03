@@ -4,7 +4,7 @@
 #include <maxmod.h>
 
 #include "debug.h"
-#include "flash_mem.h"
+//#include "flash_mem.h"
 #include "gba_flash.h"
 #include "interrupt.h"
 #include "gb_link.h"
@@ -26,6 +26,7 @@
 #include "pokedex.h"
 #include "global_frame_counter.h"
 #include "pkmn_font.h"
+#include "save_data_manager.h"
 
 /*TODO:
 --------
@@ -55,6 +56,11 @@ INJECTION:
 - Add Pokemon to Pokedex
 - Randomize base seed
 - Enable ribbon viewing
+
+SAVE DATA:
+- Add warning
+- Add ability to erase
+- Add check for Hall of Fame
 
 TESTING:
 - Test all the aspects of a Pokemon (Shiny, Pokerus, etc.)
@@ -106,10 +112,10 @@ int main(void)
 	irq_enable(II_VBLANK);
 
 	flash_init(FLASH_SIZE_128KB);
-	initalize_memory_locations();
+	//initalize_memory_locations();
+	load_save_data();
 	rand_set_seed(0x12162001);
 	init_text_engine();
-
 	add_script_party_var(party);
 
 	// Sound bank init

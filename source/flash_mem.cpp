@@ -8,7 +8,7 @@
 vu32 newest_save_offset = MEM_CRAM + SAVE_A_OFFSET;
 
 vu32 memory_section_array[14] = {};
-u8 memory_buffer[0x1000];
+u8 memory_buffer[1];
 char mem_name = 'A';
 
 
