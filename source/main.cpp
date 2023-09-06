@@ -27,6 +27,7 @@
 #include "global_frame_counter.h"
 #include "pkmn_font.h"
 #include "save_data_manager.h"
+#include "script.h"
 
 /*TODO:
 --------
