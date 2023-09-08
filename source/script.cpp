@@ -22,14 +22,3 @@ void inject_mystery()
     update_memory_buffer_checksum();
     flash_write(memory_section_array[4], &global_memory_buffer[0], 0x1000);
 }
-
-unsigned int __fastcall crc16(int a1, unsigned int a2)
-{
-    unsigned int v2; // r2
-    unsigned int i; // r3
-
-    v2 = 0x1121; // This is the seed
-    for ( i = 0; i < a2; i = (i + 1) & 0xFFFF )
-        v2 = *(unsigned __int16 *)((char *)crc16_ccitt_table + (2 * (v2 ^ *(unsigned __int8 *)(a1 + i)) & 0x1FF)) ^ (v2 >> 8);
-    return ~v2 & 0xFFFF;
-}
