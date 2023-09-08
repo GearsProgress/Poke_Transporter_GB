@@ -12,6 +12,6 @@
 #define EVENT_SCRIPT_DATA_OFFSET_FRLG 0x079C
 #define EVENT_SCRIPT_DATA_OFFSET_EMER 0x08A8
 
-void inject_script();
+void inject_mystery();
 
 #endif

@@ -4,7 +4,7 @@
 #include <maxmod.h>
 
 #include "debug.h"
-//#include "flash_mem.h"
+#include "flash_mem.h"
 #include "gba_flash.h"
 #include "interrupt.h"
 #include "gb_link.h"
@@ -113,8 +113,7 @@ int main(void)
 	irq_enable(II_VBLANK);
 
 	flash_init(FLASH_SIZE_128KB);
-	//initalize_memory_locations();
-	load_save_data();
+	initalize_memory_locations();
 	rand_set_seed(0x12162001);
 	init_text_engine();
 	add_script_party_var(party);
@@ -149,6 +148,7 @@ int main(void)
 	Button credits_btn = Button(btn_c_l, btn_c_r, 256, 288);
 
 	pokedex_init();
+	load_save_data();
 
 	main_menu_init(transfer_btn, pokedex_btn, credits_btn);
 
@@ -208,6 +208,8 @@ int main(void)
 	REG_BG1CNT = REG_BG1CNT | BG_PRIO(3);
 
 	// Set up blend to fade to white/black
+
+	inject_mystery();
 
 	// MAIN LOOP
 	while (1)

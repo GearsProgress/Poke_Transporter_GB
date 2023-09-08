@@ -8,7 +8,7 @@
 vu32 newest_save_offset = MEM_CRAM + SAVE_A_OFFSET;
 
 vu32 memory_section_array[14] = {};
-u8 memory_buffer[1];
+u8 global_memory_buffer[0x1000];
 char mem_name = 'A';
 
 
@@ -53,22 +53,22 @@ bool insert_pokemon(Pokemon party[], int total_num){
     int pkmn_byte = 0;
     bool write_pkmn = false;
 
-    flash_read(memory_section_array[mem_section], &memory_buffer[0], 0x1000);
+    flash_read(memory_section_array[mem_section], &global_memory_buffer[0], 0x1000);
 
     while(pkmn_num < total_num){
         // Checks if we are currently beyond PC box information bounds. If so, return false
         if ((mem_section == 13) && (byte_location >= 1860)){
             update_memory_buffer_checksum();
-            flash_write(memory_section_array[mem_section], &memory_buffer[0], 0x1000);
+            flash_write(memory_section_array[mem_section], &global_memory_buffer[0], 0x1000);
             return false;
         }
 
         // Determines if there is space to write a Pokemon, or if a Pokemon is currently being written
-        write_pkmn = (write_pkmn | (memory_buffer[byte_location] == 0x00));
+        write_pkmn = (write_pkmn | (global_memory_buffer[byte_location] == 0x00));
         
         // Writes a byte of the current Pokemon to the current spot
         if (write_pkmn){
-            memory_buffer[byte_location] = party[pkmn_num].get_full_gen_3_array()[pkmn_byte];
+            global_memory_buffer[byte_location] = party[pkmn_num].get_full_gen_3_array()[pkmn_byte];
             byte_location++;
             pkmn_byte++;
             // Determines if the whole Pokemon has been written
@@ -84,14 +84,14 @@ bool insert_pokemon(Pokemon party[], int total_num){
         // we move to the next memory buffer and save the current one
         if (byte_location >= 3968){
             update_memory_buffer_checksum();
-            flash_write(memory_section_array[mem_section], &memory_buffer[0], 0x1000);
+            flash_write(memory_section_array[mem_section], &global_memory_buffer[0], 0x1000);
             mem_section++;
-            flash_read(memory_section_array[mem_section], &memory_buffer[0], 0x1000);
+            flash_read(memory_section_array[mem_section], &global_memory_buffer[0], 0x1000);
             byte_location = byte_location % 3968;
         }
     }
     update_memory_buffer_checksum();
-    flash_write(memory_section_array[mem_section], &memory_buffer[0], 0x1000);
+    flash_write(memory_section_array[mem_section], &global_memory_buffer[0], 0x1000);
     return true;
 }
 
@@ -100,15 +100,15 @@ void update_memory_buffer_checksum(){
     vu32 checksum = 0x00;
 
     vu32 num_of_bytes = 3968;
-    if (memory_buffer[0x0FF4] == 13){
+    if (global_memory_buffer[0x0FF4] == 13){
         num_of_bytes = 2000;
     }
 
     for (unsigned int i = 0; i < num_of_bytes / 4; i++){
-        checksum += (memory_buffer[(4*i) + 3] << 24) | (memory_buffer[(4*i) + 2] << 16) | (memory_buffer[(4*i) + 1] << 8) | (memory_buffer[(4*i) + 0] << 0);
+        checksum += (global_memory_buffer[(4*i) + 3] << 24) | (global_memory_buffer[(4*i) + 2] << 16) | (global_memory_buffer[(4*i) + 1] << 8) | (global_memory_buffer[(4*i) + 0] << 0);
     }
 
     vu16 small_checksum = ((checksum & 0xFFFF0000) >> 16) + (checksum & 0x0000FFFF);
-    memory_buffer[0x0FF6] = small_checksum & 0x00FF;
-    memory_buffer[0x0FF7] = (small_checksum & 0xFF00) >> 8;
+    global_memory_buffer[0x0FF6] = small_checksum & 0x00FF;
+    global_memory_buffer[0x0FF7] = (small_checksum & 0xFF00) >> 8;
 }
