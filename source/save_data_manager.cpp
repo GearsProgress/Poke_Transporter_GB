@@ -12,20 +12,12 @@ void write_save_data(){
 }
 
 bool is_caught(int dex_num){
-    return (((global_memory_buffer[HOF_SECTION + (dex_num / 8)]) >> dex_num % 8) & 1);
+    return (((global_memory_buffer[HOF_SECTION + CAUGHT_DATA + (dex_num / 8)]) >> dex_num % 8) & 1);
 }
 
 void set_caught(int dex_num){
     load_save_data();
-    global_memory_buffer[HOF_SECTION + (dex_num / 8)] = global_memory_buffer[HOF_SECTION + (dex_num / 8)] | (1 << (dex_num % 8));
+    global_memory_buffer[HOF_SECTION + CAUGHT_DATA + (dex_num / 8)] = global_memory_buffer[HOF_SECTION + CAUGHT_DATA + (dex_num / 8)] | (1 << (dex_num % 8));
     write_save_data();
 }
 
-/* Data map:
-
-Byte 0: Has made it through the tutorial
-0 - 31: Caught data
-
-
-
-*/

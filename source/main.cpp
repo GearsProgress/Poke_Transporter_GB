@@ -210,6 +210,9 @@ int main(void)
 	// Set up blend to fade to white/black
 
 	inject_mystery();
+	set_caught(3);
+	set_caught(15);
+	set_caught(5);
 
 	// MAIN LOOP
 	while (1)
