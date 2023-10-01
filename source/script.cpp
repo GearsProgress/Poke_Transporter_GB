@@ -22,3 +22,28 @@ void inject_mystery()
     update_memory_buffer_checksum();
     flash_write(memory_section_array[4], &global_memory_buffer[0], 0x1000);
 }
+
+/*
+000168:                         The main function
+    push  {lr}                      save the load register to the stack
+    ldr   r3, [pc, <000188>]        set r3 to variable to 0x020375E8 (the pokemon offset, variable 0x8008's pointer)
+    ldr   r3, [r3, #0]              set r3 to the value in memory r3 points to
+    add   r0, pc, #28               set r0 to a pointer 28 bytes ahead, which is the start of the Pokemon struct
+    add   r0, r0, r3                add r3 to r0, giving it the correct offset for the current index
+    ldr   r1, [pc, <000180>]        set r1 to 0x0806B491, which is the location of "SendMonToPC" plus one, since it is thumb code
+    mov   r2, r15                   move r15 (the program counter) to r2
+    add   r2, r2, #7                add 7 to r2 to compensate for the six following bytes, plus to tell the system to read as thumb code
+    mov   r14, r2                   move r2 into r14 (the load register)
+    bx    r1                        jump to the pointer stored in r1 (SendMonToPC)
+00017A:                         The second part of the function
+    ldr   r2, [pc, <000184>]        load 0x020375E4 (variable 0x8006's pointer) into r2
+    str   r0, [r2, #0]              put the value of r0 into the memory location pointed at by r2, plus 0
+    pop   {r0}                      remove r0 from the stack and put it into r0
+    bx    r0                        jump to r0 (return to where the function was called)
+000180:
+    .word 0x0806B491                the location of "SendMonToPC", plus one (so it is interpreted as thumb code)
+000184: 
+    .word 0x020375E4                the location of variable "0x8006" (the return value)
+000188:
+    .word 0x020375E8                the location of variable "0x8008" (the pokemon offset)
+*/
