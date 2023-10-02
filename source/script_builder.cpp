@@ -13,7 +13,7 @@ void mystery_gift_script::build_script()
 
 void mystery_gift_script::set_script()
 {
-    // Located at 0x18A8 in the .sav - may change
+    // Located at 0x?8A8 in the .sav
     setvirtualaddress(0x08000000);
     lock();
     faceplayer();
@@ -61,16 +61,10 @@ void mystery_gift_script::set_script()
     release();
     end();
 
-    for (int i = 0; i < NUM_JUMPS; i++) // Parse through the script and replace any jump points
-                                        // and text boxes to match their locations
-    {
-        u32 jump_addr = jumppoint_destination[i] + VIR_ADDRESS;
-        u32 jump_loc = jumppoint_location[i];
-        mg_script[jump_loc] = jump_addr >> 0;
-        mg_script[jump_loc + 1] = jump_addr >> 8;
-        mg_script[jump_loc + 2] = jump_addr >> 16;
-        mg_script[jump_loc + 3] = jump_addr >> 24;
-    }
+    insert_textboxes();
+
+    fill_jumppoint_pointers();
+    fill_textbox_pointers();
 };
 
 u8 mystery_gift_script::get_script_value_at(int i)
@@ -92,6 +86,100 @@ void mystery_gift_script::add_command(int len)
     }
 }
 
+void mystery_gift_script::fill_jumppoint_pointers()
+{
+    for (int i = 0; i < NUM_JUMPS; i++) // Parse through the script and replace any jump points
+                                        // and text boxes to match their locations
+    {
+        u32 jump_addr = jumppoint_destination[i] + VIR_ADDRESS;
+        u32 jump_loc = jumppoint_location[i];
+        mg_script[jump_loc] = jump_addr >> 0;
+        mg_script[jump_loc + 1] = jump_addr >> 8;
+        mg_script[jump_loc + 2] = jump_addr >> 16;
+        mg_script[jump_loc + 3] = jump_addr >> 24;
+    }
+}
+
+void mystery_gift_script::fill_textbox_pointers()
+{
+    for (int i = 0; i < NUM_TEXTBOXES; i++)
+    {
+        u32 textbox_addr = textbox_destination[i] + VIR_ADDRESS;
+        u32 textbox_loc = textbox_location[i];
+        mg_script[textbox_loc] = textbox_addr >> 0;
+        mg_script[textbox_loc + 1] = textbox_addr >> 8;
+        mg_script[textbox_loc + 2] = textbox_addr >> 16;
+        mg_script[textbox_loc + 3] = textbox_addr >> 24;
+    }
+}
+
+void mystery_gift_script::insert_textboxes()
+{
+    for (int i = 0; i < NUM_TEXTBOXES; i++)
+    {
+        textbox_destination[i] = curr_index;
+        for (unsigned int parser = 0; parser < textboxes[i].length(); parser++)
+        {
+            mg_script[curr_index] = convert_char(textboxes[i].at(parser));
+            curr_index++;
+        }
+        mg_script[curr_index] = 0xFF; // End string
+        curr_index++;
+    }
+}
+
+u8 mystery_gift_script::convert_char(char convert_char)
+{
+    switch (convert_char)
+    {
+    case '0' ... '9':
+        return convert_char + (0xA1 - '0'); // '0' = 0xA1
+    case 'A' ... 'Z':
+        return convert_char + (0xBB - 'A'); // 'A' = 0xBB
+    case 'a' ... 'z':
+        return convert_char + (0xD5 - 'a'); // 'a' = 0xD5
+    case '!':
+        return 0xAB;
+    case '?':
+        return 0xAC;
+    case '.':
+        return 0xAD;
+    case '#': // Variable escape sequence
+        return 0xFD;
+    case '*': // Player name
+        return 0x01;
+    case '^': // Wait for button and scroll text
+        return 0xFA;
+    case '-': // Wait for button and clear text
+        return 0xFB;
+    case ' ':
+        return 0x00;
+    default:
+        return 0x00;
+    }
+}
+
+u16 mystery_gift_script::calc_checksum() // Implementation taken from PokeEmerald Decomp
+{
+    u16 i, j;
+    u16 crc = 0x1121;
+
+    for (i = 0; i < MG_SCRIPT_SIZE; i++)
+    {
+        crc ^= mg_script[i];
+        for (j = 0; j < 8; j++)
+        {
+            if (crc & 1)
+                crc = (crc >> 1) ^ 0x8408;
+            else
+                crc >>= 1;
+        }
+    }
+    return ~crc;
+}
+
+// Scripting commands:
+
 void mystery_gift_script::setvirtualaddress(u32 location)
 {
     value_buffer[0] = 0xB8;
@@ -104,13 +192,13 @@ void mystery_gift_script::setvirtualaddress(u32 location)
 
 void mystery_gift_script::lock()
 {
-    value_buffer[0] = {0x6A};
+    value_buffer[0] = 0x6A;
     add_command(1);
 }
 
 void mystery_gift_script::faceplayer()
 {
-    value_buffer[0] = {0x5A};
+    value_buffer[0] = 0x5A;
     add_command(1);
 }
 
@@ -142,11 +230,12 @@ void mystery_gift_script::set_jump_destination(u8 jumppoint_id)
 
 void mystery_gift_script::virtualmsgbox(u8 textbox_id)
 {
+    textbox_location[textbox_id] = (curr_index + 1);
     value_buffer[0] = 0xBD;
-    value_buffer[1] = TEXTBOX;
-    value_buffer[2] = TEXTBOX;
+    value_buffer[1] = 0x00;
+    value_buffer[2] = 0x00;
     value_buffer[3] = 0x00;
-    value_buffer[4] = textbox_id;
+    value_buffer[4] = 0x00;
     add_command(5);
 }
 
