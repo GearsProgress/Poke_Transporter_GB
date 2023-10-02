@@ -20,8 +20,9 @@ void inject_mystery()
     }
     mystery_gift_script script;
     script.build_script();
+    // INSERT CHECKSUM
     for (int i = 0; i < 0x3EC; i++){
-        global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET_EMER + i] = script.get_script_value_at(i);
+        global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET_EMER + 4 + i] = script.get_script_value_at(i);
     }
     update_memory_buffer_checksum();
     flash_write(memory_section_array[4], &global_memory_buffer[0], 0x1000);

@@ -124,7 +124,7 @@ void mystery_gift_script::checkflag(u8 flag_id)
 
 void mystery_gift_script::virtualgotoif(u8 condition, u8 jumppoint_id)
 {
-    jumppoint_location[jumppoint_id] = curr_index + 2;
+    jumppoint_location[jumppoint_id] = (curr_index + 2);
 
     value_buffer[0] = 0xBB;
     value_buffer[1] = condition;
