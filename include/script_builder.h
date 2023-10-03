@@ -7,6 +7,7 @@
 
 #define VIR_ADDRESS 0x08000000
 #define MG_SCRIPT_SIZE 0x3EC
+#define NPC_LOCATION_OFFSET 0x4
 
 #define NUM_JUMPS 4
 #define JUMP_ALL_COLLECTED 0
@@ -107,6 +108,8 @@ private:
 
     // Custom scripting commands
     void set_jump_destination(u8 jumppoint_id);
+    void init_npc_location(u8 bank, u8 map, u8 npc);
+
 };
 
 #endif

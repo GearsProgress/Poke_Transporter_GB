@@ -3,7 +3,7 @@
 
 mystery_gift_script::mystery_gift_script()
 {
-    curr_index = 0;
+    curr_index = NPC_LOCATION_OFFSET;
 }
 
 void mystery_gift_script::build_script()
@@ -14,6 +14,7 @@ void mystery_gift_script::build_script()
 void mystery_gift_script::set_script()
 {
     // Located at 0x?8A8 in the .sav
+    init_npc_location(0xFF, 0xFF, 0xFF);
     setvirtualaddress(0x08000000);
     lock();
     faceplayer();
@@ -81,7 +82,7 @@ void mystery_gift_script::add_command(int len)
 {
     for (int i = 0; i < len; i++)
     {
-        mg_script[curr_index] = value_buffer[i];
+        mg_script[curr_index - NPC_LOCATION_OFFSET] = value_buffer[i];
         curr_index++;
     }
 }
@@ -117,13 +118,13 @@ void mystery_gift_script::insert_textboxes()
 {
     for (int i = 0; i < NUM_TEXTBOXES; i++)
     {
-        textbox_destination[i] = curr_index;
+        textbox_destination[i] = curr_index - NPC_LOCATION_OFFSET;
         for (unsigned int parser = 0; parser < textboxes[i].length(); parser++)
         {
-            mg_script[curr_index] = convert_char(textboxes[i].at(parser));
+            mg_script[curr_index - NPC_LOCATION_OFFSET] = convert_char(textboxes[i].at(parser));
             curr_index++;
         }
-        mg_script[curr_index] = 0xFF; // End string
+        mg_script[curr_index - NPC_LOCATION_OFFSET] = 0xFF; // End string
         curr_index++;
     }
 }
@@ -212,7 +213,7 @@ void mystery_gift_script::checkflag(u8 flag_id)
 
 void mystery_gift_script::virtualgotoif(u8 condition, u8 jumppoint_id)
 {
-    jumppoint_location[jumppoint_id] = (curr_index + 2);
+    jumppoint_location[jumppoint_id] = ((curr_index - NPC_LOCATION_OFFSET) + 2);
 
     value_buffer[0] = 0xBB;
     value_buffer[1] = condition;
@@ -225,12 +226,12 @@ void mystery_gift_script::virtualgotoif(u8 condition, u8 jumppoint_id)
 
 void mystery_gift_script::set_jump_destination(u8 jumppoint_id)
 {
-    jumppoint_destination[jumppoint_id] = curr_index;
+    jumppoint_destination[jumppoint_id] = curr_index - NPC_LOCATION_OFFSET;
 }
 
 void mystery_gift_script::virtualmsgbox(u8 textbox_id)
 {
-    textbox_location[textbox_id] = (curr_index + 1);
+    textbox_location[textbox_id] = ((curr_index - NPC_LOCATION_OFFSET) + 1);
     value_buffer[0] = 0xBD;
     value_buffer[1] = 0x00;
     value_buffer[2] = 0x00;
@@ -321,16 +322,14 @@ void mystery_gift_script::release()
 
 void mystery_gift_script::end()
 {
-    value_buffer[0] = 02;
+    value_buffer[0] = 0x02;
     add_command(1);
 }
 
-/* Default script:
-void mystery_gift_script::checkflag(int flag_id)
-{
-    value_buffer[0] = 0x2B;
-    value_buffer[1] = flag_id >> 0;
-    value_buffer[2] = flag_id >> 8;
-    add_command(3);
+void mystery_gift_script::init_npc_location(u8 bank, u8 map, u8 npc){
+    mg_script[0] = 0x33;    // File ID?
+    mg_script[1] = bank;
+    mg_script[2] = map;
+    mg_script[3] = npc;
+
 }
-*/

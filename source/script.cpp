@@ -21,9 +21,23 @@ void inject_mystery()
     mystery_gift_script script;
     script.build_script();
     u16 checksum = script.calc_checksum();
+    //Checksum should be 0xA448?
+    // Set checksum
     global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET_EMER] = checksum >> 0;
     global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET_EMER + 1] = checksum >> 8;
-    for (int i = 0; i < MG_SCRIPT_SIZE; i++){
+    // Set padding
+    global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET_EMER + 2] = 0x00;
+    global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET_EMER + 3] = 0x00;
+    // Set file ID
+    /*
+    global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET_EMER + 4] = 0x33;
+    // Set NPC location
+    global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET_EMER + 5] = 0xFF;
+    global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET_EMER + 6] = 0xFF;
+    global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET_EMER + 7] = 0xFF;
+*/
+    for (int i = 0; i < MG_SCRIPT_SIZE; i++)
+    {
         global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET_EMER + 4 + i] = script.get_script_value_at(i);
     }
     update_memory_buffer_checksum();
@@ -49,7 +63,7 @@ void inject_mystery()
     bx    r0                        jump to r0 (return to where the function was called)
 000180:
     .word 0x0806B491                the location of "SendMonToPC", plus one (so it is interpreted as thumb code)
-000184: 
+000184:
     .word 0x020375E4                the location of variable "0x8006" (the return value)
 000188:
     .word 0x020375E8                the location of variable "0x8008" (the pokemon offset)
