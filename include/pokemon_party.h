@@ -12,6 +12,7 @@ public:
     int get_last_error();
     void load_pokemon();
     void inject_pokemon();
+    u8* get_full_pokemon_array();
 
 private:
     Pokemon party[6];

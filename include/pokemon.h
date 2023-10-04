@@ -4,6 +4,8 @@
 #include <tonc.h>
 #include "random.h"
 
+#define POKEMON_SIZE 80
+
 class Pokemon
 {
 public:

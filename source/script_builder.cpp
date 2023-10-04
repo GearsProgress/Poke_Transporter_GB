@@ -1,5 +1,6 @@
 #include <tonc.h>
 #include "script_builder.h"
+#include "pokemon_party.h"
 
 mystery_gift_script::mystery_gift_script()
 {
@@ -7,11 +8,6 @@ mystery_gift_script::mystery_gift_script()
 }
 
 void mystery_gift_script::build_script()
-{
-    set_script();
-};
-
-void mystery_gift_script::set_script()
 {
     // Located at 0x?8A8 in the .sav
     init_npc_location(0xFF, 0xFF, 0xFF);
@@ -31,7 +27,7 @@ void mystery_gift_script::set_script()
     copybyte(PTR_SCRIPT_PTR_HIGH, PTR_BLOCK_PTR_HIGH);
     copybyte(PTR_SCRIPT_PTR_HIGH + 1, PTR_BLOCK_PTR_HIGH + 1);
     addvar(VAR_SCRIPT_PTR_LOW, 0x3731);
-    addvar(VAR_SCRIPT_PTR_LOW, 0x164); // Combine to one line to free up space
+    addvar(VAR_SCRIPT_PTR_LOW, get_ptr_offset(REL_PTR_ASM_START)); // Combine to one line to free up space CHANGE ME
     setvar(VAR_CALL_RETURN_1, rev_endian(0x0300));
     setvar(VAR_CALL_CHECK_FLAG, rev_endian(0x2B00));
     addvar(VAR_CALL_CHECK_FLAG, 0x2000);
@@ -63,24 +59,47 @@ void mystery_gift_script::set_script()
     end();
 
     insert_textboxes();
+    two_align();
 
-    push(rlist_lr, 0);
-    ldr3(r3, 0x08); // Distance to the correct word FIX ME
-    ldr1(r3, r3, 0x00);
-    add5(r0, 28); // Could change
+    set_ptr_destination(REL_PTR_ASM_START);
+    push(rlist_lr);
+    ldr3(r3, asm_offset_distance(ASM_OFFSET_PKMN_OFFSET)); // Distance to the correct word
+    ldr1(r3, r3, 0);
+    add5(r0, asm_offset_distance(ASM_OFFSET_PKMN_STRUCT)); // Could change
     add3(r0, r0, r3);
-    ldr3(r1, 0x05); // Distance to correct word again
-    mov3(1, 0, r2, r15);
+    ldr3(r1, asm_offset_distance(ASM_OFFSET_SENDMON_PTR)); // Distance to correct word again
+    mov3(r2, r15);
     add2(r2, 7);
-    mov3(0, 1, r14, r2);
-    bx(0, r1);
-    ldr3(r2, 0x00); // Last one that could change
-    str1(0, r2, r0);
-    pop(0, rlist_r0);
-    bx(0, r0);
-
-        fill_jumppoint_pointers();
+    mov3(r14, r2);
+    bx(r1);
+    ldr3(r2, asm_offset_distance(ASM_OFFSET_BOX_SUC_PTR)); // Last one that could change
+    str1(r0, r2, 0);
+    pop(rlist_r0);
+    bx(r0);
+    set_asm_offset_destination(ASM_OFFSET_SENDMON_PTR);
+    add_word(0x0806B491);
+    set_asm_offset_destination(ASM_OFFSET_BOX_SUC_PTR);
+    add_word(0x020375E4);
+    set_asm_offset_destination(ASM_OFFSET_PKMN_OFFSET);
+    add_word(0x020375E8);
+    set_asm_offset_destination(ASM_OFFSET_PKMN_STRUCT);
+    
+    /*
+    for (int i = 0; i < 6; i++)
+    {
+        Pokemon curr_pkmn = party_data.get_pokemon(i);
+        for (int byte = 0; byte > POKEMON_SIZE; byte++)
+        {
+            mg_script[curr_index] = curr_pkmn.get_gen_3_data(byte);
+            curr_index++;
+        }
+    }
+    */
+    
+    fill_jumppoint_pointers();
     fill_textbox_pointers();
+    fill_asm_pointers();
+    fill_relative_pointers();
 };
 
 u8 mystery_gift_script::get_script_value_at(int i)
@@ -201,6 +220,14 @@ void mystery_gift_script::add_asm(u16 command)
     curr_index += 2;
 }
 
+void mystery_gift_script::fill_asm_pointers()
+{
+    for (int i = 0; i < NUM_ASM_OFFSET; i++)
+    {
+        mg_script[asm_offset_location[i]] |= (asm_offset_destination[i] - asm_offset_location[i]) / 4;
+    }
+}
+
 // Scripting commands:
 
 void mystery_gift_script::setvirtualaddress(u32 location)
@@ -249,6 +276,12 @@ void mystery_gift_script::virtualgotoif(u8 condition, u8 jumppoint_id)
 void mystery_gift_script::set_jump_destination(u8 jumppoint_id)
 {
     jumppoint_destination[jumppoint_id] = curr_index - NPC_LOCATION_OFFSET;
+}
+
+u8 mystery_gift_script::get_ptr_offset(u8 jumppoint_id)
+{
+    relative_offset_location[jumppoint_id] = curr_index + 3;
+    return 0xFE;
 }
 
 void mystery_gift_script::virtualmsgbox(u8 textbox_id)
@@ -360,47 +393,152 @@ void mystery_gift_script::init_npc_location(u8 bank, u8 map, u8 npc)
 // Documentation found here:
 // https://github.com/LunarLambda/arm-docs
 
-void mystery_gift_script::push(u8 r, u8 register_list)
+/**
+ * @brief PUSH (Push Multiple Registers) stores a subset (or possibly all) of the general-purpose registers R0-R7 and the LR to the stack
+ *
+ * @param register_list Is the list of registers to be stored, separated by commas and surrounded by { and }. The list is encoded in the register_list field of the instruction, by setting bit[i] to 1 if register Ri is included in the list and to 0 otherwise, for each of i=0 to 7. The R bit (bit[8]) is set to 1 if the LR is in the list and to 0 otherwise.
+ */
+void mystery_gift_script::push(u16 register_list)
 {
-    add_asm((0b1011010 << 9) | r << 8 | register_list);
+    add_asm((0b1011010 << 9) | register_list);
 }
 
+/**
+ * @brief LDR (3) loads 32-bit memory data into a general-purpose register. The addressing mode is useful for accessing PC-relative data.
+ *
+ * @param rd Is the destination register for the word loaded from memory.
+ * @param immed_8 Is an 8-bit value that is multiplied by 4 and added to the value of the PC to form the memory address.
+ */
 void mystery_gift_script::ldr3(u8 rd, u8 immed_8)
 {
     add_asm(0b01001 << 11 | rd << 8 | immed_8);
 }
 
-void mystery_gift_script::ldr1(u8 immed_5, u8 rn, u8 rd)
+/**
+ * @brief LDR (1) (Load Register) allows 32-bit memory data to be loaded into a general-purpose register. The addressing mode is useful for accessing structure (record) fields. With an offset of zero, the address produced is the unaltered value of the base register <Rn>.
+ *
+ * @param rd Is the destination register for the word loaded from memory.
+ * @param rn Is the register containing the base address for the instruction.
+ * @param immed_5 Is a 5-bit value that is multiplied by 4 and added to the value of <Rn> to form the memory address.
+ */
+void mystery_gift_script::ldr1(u8 rd, u8 rn, u8 immed_5)
 {
     add_asm(0b01101 << 11 | immed_5 << 6 | rn << 3 | rd);
 }
 
+/**
+ * @brief ADD (5) adds an immediate value to the PC and writes the resulting PC-relative address to a destination register. The immediate can be any multiple of 4 in the range 0 to 1020.
+ *
+ * @param rd Is the destination register for the completed operation.
+ * @param immed_8 Specifies an 8-bit immediate value that is quadrupled and added to the value of the PC.
+ */
 void mystery_gift_script::add5(u8 rd, u8 immed_8)
 {
     add_asm(0b10100 << 11 | rd << 8 | immed_8);
 }
 
-void mystery_gift_script::add3(u8 rm, u8 rn, u8 rd)
+/**
+ * @brief ADD (3) adds the value of one register to the value of a second register, and stores the result in a third register. It updates the condition code flags, based on the result.
+ *
+ * @param rd Is the destination register for the completed operation.
+ * @param rn Specifies the register containing the first value for the addition.
+ * @param rm Specifies the register containing the second value for the addition.
+ */
+void mystery_gift_script::add3(u8 rd, u8 rn, u8 rm)
 {
-    add_asm(0b0001100 << 9| rm << 6 | rn << 3 | rd);
+    add_asm(0b0001100 << 9 | rm << 6 | rn << 3 | rd);
 }
 
-void mystery_gift_script::mov3(u8 h1, u8 h2, u8 rm, u8 rd){
-    add_asm(0b01000110 << 9| h1 << 7 | h2 << 6 | rm << 3 | rd);
+/**
+ * @brief MOV (3) moves a value to, from, or between high registers. Unlike the low register MOV instruction described in MOV (2) on page A7-73, this instruction does not change the flags.
+ *
+ * @param rd Is the destination register for the operation. It can be any of R0 to R15, and its number is encoded in the instruction in H1 (most significant bit) and Rd (remaining three bits)
+ * @param rm Is the register containing the value to be copied. It can be any of R0 to R15, and its number is encoded in the instruction in H2 (most significant bit) and Rm (remaining three bits).
+ */
+void mystery_gift_script::mov3(u8 rd, u8 rm)
+{
+    add_asm(0b01000110 << 8 | (rd >> 3) << 7 | (rm >> 3) << 6 | (rm & 0b111) << 3 | (rd & 0b111));
 }
 
-void mystery_gift_script::add2(u8 rd, u8 immed_8){
-    add_asm(0b0001100 << 11 | rd << 8 | immed_8);
+/**
+ * @brief ADD (2) adds a large immediate value to the value of a register and stores the result back in the same register. The condition code flags are updated, based on the result.
+ *
+ * @param rd Holds the first operand for the addition, and is the destination register for the completed operation.
+ * @param immed_8 Specifies an 8-bit immediate value that is added to the value of <Rd>
+ */
+void mystery_gift_script::add2(u8 rd, u8 immed_8)
+{
+    add_asm(0b00110 << 11 | rd << 8 | immed_8);
 }
 
-void mystery_gift_script::bx(u8 h2, u8 rm){
-    add_asm(0b010001110 << 7 | h2 << 6 | rm << 3);
+/**
+ * @brief BX (Branch and Exchange) branches between ARM code and Thumb code.
+ *
+ * @param rm Is the register that contains the branch target address. It can be any of R0 to R15. The register number is encoded in the instruction in H2 (most significant bit) and Rm (remaining three bits)
+ */
+void mystery_gift_script::bx(u8 rm)
+{
+    add_asm(0b010001110 << 7 | (rm >> 3) << 6 | (rm & 0b111) << 3);
 }
 
-void mystery_gift_script::str1(u8 immed_5, u8 rn, u8 rd){
+/**
+ * @brief STR (1) (Store Register) stores 32-bit data from a general-purpose register to memory. The addressing mode is useful for accessing structure (record) fields. With an offset of zero, the address produced is the unaltered value of the base register <Rn>.
+ *
+ * @param rd Is the register that contains the word to be stored to memory.
+ * @param rn Is the register containing the base address for the instruction.
+ * @param immed_5 Is a 5-bit value that is multiplied by 4 and added to the value of <Rn> to form the memory address.
+ */
+void mystery_gift_script::str1(u8 rd, u8 rn, u8 immed_5)
+{
     add_asm(0b01100 << 11 | immed_5 << 6 | rn << 3 | rd);
 }
 
-void mystery_gift_script::pop(u8 r, u8 register_list){
-    add_asm(0b1011110 << 9 | r << 8 | register_list);
+/**
+ * @brief POP (Pop Multiple Registers) loads a subset (or possibly all) of the general-purpose registers R0-R7 and the PC from the stack.
+ *
+ * @param register_list Is the list of registers, separated by commas and surrounded by { and }. The list is encoded in the register_list field of the instruction, by setting bit[i] to 1 if register Ri is included in the list and to 0 otherwise, for each of i=0 to 7. The R bit (bit[8]) is set to 1 if the PC is in the list and to 0 otherwise.
+ */
+void mystery_gift_script::pop(u16 register_list)
+{
+    add_asm(0b1011110 << 9 | register_list);
+}
+
+void mystery_gift_script::add_word(u32 word)
+{
+    add_asm(word >> 0);
+    add_asm(word >> 16);
+}
+
+void mystery_gift_script::set_asm_offset_destination(u8 asm_offset_id)
+{
+    asm_offset_destination[asm_offset_id] = curr_index;
+}
+
+u8 mystery_gift_script::asm_offset_distance(u8 asm_offset_id)
+{
+    asm_offset_location[asm_offset_id] = curr_index;
+    return 0x00;
+}
+
+void mystery_gift_script::two_align()
+{
+    if (curr_index % 2 == 1)
+    {
+        mg_script[curr_index] = 0xFF;
+        curr_index++;
+    }
+}
+
+void mystery_gift_script::fill_relative_pointers()
+{
+    for (int i = 0; i < NUM_RELATIVE_PTR; i++)
+    {
+        mg_script[relative_offset_location[i]] = relative_offset_destination[i] >> 0;
+        mg_script[relative_offset_location[i + 1]] = relative_offset_destination[i] >> 8;
+    }
+}
+
+void mystery_gift_script::set_ptr_destination(u8 relative_ptr_id)
+{
+    relative_offset_destination[relative_ptr_id] = curr_index;
 }

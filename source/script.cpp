@@ -18,20 +18,21 @@ void inject_mystery()
     {
         global_memory_buffer[INTER_WONDER_CARD_OFFSET_EMER + i] = wonder_card[i];
     }
+
     mystery_gift_script script;
     script.build_script();
-    u16 checksum = script.calc_checksum();
-    //Checksum should be 0xA448?
-    // Set checksum
+    u16 checksum = 0; //script.calc_checksum();
+
+    // Set checksum and padding
     global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET_EMER] = checksum >> 0;
     global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET_EMER + 1] = checksum >> 8;
-    // Set padding
     global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET_EMER + 2] = 0x00;
     global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET_EMER + 3] = 0x00;
 
+    // Add in Mystery Script data
     for (int i = 0; i < MG_SCRIPT_SIZE; i++)
     {
-        global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET_EMER + 4 + i] = script.get_script_value_at(i);
+        //global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET_EMER + 4 + i] = script.get_script_value_at(i);
     }
     update_memory_buffer_checksum();
     flash_write(memory_section_array[4], &global_memory_buffer[0], 0x1000);

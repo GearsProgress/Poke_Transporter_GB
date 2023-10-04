@@ -1,6 +1,7 @@
 #ifndef SCRIPT_H
 #define SCRIPT_H
 
+#include "pokemon_party.h"
 
 #define JAPAN_WONDER_CARD_OFFSET_FRLG 0x0384
 #define JAPAN_WONDER_CARD_OFFSET_EMER 0x0490

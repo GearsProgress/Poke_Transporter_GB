@@ -1,6 +1,7 @@
 #include "script_array.h"
 #include "main_menu.h"
 #include "text_engine.h"
+#include "script.h"
 
 #include <tonc.h>
 

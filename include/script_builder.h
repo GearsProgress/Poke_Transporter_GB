@@ -4,6 +4,7 @@
 #include <tonc.h>
 #include <string>
 #include <map>
+#include "pokemon_party.h"
 
 #define VIR_ADDRESS 0x08000000
 #define MG_SCRIPT_SIZE 0x3E8
@@ -19,6 +20,15 @@
 #define TEXT_GREET 0
 #define TEXT_THANK 1
 #define TEXT_FULL 2
+
+#define NUM_ASM_OFFSET 4
+#define ASM_OFFSET_PKMN_OFFSET 0
+#define ASM_OFFSET_PKMN_STRUCT 1
+#define ASM_OFFSET_SENDMON_PTR 2
+#define ASM_OFFSET_BOX_SUC_PTR 3
+
+#define NUM_RELATIVE_PTR 1
+#define REL_PTR_ASM_START 0
 
 #define COND_LESSTHAN 0
 #define COND_EQUALS 1
@@ -53,34 +63,32 @@
 
 #define FLAG_ALL_COLLECTED 0x26
 
-#define r0 0b000
-#define r1 0b001
-#define r2 0b010
-#define r3 0b011
-#define r4 0b100
-#define r5 0b101
-#define r6 0b110
-#define r7 0b111
+#define r0 0b0000
+#define r1 0b0001
+#define r2 0b0010
+#define r3 0b0011
+#define r4 0b0100
+#define r5 0b0101
+#define r6 0b0110
+#define r7 0b0111
+#define r8 0b1000
+#define r9 0b1001
+#define r10 0b1010
+#define r11 0b1011
+#define r12 0b1100
+#define r13 0b1101
+#define r14 0b1110
+#define r15 0b1111
 
-// The following registers need h1 or h2 set to be used
-#define r8 0b000
-#define r9 0b001
-#define r10 0b010
-#define r11 0b011
-#define r12 0b100
-#define r13 0b101
-#define r14 0b110
-#define r15 0b111
-
-#define rlist_r0 0b00000001
-#define rlist_r1 0b00000010
-#define rlist_r2 0b00000101
-#define rlist_r3 0b00001001
-#define rlist_r4 0b00010001
-#define rlist_r5 0b00100001
-#define rlist_r6 0b01000001
-#define rlist_r7 0b10000001
-#define rlist_lr 0b1
+#define rlist_r0 0b000000001
+#define rlist_r1 0b000000010
+#define rlist_r2 0b000000101
+#define rlist_r3 0b000001001
+#define rlist_r4 0b000010001
+#define rlist_r5 0b000100001
+#define rlist_r6 0b001000001
+#define rlist_r7 0b010000001
+#define rlist_lr 0b100000000
 
 
 // Text conversion definitions
@@ -100,6 +108,11 @@ class mystery_gift_script
     };
     u32 textbox_location[NUM_TEXTBOXES];
     u32 textbox_destination[NUM_TEXTBOXES];
+    u8 asm_offset_location[NUM_ASM_OFFSET];
+    u8 asm_offset_destination[NUM_ASM_OFFSET];
+    u16 relative_offset_location[NUM_RELATIVE_PTR];
+    u16 relative_offset_destination[NUM_RELATIVE_PTR];
+    u8 party_data_array[6 * POKEMON_SIZE];
 
 public:
     mystery_gift_script();
@@ -108,7 +121,6 @@ public:
     u16 calc_checksum();
 
 private:
-    void set_script();
     void add_command(int len);
     u16 rev_endian(u16 num);
     void insert_textboxes();
@@ -116,6 +128,16 @@ private:
     void fill_jumppoint_pointers();
     void fill_textbox_pointers();
     void add_asm(u16 command);
+    void fill_asm_pointers();
+    void fill_relative_pointers();
+    void set_jump_destination(u8 jumppoint_id);
+    u8 get_ptr_offset(u8 jumppoint_id);
+    void init_npc_location(u8 bank, u8 map, u8 npc);
+    void add_word(u32 word);
+    void set_asm_offset_destination(u8 asm_offset_id);
+    u8 asm_offset_distance(u8 asm_offset_id);
+    void two_align();
+    void set_ptr_destination(u8 relative_ptr_id);
 
     // Scripting commands
     void setvirtualaddress(u32 location);
@@ -136,22 +158,18 @@ private:
     void end();
 
     // ASM commands
-    void push(u8 r, u8 register_list);
+    void push(u16 register_list);
     void ldr3(u8 rd, u8 immed_8);
-    void ldr1(u8 immed_5, u8 rn, u8 rd);
+    void ldr1(u8 rd, u8 rn, u8 immed_5);
     void add5(u8 rd, u8 immed_8);
     void add3(u8 rm, u8 rn, u8 rd);
-    void mov3(u8 h1, u8 h2, u8 rm, u8 rd);
+    void mov3(u8 rm, u8 rd);
     void add2(u8 rd, u8 immed_8);
-    void bx(u8 h2, u8 rm);
+    void bx(u8 rm);
     void str1(u8 immed_5, u8 rn, u8 rd);
-    void pop(u8 r, u8 register_list);
-    // MAKE SURE IT IS EVEN ALIGNED!!
+    void pop(u16 register_list);
 
-    // Custom scripting commands
-    void set_jump_destination(u8 jumppoint_id);
-    void init_npc_location(u8 bank, u8 map, u8 npc);
-
+    // Custom scripting/ASM commands
 };
 
 #endif

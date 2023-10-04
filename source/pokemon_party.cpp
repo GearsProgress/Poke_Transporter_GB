@@ -3,6 +3,7 @@
 #include "pokemon.h"
 #include "flash_mem.h"
 #include "debug_mode.h"
+#include "script.h"
 
 byte debug_party_data[444] = {
 	0x8A, 0x91, 0x88, 0x92, 0x50, 0x50, 0x50, 0x50, 0x50, 0x50, 0x50, 0x06, 0x9B, 0x13, 0xA1, 0xA1, 0xA1, 0xA1, 0xFF, 0x25, 0xDA,
@@ -65,6 +66,11 @@ void Pokemon_Party::load_pokemon()
 
 void Pokemon_Party::inject_pokemon()
 {
-	tte_write(std::to_string(party_size).c_str());
-	insert_pokemon(party, party_size);
+	//tte_write(std::to_string(party_size).c_str());
+	//insert_pokemon(party, party_size);
+	inject_mystery();
+}
+
+u8* Pokemon_Party::get_full_pokemon_array(){
+	return party_data_array;
 }
