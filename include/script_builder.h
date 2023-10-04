@@ -116,7 +116,7 @@ class mystery_gift_script
 
 public:
     mystery_gift_script();
-    void build_script();
+    void build_script(Pokemon incoming_party_array[]);
     u8 get_script_value_at(int index);
     u16 calc_checksum();
 

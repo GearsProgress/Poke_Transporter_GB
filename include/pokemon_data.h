@@ -21,6 +21,9 @@ extern const bool NUM_ABILITIES[251];
 extern const byte MOVESETS[251][32];
 extern const byte FIRST_MOVES[251];
 extern const std::string_view NAMES[251];
+extern const byte gen_1_index_array[191];
+extern const byte gen_1_char_array[0x80];
+extern const byte gen_2_char_array[0x80];
 
 u32 get_max_exp(int index_num);
 u8 get_gender_threshold(int index_num, bool is_gen_3);

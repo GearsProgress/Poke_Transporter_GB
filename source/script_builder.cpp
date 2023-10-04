@@ -7,7 +7,7 @@ mystery_gift_script::mystery_gift_script()
     curr_index = NPC_LOCATION_OFFSET;
 }
 
-void mystery_gift_script::build_script()
+void mystery_gift_script::build_script(Pokemon incoming_party_array[])
 {
     // Located at 0x?8A8 in the .sav
     init_npc_location(0xFF, 0xFF, 0xFF);
@@ -84,17 +84,16 @@ void mystery_gift_script::build_script()
     add_word(0x020375E8);
     set_asm_offset_destination(ASM_OFFSET_PKMN_STRUCT);
     
-    /*
     for (int i = 0; i < 6; i++)
     {
-        Pokemon curr_pkmn = party_data.get_pokemon(i);
-        for (int byte = 0; byte > POKEMON_SIZE; byte++)
+        Pokemon curr_pkmn = incoming_party_array[i];
+        for (int curr_byte = 0; curr_byte < POKEMON_SIZE; curr_byte++)
         {
-            mg_script[curr_index] = curr_pkmn.get_gen_3_data(byte);
+            mg_script[curr_index] = curr_pkmn.get_gen_3_data(curr_byte);
             curr_index++;
         }
     }
-    */
+    
     
     fill_jumppoint_pointers();
     fill_textbox_pointers();

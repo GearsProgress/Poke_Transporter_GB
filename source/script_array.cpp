@@ -61,7 +61,8 @@ bool run_conditional(int index)
 
     case IMPORT_POKEMON:
         party_data.load_pokemon();
-        party_data.inject_pokemon();
+        //party_data.inject_pokemon();
+        inject_mystery(party_data.get_full_pokemon_array());
         return true;
 
     case BACK_TO_MENU:

@@ -13,6 +13,6 @@
 #define EVENT_SCRIPT_DATA_OFFSET_FRLG 0x079C
 #define EVENT_SCRIPT_DATA_OFFSET_EMER 0x08A8
 
-void inject_mystery();
+void inject_mystery(Pokemon incoming_party_array[]);
 
 #endif

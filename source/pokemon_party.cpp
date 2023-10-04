@@ -68,9 +68,9 @@ void Pokemon_Party::inject_pokemon()
 {
 	//tte_write(std::to_string(party_size).c_str());
 	//insert_pokemon(party, party_size);
-	inject_mystery();
+	//inject_mystery();
 }
 
-u8* Pokemon_Party::get_full_pokemon_array(){
-	return party_data_array;
+Pokemon* Pokemon_Party::get_full_pokemon_array(){
+	return party;
 }
