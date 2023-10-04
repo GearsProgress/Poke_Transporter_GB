@@ -28,14 +28,7 @@ void inject_mystery()
     // Set padding
     global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET_EMER + 2] = 0x00;
     global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET_EMER + 3] = 0x00;
-    // Set file ID
-    /*
-    global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET_EMER + 4] = 0x33;
-    // Set NPC location
-    global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET_EMER + 5] = 0xFF;
-    global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET_EMER + 6] = 0xFF;
-    global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET_EMER + 7] = 0xFF;
-*/
+
     for (int i = 0; i < MG_SCRIPT_SIZE; i++)
     {
         global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET_EMER + 4 + i] = script.get_script_value_at(i);
@@ -67,4 +60,26 @@ void inject_mystery()
     .word 0x020375E4                the location of variable "0x8006" (the return value)
 000188:
     .word 0x020375E8                the location of variable "0x8008" (the pokemon offset)
+
+- 00 B5 
+- 08 4B 
+- 1B 68 
+- 08 A0 
+- C0 18 
+- 04 49 
+- 7A 46 
+- 07 32 
+- 96 46 
+- 08 47 
+- 02 4A 
+- 10 60 
+01 BC 
+00 47 
+91 B4 
+06 08 
+E4 75 
+03 02 
+E8 75 
+03 02
+
 */

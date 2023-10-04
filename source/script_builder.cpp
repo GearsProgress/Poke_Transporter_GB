@@ -64,7 +64,22 @@ void mystery_gift_script::set_script()
 
     insert_textboxes();
 
-    fill_jumppoint_pointers();
+    push(rlist_lr, 0);
+    ldr3(r3, 0x08); // Distance to the correct word FIX ME
+    ldr1(r3, r3, 0x00);
+    add5(r0, 28); // Could change
+    add3(r0, r0, r3);
+    ldr3(r1, 0x05); // Distance to correct word again
+    mov3(1, 0, r2, r15);
+    add2(r2, 7);
+    mov3(0, 1, r14, r2);
+    bx(0, r1);
+    ldr3(r2, 0x00); // Last one that could change
+    str1(0, r2, r0);
+    pop(0, rlist_r0);
+    bx(0, r0);
+
+        fill_jumppoint_pointers();
     fill_textbox_pointers();
 };
 
@@ -82,7 +97,7 @@ void mystery_gift_script::add_command(int len)
 {
     for (int i = 0; i < len; i++)
     {
-        mg_script[curr_index - NPC_LOCATION_OFFSET] = value_buffer[i];
+        mg_script[curr_index] = value_buffer[i];
         curr_index++;
     }
 }
@@ -121,10 +136,10 @@ void mystery_gift_script::insert_textboxes()
         textbox_destination[i] = curr_index - NPC_LOCATION_OFFSET;
         for (unsigned int parser = 0; parser < textboxes[i].length(); parser++)
         {
-            mg_script[curr_index - NPC_LOCATION_OFFSET] = convert_char(textboxes[i].at(parser));
+            mg_script[curr_index] = convert_char(textboxes[i].at(parser));
             curr_index++;
         }
-        mg_script[curr_index - NPC_LOCATION_OFFSET] = 0xFF; // End string
+        mg_script[curr_index] = 0xFF; // End string
         curr_index++;
     }
 }
@@ -179,6 +194,13 @@ u16 mystery_gift_script::calc_checksum() // Implementation taken from PokeEmeral
     return ~crc;
 }
 
+void mystery_gift_script::add_asm(u16 command)
+{
+    mg_script[curr_index] = command >> 0;
+    mg_script[curr_index + 1] = command >> 8;
+    curr_index += 2;
+}
+
 // Scripting commands:
 
 void mystery_gift_script::setvirtualaddress(u32 location)
@@ -213,7 +235,7 @@ void mystery_gift_script::checkflag(u8 flag_id)
 
 void mystery_gift_script::virtualgotoif(u8 condition, u8 jumppoint_id)
 {
-    jumppoint_location[jumppoint_id] = ((curr_index - NPC_LOCATION_OFFSET) + 2);
+    jumppoint_location[jumppoint_id] = (curr_index + 2);
 
     value_buffer[0] = 0xBB;
     value_buffer[1] = condition;
@@ -231,7 +253,7 @@ void mystery_gift_script::set_jump_destination(u8 jumppoint_id)
 
 void mystery_gift_script::virtualmsgbox(u8 textbox_id)
 {
-    textbox_location[textbox_id] = ((curr_index - NPC_LOCATION_OFFSET) + 1);
+    textbox_location[textbox_id] = (curr_index + 1);
     value_buffer[0] = 0xBD;
     value_buffer[1] = 0x00;
     value_buffer[2] = 0x00;
@@ -326,10 +348,59 @@ void mystery_gift_script::end()
     add_command(1);
 }
 
-void mystery_gift_script::init_npc_location(u8 bank, u8 map, u8 npc){
-    mg_script[0] = 0x33;    // File ID?
+void mystery_gift_script::init_npc_location(u8 bank, u8 map, u8 npc)
+{
+    mg_script[0] = 0x33; // File ID?
     mg_script[1] = bank;
     mg_script[2] = map;
     mg_script[3] = npc;
+}
 
+// ASM Commands
+// Documentation found here:
+// https://github.com/LunarLambda/arm-docs
+
+void mystery_gift_script::push(u8 r, u8 register_list)
+{
+    add_asm((0b1011010 << 9) | r << 8 | register_list);
+}
+
+void mystery_gift_script::ldr3(u8 rd, u8 immed_8)
+{
+    add_asm(0b01001 << 11 | rd << 8 | immed_8);
+}
+
+void mystery_gift_script::ldr1(u8 immed_5, u8 rn, u8 rd)
+{
+    add_asm(0b01101 << 11 | immed_5 << 6 | rn << 3 | rd);
+}
+
+void mystery_gift_script::add5(u8 rd, u8 immed_8)
+{
+    add_asm(0b10100 << 11 | rd << 8 | immed_8);
+}
+
+void mystery_gift_script::add3(u8 rm, u8 rn, u8 rd)
+{
+    add_asm(0b0001100 << 9| rm << 6 | rn << 3 | rd);
+}
+
+void mystery_gift_script::mov3(u8 h1, u8 h2, u8 rm, u8 rd){
+    add_asm(0b01000110 << 9| h1 << 7 | h2 << 6 | rm << 3 | rd);
+}
+
+void mystery_gift_script::add2(u8 rd, u8 immed_8){
+    add_asm(0b0001100 << 11 | rd << 8 | immed_8);
+}
+
+void mystery_gift_script::bx(u8 h2, u8 rm){
+    add_asm(0b010001110 << 7 | h2 << 6 | rm << 3);
+}
+
+void mystery_gift_script::str1(u8 immed_5, u8 rn, u8 rd){
+    add_asm(0b01100 << 11 | immed_5 << 6 | rn << 3 | rd);
+}
+
+void mystery_gift_script::pop(u8 r, u8 register_list){
+    add_asm(0b1011110 << 9 | r << 8 | register_list);
 }

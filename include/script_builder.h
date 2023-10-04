@@ -6,7 +6,7 @@
 #include <map>
 
 #define VIR_ADDRESS 0x08000000
-#define MG_SCRIPT_SIZE 0x3EC
+#define MG_SCRIPT_SIZE 0x3E8
 #define NPC_LOCATION_OFFSET 0x4
 
 #define NUM_JUMPS 4
@@ -53,7 +53,35 @@
 
 #define FLAG_ALL_COLLECTED 0x26
 
-#define TEXTBOX 0xF1
+#define r0 0b000
+#define r1 0b001
+#define r2 0b010
+#define r3 0b011
+#define r4 0b100
+#define r5 0b101
+#define r6 0b110
+#define r7 0b111
+
+// The following registers need h1 or h2 set to be used
+#define r8 0b000
+#define r9 0b001
+#define r10 0b010
+#define r11 0b011
+#define r12 0b100
+#define r13 0b101
+#define r14 0b110
+#define r15 0b111
+
+#define rlist_r0 0b00000001
+#define rlist_r1 0b00000010
+#define rlist_r2 0b00000101
+#define rlist_r3 0b00001001
+#define rlist_r4 0b00010001
+#define rlist_r5 0b00100001
+#define rlist_r6 0b01000001
+#define rlist_r7 0b10000001
+#define rlist_lr 0b1
+
 
 // Text conversion definitions
 
@@ -66,7 +94,7 @@ class mystery_gift_script
     u32 jumppoint_destination[NUM_JUMPS];
     std::string_view textboxes[NUM_TEXTBOXES] =
         {
-            "test!",
+            "test 1",
             "test 2",
             "test 3",
     };
@@ -87,6 +115,7 @@ private:
     u8 convert_char(char convert_char);
     void fill_jumppoint_pointers();
     void fill_textbox_pointers();
+    void add_asm(u16 command);
 
     // Scripting commands
     void setvirtualaddress(u32 location);
@@ -105,6 +134,19 @@ private:
     void setflag(u16 flag_id);
     void release();
     void end();
+
+    // ASM commands
+    void push(u8 r, u8 register_list);
+    void ldr3(u8 rd, u8 immed_8);
+    void ldr1(u8 immed_5, u8 rn, u8 rd);
+    void add5(u8 rd, u8 immed_8);
+    void add3(u8 rm, u8 rn, u8 rd);
+    void mov3(u8 h1, u8 h2, u8 rm, u8 rd);
+    void add2(u8 rd, u8 immed_8);
+    void bx(u8 h2, u8 rm);
+    void str1(u8 immed_5, u8 rn, u8 rd);
+    void pop(u8 r, u8 register_list);
+    // MAKE SURE IT IS EVEN ALIGNED!!
 
     // Custom scripting commands
     void set_jump_destination(u8 jumppoint_id);
