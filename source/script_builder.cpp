@@ -72,7 +72,7 @@ void mystery_gift_script::build_script(Pokemon incoming_party_array[])
     add2(r2, 7);
     mov3(r14, r2);
     bx(r1);
-    ldr3(r2, asm_offset_distance(ASM_OFFSET_BOX_SUC_PTR)); // Why is this one 4 bytes too short?
+    ldr3(r2, asm_offset_distance(ASM_OFFSET_BOX_SUC_PTR));
     str1(r0, r2, 0);
     pop(rlist_r0);
     bx(r0);
@@ -93,7 +93,6 @@ void mystery_gift_script::build_script(Pokemon incoming_party_array[])
             curr_index++;
         }
     }
-    
     
     fill_jumppoint_pointers();
     fill_textbox_pointers();
@@ -223,7 +222,7 @@ void mystery_gift_script::fill_asm_pointers()
 {
     for (int i = 0; i < NUM_ASM_OFFSET; i++)
     {
-        mg_script[asm_offset_location[i]] |= (asm_offset_destination[i] - asm_offset_location[i]) / 4;
+        mg_script[asm_offset_location[i]] |= (asm_offset_destination[i] - (asm_offset_location[i] + 2)) / 4;
     }
 }
 
