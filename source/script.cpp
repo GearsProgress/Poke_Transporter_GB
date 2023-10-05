@@ -43,7 +43,7 @@ void inject_mystery(Pokemon incoming_party_aray[])
     push  {lr}                      save the load register to the stack
     ldr   r3, [pc, <000188>]        set r3 to variable to 0x020375E8 (the pokemon offset, variable 0x8008's pointer)
     ldr   r3, [r3, #0]              set r3 to the value in memory r3 points to
-    add   r0, pc, #28               set r0 to a pointer 28 bytes ahead, which is the start of the Pokemon struct
+    add   r0, pc, #28               set r0 to a pointer 28 bytes ahead, which is the start of the Pokemon struct. The PC is a pointer to two bytes after the current byte being read.
     add   r0, r0, r3                add r3 to r0, giving it the correct offset for the current index
     ldr   r1, [pc, <000180>]        set r1 to 0x0806B491, which is the location of "SendMonToPC" plus one, since it is thumb code
     mov   r2, r15                   move r15 (the program counter) to r2

@@ -63,16 +63,16 @@ void mystery_gift_script::build_script(Pokemon incoming_party_array[])
 
     set_ptr_destination(REL_PTR_ASM_START);
     push(rlist_lr);
-    ldr3(r3, asm_offset_distance(ASM_OFFSET_PKMN_OFFSET)); // Distance to the correct word
+    ldr3(r3, asm_offset_distance(ASM_OFFSET_PKMN_OFFSET));
     ldr1(r3, r3, 0);
-    add5(r0, asm_offset_distance(ASM_OFFSET_PKMN_STRUCT)); // Could change
+    add5(r0, asm_offset_distance(ASM_OFFSET_PKMN_STRUCT));
     add3(r0, r0, r3);
-    ldr3(r1, asm_offset_distance(ASM_OFFSET_SENDMON_PTR)); // Distance to correct word again
+    ldr3(r1, asm_offset_distance(ASM_OFFSET_SENDMON_PTR));
     mov3(r2, r15);
     add2(r2, 7);
     mov3(r14, r2);
     bx(r1);
-    ldr3(r2, asm_offset_distance(ASM_OFFSET_BOX_SUC_PTR)); // Last one that could change
+    ldr3(r2, asm_offset_distance(ASM_OFFSET_BOX_SUC_PTR)); // Why is this one 4 bytes too short?
     str1(r0, r2, 0);
     pop(rlist_r0);
     bx(r0);
@@ -533,7 +533,7 @@ void mystery_gift_script::fill_relative_pointers()
     for (int i = 0; i < NUM_RELATIVE_PTR; i++)
     {
         mg_script[relative_offset_location[i]] = relative_offset_destination[i] >> 0;
-        mg_script[relative_offset_location[i + 1]] = relative_offset_destination[i] >> 8;
+        mg_script[relative_offset_location[i] + 1] = relative_offset_destination[i] >> 8;
     }
 }
 
