@@ -34,12 +34,12 @@ void mystery_gift_script::build_script(Pokemon incoming_party_array[])
     setvar(VAR_CALL_RETURN_2, rev_endian(0x0003));
     set_jump_destination(JUMP_LOOP);
     call(PTR_CALL_CHECK_FLAG);
-    virtualgotoif(COND_FLAGFALSE, JUMP_PKMN_COLLECTED);
+    virtualgotoif(COND_FLAGTRUE, JUMP_PKMN_COLLECTED); // CHANGE ME TO FALSE
     call(PTR_CALLASM);
     compare(VAR_BOX_RETURN, 0x02);
     virtualgotoif(COND_EQUALS, JUMP_BOX_FULL);
     set_jump_destination(JUMP_PKMN_COLLECTED);
-    addvar(VAR_PKMN_OFFSET, 0x64);
+    addvar(VAR_PKMN_OFFSET, 0x50);
     addvar(VAR_INDEX, 0x01);
     addvar(VAR_CALL_CHECK_FLAG, 0x0100);
     compare(VAR_INDEX, 0x06);
@@ -58,14 +58,13 @@ void mystery_gift_script::build_script(Pokemon incoming_party_array[])
     release();
     end();
 
-    insert_textboxes();
-    two_align();
+    four_align();
 
     set_ptr_destination(REL_PTR_ASM_START);
     push(rlist_lr);
     ldr3(r3, asm_offset_distance(ASM_OFFSET_PKMN_OFFSET));
     ldr1(r3, r3, 0);
-    add5(r0, asm_offset_distance(ASM_OFFSET_PKMN_STRUCT));
+    add5(r0, asm_offset_distance(ASM_OFFSET_PKMN_STRUCT)); // Needs to be one (four?) less
     add3(r0, r0, r3);
     ldr3(r1, asm_offset_distance(ASM_OFFSET_SENDMON_PTR));
     mov3(r2, r15);
@@ -83,7 +82,12 @@ void mystery_gift_script::build_script(Pokemon incoming_party_array[])
     set_asm_offset_destination(ASM_OFFSET_PKMN_OFFSET);
     add_word(0x020375E8);
     set_asm_offset_destination(ASM_OFFSET_PKMN_STRUCT);
-    
+
+    // Figure out why the game doesn't crash when the textboxes are after the
+    // ASM, but does when they are before (likely too small of a variable)
+    // lol this doesn't fix it there are bad eggs UGH
+    insert_textboxes();
+
     for (int i = 0; i < 6; i++)
     {
         Pokemon curr_pkmn = incoming_party_array[i];
@@ -93,11 +97,20 @@ void mystery_gift_script::build_script(Pokemon incoming_party_array[])
             curr_index++;
         }
     }
-    
+
     fill_jumppoint_pointers();
     fill_textbox_pointers();
     fill_asm_pointers();
     fill_relative_pointers();
+
+    if (curr_index > MG_SCRIPT_SIZE){
+        tte_erase_screen();
+        int val = (curr_index - MG_SCRIPT_SIZE) - four_align_value;
+        tte_write("Script exceeded by ");
+        tte_write(std::to_string(val).c_str());
+        tte_write(" bytes");
+        while(true){}
+    }
 };
 
 u8 mystery_gift_script::get_script_value_at(int i)
@@ -518,12 +531,13 @@ u8 mystery_gift_script::asm_offset_distance(u8 asm_offset_id)
     return 0x00;
 }
 
-void mystery_gift_script::two_align()
+void mystery_gift_script::four_align()
 {
-    if (curr_index % 2 == 1)
+    for (int i = 0; i < curr_index % 4; i++)
     {
         mg_script[curr_index] = 0xFF;
         curr_index++;
+        four_align_value++;
     }
 }
 
@@ -538,5 +552,5 @@ void mystery_gift_script::fill_relative_pointers()
 
 void mystery_gift_script::set_ptr_destination(u8 relative_ptr_id)
 {
-    relative_offset_destination[relative_ptr_id] = curr_index;
+    relative_offset_destination[relative_ptr_id] = curr_index - 4;
 }

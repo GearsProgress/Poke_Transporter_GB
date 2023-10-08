@@ -102,9 +102,9 @@ class mystery_gift_script
     u32 jumppoint_destination[NUM_JUMPS];
     std::string_view textboxes[NUM_TEXTBOXES] =
         {
-            "test 1",
-            "test 2",
-            "test 3",
+            "11Hello #*! Professor Fennel told me to give these to you.^Don't worry about making room in your party, I'll send them straight to your PC!",
+            "Thank you so much for your help, the professor and I really apprecaite it!",
+            "Hm. It looks like your PC is full... Come back later when you have some room!",
     };
     u32 textbox_location[NUM_TEXTBOXES];
     u32 textbox_destination[NUM_TEXTBOXES];
@@ -113,6 +113,7 @@ class mystery_gift_script
     u16 relative_offset_location[NUM_RELATIVE_PTR];
     u16 relative_offset_destination[NUM_RELATIVE_PTR];
     u8 party_data_array[6 * POKEMON_SIZE];
+    u8 four_align_value = 0;
 
 public:
     mystery_gift_script();
@@ -136,7 +137,7 @@ private:
     void add_word(u32 word);
     void set_asm_offset_destination(u8 asm_offset_id);
     u8 asm_offset_distance(u8 asm_offset_id);
-    void two_align();
+    void four_align();
     void set_ptr_destination(u8 relative_ptr_id);
 
     // Scripting commands
