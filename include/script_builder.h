@@ -10,6 +10,14 @@
 #define MG_SCRIPT_SIZE 0x3E8
 #define NPC_LOCATION_OFFSET 0x4
 
+#define LOC_SENDMONTOPC 0x0806B490
+#define LOC_GSPECIALVAR_0x8000 0x020375D8
+#define LOC_GSAVEBLOCK1PTR 0x03005D8C
+#define FLAG_ID_START 0x21 // This one stays consistant, at least for FRLG/E. Must also be 8x or 8x+1 to store in one byte
+#define VAR_ID_START 0x8000 // This one should also stay consistant
+#define PC_MAKER "LANETTE"
+
+
 #define NUM_JUMPS 4
 #define JUMP_ALL_COLLECTED 0
 #define JUMP_PKMN_COLLECTED 1
@@ -40,29 +48,36 @@
 #define COND_FLAGTRUE 1
 #define COND_FLAGFALSE 5
 
-#define VAR_CALLASM 0x8000
-#define VAR_SCRIPT_PTR_LOW 0x8001
-#define VAR_SCRIPT_PTR_HIGH 0x8002
-#define VAR_CALL_RETURN_1 0x8003
-#define VAR_CALL_CHECK_FLAG 0x8004
-#define VAR_CALL_RETURN_2 0x8005
-#define VAR_BOX_RETURN 0x8006
-#define VAR_INDEX 0x8007
-#define VAR_PKMN_OFFSET 0x8008
+#define VAR_CALLASM (VAR_ID_START + 0x00)
+#define VAR_SCRIPT_PTR_LOW (VAR_ID_START + 0x01)
+#define VAR_SCRIPT_PTR_HIGH (VAR_ID_START + 0x02)
+#define VAR_CALL_RETURN_1 (VAR_ID_START + 0x03)
+#define VAR_CALL_CHECK_FLAG (VAR_ID_START + 0x04)
+#define VAR_CALL_RETURN_2 (VAR_ID_START + 0x05)
+#define VAR_BOX_RETURN (VAR_ID_START + 0x06)
+#define VAR_INDEX (VAR_ID_START + 0x07)
+#define VAR_PKMN_OFFSET (VAR_ID_START + 0x08)
 
-#define PTR_CALLASM 0x020375D8
-#define PTR_SCRIPT_PTR_LOW 0x020375DA
-#define PTR_SCRIPT_PTR_HIGH 0x020375DC
-#define PTR_CALL_RETURN_1 0x020375DE
-#define PTR_CALL_CHECK_FLAG 0x020375E0
-#define PTR_CALL_RETURN_2 0x020375E2
-#define PTR_BOX_RETURN 0x020375E4
-#define PTR_INDEX 0x020375E6
-#define PTR_PKMN_OFFSET 0x020375E8
-#define PTR_BLOCK_PTR_LOW 0x03005D8C
-#define PTR_BLOCK_PTR_HIGH 0x03005D8E
+#define PTR_CALLASM (LOC_GSPECIALVAR_0x8000 + 0x00)
+#define PTR_SCRIPT_PTR_LOW (LOC_GSPECIALVAR_0x8000 + 0x02)
+#define PTR_SCRIPT_PTR_HIGH (LOC_GSPECIALVAR_0x8000 + 0x04)
+#define PTR_CALL_RETURN_1 (LOC_GSPECIALVAR_0x8000 + 0x06)
+#define PTR_CALL_CHECK_FLAG (LOC_GSPECIALVAR_0x8000 + 0x08)
+#define PTR_CALL_RETURN_2 (LOC_GSPECIALVAR_0x8000 + 0x0A)
+#define PTR_BOX_RETURN (LOC_GSPECIALVAR_0x8000 + 0x0C)
+#define PTR_INDEX (LOC_GSPECIALVAR_0x8000 + 0x0E)
+#define PTR_PKMN_OFFSET (LOC_GSPECIALVAR_0x8000 + 0x10)
 
-#define FLAG_ALL_COLLECTED 0x26
+#define PTR_BLOCK_PTR_LOW (LOC_GSAVEBLOCK1PTR + 0x00)
+#define PTR_BLOCK_PTR_HIGH (LOC_GSAVEBLOCK1PTR + 0x02)
+
+#define FLAG_PKMN_1 (FLAG_ID_START + 0x0)
+#define FLAG_PKMN_2 (FLAG_ID_START + 0x1)
+#define FLAG_PKMN_3 (FLAG_ID_START + 0x2)
+#define FLAG_PKMN_4 (FLAG_ID_START + 0x3)
+#define FLAG_PKMN_5 (FLAG_ID_START + 0x4)
+#define FLAG_PKMN_6 (FLAG_ID_START + 0x5)
+#define FLAG_ALL_COLLECTED (FLAG_ID_START + 0x6)
 
 #define r0 0b0000
 #define r1 0b0001
@@ -91,8 +106,6 @@
 #define rlist_r7 0b010000001
 #define rlist_lr 0b100000000
 
-#define PC_MAKER "LANETTE"
-
 
 // Text conversion definitions
 
@@ -105,10 +118,10 @@ class mystery_gift_script
     u32 jumppoint_destination[NUM_JUMPS];
     std::string_view textboxes[NUM_TEXTBOXES] =
         {
-            ": Hey /*!-PROFESSOR FENNEL told me that these~were for you!-Don't worry about making room_~I'll send them to the PC!",
+            ": HEy /*!-PROFESSOR FENNEL told me that these~were for you!-Don't worry about making room_~I'll send them to the PC!",
             ": Thanks for helping out FENNEL!",
             ": It looks like the PC is full_-Come back once you have more room!",
-            "/*'s POKEMON were sent to the PC!",
+            "/*'S POK%MON were sent to the PC!",
     };
     u32 textbox_location[NUM_TEXTBOXES];
     u32 textbox_destination[NUM_TEXTBOXES];
@@ -160,6 +173,8 @@ private:
     void call(u32 script_ptr);
     void compare(u16 var_id, u16 value);
     void setflag(u16 flag_id);
+    void fanfare(u16 fanfare_number);
+    void waitfanfare();
     void release();
     void end();
 

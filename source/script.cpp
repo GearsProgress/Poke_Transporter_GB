@@ -36,8 +36,8 @@ void inject_mystery(Pokemon incoming_party_aray[])
 
     //Set flags
     flash_read(memory_section_array[2], &global_memory_buffer[0], 0x1000);
-    global_memory_buffer[0x2F0] |=  0b00111111; //Set "to obtain" flags to 1
-    global_memory_buffer[0x2F0] &= ~0b01000000; //Set "collected all" flag to 0
+    global_memory_buffer[0x2F0 + (FLAG_ID_START / 8)] |=  (0b00111111 << (FLAG_ID_START % 8)); //Set "to obtain" flags to 1
+    global_memory_buffer[0x2F0 + (FLAG_ID_START / 8)] &= (~0b01000000 << (FLAG_ID_START % 8)); //Set "collected all" flag to 0
     update_memory_buffer_checksum();
     flash_write(memory_section_array[2], &global_memory_buffer[0], 0x1000);
     

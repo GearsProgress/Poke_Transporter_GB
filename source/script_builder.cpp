@@ -19,33 +19,35 @@ void mystery_gift_script::build_script(Pokemon incoming_party_array[])
     virtualmsgbox(TEXT_GREET);
     waitmsg();
     waitkeypress();
-    setvar(VAR_INDEX, 0x0000);
-    setvar(VAR_CALLASM, rev_endian(0x0023));
-    setvar(VAR_PKMN_OFFSET, 0x0000);
+    setvar(VAR_INDEX, 0);
+    setvar(VAR_CALLASM, rev_endian(0x0023)); // 0x23 = CALL ASM
+    setvar(VAR_PKMN_OFFSET, 0);
     copybyte(PTR_SCRIPT_PTR_LOW, PTR_BLOCK_PTR_LOW);
     copybyte(PTR_SCRIPT_PTR_LOW + 1, PTR_BLOCK_PTR_LOW + 1);
     copybyte(PTR_SCRIPT_PTR_HIGH, PTR_BLOCK_PTR_HIGH);
     copybyte(PTR_SCRIPT_PTR_HIGH + 1, PTR_BLOCK_PTR_HIGH + 1);
-    addvar(VAR_SCRIPT_PTR_LOW, 0x3731);
-    addvar(VAR_SCRIPT_PTR_LOW, get_ptr_offset(REL_PTR_ASM_START)); // Combine to one line to free up space CHANGE ME
-    setvar(VAR_CALL_RETURN_1, rev_endian(0x0300));
-    setvar(VAR_CALL_CHECK_FLAG, rev_endian(0x2B00));
-    addvar(VAR_CALL_CHECK_FLAG, 0x2000);
-    setvar(VAR_CALL_RETURN_2, rev_endian(0x0003));
+    addvar(VAR_SCRIPT_PTR_LOW, 0x3731); // CHANGE ME
+    addvar(VAR_SCRIPT_PTR_LOW, get_ptr_offset(REL_PTR_ASM_START));
+    setvar(VAR_CALL_RETURN_1, rev_endian(0x0300)); // 0x03 = RETURN
+    setvar(VAR_CALL_CHECK_FLAG, rev_endian(0x2B00)); // 0x2B = CHECK FLAG
+    addvar(VAR_CALL_CHECK_FLAG, rev_endian(FLAG_ID_START));
+    setvar(VAR_CALL_RETURN_2, rev_endian(0x0003)); // 0x03 = RETURN
     set_jump_destination(JUMP_LOOP);
     call(PTR_CALL_CHECK_FLAG);
-    virtualgotoif(COND_FLAGTRUE, JUMP_PKMN_COLLECTED); // CHANGE ME TO FALSE
+    virtualgotoif(COND_FLAGFALSE, JUMP_PKMN_COLLECTED); // CHANGE ME TO FALSE
     call(PTR_CALLASM);
-    compare(VAR_BOX_RETURN, 0x02);
+    compare(VAR_BOX_RETURN, 2);
     virtualgotoif(COND_EQUALS, JUMP_BOX_FULL);
     set_jump_destination(JUMP_PKMN_COLLECTED);
     addvar(VAR_PKMN_OFFSET, POKEMON_SIZE);
-    addvar(VAR_INDEX, 0x01);
-    addvar(VAR_CALL_CHECK_FLAG, 0x0100);
-    compare(VAR_INDEX, 0x06);
+    addvar(VAR_INDEX, 1);
+    addvar(VAR_CALL_CHECK_FLAG, rev_endian(1));
+    compare(VAR_INDEX, 6);
     virtualgotoif(COND_LESSTHAN, JUMP_LOOP);
     setflag(FLAG_ALL_COLLECTED);
+    fanfare(0xA4);
     virtualmsgbox(TEXT_RECEIVED);
+    waitfanfare();
     waitmsg();
     waitkeypress();
     set_jump_destination(JUMP_ALL_COLLECTED);
@@ -80,11 +82,11 @@ void mystery_gift_script::build_script(Pokemon incoming_party_array[])
     pop(rlist_r0);
     bx(r0);
     set_asm_offset_destination(ASM_OFFSET_SENDMON_PTR);
-    add_word(0x0806B491);
+    add_word(LOC_SENDMONTOPC + 1); // One is added so that the code is read as THUMB, not ARM
     set_asm_offset_destination(ASM_OFFSET_BOX_SUC_PTR);
-    add_word(0x020375E4);
+    add_word(PTR_BOX_RETURN);
     set_asm_offset_destination(ASM_OFFSET_PKMN_OFFSET);
-    add_word(0x020375E8);
+    add_word(PTR_PKMN_OFFSET);
     set_asm_offset_destination(ASM_OFFSET_PKMN_STRUCT);
 
     for (int i = 0; i < 6; i++)
@@ -195,6 +197,8 @@ u8 mystery_gift_script::convert_char(char convert_char)
         return convert_char + (0xBB - 'A'); // 'A' = 0xBB
     case 'a' ... 'z':
         return convert_char + (0xD5 - 'a'); // 'a' = 0xD5
+    case '%':
+        return 0x06;
     case '!':
         return 0xAB;
     case '?':
@@ -397,6 +401,18 @@ void mystery_gift_script::setflag(u16 flag_id)
     value_buffer[1] = flag_id >> 0;
     value_buffer[2] = flag_id >> 8;
     add_command(3);
+}
+
+void mystery_gift_script::fanfare(u16 fanfare_number){
+    value_buffer[0] = 0x31;
+    value_buffer[1] = fanfare_number >> 0;
+    value_buffer[2] = fanfare_number >> 8;
+    add_command(3);
+}
+
+void mystery_gift_script::waitfanfare(){
+    value_buffer[0] = 0x32;
+    add_command(1);
 }
 
 void mystery_gift_script::release()
