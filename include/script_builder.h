@@ -16,10 +16,11 @@
 #define JUMP_BOX_FULL 2
 #define JUMP_LOOP 3
 
-#define NUM_TEXTBOXES 3
+#define NUM_TEXTBOXES 4
 #define TEXT_GREET 0
 #define TEXT_THANK 1
 #define TEXT_FULL 2
+#define TEXT_RECEIVED 3
 
 #define NUM_ASM_OFFSET 4
 #define ASM_OFFSET_PKMN_OFFSET 0
@@ -90,6 +91,8 @@
 #define rlist_r7 0b010000001
 #define rlist_lr 0b100000000
 
+#define PC_MAKER "LANETTE"
+
 
 // Text conversion definitions
 
@@ -102,18 +105,20 @@ class mystery_gift_script
     u32 jumppoint_destination[NUM_JUMPS];
     std::string_view textboxes[NUM_TEXTBOXES] =
         {
-            "11Hello #*! Professor Fennel told me to give these to you.^Don't worry about making room in your party, I'll send them straight to your PC!",
-            "Thank you so much for your help, the professor and I really apprecaite it!",
-            "Hm. It looks like your PC is full... Come back later when you have some room!",
+            ": Hey /*!-PROFESSOR FENNEL told me that these~were for you!-Don't worry about making room_~I'll send them to the PC!",
+            ": Thanks for helping out FENNEL!",
+            ": It looks like the PC is full_-Come back once you have more room!",
+            "/*'s POKEMON were sent to the PC!",
     };
     u32 textbox_location[NUM_TEXTBOXES];
     u32 textbox_destination[NUM_TEXTBOXES];
-    u8 asm_offset_location[NUM_ASM_OFFSET];
-    u8 asm_offset_destination[NUM_ASM_OFFSET];
+    u16 asm_offset_location[NUM_ASM_OFFSET];
+    u16 asm_offset_destination[NUM_ASM_OFFSET];
     u16 relative_offset_location[NUM_RELATIVE_PTR];
     u16 relative_offset_destination[NUM_RELATIVE_PTR];
     u8 party_data_array[6 * POKEMON_SIZE];
     u8 four_align_value = 0;
+    std::string_view pc_maker = PC_MAKER;
 
 public:
     mystery_gift_script();

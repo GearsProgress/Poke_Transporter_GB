@@ -39,12 +39,15 @@ void mystery_gift_script::build_script(Pokemon incoming_party_array[])
     compare(VAR_BOX_RETURN, 0x02);
     virtualgotoif(COND_EQUALS, JUMP_BOX_FULL);
     set_jump_destination(JUMP_PKMN_COLLECTED);
-    addvar(VAR_PKMN_OFFSET, 0x50);
+    addvar(VAR_PKMN_OFFSET, POKEMON_SIZE);
     addvar(VAR_INDEX, 0x01);
     addvar(VAR_CALL_CHECK_FLAG, 0x0100);
     compare(VAR_INDEX, 0x06);
     virtualgotoif(COND_LESSTHAN, JUMP_LOOP);
     setflag(FLAG_ALL_COLLECTED);
+    virtualmsgbox(TEXT_RECEIVED);
+    waitmsg();
+    waitkeypress();
     set_jump_destination(JUMP_ALL_COLLECTED);
     virtualmsgbox(TEXT_THANK);
     waitmsg();
@@ -58,13 +61,14 @@ void mystery_gift_script::build_script(Pokemon incoming_party_array[])
     release();
     end();
 
+    insert_textboxes();
     four_align();
 
     set_ptr_destination(REL_PTR_ASM_START);
     push(rlist_lr);
     ldr3(r3, asm_offset_distance(ASM_OFFSET_PKMN_OFFSET));
     ldr1(r3, r3, 0);
-    add5(r0, asm_offset_distance(ASM_OFFSET_PKMN_STRUCT)); // Needs to be one (four?) less
+    add5(r0, asm_offset_distance(ASM_OFFSET_PKMN_STRUCT));
     add3(r0, r0, r3);
     ldr3(r1, asm_offset_distance(ASM_OFFSET_SENDMON_PTR));
     mov3(r2, r15);
@@ -83,11 +87,6 @@ void mystery_gift_script::build_script(Pokemon incoming_party_array[])
     add_word(0x020375E8);
     set_asm_offset_destination(ASM_OFFSET_PKMN_STRUCT);
 
-    // Figure out why the game doesn't crash when the textboxes are after the
-    // ASM, but does when they are before (likely too small of a variable)
-    // lol this doesn't fix it there are bad eggs UGH
-    insert_textboxes();
-
     for (int i = 0; i < 6; i++)
     {
         Pokemon curr_pkmn = incoming_party_array[i];
@@ -103,13 +102,16 @@ void mystery_gift_script::build_script(Pokemon incoming_party_array[])
     fill_asm_pointers();
     fill_relative_pointers();
 
-    if (curr_index > MG_SCRIPT_SIZE){
+    if (curr_index > MG_SCRIPT_SIZE)
+    {
         tte_erase_screen();
         int val = (curr_index - MG_SCRIPT_SIZE) - four_align_value;
         tte_write("Script exceeded by ");
         tte_write(std::to_string(val).c_str());
         tte_write(" bytes");
-        while(true){}
+        while (true)
+        {
+        }
     }
 };
 
@@ -161,9 +163,18 @@ void mystery_gift_script::fill_textbox_pointers()
 
 void mystery_gift_script::insert_textboxes()
 {
+
     for (int i = 0; i < NUM_TEXTBOXES; i++)
     {
         textbox_destination[i] = curr_index - NPC_LOCATION_OFFSET;
+        if (i != TEXT_RECEIVED)
+        {
+            for (unsigned int parser = 0; parser < pc_maker.length(); parser++)
+            {
+                mg_script[curr_index] = convert_char(pc_maker.at(parser));
+                curr_index++;
+            }
+        }
         for (unsigned int parser = 0; parser < textboxes[i].length(); parser++)
         {
             mg_script[curr_index] = convert_char(textboxes[i].at(parser));
@@ -190,7 +201,13 @@ u8 mystery_gift_script::convert_char(char convert_char)
         return 0xAC;
     case '.':
         return 0xAD;
-    case '#': // Variable escape sequence
+    case '\'':
+        return 0xB4;
+    case ':':
+        return 0xF0;
+    case '_': // ...
+        return 0xB0;
+    case '/': // Variable escape sequence
         return 0xFD;
     case '*': // Player name
         return 0x01;
@@ -198,6 +215,8 @@ u8 mystery_gift_script::convert_char(char convert_char)
         return 0xFA;
     case '-': // Wait for button and clear text
         return 0xFB;
+    case '~': // New line
+        return 0xFE;
     case ' ':
         return 0x00;
     default:
@@ -235,7 +254,7 @@ void mystery_gift_script::fill_asm_pointers()
 {
     for (int i = 0; i < NUM_ASM_OFFSET; i++)
     {
-        mg_script[asm_offset_location[i]] |= (asm_offset_destination[i] - (asm_offset_location[i] + 2)) / 4;
+        mg_script[asm_offset_location[i]] |= ((asm_offset_destination[i] - (asm_offset_location[i] + 2)) / 4) & 0xFF;
     }
 }
 
