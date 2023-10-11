@@ -5,18 +5,30 @@
 #include <string>
 #include <map>
 #include "pokemon_party.h"
+#include "debug_mode.h"
 
 #define VIR_ADDRESS 0x08000000
 #define MG_SCRIPT_SIZE 0x3E8
 #define NPC_LOCATION_OFFSET 0x4
+#define READ_AS_THUMB 0x1
 
-#define LOC_SENDMONTOPC 0x0806B490
-#define LOC_GSPECIALVAR_0x8000 0x020375D8
-#define LOC_GSAVEBLOCK1PTR 0x03005D8C
-#define FLAG_ID_START 0x21 // This one stays consistant, at least for FRLG/E. Must also be 8x or 8x+1 to store in one byte
+#define GAMECODE (DEBUG_MODE ? LEAFGREEN : ((*(vu32 *)(0x80000AC)) & 0xFFFFFF))
+#define RUBY 0x565841
+#define SAPPHIRE 0x505841
+#define FIRERED 0x525042
+#define LEAFGREEN 0x475042
+#define EMERALD 0x455042
+
+
+#define LOC_SENDMONTOPC ((GAMECODE == RUBY || GAMECODE == SAPPHIRE) ? 0x01 : ((GAMECODE == FIRERED || GAMECODE == LEAFGREEN) ? 0x08040B90  : 0x0806B490))
+#define LOC_GSPECIALVAR_0x8000 ((GAMECODE == RUBY || GAMECODE == SAPPHIRE) ? 0x01 : ((GAMECODE == FIRERED || GAMECODE == LEAFGREEN) ? 0x020370B8 : 0x020375D8))
+#define LOC_GSAVEBLOCK1PTR ((GAMECODE == RUBY || GAMECODE == SAPPHIRE) ? 0x01 : ((GAMECODE == FIRERED || GAMECODE == LEAFGREEN) ? 0x03005008  : 0x03005D8C))
+#define OFFSET_RAMSCRIPT ((GAMECODE == RUBY || GAMECODE == SAPPHIRE) ? 0x01 : ((GAMECODE == FIRERED || GAMECODE == LEAFGREEN) ? 0x3690 : 0x3728)) 
+    // Source: https://github.com/pret/pokeemerald/blob/master/include/global.h#L1012
+#define OFFSET_FLAGS ((GAMECODE == RUBY || GAMECODE == SAPPHIRE) ? 0x01 : ((GAMECODE == FIRERED || GAMECODE == LEAFGREEN) ? 0x3690 : 0x2F0)) //Why not 0x1270?
+#define PC_MAKER ((GAMECODE == RUBY || GAMECODE == SAPPHIRE || GAMECODE == EMERALD) ? "LANETTE" : "BILL")
+#define FLAG_ID_START 0x21  // This one stays consistant, at least for FRLG/E. Must also be 8x or 8x+1 to store in one byte
 #define VAR_ID_START 0x8000 // This one should also stay consistant
-#define PC_MAKER "LANETTE"
-
 
 #define NUM_JUMPS 4
 #define JUMP_ALL_COLLECTED 0
@@ -106,7 +118,6 @@
 #define rlist_r7 0b010000001
 #define rlist_lr 0b100000000
 
-
 // Text conversion definitions
 
 class mystery_gift_script
@@ -118,7 +129,7 @@ class mystery_gift_script
     u32 jumppoint_destination[NUM_JUMPS];
     std::string_view textboxes[NUM_TEXTBOXES] =
         {
-            ": HEy /*!-PROFESSOR FENNEL told me that these~were for you!-Don't worry about making room_~I'll send them to the PC!",
+            ": Hey /*!-PROFESSOR FENNEL told me that these~were for you!-Don't worry about making room_~I'll send them to the PC!",
             ": Thanks for helping out FENNEL!",
             ": It looks like the PC is full_-Come back once you have more room!",
             "/*'S POK%MON were sent to the PC!",

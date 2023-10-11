@@ -26,7 +26,7 @@ void mystery_gift_script::build_script(Pokemon incoming_party_array[])
     copybyte(PTR_SCRIPT_PTR_LOW + 1, PTR_BLOCK_PTR_LOW + 1);
     copybyte(PTR_SCRIPT_PTR_HIGH, PTR_BLOCK_PTR_HIGH);
     copybyte(PTR_SCRIPT_PTR_HIGH + 1, PTR_BLOCK_PTR_HIGH + 1);
-    addvar(VAR_SCRIPT_PTR_LOW, 0x3731); // CHANGE ME
+    addvar(VAR_SCRIPT_PTR_LOW, OFFSET_RAMSCRIPT + 8 + READ_AS_THUMB); // 8 is for the 8 bytes of Checksum, padding and NPC info
     addvar(VAR_SCRIPT_PTR_LOW, get_ptr_offset(REL_PTR_ASM_START));
     setvar(VAR_CALL_RETURN_1, rev_endian(0x0300)); // 0x03 = RETURN
     setvar(VAR_CALL_CHECK_FLAG, rev_endian(0x2B00)); // 0x2B = CHECK FLAG
@@ -82,7 +82,7 @@ void mystery_gift_script::build_script(Pokemon incoming_party_array[])
     pop(rlist_r0);
     bx(r0);
     set_asm_offset_destination(ASM_OFFSET_SENDMON_PTR);
-    add_word(LOC_SENDMONTOPC + 1); // One is added so that the code is read as THUMB, not ARM
+    add_word(LOC_SENDMONTOPC + READ_AS_THUMB);
     set_asm_offset_destination(ASM_OFFSET_BOX_SUC_PTR);
     add_word(PTR_BOX_RETURN);
     set_asm_offset_destination(ASM_OFFSET_PKMN_OFFSET);

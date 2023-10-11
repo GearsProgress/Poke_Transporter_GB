@@ -28,6 +28,7 @@
 #include "pkmn_font.h"
 #include "save_data_manager.h"
 #include "script.h"
+#include "script_builder.h"
 
 /*TODO:
 --------
@@ -155,13 +156,13 @@ int main(void)
 	text_disable();
 
 	// Check if the game has been loaded correctly.
-	u32 game_code = (*(vu32 *)(0x80000AC)) & 0xFFFFFF;
-	if (!(game_code == 0x565841 || // Ruby
-		  game_code == 0x505841 || // Sapphire
-		  game_code == 0x525042 || // FireRed
-		  game_code == 0x475042 || // LeafGreen
-		  game_code == 0x455042 || // Emerald
-		  DEBUG_MODE			   // Ignore if in debug mode
+	u32 game_code = GAMECODE;
+	while (!(game_code == RUBY ||
+		  game_code == SAPPHIRE ||
+		  game_code == FIRERED ||
+		  game_code == LEAFGREEN ||
+		  game_code == EMERALD ||
+		  DEBUG_MODE // Ignore if in debug mode
 		  ))
 	{
 		REG_BG0CNT = (REG_BG0CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
@@ -224,7 +225,8 @@ int main(void)
 		case (POKEDEX):
 			pokedex_show();
 			pokedex_loop();
-			if(key_hit(KEY_B)){
+			if (key_hit(KEY_B))
+			{
 				pokedex_hide();
 				main_menu_exit();
 			}

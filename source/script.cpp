@@ -13,7 +13,7 @@ void inject_mystery(Pokemon incoming_party_aray[])
     flash_read(memory_section_array[4], &global_memory_buffer[0], 0x1000);
     for (int i = 0; i < 0x14E; i++)
     {
-        global_memory_buffer[INTER_WONDER_CARD_OFFSET_EMER + i] = wonder_card[i];
+        global_memory_buffer[INTER_WONDER_CARD_OFFSET + i] = wonder_card[i];
     }
 
     mystery_gift_script script;
@@ -21,22 +21,22 @@ void inject_mystery(Pokemon incoming_party_aray[])
     u16 checksum = script.calc_checksum();
 
     // Set checksum and padding
-    global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET_EMER] = checksum >> 0;
-    global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET_EMER + 1] = checksum >> 8;
-    global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET_EMER + 2] = 0x00;
-    global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET_EMER + 3] = 0x00;
+    global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET] = checksum >> 0;
+    global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET + 1] = checksum >> 8;
+    global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET + 2] = 0x00;
+    global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET + 3] = 0x00;
 
     // Add in Mystery Script data
     for (int i = 0; i < MG_SCRIPT_SIZE; i++)
     {
-        global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET_EMER + 4 + i] = script.get_script_value_at(i);
+        global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET + 4 + i] = script.get_script_value_at(i);
     }
     update_memory_buffer_checksum();
     flash_write(memory_section_array[4], &global_memory_buffer[0], 0x1000);
 
     //Set flags
     flash_read(memory_section_array[2], &global_memory_buffer[0], 0x1000);
-    global_memory_buffer[0x2F0 + (FLAG_ID_START / 8)] |=  (0b00111111 << (FLAG_ID_START % 8)); //Set "to obtain" flags to 1
+    global_memory_buffer[ + (FLAG_ID_START / 8)] |=  (0b00111111 << (FLAG_ID_START % 8)); //Set "to obtain" flags to 1
     global_memory_buffer[0x2F0 + (FLAG_ID_START / 8)] &= (~0b01000000 << (FLAG_ID_START % 8)); //Set "collected all" flag to 0
     update_memory_buffer_checksum();
     flash_write(memory_section_array[2], &global_memory_buffer[0], 0x1000);
