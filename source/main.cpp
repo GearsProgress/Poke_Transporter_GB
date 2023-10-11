@@ -50,6 +50,7 @@ CONVERSION:
 - What happens with Smeargle?
 - Check Pokerus
 - Fix egg moves only being on the baby Pokemon. TLDR anything Horsea can learn Seadra can too
+- Find automatic detection for languages. Japanese is longer, while other languages only use certian characters
 
 INJECTION:
 - Redo injection to be picked up like a Mystery Gift
@@ -161,9 +162,7 @@ int main(void)
 		  game_code == SAPPHIRE ||
 		  game_code == FIRERED ||
 		  game_code == LEAFGREEN ||
-		  game_code == EMERALD ||
-		  DEBUG_MODE // Ignore if in debug mode
-		  ))
+		  game_code == EMERALD))
 	{
 		REG_BG0CNT = (REG_BG0CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
 		REG_BG1CNT = (REG_BG1CNT & ~BG_PRIO_MASK) | BG_PRIO(2);
@@ -172,9 +171,17 @@ int main(void)
 		tte_set_pos(40, 24);
 		tte_set_margins(40, 24, 206, 104);
 		tte_write("The Pokemon save\nfile was not loaded successfully. Please\nrestart the console,\nload the Pokemon\ngame normally, and\nthen upload the\nprogram again.");
-		while (1)
-		{
-		};
+		key_poll();
+		while(!key_hit(KEY_A)){
+			key_poll();
+			VBlankIntrWait();
+		}
+		tte_erase_screen();
+		delay_counter = 0;
+		while(delay_counter < 60){
+			delay_counter++;
+			VBlankIntrWait();
+		}
 	}
 
 	// Legal mumbo jumbo
@@ -189,6 +196,7 @@ int main(void)
 		{
 			delay_counter = 2500000;
 		}
+		VBlankIntrWait();
 	}
 	key_poll();
 	// Gears of Progress
@@ -204,6 +212,7 @@ int main(void)
 		{
 			delay_counter = 2500000;
 		}
+		VBlankIntrWait();
 	}
 	key_poll();
 	REG_BG1CNT = REG_BG1CNT | BG_PRIO(3);

@@ -34,7 +34,7 @@ void mystery_gift_script::build_script(Pokemon incoming_party_array[])
     setvar(VAR_CALL_RETURN_2, rev_endian(0x0003)); // 0x03 = RETURN
     set_jump_destination(JUMP_LOOP);
     call(PTR_CALL_CHECK_FLAG);
-    virtualgotoif(COND_FLAGFALSE, JUMP_PKMN_COLLECTED); // CHANGE ME TO FALSE
+    virtualgotoif(COND_FLAGFALSE, JUMP_PKMN_COLLECTED);
     call(PTR_CALLASM);
     compare(VAR_BOX_RETURN, 2);
     virtualgotoif(COND_EQUALS, JUMP_BOX_FULL);
