@@ -74,7 +74,7 @@ void mystery_gift_script::build_script(Pokemon incoming_party_array[])
     add3(r0, r0, r3);
     ldr3(r1, asm_offset_distance(ASM_OFFSET_SENDMON_PTR));
     mov3(r2, r15);
-    add2(r2, 7);
+    add2(r2, 5); // Add 0x05 for the four instruction bytes ahead of it, plus one so it is read as THUMB, not ARM
     mov3(r14, r2);
     bx(r1);
     ldr3(r2, asm_offset_distance(ASM_OFFSET_BOX_SUC_PTR));
