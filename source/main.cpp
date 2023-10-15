@@ -149,9 +149,9 @@ int main(void)
 	Button pokedex_btn = Button(btn_p_l, btn_p_r, 192, 224);
 	Button credits_btn = Button(btn_c_l, btn_c_r, 256, 288);
 
-	pokedex_init();
-	load_save_data();
+	pokedex_init(); //Why does this cause the music to stop playing? Also the loop doesn't work
 
+	load_save_data();
 	main_menu_init(transfer_btn, pokedex_btn, credits_btn);
 
 	text_disable();
