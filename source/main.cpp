@@ -1,7 +1,7 @@
 #include <tonc.h>
 #include <string>
 #include <cstring>
-#include <maxmod.h>
+//#include <maxmod.h> //Music
 
 #include "debug.h"
 #include "flash_mem.h"
@@ -74,6 +74,7 @@ TESTING:
 
 Pokemon_Party party = Pokemon_Party();
 
+/*
 int test_main(void)
 {
 
@@ -101,7 +102,7 @@ int test_main(void)
 		// ..update graphical data..
 	}
 }
-
+*/
 int main(void)
 {
 	int delay_counter = 0;
@@ -122,10 +123,10 @@ int main(void)
 
 	// Sound bank init
 	irq_init(NULL);
-	irq_set(II_VBLANK, mmVBlank, 0);
+	//irq_set(II_VBLANK, mmVBlank, 0); //Music
 	irq_enable(II_VBLANK);
-	mmInitDefault((mm_addr)soundbank_bin, 8);
-	mmStart(MOD_FLATOUTLIES, MM_PLAY_LOOP);
+	//mmInitDefault((mm_addr)soundbank_bin, 8); //Music
+	//mmStart(MOD_FLATOUTLIES, MM_PLAY_LOOP); //Music
 
 	// Graphics init
 	oam_init(obj_buffer, 128);
@@ -149,20 +150,20 @@ int main(void)
 	Button pokedex_btn = Button(btn_p_l, btn_p_r, 192, 224);
 	Button credits_btn = Button(btn_c_l, btn_c_r, 256, 288);
 
-	pokedex_init(); //Why does this cause the music to stop playing? Also the loop doesn't work
+	pokedex_init(); // Why does this cause the music to stop playing? Also the loop doesn't work
 
 	load_save_data();
 	main_menu_init(transfer_btn, pokedex_btn, credits_btn);
 
 	text_disable();
 
+	load_gamecode();
 	// Check if the game has been loaded correctly.
-	u32 game_code = GAMECODE;
-	while (!(game_code == RUBY ||
-		  game_code == SAPPHIRE ||
-		  game_code == FIRERED ||
-		  game_code == LEAFGREEN ||
-		  game_code == EMERALD))
+	while (!((get_gamecode() == RUBY_ID) ||
+			 (get_gamecode() == SAPPHIRE_ID) ||
+			 (get_gamecode() == FIRERED_ID) ||
+			 (get_gamecode() == LEAFGREEN_ID) ||
+			 (get_gamecode() == EMERALD_ID)))
 	{
 		REG_BG0CNT = (REG_BG0CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
 		REG_BG1CNT = (REG_BG1CNT & ~BG_PRIO_MASK) | BG_PRIO(2);
@@ -170,15 +171,18 @@ int main(void)
 		REG_BG2VOFS = 0;
 		tte_set_pos(40, 24);
 		tte_set_margins(40, 24, 206, 104);
-		tte_write("The Pokemon save\nfile was not loaded successfully. Please\nrestart the console,\nload the Pokemon\ngame normally, and\nthen upload the\nprogram again.");
+		//tte_write("The Pokemon save\nfile was not loaded successfully. Please\nrestart the console,\nload the Pokemon\ngame normally, and\nthen upload the\nprogram again.");
+		tte_write(std::to_string(get_gamecode()).c_str());
 		key_poll();
-		while(!key_hit(KEY_A)){
+		while (!key_hit(KEY_A))
+		{
 			key_poll();
 			VBlankIntrWait();
 		}
 		tte_erase_screen();
 		delay_counter = 0;
-		while(delay_counter < 60){
+		while (delay_counter < 60)
+		{
 			delay_counter++;
 			VBlankIntrWait();
 		}
@@ -258,7 +262,7 @@ int main(void)
 		oam_copy(oam_mem, obj_buffer, 26);
 
 		VBlankIntrWait();
-		mmFrame();
+		//mmFrame(); //Music
 		global_next_frame();
 	}
 }

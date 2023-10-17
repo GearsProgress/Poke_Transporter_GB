@@ -6,62 +6,15 @@
 #include <map>
 #include "pokemon_party.h"
 #include "debug_mode.h"
+#include "save_data_manager.h"
 
 #define VIR_ADDRESS 0x08000000
 #define MG_SCRIPT_SIZE 0x3E8
 #define NPC_LOCATION_OFFSET 0x4
 #define READ_AS_THUMB 0x1
 
-#define GAMECODE (DEBUG_MODE ? LEAFGREEN : ((*(vu32 *)(0x80000AC)) & 0xFFFFFF))
-#define RUBY 0x565841
-#define SAPPHIRE 0x505841
-#define FIRERED 0x525042
-#define LEAFGREEN 0x475042
-#define EMERALD 0x455042
-
-#define LOC_SENDMONTOPC         ((GAMECODE == RUBY || GAMECODE == SAPPHIRE) ? 0x01 : ((GAMECODE == FIRERED || GAMECODE == LEAFGREEN) ? 0x08040BA4 : 0x0806B490)) // 94 is where the script jumps to in normal gameplay
-#define LOC_GSPECIALVAR_0x8000  ((GAMECODE == RUBY || GAMECODE == SAPPHIRE) ? 0x01 : ((GAMECODE == FIRERED || GAMECODE == LEAFGREEN) ? 0x020370B8 : 0x020375D8))
-#define LOC_GSAVEBLOCK1PTR      ((GAMECODE == RUBY || GAMECODE == SAPPHIRE) ? 0x01 : ((GAMECODE == FIRERED || GAMECODE == LEAFGREEN) ? 0x03005008 : 0x03005D8C))
-#define OFFSET_RAMSCRIPT        ((GAMECODE == RUBY || GAMECODE == SAPPHIRE) ? 0x01 : ((GAMECODE == FIRERED || GAMECODE == LEAFGREEN) ?     0x361C :     0x3728))
-// Source: https://github.com/pret/pokeemerald/blob/master/include/global.h#L1012
-#define OFFSET_FLAGS ((GAMECODE == RUBY || GAMECODE == SAPPHIRE) ? 0x01 : ((GAMECODE == FIRERED || GAMECODE == LEAFGREEN) ? 0x0EE0 : 0x1270))
-// Flag offset as found within the SaveBlock1 struct in global.h
-#define PC_MAKER ((GAMECODE == RUBY || GAMECODE == SAPPHIRE || GAMECODE == EMERALD) ? "LANETTE" : "BILL")
-
 #define FLAG_ID_START 0x21  // This one stays consistant, at least for FRLG/E. Must also be 8x or 8x+1 to store in one byte
 #define VAR_ID_START 0x8000 // This one should also stay consistant
-
-#define VAR_CALLASM (VAR_ID_START + 0x00)
-#define VAR_SCRIPT_PTR_LOW (VAR_ID_START + 0x01)
-#define VAR_SCRIPT_PTR_HIGH (VAR_ID_START + 0x02)
-#define VAR_CALL_RETURN_1 (VAR_ID_START + 0x03)
-#define VAR_CALL_CHECK_FLAG (VAR_ID_START + 0x04)
-#define VAR_CALL_RETURN_2 (VAR_ID_START + 0x05)
-#define VAR_BOX_RETURN (VAR_ID_START + 0x06)
-#define VAR_INDEX (VAR_ID_START + 0x07)
-#define VAR_PKMN_OFFSET (VAR_ID_START + 0x08)
-
-#define PTR_CALLASM (LOC_GSPECIALVAR_0x8000 + 0x00)
-#define PTR_SCRIPT_PTR_LOW (LOC_GSPECIALVAR_0x8000 + 0x02)
-#define PTR_SCRIPT_PTR_HIGH (LOC_GSPECIALVAR_0x8000 + 0x04)
-#define PTR_CALL_RETURN_1 (LOC_GSPECIALVAR_0x8000 + 0x06)
-#define PTR_CALL_CHECK_FLAG (LOC_GSPECIALVAR_0x8000 + 0x08)
-#define PTR_CALL_RETURN_2 (LOC_GSPECIALVAR_0x8000 + 0x0A)
-#define PTR_BOX_RETURN (LOC_GSPECIALVAR_0x8000 + 0x0C)
-#define PTR_INDEX (LOC_GSPECIALVAR_0x8000 + 0x0E)
-#define PTR_PKMN_OFFSET (LOC_GSPECIALVAR_0x8000 + 0x10)
-
-#define PTR_BLOCK_PTR_LOW (LOC_GSAVEBLOCK1PTR + 0x00)
-#define PTR_BLOCK_PTR_HIGH (LOC_GSAVEBLOCK1PTR + 0x02)
-
-#define FLAG_PKMN_1 (FLAG_ID_START + 0x0)
-#define FLAG_PKMN_2 (FLAG_ID_START + 0x1)
-#define FLAG_PKMN_3 (FLAG_ID_START + 0x2)
-#define FLAG_PKMN_4 (FLAG_ID_START + 0x3)
-#define FLAG_PKMN_5 (FLAG_ID_START + 0x4)
-#define FLAG_PKMN_6 (FLAG_ID_START + 0x5)
-#define FLAG_ALL_COLLECTED (FLAG_ID_START + 0x6)
-
 
 #define NUM_JUMPS 4
 #define JUMP_ALL_COLLECTED 0
@@ -92,7 +45,6 @@
 #define COND_NOTEQUAL 5
 #define COND_FLAGTRUE 1
 #define COND_FLAGFALSE 5
-
 
 #define r0 0b0000
 #define r1 0b0001
@@ -145,14 +97,17 @@ class mystery_gift_script
     u16 relative_offset_destination[NUM_RELATIVE_PTR];
     u8 party_data_array[6 * POKEMON_SIZE];
     u8 four_align_value = 0;
-    std::string_view pc_maker = PC_MAKER;
+    std::string_view pc_maker = pc_maker;
 
 public:
     mystery_gift_script();
     void build_script(Pokemon incoming_party_array[]);
     u8 get_script_value_at(int index);
     u16 calc_checksum();
-
+    int get_offset_wondercard();
+    int get_offset_script();
+    int get_offset_flags();
+    
 private:
     void add_command(int len);
     u16 rev_endian(u16 num);

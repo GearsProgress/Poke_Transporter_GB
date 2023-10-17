@@ -10,61 +10,40 @@ static u32 wonder_card[0x14E] = {
 // CRC16 checksum
 void inject_mystery(Pokemon incoming_party_aray[])
 {
-    flash_read(memory_section_array[4], &global_memory_buffer[0], 0x1000);
-    for (int i = 0; i < 0x14E; i++)
-    {
-        global_memory_buffer[INTER_WONDER_CARD_OFFSET + i] = wonder_card[i];
-    }
 
     mystery_gift_script script;
     script.build_script(incoming_party_aray);
     u16 checksum = script.calc_checksum();
 
+    flash_read(memory_section_array[4], &global_memory_buffer[0], 0x1000);
+    for (int i = 0; i < 0x14E; i++)
+    {
+        global_memory_buffer[script.get_offset_wondercard() + i] = wonder_card[i];
+    }
+
     // Set checksum and padding
-    global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET] = checksum >> 0;
-    global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET + 1] = checksum >> 8;
-    global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET + 2] = 0x00;
-    global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET + 3] = 0x00;
+    global_memory_buffer[script.get_offset_script()] = checksum >> 0;
+    global_memory_buffer[script.get_offset_script() + 1] = checksum >> 8;
+    global_memory_buffer[script.get_offset_script() + 2] = 0x00;
+    global_memory_buffer[script.get_offset_script() + 3] = 0x00;
 
     // Add in Mystery Script data
     for (int i = 0; i < MG_SCRIPT_SIZE; i++)
     {
-        global_memory_buffer[EVENT_SCRIPT_DATA_OFFSET + 4 + i] = script.get_script_value_at(i);
+        global_memory_buffer[script.get_offset_script() + 4 + i] = script.get_script_value_at(i);
     }
     update_memory_buffer_checksum();
     flash_write(memory_section_array[4], &global_memory_buffer[0], 0x1000);
 
     // Set flags
-    flash_read(memory_section_array[1 + ((OFFSET_FLAGS + (FLAG_ID_START / 8)) / 0xF80)], &global_memory_buffer[0], 0x1000);
-    global_memory_buffer[(OFFSET_FLAGS + (FLAG_ID_START / 8)) % 0xF80] |= (0b00111111 << (FLAG_ID_START % 8));  // Set "to obtain" flags to 1
-    global_memory_buffer[(OFFSET_FLAGS + (FLAG_ID_START / 8)) % 0xF80] &= (~0b01000000 << (FLAG_ID_START % 8)); // Set "collected all" flag to 0
+    flash_read(memory_section_array[1 + ((script.get_offset_flags() + (FLAG_ID_START / 8)) / 0xF80)], &global_memory_buffer[0], 0x1000);
+    global_memory_buffer[(script.get_offset_flags() + (FLAG_ID_START / 8)) % 0xF80] |= (0b00111111 << (FLAG_ID_START % 8));  // Set "to obtain" flags to 1
+    global_memory_buffer[(script.get_offset_flags() + (FLAG_ID_START / 8)) % 0xF80] &= (~0b01000000 << (FLAG_ID_START % 8)); // Set "collected all" flag to 0
     update_memory_buffer_checksum();
-    flash_write(memory_section_array[1 + ((OFFSET_FLAGS + (FLAG_ID_START / 8)) / 0xF80)], &global_memory_buffer[0], 0x1000);
+    flash_write(memory_section_array[1 + ((script.get_offset_flags() + (FLAG_ID_START / 8)) / 0xF80)], &global_memory_buffer[0], 0x1000);
 }
 
 /*
-000168:                         The main function
-    push  {lr}                      save the load register to the stack
-    ldr   r3, [pc, <000188>]        set r3 to variable to 0x020375E8 (the pokemon offset, variable 0x8008's pointer)
-    ldr   r3, [r3, #0]              set r3 to the value in memory r3 points to
-    add   r0, pc, #28               set r0 to a pointer 28 bytes ahead, which is the start of the Pokemon struct.
-    add   r0, r0, r3                add r3 to r0, giving it the correct offset for the current index
-    ldr   r1, [pc, <000180>]        set r1 to 0x0806B491, which is the location of "SendMonToPC" plus one, since it is thumb code
-    mov   r2, r15                   move r15 (the program counter) to r2
-    add   r2, r2, #7                add 7 to r2 to compensate for the six following bytes, plus to tell the system to read as thumb code
-    mov   r14, r2                   move r2 into r14 (the load register)
-    bx    r1                        jump to the pointer stored in r1 (SendMonToPC)
-00017A:                         The second part of the function
-    ldr   r2, [pc, <000184>]        load 0x020375E4 (variable 0x8006's pointer) into r2
-    str   r0, [r2, #0]              put the value of r0 into the memory location pointed at by r2, plus 0
-    pop   {r0}                      remove r0 from the stack and put it into r0
-    bx    r0                        jump to r0 (return to where the function was called)
-000180:
-    .word 0x0806B491                the location of "SendMonToPC", plus one (so it is interpreted as thumb code)
-000184:
-    .word 0x020375E4                the location of variable "0x8006" (the return value)
-000188:
-    .word 0x020375E8                the location of variable "0x8008" (the pokemon offset)
 
 - 00 B5
 - 08 4B
