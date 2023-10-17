@@ -80,16 +80,16 @@ void load_professor()
     memcpy(&tile_mem[4][64], profTiles, profTilesLen);
     memcpy(pal_obj_mem + 16, profPal, profPalLen);
 
-    int x = 96, y = 64;
+    int x = 96, y = 56;
     u32 tid = 64, pb = 1; // tile id, pal-bank
 
     obj_set_attr(prof,
                  ATTR0_SQUARE,
                  ATTR1_SIZE_64x64,
-                 ATTR2_PALBANK(pb) | tid | ATTR2_PRIO(3));
+                 ATTR2_PALBANK(pb) | tid | ATTR2_PRIO(2));
     obj_set_pos(prof, x, y);
     obj_hide(prof);
-    // obj_unhide(prof, 0);
+    //obj_unhide(prof, 0);
 }
 
 #include "btn_t_l.h"

@@ -12,6 +12,9 @@
 #define ERROR_COLOSSEUM 6
 #define IMPORT_POKEMON 7
 #define BACK_TO_MENU 8
+#define BEAT_E4 9
+#define SHOW_PROF 10
+#define HIDE_PROF 11
 
 class script_obj
 {

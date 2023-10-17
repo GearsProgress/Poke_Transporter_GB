@@ -90,6 +90,7 @@ void Pokemon::convert_to_gen_three()
         moves[0] = get_earliest_move(species_index);
     }
 
+/*
     // Bubble valid moves to the top
     int i, j;
     bool swapped;
@@ -107,7 +108,7 @@ void Pokemon::convert_to_gen_three()
         // by inner loop, then break
         if (swapped == false)
             break;
-    }
+    }*/
 
     // Convert and set IVs
     int hp_iv = 0;

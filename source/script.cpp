@@ -42,28 +42,3 @@ void inject_mystery(Pokemon incoming_party_aray[])
     update_memory_buffer_checksum();
     flash_write(memory_section_array[1 + ((script.get_offset_flags() + (FLAG_ID_START / 8)) / 0xF80)], &global_memory_buffer[0], 0x1000);
 }
-
-/*
-
-- 00 B5
-- 08 4B
-- 1B 68
-- 08 A0
-- C0 18
-- 04 49
-- 7A 46
-- 07 32
-- 96 46
-- 08 47
-- 02 4A
-- 10 60
-01 BC
-00 47
-91 B4
-06 08
-E4 75
-03 02
-E8 75
-03 02
-
-*/

@@ -2,31 +2,36 @@
 #include "main_menu.h"
 #include "text_engine.h"
 #include "script.h"
-
+#include "sprite_data.h"
 #include <tonc.h>
 
 int last_error;
 Pokemon_Party party_data;
 
-script_obj script[17] =
+script_obj script[] =
     {
-        script_obj("", 2),                                                                             // 0
-        script_obj("Game not detected. Please turn off your system and upload the program again.", 2), // 1
-        script_obj("Welcome to Pokemon Mirror!", 3),                                                   // 2
-        script_obj("Please connect your GBA to a GB in the trading room, and press A", 4, START_LINK), // 3
-        script_obj("", 6, ERROR_COM_ENDED, 5),                                                         // 4
-        script_obj("Error: Communication ended.", 3),                                                  // 5
-        script_obj("", 8, ERROR_DISCONNECT, 7),                                                        // 6
-        script_obj("Error: Cable disconnected.", 3),                                                   // 7
-        script_obj("", 10, ERROR_TIMEOUT_ONE, 9),                                                      // 8
-        script_obj("Error: Timed out (1).", 3),                                                        // 9
-        script_obj("", 12, ERROR_TIMEOUT_TWO, 11),                                                     // 10
-        script_obj("Error: Timed out (2)", 3),                                                         // 11
-        script_obj("", 14, ERROR_COLOSSEUM, 13),                                                       // 12
-        script_obj("Error: Went into Colosseum", 3),                                                   // 13
-        script_obj("Connection successful! Transfering in Pokemon now", 15),                           // 14
-        script_obj("", 16, IMPORT_POKEMON),                                                            // 15
-        script_obj("Bye!", 0, BACK_TO_MENU),                                                          // 16
+        script_obj("", 17, SHOW_PROF),                                                                                            // 0
+        script_obj("Game not detected. Please turn off your system and upload the program again.", 2),                            // 1
+        script_obj("Welcome to Pokemon Mirror!", 3),                                                                              // 2
+        script_obj("Please connect your GBA to a GB in the trading room, and press A", 4, START_LINK),                            // 3
+        script_obj("", 6, ERROR_COM_ENDED, 5),                                                                                    // 4
+        script_obj("Error: Communication ended.", 3),                                                                             // 5
+        script_obj("", 8, ERROR_DISCONNECT, 7),                                                                                   // 6
+        script_obj("Error: Cable disconnected.", 3),                                                                              // 7
+        script_obj("", 10, ERROR_TIMEOUT_ONE, 9),                                                                                 // 8
+        script_obj("Error: Timed out (1).", 3),                                                                                   // 9
+        script_obj("", 12, ERROR_TIMEOUT_TWO, 11),                                                                                // 10
+        script_obj("Error: Timed out (2)", 3),                                                                                    // 11
+        script_obj("", 14, ERROR_COLOSSEUM, 13),                                                                                  // 12
+        script_obj("Error: Went into Colosseum", 3),                                                                              // 13
+        script_obj("Connection successful! Transfering in Pokemon now", 15),                                                      // 14
+        script_obj("", 16, IMPORT_POKEMON),                                                                                       // 15
+        script_obj("Bye!", 21),                                                                                                   // 16
+        script_obj("", 2, BEAT_E4, 18),                                                                                           // 17
+        script_obj("Hi trainer! I'm thrilled\nyou've decided to help with our research, but we need\nthe best of the best!", 19), // 18                                                                                                             // 17
+        script_obj("Come back once you've taken down the Elite Four!", 20),                                                       // 19
+        script_obj("", 21, HIDE_PROF),                                                                                            // 20
+        script_obj("", 0, BACK_TO_MENU)                                                                                           // 21
 };
 
 void add_script_party_var(Pokemon_Party var)
@@ -61,7 +66,6 @@ bool run_conditional(int index)
 
     case IMPORT_POKEMON:
         party_data.load_pokemon();
-        //party_data.inject_pokemon();
         inject_mystery(party_data.get_full_pokemon_array());
         return true;
 
@@ -70,6 +74,16 @@ bool run_conditional(int index)
         main_menu_exit();
         return true;
 
+    case BEAT_E4:
+        return false;
+
+    case SHOW_PROF:
+        obj_unhide(prof, 0);
+        return true;
+
+    case HIDE_PROF:
+        obj_hide(prof);
+        return true;
 
     default:
         tte_set_pos(0, 0);

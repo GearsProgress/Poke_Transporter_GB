@@ -59,6 +59,8 @@ INJECTION:
 - Add Pokemon to Pokedex
 - Randomize base seed
 - Enable ribbon viewing
+- Set flags for the number of Pokemon injected
+- Set Pokedex flags
 
 SAVE DATA:
 - Add warning
@@ -157,8 +159,8 @@ int main(void)
 
 	text_disable();
 
-	load_gamecode();
 	// Check if the game has been loaded correctly.
+	load_gamecode();
 	while (!((get_gamecode() == RUBY_ID) ||
 			 (get_gamecode() == SAPPHIRE_ID) ||
 			 (get_gamecode() == FIRERED_ID) ||
@@ -171,8 +173,7 @@ int main(void)
 		REG_BG2VOFS = 0;
 		tte_set_pos(40, 24);
 		tte_set_margins(40, 24, 206, 104);
-		//tte_write("The Pokemon save\nfile was not loaded successfully. Please\nrestart the console,\nload the Pokemon\ngame normally, and\nthen upload the\nprogram again.");
-		tte_write(std::to_string(get_gamecode()).c_str());
+		tte_write("The Pokemon save\nfile was not loaded successfully. Please\nrestart the console,\nload the Pokemon\ngame normally, and\nthen upload the\nprogram again.");
 		key_poll();
 		while (!key_hit(KEY_A))
 		{

@@ -30,7 +30,7 @@ bool get_num_abilities(int index_num)
 bool can_learn_move(int pkmn_index, int move_index)
 {
     byte data_byte = MOVESETS[pkmn_index - 1][move_index / 8];
-    return (data_byte >> (move_index % 8)) & 0x1;
+    return (data_byte >> (7 - (move_index % 8))) & 0x1;
 }
 
 byte get_earliest_move(int index_num)
@@ -1254,6 +1254,7 @@ const bool NUM_ABILITIES[251] = {
 };
 const byte MOVESETS[251][32] = {
     // This data is stored as 32 bytes of binary data per Pokemon, depending on if they can learn the move. Data obtained through PokeAPI
+    // 0(unused) 8           16          24          32          40          48          56          64          72          80          88          96          104         112         120         128         136         144         152         160         168         176         184         192         200         208         216         224         232         240         248         
     {0b00000000, 0b00000011, 0b00000010, 0b00000000, 0b01100010, 0b00000100, 0b00000000, 0b00000000, 0b00000010, 0b01111101, 0b10000000, 0b00001000, 0b00000010, 0b10000001, 0b01000000, 0b00000000, 0b00100000, 0b00000000, 0b00001000, 0b00001000, 0b00001000, 0b00000110, 0b00000010, 0b00001100, 0b00000000, 0b00111001, 0b00100110, 0b10110000, 0b00000010, 0b00010100, 0b01000000, 0b01000000}, // Bulbasaur
     {0b00000000, 0b00000011, 0b00000010, 0b00000000, 0b01100010, 0b00000100, 0b00000000, 0b00000000, 0b00000010, 0b01111101, 0b00000000, 0b00001000, 0b00000010, 0b10000001, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00001000, 0b00001000, 0b00001000, 0b00000100, 0b00000010, 0b00001100, 0b00000000, 0b00110001, 0b00100110, 0b10100000, 0b00000010, 0b00010100, 0b01000000, 0b01000000}, // Ivysaur
     {0b00000000, 0b00000011, 0b00000010, 0b00000000, 0b01100010, 0b00000110, 0b00000000, 0b00000001, 0b00000010, 0b01111101, 0b00000000, 0b01001000, 0b00000010, 0b10000001, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00001000, 0b00001000, 0b00001000, 0b00000100, 0b00000010, 0b00001100, 0b00000000, 0b00110001, 0b00100110, 0b10100000, 0b00000010, 0b00010100, 0b01000000, 0b01000000}, // Venusaur
@@ -1760,7 +1761,6 @@ const byte FIRST_MOVES[251] = {
     0x12, // Ho-oh           (whirlwind)
     0x49, // Celebi          (leech-seed)
 };
-
 const std::string_view NAMES[251]{
     "Bulbasaur",
     "Ivysaur",
@@ -2014,3 +2014,6 @@ const std::string_view NAMES[251]{
     "Ho-Oh",
     "Celebi",
 };
+//const u8 EVOLUTIONS[251][2]
+//const u8 POWER_POINTS[253]
+
