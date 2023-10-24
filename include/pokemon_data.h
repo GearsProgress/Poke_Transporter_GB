@@ -12,15 +12,16 @@
 #define flux_max        1640000
 
 
-
-extern const u8 EXP_MAX[251];
+extern const u8 EXP_MAX[252];
 extern const u32 EXP_TYPES[6];
 extern const int GENDER_THRESHOLDS[2][8];
-extern const u8 GENDER_RATIO[251];
-extern const bool NUM_ABILITIES[251];
-extern const byte MOVESETS[251][32];
-extern const byte FIRST_MOVES[251];
-extern const std::string_view NAMES[251];
+extern const u8 GENDER_RATIO[252];
+extern const bool NUM_ABILITIES[252];
+extern const byte MOVESETS[252][32];
+extern const byte FIRST_MOVES[252];
+extern const std::string_view NAMES[252];
+extern const u8 EVOLUTIONS[252];
+extern const u8 POWER_POINTS[252];
 extern const byte gen_1_index_array[191];
 extern const byte gen_1_char_array[0x80];
 extern const byte gen_2_char_array[0x80];

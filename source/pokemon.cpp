@@ -3,35 +3,78 @@
 #include "pokemon_data.h"
 #include "random.h"
 
-#define name_size 11
-
 Pokemon::Pokemon(){};
 
 void Pokemon::load_data(int index, byte *party_data)
 {
-    int pkmn_size;
-    int ot_and_party;
-    if (party_data[418] == 0xFD && party_data[419] == 0xFD && party_data[420] == 0xFD && party_data[421] == 0xFD){
+    if (party_data[GEN1_JPN_SIZE + 0] == 0xFD &&
+        party_data[GEN1_JPN_SIZE + 1] == 0xFD &&
+        party_data[GEN1_JPN_SIZE + 2] == 0xFD &&
+        party_data[GEN1_JPN_SIZE + 3] == 0xFD)
+    {
+        gen = 1;
+        pkmn_size = 44;
+        ot_and_party = 14;
+        ot_size = 6;
+        nickname_size = 6;
+    }
+    else if (party_data[GEN1_INT_SIZE + 0] == 0xFD &&
+             party_data[GEN1_INT_SIZE + 1] == 0xFD &&
+             party_data[GEN1_INT_SIZE + 2] == 0xFD &&
+             party_data[GEN1_INT_SIZE + 3] == 0xFD)
+    {
         gen = 1;
         pkmn_size = 44;
         ot_and_party = 19;
-    } else {
+        ot_size = 11;
+        nickname_size = 11;
+    }
+    /*
+    else if (party_data[GEN2_JPN_SIZE + 0] == 0xFD &&
+             party_data[GEN2_JPN_SIZE + 1] == 0xFD &&
+             party_data[GEN2_JPN_SIZE + 2] == 0xFD &&
+             party_data[GEN2_JPN_SIZE + 3] == 0xFD)
+    {
+        // DOUBLE CHECK THIS
+        gen = 2;
+        pkmn_size = 48;
+        ot_and_party = 17;
+        ot_size = 6;
+        nickname_size = 6;
+    }*/
+    else if (party_data[GEN2_INT_SIZE + 0] == 0xFD &&
+             party_data[GEN2_INT_SIZE + 1] == 0xFD &&
+             party_data[GEN2_INT_SIZE + 2] == 0xFD &&
+             party_data[GEN2_INT_SIZE + 3] == 0xFD)
+    {
         gen = 2;
         pkmn_size = 48;
         ot_and_party = 21;
+        ot_size = 11;
+        nickname_size = 11;
     }
+    else
+    {
+        tte_erase_screen();
+        tte_write("An unexpected error has occured. Please contact the developer");
+        while (true)
+        {
+        };
+    }
+
     int party_offset = ot_and_party + (index * pkmn_size);
-    int ot_offset = ot_and_party + (6 * pkmn_size) + (index * name_size);
-    int name_offset = ot_and_party + (6 * pkmn_size) + (6 * name_size) + (index * name_size);
+    int ot_offset = ot_and_party + (6 * pkmn_size) + (index * ot_size);
+    int nickname_offset = ot_and_party + (6 * pkmn_size) + (6 * ot_size) + (index * nickname_size);
 
     switch (gen)
     {
     case 1:
-        species_index = gen_1_index_array[party_data[party_offset + 0x00]];
+        species_index_party = gen_1_index_array[party_data[ot_size + 1 + index]];
+        species_index_struct = gen_1_index_array[party_data[party_offset + 0x00]];
         copy_from_to(&party_data[party_offset + 0x08], &moves[0], 4, false);
         copy_from_to(&party_data[party_offset + 0x0C], &trainer_id[0], 2, false);
         copy_from_to(&party_data[party_offset + 0x0E], &exp[0], 3, true);
-        copy_from_to(&party_data[name_offset], &nickname[0], 10, false);
+        copy_from_to(&party_data[nickname_offset], &nickname[0], 10, false);
         copy_from_to(&party_data[ot_offset + 0x00], &trainer_name[0], 7, false);
         copy_from_to(&party_data[party_offset + 0x1B], &dvs[0], 2, false);
         copy_from_to(&party_data[party_offset + 0x1D], &pp_values[0], 4, false);
@@ -41,11 +84,12 @@ void Pokemon::load_data(int index, byte *party_data)
         level = party_data[party_offset + 0x21];
         break;
     case 2:
-        species_index = party_data[party_offset + 0x00];
+        species_index_party = party_data[ot_size + 1 + index];
+        species_index_struct = party_data[party_offset + 0x00];
         copy_from_to(&party_data[party_offset + 0x02], &moves[0], 4, false);
         copy_from_to(&party_data[party_offset + 0x06], &trainer_id[0], 2, false);
         copy_from_to(&party_data[party_offset + 0x08], &exp[0], 3, true);
-        copy_from_to(&party_data[name_offset], &nickname[0], 10, false);
+        copy_from_to(&party_data[nickname_offset], &nickname[0], 10, false);
         copy_from_to(&party_data[ot_offset + 0x00], &trainer_name[0], 7, false);
         copy_from_to(&party_data[party_offset + 0x15], &dvs[0], 2, false);
         copy_from_to(&party_data[party_offset + 0x17], &pp_values[0], 4, false);
@@ -58,57 +102,81 @@ void Pokemon::load_data(int index, byte *party_data)
 
 void Pokemon::convert_to_gen_three()
 {
+    if (species_index_struct > 251 ||                // Checks if the Pokemon is beyond Celebi
+        species_index_struct == 0 ||                 // Checks that the Pokemon isn't a blank party space
+        species_index_struct != species_index_party) // Checks that the Pokemon isn't a hybrid or an egg
+    {
+        return;
+    }
     // Generate PID
-    u32 n_pid = generate_pid(species_index, *(vu32 *)exp % 25, &dvs[0]);
+    u32 n_pid = generate_pid(species_index_struct, *(vu32 *)exp % 25, &dvs[0]);
     for (int i = 0; i < 4; i++)
     {
         pid[i] = (n_pid >> (i * 8)) & 0xFF;
     }
 
     // Make sure Level is not over 100 based on EXP
-    if (*(vu32 *)exp > get_max_exp(species_index))
+    if (*(vu32 *)exp > get_max_exp(species_index_struct))
     {
-        *(vu32 *)exp = get_max_exp(species_index);
+        *(vu32 *)exp = get_max_exp(species_index_struct);
     }
 
     // Separate the PP Up values from the Move PP values
     for (int i = 0; i < 4; i++)
     {
-        pure_pp_values[i] = (pp_values[i] & 0b00111111);
-        pp_bonus |= (pp_values[i] & 0b11000000) >> (6 - i * 2);
+        pure_pp_values[i] = (pp_values[i] & 0b00111111); // Take only the bottom six bits
+        pp_bonus[i] = (pp_values[i] >> 6);               // Take only the top two bits
     }
 
     // Check that the moves are valid
-    for (int i = 0; i < 4; i++){
-        if((!can_learn_move(species_index, moves[i])) && (moves[i] != 0)){
-            moves[i] = 12;
+    if (species_index_struct != 0xEB) // Ignore Smeargle due to Sketch
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            if ((!can_learn_move(species_index_struct, moves[i])) && (moves[i] != 0))
+            {
+                moves[i] = 0;    // Remove the move
+                pp_bonus[i] = 0; // Remove the PP bonus
+            }
         }
     }
 
     // Make sure it has at least one move
-    if (moves[0] + moves[1] + moves[2] + moves[3] == 0){
-        moves[0] = get_earliest_move(species_index);
+    if (moves[0] + moves[1] + moves[2] + moves[3] == 0)
+    {
+        moves[0] = get_earliest_move(species_index_struct);
     }
 
-/*
     // Bubble valid moves to the top
     int i, j;
     bool swapped;
-    for (i = 0; i < 3; i++) {
+    for (i = 0; i < 3; i++)
+    {
         swapped = false;
-        for (j = 0; j < 3 - i; j++) {
-            if ((moves[j] < moves[j + 1]) && moves[j] == 0) {
+        for (j = 0; j < 3 - i; j++)
+        {
+            if ((moves[j] < moves[j + 1]) && moves[j] == 0)
+            {
+                // Move the move *and* PP bonus up if there is a blank space
                 moves[j] = moves[j + 1];
+                pp_bonus[j] = pp_bonus[j + 1];
                 moves[j + 1] = 0;
+                pp_bonus[j + 1] = 0;
                 swapped = true;
             }
         }
-  
+
         // If no two elements were swapped
         // by inner loop, then break
         if (swapped == false)
             break;
-    }*/
+    }
+
+    // Restore the PP values
+    for (int i = 0; i < 4; i++)
+    {
+        pure_pp_values[i] = POWER_POINTS[moves[i]] + ((POWER_POINTS[moves[i]] / 5) * pp_bonus[i]);
+    }
 
     // Convert and set IVs
     int hp_iv = 0;
@@ -127,7 +195,7 @@ void Pokemon::convert_to_gen_three()
     }
 
     // Determine and set Ability
-    iv_egg_ability |= ((pid[0] & 0x1) ? get_num_abilities(species_index) : 0) << 31;
+    iv_egg_ability |= ((pid[0] & 0x1) ? get_num_abilities(species_index_struct) : 0) << 31;
 
     // Origin info
     origin_info |= ((caught_data[0] & 0b10000000) << 8); // OT gender - We would shift left 15 bits, but the bit is already shifted over 7
@@ -136,19 +204,17 @@ void Pokemon::convert_to_gen_three()
     origin_info |= level;                                // Level met
 
     // Ribbons and Obedience
-    ribbons[2] |= 0b00000100;                         // Artist Ribbon
-    if (species_index == 151 || species_index == 251) // Checks for Mew or Celebi
-        ribbons[3] |= 0x10000000;                     // Fateful Encounter flag
-
+    // ribbons[2] |= 0b00000100; // Artist Ribbon
+    ribbons[3] |= 0b10000000; // Fateful Encounter flag
     // Personality Value
     copy_from_to(&pid[0], &gen_3_pkmn[0], 4, false);
     // Trainer ID
     copy_from_to(&trainer_id[0], &gen_3_pkmn[4], 2, true);
 
     // Check if the Pokemon is shiny
-    if (                                                                   // Is shiny
-        (dvs[1] == 0b10101010) &&                                          // Checks if the Speed and Special DVs equal 10
-        ((dvs[0] & 0xF) == 0b1010) &&                                      // Checks if the Defense DVs equal 10
+    if (                                                                     // Is shiny
+        (dvs[1] == 0b10101010) &&                                            // Checks if the Speed and Special DVs equal 10
+        ((dvs[0] & 0xF) == 0b1010) &&                                        // Checks if the Defense DVs equal 10
         (((dvs[0] & 0b11000000) >> 6) | (((dvs[0] & 0b00110000) >> 2) > 7))) // Reorganizes the Attack DV bits so that they will be >7 if the Pokemon is shiny
     {
         secret_id[0] = trainer_id[0] ^ pid[0] ^ pid[2] ^ 0xFF;
@@ -174,10 +240,10 @@ void Pokemon::convert_to_gen_three()
     // ???
 
     // Data:
-    data_section_G[0] = species_index;
+    data_section_G[0] = species_index_struct;
     data_section_G[1] = 0x00; // Species Index, check for glitch Pokemon
     copy_from_to(&exp[0], &data_section_G[4], 3, false);
-    data_section_G[8] = pp_bonus;
+    data_section_G[8] = (pp_bonus[0] << 0 | pp_bonus[1] << 2 | pp_bonus[2] << 4 | pp_bonus[3] << 6);
 
     data_section_A[0] = moves[0];                                   // Move 1
     data_section_A[2] = moves[1];                                   // Move 2
@@ -424,7 +490,9 @@ u32 Pokemon::generate_pid(byte pid_species_index, byte nature, byte *pid_dvs)
         // Set Nature
         while ((new_pid % 25) != nature)
         {
-            new_pid = (new_pid & 0xFFFFFF00) | ((new_pid & 0xFF) + 4);
+            // Keep adding 0b100 to the PID until the nature matches
+            // 0b100 ensures that the 2 LSBs are maintained, as they determine the letter
+            new_pid = (new_pid & 0xFFFFFF00) | ((new_pid + 0b100) & 0xFF);
         }
         return new_pid;
     }

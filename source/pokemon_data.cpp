@@ -13,31 +13,34 @@ const int GENDER_THRESHOLDS[2][8]{
 
 u32 get_max_exp(int index_num)
 {
-    return EXP_TYPES[EXP_MAX[index_num - 1]];
+    return EXP_TYPES[EXP_MAX[index_num]];
 };
 
 u8 get_gender_threshold(int index_num, bool is_gen_3)
 {
-    return GENDER_THRESHOLDS[is_gen_3][GENDER_RATIO[index_num - 1]];
+    return GENDER_THRESHOLDS[is_gen_3][GENDER_RATIO[index_num]];
 };
 
 // If the Pokemon has two abilities it returns a 1, since ability 1 is valid. Otherwise it returns 0
 bool get_num_abilities(int index_num)
 {
-    return NUM_ABILITIES[index_num - 1];
+    return NUM_ABILITIES[index_num];
 };
 
 bool can_learn_move(int pkmn_index, int move_index)
 {
-    byte data_byte = MOVESETS[pkmn_index - 1][move_index / 8];
+    byte data_byte = MOVESETS[pkmn_index][move_index / 8];
+    data_byte |= MOVESETS[EVOLUTIONS[pkmn_index]][move_index / 8];             // add in the previous evolution's moves (if they exist)
+    data_byte |= MOVESETS[EVOLUTIONS[EVOLUTIONS[pkmn_index]]][move_index / 8]; // add in the first evolution's moves (if they exist)
     return (data_byte >> (7 - (move_index % 8))) & 0x1;
 }
 
 byte get_earliest_move(int index_num)
 {
-    return FIRST_MOVES[index_num - 1];
+    return FIRST_MOVES[index_num];
 }
 
+// All data was obtained using PokeAPI
 const byte gen_1_index_array[191] = {
     0x00, // Offset the list to remove "off by one" errors
     0x70, // Rhydon
@@ -231,6 +234,1043 @@ const byte gen_1_index_array[191] = {
     0x46, // Weepinbell
     0x47, // Victreebel
 };
+
+const u16 gen_1_Jpn_char_array[256]{
+    0x20,
+    0x30A4,
+    0x30F4,
+    0x30A8,
+    0x30AA,
+    0x30AC,
+    0x30AE,
+    0x30B0,
+    0x30B2,
+    0x30B4,
+    0x30B6,
+    0x30B8,
+    0x30BA,
+    0x30BC,
+    0x30BE,
+    0x30C0,
+    0x20,
+    0x30C5,
+    0x30C7,
+    0x30C9,
+    0x30CA,
+    0x30CB,
+    0x30CC,
+    0x30CD,
+    0x30CE,
+    0x30D0,
+    0x30D3,
+    0x30D6,
+    0x30DC,
+    0x30DE,
+    0x30DF,
+    0x30E0,
+    0x30A3,
+    0x3042,
+    0x3044,
+    0x3094,
+    0x3048,
+    0x304A,
+    0x304C,
+    0x304E,
+    0x3050,
+    0x3052,
+    0x3054,
+    0x3056,
+    0x3058,
+    0x305A,
+    0x305C,
+    0x305E,
+    0x3060,
+    0x3062,
+    0x3065,
+    0x3067,
+    0x3069,
+    0x306A,
+    0x306B,
+    0x306C,
+    0x306D,
+    0x306E,
+    0x3070,
+    0x3073,
+    0x3076,
+    0x3079,
+    0x307C,
+    0x307E,
+    0x30D1,
+    0x30D4,
+    0x30D7,
+    0x30DD,
+    0x3071,
+    0x3074,
+    0x3077,
+    0x307A,
+    0x307D,
+    0x307E,
+    0x20,
+    0x20,
+    0x20,
+    0x3082,
+    0x20,
+    0x20,
+    0x19E,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x41,
+    0x42,
+    0x43,
+    0x44,
+    0x45,
+    0x46,
+    0x47,
+    0x48,
+    0x49,
+    0x56,
+    0x53,
+    0x4C,
+    0x4D,
+    0xFF1A,
+    0x3043,
+    0x3045,
+    0x300C,
+    0x300D,
+    0x300E,
+    0x300F,
+    0x30FB,
+    0x2026,
+    0x3041,
+    0x3047,
+    0x3049,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x30A2,
+    0x30A4,
+    0x30A6,
+    0x30A8,
+    0x30AA,
+    0x30AB,
+    0x30AD,
+    0x30AF,
+    0x30B1,
+    0x30B3,
+    0x30B5,
+    0x30B7,
+    0x30B9,
+    0x30BB,
+    0x30BD,
+    0x30BF,
+    0x30C1,
+    0x30C4,
+    0x30C6,
+    0x30C8,
+    0x30CA,
+    0x30CB,
+    0x30CC,
+    0x30CD,
+    0x30CE,
+    0x30CF,
+    0x30D2,
+    0x30D5,
+    0x30DB,
+    0x30DE,
+    0x30DF,
+    0x30E0,
+    0x30E1,
+    0x30E2,
+    0x30E4,
+    0x30E6,
+    0x30E8,
+    0x30E9,
+    0x30EB,
+    0x30EC,
+    0x30ED,
+    0x30EF,
+    0x30F2,
+    0x30F3,
+    0x30C3,
+    0x30E3,
+    0x30E5,
+    0x30E7,
+    0x30A3,
+    0x3042,
+    0x3044,
+    0x3046,
+    0x3048,
+    0x304A,
+    0x304B,
+    0x304D,
+    0x304F,
+    0x3051,
+    0x3053,
+    0x3055,
+    0x3057,
+    0x3059,
+    0x305B,
+    0x305D,
+    0x20,
+    0x3061,
+    0x3064,
+    0x3066,
+    0x3068,
+    0x306A,
+    0x306B,
+    0x306C,
+    0x306D,
+    0x306E,
+    0x306F,
+    0x3072,
+    0x3075,
+    0x3078,
+    0x307B,
+    0x307E,
+    0x307F,
+    0x3080,
+    0x3081,
+    0x3082,
+    0x3084,
+    0x3086,
+    0x3088,
+    0x3089,
+    0x30EA,
+    0x308B,
+    0x308C,
+    0x308D,
+    0x308F,
+    0x3092,
+    0x3093,
+    0x3063,
+    0x3083,
+    0x50,
+    0x4D,
+    0x30FC,
+    0x309C,
+    0x309B,
+    0x3F,
+    0x21,
+    0x3002,
+    0x30A1,
+    0x30A5,
+    0x30A7,
+    0x25B7,
+    0x25B6,
+    0x25BC,
+    0x2642,
+    0x5186,
+    0xD7,
+    0x2E,
+    0x2F,
+    0x30A9,
+    0x2640,
+    0x30,
+    0x31,
+    0x32,
+    0x33,
+    0x34,
+    0x35,
+    0x36,
+    0x37,
+    0x38,
+    0x39,
+};
+const u16 gen_1_Eng_char_array[256]{
+    0x2400,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x19E,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x41,
+    0x42,
+    0x43,
+    0x44,
+    0x45,
+    0x46,
+    0x47,
+    0x48,
+    0x49,
+    0x56,
+    0x53,
+    0x4C,
+    0x4D,
+    0x3A,
+    0x3043,
+    0x3045,
+    0x2018,
+    0x2019,
+    0x201C,
+    0x201D,
+    0x30FB,
+    0x2026,
+    0x3041,
+    0x3047,
+    0x3049,
+    0x2554,
+    0x2550,
+    0x2557,
+    0x2551,
+    0x255A,
+    0x255D,
+    0x2420,
+    0x41,
+    0x42,
+    0x43,
+    0x44,
+    0x45,
+    0x46,
+    0x47,
+    0x48,
+    0x49,
+    0x4A,
+    0x4B,
+    0x4C,
+    0x4D,
+    0x4E,
+    0x4F,
+    0x50,
+    0x51,
+    0x52,
+    0x53,
+    0x54,
+    0x55,
+    0x56,
+    0x57,
+    0x58,
+    0x59,
+    0x5A,
+    0x28,
+    0x29,
+    0x3A,
+    0x3B,
+    0x5B,
+    0x5D,
+    0x61,
+    0x62,
+    0x63,
+    0x64,
+    0x65,
+    0x66,
+    0x67,
+    0x68,
+    0x69,
+    0x6A,
+    0x6B,
+    0x6C,
+    0x6D,
+    0x6E,
+    0x6F,
+    0x70,
+    0x71,
+    0x72,
+    0x73,
+    0x74,
+    0x75,
+    0x76,
+    0x77,
+    0x78,
+    0x79,
+    0x7A,
+    0xE9,
+    0x64,
+    0x6C,
+    0x73,
+    0x74,
+    0x76,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x50,
+    0x4D,
+    0x2D,
+    0x72,
+    0x6D,
+    0x3F,
+    0x21,
+    0x2E,
+    0x30A1,
+    0x30A5,
+    0x30A7,
+    0x25B7,
+    0x25B6,
+    0x25BC,
+    0x2642,
+    0x20,
+    0xD7,
+    0x2E,
+    0x2F,
+    0x2C,
+    0x2640,
+    0x30,
+    0x31,
+    0x32,
+    0x33,
+    0x34,
+    0x35,
+    0x36,
+    0x37,
+    0x38,
+    0x39,
+};
+const u16 gen_1_FreGer_char_array[256]{
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x19E,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x41,
+    0x42,
+    0x43,
+    0x44,
+    0x45,
+    0x46,
+    0x47,
+    0x48,
+    0x49,
+    0x56,
+    0x53,
+    0x4C,
+    0x4D,
+    0x3A,
+    0x3043,
+    0x3045,
+    0x2018,
+    0x2019,
+    0x201C,
+    0x201D,
+    0x30FB,
+    0x22EF,
+    0x3041,
+    0x3047,
+    0x3049,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x2420,
+    0x41,
+    0x42,
+    0x43,
+    0x44,
+    0x45,
+    0x46,
+    0x47,
+    0x48,
+    0x49,
+    0x4A,
+    0x4B,
+    0x4C,
+    0x4D,
+    0x4E,
+    0x4F,
+    0x50,
+    0x51,
+    0x52,
+    0x53,
+    0x54,
+    0x55,
+    0x56,
+    0x57,
+    0x58,
+    0x59,
+    0x5A,
+    0x28,
+    0x29,
+    0x3A,
+    0x3B,
+    0x5B,
+    0x5D,
+    0x61,
+    0x62,
+    0x63,
+    0x64,
+    0x65,
+    0x66,
+    0x67,
+    0x68,
+    0x69,
+    0x6A,
+    0x6B,
+    0x6C,
+    0x6D,
+    0x6E,
+    0x6F,
+    0x70,
+    0x71,
+    0x72,
+    0x73,
+    0x74,
+    0x75,
+    0x76,
+    0x77,
+    0x78,
+    0x79,
+    0x7A,
+    0xE0,
+    0xE8,
+    0xE9,
+    0xF9,
+    0xDF,
+    0xE7,
+    0x20,
+    0xD6,
+    0xDC,
+    0xE4,
+    0xF6,
+    0xFC,
+    0xEB,
+    0xEF,
+    0xE2,
+    0xF4,
+    0xFB,
+    0xEA,
+    0xEE,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x63,
+    0x64,
+    0x6A,
+    0x6C,
+    0x6D,
+    0x6E,
+    0x70,
+    0x73,
+    0x73,
+    0x74,
+    0x75,
+    0x79,
+    0x20,
+    0x50,
+    0x4D,
+    0x2D,
+    0x2B,
+    0x20,
+    0x3F,
+    0x21,
+    0x2E,
+    0x30A1,
+    0x30A5,
+    0x30A7,
+    0x25B7,
+    0x25B6,
+    0x25BC,
+    0x2642,
+    0x20,
+    0xD7,
+    0x2E,
+    0x2F,
+    0x2C,
+    0x2640,
+    0x30,
+    0x31,
+    0x32,
+    0x33,
+    0x34,
+    0x35,
+    0x36,
+    0x37,
+    0x38,
+    0x39,
+};
+const u16 gen_1_ItaSpa_char_array[256]{
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x19E,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x41,
+    0x42,
+    0x43,
+    0x44,
+    0x45,
+    0x46,
+    0x47,
+    0x48,
+    0x49,
+    0x56,
+    0x53,
+    0x4C,
+    0x4D,
+    0x3A,
+    0x3043,
+    0x3045,
+    0x2018,
+    0x2019,
+    0x201C,
+    0x201D,
+    0x30FB,
+    0x22EF,
+    0x3041,
+    0x3047,
+    0x3049,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x20,
+    0x2420,
+    0x41,
+    0x42,
+    0x43,
+    0x44,
+    0x45,
+    0x46,
+    0x47,
+    0x48,
+    0x49,
+    0x4A,
+    0x4B,
+    0x4C,
+    0x4D,
+    0x4E,
+    0x4F,
+    0x50,
+    0x51,
+    0x52,
+    0x53,
+    0x54,
+    0x55,
+    0x56,
+    0x57,
+    0x58,
+    0x59,
+    0x5A,
+    0x28,
+    0x29,
+    0x3A,
+    0x3B,
+    0x5B,
+    0x5D,
+    0x61,
+    0x62,
+    0x63,
+    0x64,
+    0x65,
+    0x66,
+    0x67,
+    0x68,
+    0x69,
+    0x6A,
+    0x6B,
+    0x6C,
+    0x6D,
+    0x6E,
+    0x6F,
+    0x70,
+    0x71,
+    0x72,
+    0x73,
+    0x74,
+    0x75,
+    0x76,
+    0x77,
+    0x78,
+    0x79,
+    0x7A,
+    0xE0,
+    0xE8,
+    0xE9,
+    0xF9,
+    0xC0,
+    0xC1,
+    0x20,
+    0xD6,
+    0xDC,
+    0xE4,
+    0xF6,
+    0xFC,
+    0xC8,
+    0xC9,
+    0xCC,
+    0xCD,
+    0xD1,
+    0xD2,
+    0xD3,
+    0xD9,
+    0xDA,
+    0xE1,
+    0xEC,
+    0xED,
+    0xF1,
+    0xF2,
+    0xF3,
+    0xFA,
+    0xBA,
+    0x26,
+    0x64,
+    0x6C,
+    0x6D,
+    0x72,
+    0x73,
+    0x74,
+    0x76,
+    0x20,
+    0x20,
+    0x50,
+    0x4D,
+    0x2D,
+    0xBF,
+    0xA1,
+    0x3F,
+    0x21,
+    0x2E,
+    0x30A1,
+    0x30A5,
+    0x30A7,
+    0x25B7,
+    0x25B6,
+    0x25BC,
+    0x2642,
+    0x20,
+    0xD7,
+    0x2E,
+    0x2F,
+    0x2C,
+    0x2640,
+    0x30,
+    0x31,
+    0x32,
+    0x33,
+    0x34,
+    0x35,
+    0x36,
+    0x37,
+    0x38,
+    0x39,
+};
+const u16 gen_2_Jpn_char_array[256]{};
+const u16 gen_2_Eng_char_array[256]{};
+const u16 gen_2_FreGer_char_array[256]{};
+const u16 gen_2_ItaSpa_char_array[256]{};
 const byte gen_1_char_array[0x80] = {
     // Stores the gen 3 character ID in the gen 1 spot
     0xBB,
@@ -493,7 +1533,9 @@ const byte gen_2_char_array[0x80] = {
     0xA9,
     0xAA,
 };
-const u8 EXP_MAX[251] = {
+
+const u8 EXP_MAX[252] = {
+    0, // Offset the list to remove "off by one" errors
     2, // Bulbasaur
     2, // Ivysaur
     2, // Venusaur
@@ -746,7 +1788,8 @@ const u8 EXP_MAX[251] = {
     3, // Ho-Oh
     2, // Celebi
 };
-const u8 GENDER_RATIO[251] = {
+const u8 GENDER_RATIO[252] = {
+    0, // Offset the list to remove "off by one" errors
     1, // Bulbasaur         [1♀:7♂]
     1, // Ivysaur           [1♀:7♂]
     1, // Venusaur          [1♀:7♂]
@@ -999,7 +2042,8 @@ const u8 GENDER_RATIO[251] = {
     7, // Ho-Oh             [Gender Unknown]
     7, // Celebi            [Gender Unknown]
 };
-const bool NUM_ABILITIES[251] = {
+const bool NUM_ABILITIES[252] = {
+    0, // Offset the list to remove "off by one" errors
     0, // Bulbasaur         Overgrow
     0, // Ivysaur           Overgrow
     0, // Venusaur          Overgrow
@@ -1252,9 +2296,10 @@ const bool NUM_ABILITIES[251] = {
     0, // Ho-Oh             Pressure
     0, // Celebi            Natural Cure
 };
-const byte MOVESETS[251][32] = {
+const byte MOVESETS[252][32] = {
     // This data is stored as 32 bytes of binary data per Pokemon, depending on if they can learn the move. Data obtained through PokeAPI
-    // 0(unused) 8           16          24          32          40          48          56          64          72          80          88          96          104         112         120         128         136         144         152         160         168         176         184         192         200         208         216         224         232         240         248         
+    // 0(unused) 8           16          24          32          40          48          56          64          72          80          88          96          104         112         120         128         136         144         152         160         168         176         184         192         200         208         216         224         232         240         248
+    {0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000}, // Offset the list to remove "off by one" errors
     {0b00000000, 0b00000011, 0b00000010, 0b00000000, 0b01100010, 0b00000100, 0b00000000, 0b00000000, 0b00000010, 0b01111101, 0b10000000, 0b00001000, 0b00000010, 0b10000001, 0b01000000, 0b00000000, 0b00100000, 0b00000000, 0b00001000, 0b00001000, 0b00001000, 0b00000110, 0b00000010, 0b00001100, 0b00000000, 0b00111001, 0b00100110, 0b10110000, 0b00000010, 0b00010100, 0b01000000, 0b01000000}, // Bulbasaur
     {0b00000000, 0b00000011, 0b00000010, 0b00000000, 0b01100010, 0b00000100, 0b00000000, 0b00000000, 0b00000010, 0b01111101, 0b00000000, 0b00001000, 0b00000010, 0b10000001, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00001000, 0b00001000, 0b00001000, 0b00000100, 0b00000010, 0b00001100, 0b00000000, 0b00110001, 0b00100110, 0b10100000, 0b00000010, 0b00010100, 0b01000000, 0b01000000}, // Ivysaur
     {0b00000000, 0b00000011, 0b00000010, 0b00000000, 0b01100010, 0b00000110, 0b00000000, 0b00000001, 0b00000010, 0b01111101, 0b00000000, 0b01001000, 0b00000010, 0b10000001, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00001000, 0b00001000, 0b00001000, 0b00000100, 0b00000010, 0b00001100, 0b00000000, 0b00110001, 0b00100110, 0b10100000, 0b00000010, 0b00010100, 0b01000000, 0b01000000}, // Venusaur
@@ -1507,8 +2552,9 @@ const byte MOVESETS[251][32] = {
     {0b00000000, 0b00000000, 0b10110000, 0b00000000, 0b00000010, 0b00000010, 0b00000100, 0b00000001, 0b00000010, 0b00001000, 0b00000111, 0b01001010, 0b00000010, 0b11000000, 0b01010000, 0b00000010, 0b01000000, 0b00100000, 0b00001000, 0b00001000, 0b00001000, 0b00000100, 0b00000010, 0b00000100, 0b00000000, 0b01110001, 0b00010010, 0b10110100, 0b00000000, 0b00000100, 0b11001011, 0b11000000}, // Ho-oh
     {0b00000000, 0b00000011, 0b00000000, 0b00000000, 0b00000010, 0b00000000, 0b00000000, 0b00000001, 0b00000000, 0b01001000, 0b00000000, 0b00001110, 0b00000010, 0b11000001, 0b01010010, 0b00000000, 0b01000000, 0b00100000, 0b00001000, 0b00001000, 0b00001000, 0b00000100, 0b00000010, 0b00000100, 0b00010000, 0b01110001, 0b00000011, 0b10110000, 0b00100000, 0b00000100, 0b11001011, 0b10000000}, // Celebi
 };
-const byte FIRST_MOVES[251] = {
+const byte FIRST_MOVES[252] = {
     // Data obtained through PokeAPI
+    0,    // Offset the list to remove "off by one" errors
     0x21, // Bulbasaur       (tackle)
     0x21, // Ivysaur         (tackle)
     0x16, // Venusaur        (vine-whip)
@@ -1761,7 +2807,8 @@ const byte FIRST_MOVES[251] = {
     0x12, // Ho-oh           (whirlwind)
     0x49, // Celebi          (leech-seed)
 };
-const std::string_view NAMES[251]{
+const std::string_view NAMES[252]{
+    "", // Offset the list to remove "off by one" errors
     "Bulbasaur",
     "Ivysaur",
     "Venusaur",
@@ -2014,6 +3061,511 @@ const std::string_view NAMES[251]{
     "Ho-Oh",
     "Celebi",
 };
-//const u8 EVOLUTIONS[251][2]
-//const u8 POWER_POINTS[253]
-
+const u8 EVOLUTIONS[252]{
+    0,    // Offset the list to remove "off by one" errors
+    0x0,  // Bulbasaur is a base evolution
+    0x1,  // Ivysaur evolves from Bulbasaur
+    0x2,  // Venusaur evolves from Ivysaur
+    0x0,  // Charmander is a base evolution
+    0x4,  // Charmeleon evolves from Charmander
+    0x5,  // Charizard evolves from Charmeleon
+    0x0,  // Squirtle is a base evolution
+    0x7,  // Wartortle evolves from Squirtle
+    0x8,  // Blastoise evolves from Wartortle
+    0x0,  // Caterpie is a base evolution
+    0xa,  // Metapod evolves from Caterpie
+    0xb,  // Butterfree evolves from Metapod
+    0x0,  // Weedle is a base evolution
+    0xd,  // Kakuna evolves from Weedle
+    0xe,  // Beedrill evolves from Kakuna
+    0x0,  // Pidgey is a base evolution
+    0x10, // Pidgeotto evolves from Pidgey
+    0x11, // Pidgeot evolves from Pidgeotto
+    0x0,  // Rattata is a base evolution
+    0x13, // Raticate evolves from Rattata
+    0x0,  // Spearow is a base evolution
+    0x15, // Fearow evolves from Spearow
+    0x0,  // Ekans is a base evolution
+    0x17, // Arbok evolves from Ekans
+    0xac, // Pikachu evolves from Pichu
+    0x19, // Raichu evolves from Pikachu
+    0x0,  // Sandshrew is a base evolution
+    0x1b, // Sandslash evolves from Sandshrew
+    0x0,  // Nidoran-f is a base evolution
+    0x1d, // Nidorina evolves from Nidoran-f
+    0x1e, // Nidoqueen evolves from Nidorina
+    0x0,  // Nidoran-m is a base evolution
+    0x20, // Nidorino evolves from Nidoran-m
+    0x21, // Nidoking evolves from Nidorino
+    0xad, // Clefairy evolves from Cleffa
+    0x23, // Clefable evolves from Clefairy
+    0x0,  // Vulpix is a base evolution
+    0x25, // Ninetales evolves from Vulpix
+    0xae, // Jigglypuff evolves from Igglybuff
+    0x27, // Wigglytuff evolves from Jigglypuff
+    0x0,  // Zubat is a base evolution
+    0x29, // Golbat evolves from Zubat
+    0x0,  // Oddish is a base evolution
+    0x2b, // Gloom evolves from Oddish
+    0x2c, // Vileplume evolves from Gloom
+    0x0,  // Paras is a base evolution
+    0x2e, // Parasect evolves from Paras
+    0x0,  // Venonat is a base evolution
+    0x30, // Venomoth evolves from Venonat
+    0x0,  // Diglett is a base evolution
+    0x32, // Dugtrio evolves from Diglett
+    0x0,  // Meowth is a base evolution
+    0x34, // Persian evolves from Meowth
+    0x0,  // Psyduck is a base evolution
+    0x36, // Golduck evolves from Psyduck
+    0x0,  // Mankey is a base evolution
+    0x38, // Primeape evolves from Mankey
+    0x0,  // Growlithe is a base evolution
+    0x3a, // Arcanine evolves from Growlithe
+    0x0,  // Poliwag is a base evolution
+    0x3c, // Poliwhirl evolves from Poliwag
+    0x3d, // Poliwrath evolves from Poliwhirl
+    0x0,  // Abra is a base evolution
+    0x3f, // Kadabra evolves from Abra
+    0x40, // Alakazam evolves from Kadabra
+    0x0,  // Machop is a base evolution
+    0x42, // Machoke evolves from Machop
+    0x43, // Machamp evolves from Machoke
+    0x0,  // Bellsprout is a base evolution
+    0x45, // Weepinbell evolves from Bellsprout
+    0x46, // Victreebel evolves from Weepinbell
+    0x0,  // Tentacool is a base evolution
+    0x48, // Tentacruel evolves from Tentacool
+    0x0,  // Geodude is a base evolution
+    0x4a, // Graveler evolves from Geodude
+    0x4b, // Golem evolves from Graveler
+    0x0,  // Ponyta is a base evolution
+    0x4d, // Rapidash evolves from Ponyta
+    0x0,  // Slowpoke is a base evolution
+    0x4f, // Slowbro evolves from Slowpoke
+    0x0,  // Magnemite is a base evolution
+    0x51, // Magneton evolves from Magnemite
+    0x0,  // Farfetchd is a base evolution
+    0x0,  // Doduo is a base evolution
+    0x54, // Dodrio evolves from Doduo
+    0x0,  // Seel is a base evolution
+    0x56, // Dewgong evolves from Seel
+    0x0,  // Grimer is a base evolution
+    0x58, // Muk evolves from Grimer
+    0x0,  // Shellder is a base evolution
+    0x5a, // Cloyster evolves from Shellder
+    0x0,  // Gastly is a base evolution
+    0x5c, // Haunter evolves from Gastly
+    0x5d, // Gengar evolves from Haunter
+    0x0,  // Onix is a base evolution
+    0x0,  // Drowzee is a base evolution
+    0x60, // Hypno evolves from Drowzee
+    0x0,  // Krabby is a base evolution
+    0x62, // Kingler evolves from Krabby
+    0x0,  // Voltorb is a base evolution
+    0x64, // Electrode evolves from Voltorb
+    0x0,  // Exeggcute is a base evolution
+    0x66, // Exeggutor evolves from Exeggcute
+    0x0,  // Cubone is a base evolution
+    0x68, // Marowak evolves from Cubone
+    0xec, // Hitmonlee evolves from Tyrogue
+    0xec, // Hitmonchan evolves from Tyrogue
+    0x0,  // Lickitung is a base evolution
+    0x0,  // Koffing is a base evolution
+    0x6d, // Weezing evolves from Koffing
+    0x0,  // Rhyhorn is a base evolution
+    0x6f, // Rhydon evolves from Rhyhorn
+    0x0,  // Chansey is a base evolution (in gen 2)
+    0x0,  // Tangela is a base evolution
+    0x0,  // Kangaskhan is a base evolution
+    0x0,  // Horsea is a base evolution
+    0x74, // Seadra evolves from Horsea
+    0x0,  // Goldeen is a base evolution
+    0x76, // Seaking evolves from Goldeen
+    0x0,  // Staryu is a base evolution
+    0x78, // Starmie evolves from Staryu
+    0x0,  // Mr-mime is a base evolution (in gen 2)
+    0x0,  // Scyther is a base evolution
+    0xee, // Jynx evolves from Smoochum
+    0xef, // Electabuzz evolves from Elekid
+    0xf0, // Magmar evolves from Magby
+    0x0,  // Pinsir is a base evolution
+    0x0,  // Tauros is a base evolution
+    0x0,  // Magikarp is a base evolution
+    0x81, // Gyarados evolves from Magikarp
+    0x0,  // Lapras is a base evolution
+    0x0,  // Ditto is a base evolution
+    0x0,  // Eevee is a base evolution
+    0x85, // Vaporeon evolves from Eevee
+    0x85, // Jolteon evolves from Eevee
+    0x85, // Flareon evolves from Eevee
+    0x0,  // Porygon is a base evolution
+    0x0,  // Omanyte is a base evolution
+    0x8a, // Omastar evolves from Omanyte
+    0x0,  // Kabuto is a base evolution
+    0x8c, // Kabutops evolves from Kabuto
+    0x0,  // Aerodactyl is a base evolution
+    0x0,  // Snorlax is a base evolution (in gen 2)
+    0x0,  // Articuno is a base evolution
+    0x0,  // Zapdos is a base evolution
+    0x0,  // Moltres is a base evolution
+    0x0,  // Dratini is a base evolution
+    0x93, // Dragonair evolves from Dratini
+    0x94, // Dragonite evolves from Dragonair
+    0x0,  // Mewtwo is a base evolution
+    0x0,  // Mew is a base evolution
+    0x0,  // Chikorita is a base evolution
+    0x98, // Bayleef evolves from Chikorita
+    0x99, // Meganium evolves from Bayleef
+    0x0,  // Cyndaquil is a base evolution
+    0x9b, // Quilava evolves from Cyndaquil
+    0x9c, // Typhlosion evolves from Quilava
+    0x0,  // Totodile is a base evolution
+    0x9e, // Croconaw evolves from Totodile
+    0x9f, // Feraligatr evolves from Croconaw
+    0x0,  // Sentret is a base evolution
+    0xa1, // Furret evolves from Sentret
+    0x0,  // Hoothoot is a base evolution
+    0xa3, // Noctowl evolves from Hoothoot
+    0x0,  // Ledyba is a base evolution
+    0xa5, // Ledian evolves from Ledyba
+    0x0,  // Spinarak is a base evolution
+    0xa7, // Ariados evolves from Spinarak
+    0x2a, // Crobat evolves from Golbat
+    0x0,  // Chinchou is a base evolution
+    0xaa, // Lanturn evolves from Chinchou
+    0x0,  // Pichu is a base evolution
+    0x0,  // Cleffa is a base evolution
+    0x0,  // Igglybuff is a base evolution
+    0x0,  // Togepi is a base evolution
+    0xaf, // Togetic evolves from Togepi
+    0x0,  // Natu is a base evolution
+    0xb1, // Xatu evolves from Natu
+    0x0,  // Mareep is a base evolution
+    0xb3, // Flaaffy evolves from Mareep
+    0xb4, // Ampharos evolves from Flaaffy
+    0x2c, // Bellossom evolves from Gloom
+    0x0,  // Marill is a base evolution (in gen 2)
+    0xb7, // Azumarill evolves from Marill
+    0x0,  // Sudowoodo is a base evolution (in gen 2)
+    0x3d, // Politoed evolves from Poliwhirl
+    0x0,  // Hoppip is a base evolution
+    0xbb, // Skiploom evolves from Hoppip
+    0xbc, // Jumpluff evolves from Skiploom
+    0x0,  // Aipom is a base evolution
+    0x0,  // Sunkern is a base evolution
+    0xbf, // Sunflora evolves from Sunkern
+    0x0,  // Yanma is a base evolution
+    0x0,  // Wooper is a base evolution
+    0xc2, // Quagsire evolves from Wooper
+    0x85, // Espeon evolves from Eevee
+    0x85, // Umbreon evolves from Eevee
+    0x0,  // Murkrow is a base evolution
+    0x4f, // Slowking evolves from Slowpoke
+    0x0,  // Misdreavus is a base evolution
+    0x0,  // Unown is a base evolution
+    0x0,  // Wobbuffet is a base evolution (in gen 2)
+    0x0,  // Girafarig is a base evolution
+    0x0,  // Pineco is a base evolution
+    0xcc, // Forretress evolves from Pineco
+    0x0,  // Dunsparce is a base evolution
+    0x0,  // Gligar is a base evolution
+    0x5f, // Steelix evolves from Onix
+    0x0,  // Snubbull is a base evolution
+    0xd1, // Granbull evolves from Snubbull
+    0x0,  // Qwilfish is a base evolution
+    0x7b, // Scizor evolves from Scyther
+    0x0,  // Shuckle is a base evolution
+    0x0,  // Heracross is a base evolution
+    0x0,  // Sneasel is a base evolution
+    0x0,  // Teddiursa is a base evolution
+    0xd8, // Ursaring evolves from Teddiursa
+    0x0,  // Slugma is a base evolution
+    0xda, // Magcargo evolves from Slugma
+    0x0,  // Swinub is a base evolution
+    0xdc, // Piloswine evolves from Swinub
+    0x0,  // Corsola is a base evolution
+    0x0,  // Remoraid is a base evolution
+    0xdf, // Octillery evolves from Remoraid
+    0x0,  // Delibird is a base evolution
+    0x0,  // Mantine is a base evolution (in gen 2)
+    0x0,  // Skarmory is a base evolution
+    0x0,  // Houndour is a base evolution
+    0xe4, // Houndoom evolves from Houndour
+    0x75, // Kingdra evolves from Seadra
+    0x0,  // Phanpy is a base evolution
+    0xe7, // Donphan evolves from Phanpy
+    0x89, // Porygon2 evolves from Porygon
+    0x0,  // Stantler is a base evolution
+    0x0,  // Smeargle is a base evolution
+    0x0,  // Tyrogue is a base evolution
+    0xec, // Hitmontop evolves from Tyrogue
+    0x0,  // Smoochum is a base evolution
+    0x0,  // Elekid is a base evolution
+    0x0,  // Magby is a base evolution
+    0x0,  // Miltank is a base evolution
+    0x71, // Blissey evolves from Chansey
+    0x0,  // Raikou is a base evolution
+    0x0,  // Entei is a base evolution
+    0x0,  // Suicune is a base evolution
+    0x0,  // Larvitar is a base evolution
+    0xf6, // Pupitar evolves from Larvitar
+    0xf7, // Tyranitar evolves from Pupitar
+    0x0,  // Lugia is a base evolution
+    0x0,  // Ho-oh is a base evolution
+    0x0,  // Celebi is a base evolution
+};
+const u8 POWER_POINTS[252]{
+    0,  // Offset the list to remove "off by one" errors
+    35, // Pound
+    25, // Karate-chop
+    10, // Double-slap
+    15, // Comet-punch
+    20, // Mega-punch
+    20, // Pay-day
+    15, // Fire-punch
+    15, // Ice-punch
+    15, // Thunder-punch
+    35, // Scratch
+    30, // Vice-grip
+    5,  // Guillotine
+    10, // Razor-wind
+    20, // Swords-dance
+    30, // Cut
+    35, // Gust
+    35, // Wing-attack
+    20, // Whirlwind
+    15, // Fly
+    20, // Bind
+    20, // Slam
+    25, // Vine-whip
+    20, // Stomp
+    30, // Double-kick
+    5,  // Mega-kick
+    10, // Jump-kick
+    15, // Rolling-kick
+    15, // Sand-attack
+    15, // Headbutt
+    25, // Horn-attack
+    20, // Fury-attack
+    5,  // Horn-drill
+    35, // Tackle
+    15, // Body-slam
+    20, // Wrap
+    20, // Take-down
+    10, // Thrash
+    15, // Double-edge
+    30, // Tail-whip
+    35, // Poison-sting
+    20, // Twineedle
+    20, // Pin-missile
+    30, // Leer
+    25, // Bite
+    40, // Growl
+    20, // Roar
+    15, // Sing
+    20, // Supersonic
+    20, // Sonic-boom
+    20, // Disable
+    30, // Acid
+    25, // Ember
+    15, // Flamethrower
+    30, // Mist
+    25, // Water-gun
+    5,  // Hydro-pump
+    15, // Surf
+    10, // Ice-beam
+    5,  // Blizzard
+    20, // Psybeam
+    20, // Bubble-beam
+    20, // Aurora-beam
+    5,  // Hyper-beam
+    35, // Peck
+    20, // Drill-peck
+    20, // Submission
+    20, // Low-kick
+    20, // Counter
+    20, // Seismic-toss
+    15, // Strength
+    25, // Absorb
+    15, // Mega-drain
+    10, // Leech-seed
+    20, // Growth
+    25, // Razor-leaf
+    10, // Solar-beam
+    35, // Poison-powder
+    30, // Stun-spore
+    15, // Sleep-powder
+    10, // Petal-dance
+    40, // String-shot
+    10, // Dragon-rage
+    15, // Fire-spin
+    30, // Thunder-shock
+    15, // Thunderbolt
+    20, // Thunder-wave
+    10, // Thunder
+    15, // Rock-throw
+    10, // Earthquake
+    5,  // Fissure
+    10, // Dig
+    10, // Toxic
+    25, // Confusion
+    10, // Psychic
+    20, // Hypnosis
+    40, // Meditate
+    30, // Agility
+    30, // Quick-attack
+    20, // Rage
+    20, // Teleport
+    15, // Night-shade
+    10, // Mimic
+    40, // Screech
+    15, // Double-team
+    10, // Recover
+    30, // Harden
+    10, // Minimize
+    20, // Smokescreen
+    10, // Confuse-ray
+    40, // Withdraw
+    40, // Defense-curl
+    20, // Barrier
+    30, // Light-screen
+    30, // Haze
+    20, // Reflect
+    30, // Focus-energy
+    10, // Bide
+    10, // Metronome
+    20, // Mirror-move
+    5,  // Self-destruct
+    10, // Egg-bomb
+    30, // Lick
+    20, // Smog
+    20, // Sludge
+    20, // Bone-club
+    5,  // Fire-blast
+    15, // Waterfall
+    15, // Clamp
+    20, // Swift
+    10, // Skull-bash
+    15, // Spike-cannon
+    35, // Constrict
+    20, // Amnesia
+    15, // Kinesis
+    10, // Soft-boiled
+    10, // High-jump-kick
+    30, // Glare
+    15, // Dream-eater
+    40, // Poison-gas
+    20, // Barrage
+    10, // Leech-life
+    10, // Lovely-kiss
+    5,  // Sky-attack
+    10, // Transform
+    30, // Bubble
+    10, // Dizzy-punch
+    15, // Spore
+    20, // Flash
+    15, // Psywave
+    40, // Splash
+    20, // Acid-armor
+    10, // Crabhammer
+    5,  // Explosion
+    15, // Fury-swipes
+    10, // Bonemerang
+    10, // Rest
+    10, // Rock-slide
+    15, // Hyper-fang
+    30, // Sharpen
+    30, // Conversion
+    10, // Tri-attack
+    10, // Super-fang
+    20, // Slash
+    10, // Substitute
+    1,  // Struggle
+    1,  // Sketch
+    10, // Triple-kick
+    25, // Thief
+    10, // Spider-web
+    5,  // Mind-reader
+    15, // Nightmare
+    25, // Flame-wheel
+    15, // Snore
+    10, // Curse
+    15, // Flail
+    30, // Conversion-2
+    5,  // Aeroblast
+    40, // Cotton-spore
+    15, // Reversal
+    10, // Spite
+    25, // Powder-snow
+    10, // Protect
+    30, // Mach-punch
+    10, // Scary-face
+    20, // Feint-attack
+    10, // Sweet-kiss
+    10, // Belly-drum
+    10, // Sludge-bomb
+    10, // Mud-slap
+    10, // Octazooka
+    20, // Spikes
+    5,  // Zap-cannon
+    40, // Foresight
+    5,  // Destiny-bond
+    5,  // Perish-song
+    15, // Icy-wind
+    5,  // Detect
+    10, // Bone-rush
+    5,  // Lock-on
+    10, // Outrage
+    10, // Sandstorm
+    10, // Giga-drain
+    10, // Endure
+    20, // Charm
+    20, // Rollout
+    40, // False-swipe
+    15, // Swagger
+    10, // Milk-drink
+    20, // Spark
+    20, // Fury-cutter
+    25, // Steel-wing
+    5,  // Mean-look
+    15, // Attract
+    10, // Sleep-talk
+    5,  // Heal-bell
+    20, // Return
+    15, // Present
+    20, // Frustration
+    25, // Safeguard
+    20, // Pain-split
+    5,  // Sacred-fire
+    30, // Magnitude
+    5,  // Dynamic-punch
+    10, // Megahorn
+    20, // Dragon-breath
+    40, // Baton-pass
+    5,  // Encore
+    20, // Pursuit
+    40, // Rapid-spin
+    20, // Sweet-scent
+    15, // Iron-tail
+    35, // Metal-claw
+    10, // Vital-throw
+    5,  // Morning-sun
+    5,  // Synthesis
+    5,  // Moonlight
+    15, // Hidden-power
+    5,  // Cross-chop
+    20, // Twister
+    5,  // Rain-dance
+    5,  // Sunny-day
+    15, // Crunch
+    20, // Mirror-coat
+    10, // Psych-up
+    5,  // Extreme-speed
+    5,  // Ancient-power
+    15, // Shadow-ball
+    10, // Future-sight
+    15, // Rock-smash
+    15, // Whirlpool
+    10, // Beat-up
+};

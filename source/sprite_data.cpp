@@ -295,4 +295,43 @@ void load_dex_r()
     }
 }
 
+#include "btn_d_l.h"
+OBJ_ATTR *btn_d_l = &obj_buffer[26];
+void load_btn_d_l()
+{
+    memcpy(&tile_mem[4][416], btn_d_lTiles, btn_d_lTilesLen);
+    memcpy(pal_obj_mem + 32, btn_d_lPal, btn_d_lPalLen);
+
+    int x = 0, y = 0;
+    u32 tid = 416, pb = 2; // tile id, pal-bank
+
+    obj_set_attr(btn_d_l,
+                 ATTR0_WIDE,
+                 ATTR1_SIZE_64x32,
+                 ATTR2_PALBANK(pb) | tid | ATTR2_PRIO(1));
+    obj_set_pos(btn_d_l, x, y);
+    obj_hide(btn_d_l);
+    // obj_unhide(btn_d_l, 0);
+}
+
+#include "btn_d_r.h"
+OBJ_ATTR *btn_d_r = &obj_buffer[27];
+void load_btn_d_r()
+{
+    memcpy(&tile_mem[4][448], btn_d_rTiles, btn_d_rTilesLen);
+    memcpy(pal_obj_mem + 48, btn_d_rPal, btn_d_rPalLen);
+
+    int x = 0, y = 0;
+    u32 tid = 448, pb = 2; // tile id, pal-bank
+
+    obj_set_attr(btn_d_r,
+                 ATTR0_WIDE,
+                 ATTR1_SIZE_64x32,
+                 ATTR2_PALBANK(pb) | tid | ATTR2_PRIO(1));
+
+    obj_set_pos(btn_d_r, x, y);
+    obj_hide(btn_d_r);
+    // obj_unhide(btn_d_r, 0);
+}
+
 // Don't forget to increase the number of sprites loaded in main!!

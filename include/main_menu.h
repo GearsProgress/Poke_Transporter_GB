@@ -8,14 +8,17 @@
 #define MAIN_MENU 0
 #define TRANSFER 1
 #define POKEDEX 2
-#define CREDITS 3
+#define LANGUAGE 3
+#define CREDITS 4
+
+#define BUTTON_ARRAY_SIZE 5
 
 #define NO_ANI 0
 #define ENTERING -1
 #define EXITING -2
 #define DISABLE -3
 
-void main_menu_init(Button transfer, Button pokedex, Button credits);
+void main_menu_init(Button transfer, Button pokedex, Button credits, Button language);
 int main_menu_loop();
 void main_menu_enter();
 void main_menu_exit();

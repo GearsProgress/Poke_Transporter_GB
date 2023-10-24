@@ -75,7 +75,7 @@ bool run_conditional(int index)
         return true;
 
     case BEAT_E4:
-        return false;
+        return true;
 
     case SHOW_PROF:
         obj_unhide(prof, 0);

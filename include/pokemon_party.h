@@ -16,7 +16,7 @@ public:
 
 private:
     Pokemon party[6];
-    byte party_data_array[444];
+    byte party_data_array[GEN2_INT_SIZE + 4];
     int last_error;
     int party_size;
     int gen;

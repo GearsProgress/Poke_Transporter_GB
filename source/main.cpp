@@ -34,25 +34,17 @@
 --------
 ACCURACY:
 - See if shiny Pokemon from gen 2 can be square shinies or if they're all normal
-- See what happens with hybrid Pokemon
 
 LINK CABLE:
-- Figure out JP Green
+- Figure out JP Gen 2
 
 CONVERSION:
-- Fix fateful encounter so Mew and Celebi work
-- Fix unown sometimes not being right (J becomes N)
-- Add in check for glitch Pokemon
-- Add in check for egg
-- Restrict illegal moves
-- Set full default PP points for ALL moves (and PP ups)
-- Check for duplicate moves?
-- What happens with Smeargle?
-- Check Pokerus
-- Fix egg moves only being on the baby Pokemon. TLDR anything Horsea can learn Seadra can too
+- Combine gen 1/2 intern char arrays. No reason why they should be different tbh. Make them based on char input
 - Find automatic detection for languages. Japanese is longer, while other languages only use certian characters
+- Korean is not possible, I don't think. Unless it just ignores the names, which we could do? How is the trade data different?
 
 INJECTION:
+- Switch the gen 3 text conversion to the new array
 - Redo injection to be picked up like a Mystery Gift
 - Double check that returns false when PC is full BEFORE injecting
 - Fix coruption and Pokemon injection
@@ -61,6 +53,8 @@ INJECTION:
 - Enable ribbon viewing
 - Set flags for the number of Pokemon injected
 - Set Pokedex flags
+- Check what happens when the PC is full, but the last Pokemon doesn't exist (is zero)
+- Set text color for FRLG (what happens if you set it in RSE?)
 
 SAVE DATA:
 - Add warning
@@ -69,8 +63,6 @@ SAVE DATA:
 
 TESTING:
 - Test all the aspects of a Pokemon (Shiny, Pokerus, etc.)
-- Test invalid moves
-- Test move bubbling
 --------
 */
 
@@ -147,15 +139,18 @@ int main(void)
 	load_dex_l();
 	load_dex_m();
 	load_dex_r();
+	load_btn_d_l();
+	load_btn_d_r();
 
 	Button transfer_btn = Button(btn_t_l, btn_t_r, 128, 160);
 	Button pokedex_btn = Button(btn_p_l, btn_p_r, 192, 224);
 	Button credits_btn = Button(btn_c_l, btn_c_r, 256, 288);
+	Button language_btn = Button(btn_d_l, btn_d_r, 416, 448);
 
 	pokedex_init(); // Why does this cause the music to stop playing? Also the loop doesn't work
 
 	load_save_data();
-	main_menu_init(transfer_btn, pokedex_btn, credits_btn);
+	main_menu_init(transfer_btn, pokedex_btn, credits_btn, language_btn);
 
 	text_disable();
 
@@ -245,6 +240,9 @@ int main(void)
 				main_menu_exit();
 			}
 			break;
+		case (LANGUAGE):
+			main_menu_exit();
+			break;
 		case (CREDITS):
 			tte_set_pos(0, 0);
 			tte_write("wow cool credits man");
@@ -260,7 +258,7 @@ int main(void)
 		rand_next_frame();
 		background_frame();
 		text_next_frame();
-		oam_copy(oam_mem, obj_buffer, 26);
+		oam_copy(oam_mem, obj_buffer, 28);
 
 		VBlankIntrWait();
 		//mmFrame(); //Music

@@ -8,18 +8,21 @@ int menu_mode = MAIN_MENU;
 int ani_mode = 0;
 int menu_x_cord = 128;
 
-Button button_array[4];
+Button button_array[BUTTON_ARRAY_SIZE];
 
-void main_menu_init(Button nTransfer, Button nPokedex, Button nCredits)
+void main_menu_init(Button nTransfer, Button nPokedex, Button nCredits, Button nLanguage)
 {
     button_array[TRANSFER] = nTransfer;
     button_array[POKEDEX] = nPokedex;
+    button_array[LANGUAGE] = nLanguage;
     button_array[CREDITS] = nCredits;
-    button_array[TRANSFER].set_location(128, 16);
-    button_array[POKEDEX].set_location(128, 64);
-    button_array[CREDITS].set_location(128, 112);
+    button_array[TRANSFER].set_location(128, 7 + (38 * (TRANSFER - 1)));
+    button_array[POKEDEX].set_location(128, 7 + (38 * (POKEDEX - 1)));
+    button_array[LANGUAGE].set_location(128, 7 + (38 * (LANGUAGE - 1)));
+    button_array[CREDITS].set_location(128, 7 + (38 * (CREDITS - 1)));
     button_array[TRANSFER].show();
     button_array[POKEDEX].show();
+    button_array[LANGUAGE].show();
     button_array[CREDITS].show();
 }
 
@@ -30,9 +33,9 @@ int main_menu_loop()
     case ENTERING:
     {
         menu_x_cord = menu_x_cord + 4;
-        for (int i = 1; i < 4; i++)
+        for (int i = 1; i < (BUTTON_ARRAY_SIZE + 1); i++)
         {
-            button_array[i].set_location(menu_x_cord, 16 + (48 * (i - 1)));
+            button_array[i].set_location(menu_x_cord, 7 + (38 * (i - 1)));
         }
         if (menu_x_cord > 240)
         {
@@ -43,9 +46,9 @@ int main_menu_loop()
     case EXITING:
     {
         menu_x_cord = menu_x_cord - 4;
-        for (int i = 1; i < 4; i++)
+        for (int i = 1; i < (BUTTON_ARRAY_SIZE + 1); i++)
         {
-            button_array[i].set_location(menu_x_cord, 16 + (48 * (i - 1)));
+            button_array[i].set_location(menu_x_cord, 7 + (38 * (i - 1)));
         }
         if (menu_x_cord <= 128)
         {
@@ -57,7 +60,7 @@ int main_menu_loop()
     {
         if (key_hit(KEY_DOWN))
         {
-            if (menu_slot != CREDITS)
+            if (menu_slot != (BUTTON_ARRAY_SIZE - 1))
             {
                 menu_slot++;
             }
