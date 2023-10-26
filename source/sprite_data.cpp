@@ -319,7 +319,7 @@ OBJ_ATTR *btn_d_r = &obj_buffer[27];
 void load_btn_d_r()
 {
     memcpy(&tile_mem[4][448], btn_d_rTiles, btn_d_rTilesLen);
-    memcpy(pal_obj_mem + 48, btn_d_rPal, btn_d_rPalLen);
+    //memcpy(pal_obj_mem + 48, btn_d_rPal, btn_d_rPalLen);
 
     int x = 0, y = 0;
     u32 tid = 448, pb = 2; // tile id, pal-bank
@@ -333,5 +333,146 @@ void load_btn_d_r()
     obj_hide(btn_d_r);
     // obj_unhide(btn_d_r, 0);
 }
+
+#include "btn_lang_eng.h"
+OBJ_ATTR *btn_lang_eng = &obj_buffer[28];
+void load_btn_lang_eng()
+{
+    memcpy(&tile_mem[4][480], btn_lang_engTiles, btn_lang_engTilesLen);
+    //memcpy(pal_obj_mem + 48, btn_lang_engPal, btn_lang_engPalLen);
+
+    int x = 0, y = 0;
+    u32 tid = 480, pb = 2; // tile id, pal-bank
+
+    obj_set_attr(btn_lang_eng,
+                 ATTR0_WIDE,
+                 ATTR1_SIZE_64x32,
+                 ATTR2_PALBANK(pb) | tid | ATTR2_PRIO(1));
+
+    obj_set_pos(btn_lang_eng, x, y);
+    obj_hide(btn_lang_eng);
+    // obj_unhide(btn_lang_eng, 0);
+}
+
+#include "btn_lang_fre.h"
+OBJ_ATTR *btn_lang_fre = &obj_buffer[29];
+void load_btn_lang_fre()
+{
+    memcpy(&tile_mem[4][512], btn_lang_freTiles, btn_lang_freTilesLen);
+    //memcpy(pal_obj_mem + 48, btn_lang_frePal, btn_lang_frePalLen);
+
+    int x = 0, y = 0;
+    u32 tid = 512, pb = 2; // tile id, pal-bank
+
+    obj_set_attr(btn_lang_fre,
+                 ATTR0_WIDE,
+                 ATTR1_SIZE_64x32,
+                 ATTR2_PALBANK(pb) | tid | ATTR2_PRIO(1));
+
+    obj_set_pos(btn_lang_fre, x, y);
+    obj_hide(btn_lang_fre);
+    // obj_unhide(btn_lang_fre, 0);
+}
+
+#include "btn_lang_ita.h"
+OBJ_ATTR *btn_lang_ita = &obj_buffer[30];
+void load_btn_lang_ita()
+{
+    memcpy(&tile_mem[4][544], btn_lang_itaTiles, btn_lang_itaTilesLen);
+    //memcpy(pal_obj_mem + 48, btn_lang_itaPal, btn_lang_itaPalLen);
+
+    int x = 0, y = 0;
+    u32 tid = 544, pb = 2; // tile id, pal-bank
+
+    obj_set_attr(btn_lang_ita,
+                 ATTR0_WIDE,
+                 ATTR1_SIZE_64x32,
+                 ATTR2_PALBANK(pb) | tid | ATTR2_PRIO(1));
+
+    obj_set_pos(btn_lang_ita, x, y);
+    obj_hide(btn_lang_ita);
+    // obj_unhide(btn_lang_ita, 0);
+}
+
+#include "btn_lang_ger.h"
+OBJ_ATTR *btn_lang_ger = &obj_buffer[31];
+void load_btn_lang_ger()
+{
+    memcpy(&tile_mem[4][576], btn_lang_gerTiles, btn_lang_gerTilesLen);
+    //memcpy(pal_obj_mem + 48, btn_lang_gerPal, btn_lang_gerPalLen);
+
+    int x = 0, y = 0;
+    u32 tid = 576, pb = 2; // tile id, pal-bank
+
+    obj_set_attr(btn_lang_ger,
+                 ATTR0_WIDE,
+                 ATTR1_SIZE_64x32,
+                 ATTR2_PALBANK(pb) | tid | ATTR2_PRIO(1));
+
+    obj_set_pos(btn_lang_ger, x, y);
+    obj_hide(btn_lang_ger);
+    // obj_unhide(btn_lang_ger, 0);
+}
+
+#include "btn_lang_spa.h"
+OBJ_ATTR *btn_lang_spa = &obj_buffer[32];
+void load_btn_lang_spa()
+{
+    memcpy(&tile_mem[4][608], btn_lang_spaTiles, btn_lang_spaTilesLen);
+    //memcpy(pal_obj_mem + 48, btn_lang_spaPal, btn_lang_spaPalLen);
+
+    int x = 0, y = 0;
+    u32 tid = 608, pb = 2; // tile id, pal-bank
+
+    obj_set_attr(btn_lang_spa,
+                 ATTR0_WIDE,
+                 ATTR1_SIZE_64x32,
+                 ATTR2_PALBANK(pb) | tid | ATTR2_PRIO(1));
+
+    obj_set_pos(btn_lang_spa, x, y);
+    obj_hide(btn_lang_spa);
+    // obj_unhide(btn_lang_spa, 0);
+}
+
+#include "btn_lang_kor.h"
+OBJ_ATTR *btn_lang_kor = &obj_buffer[33];
+void load_btn_lang_kor()
+{
+    memcpy(&tile_mem[4][640], btn_lang_korTiles, btn_lang_korTilesLen);
+    //memcpy(pal_obj_mem + 48, btn_lang_korPal, btn_lang_korPalLen);
+
+    int x = 0, y = 0;
+    u32 tid = 640, pb = 2; // tile id, pal-bank
+
+    obj_set_attr(btn_lang_kor,
+                 ATTR0_WIDE,
+                 ATTR1_SIZE_64x32,
+                 ATTR2_PALBANK(pb) | tid | ATTR2_PRIO(1));
+
+    obj_set_pos(btn_lang_kor, x, y);
+    obj_hide(btn_lang_kor);
+    // obj_unhide(btn_lang_kor, 0);
+}
+
+#include "lang_arrow.h"
+OBJ_ATTR *lang_arrow = &obj_buffer[34];
+void load_lang_arrow()
+{
+    memcpy(&tile_mem[4][672], lang_arrowTiles, lang_arrowTilesLen);
+    //memcpy(pal_obj_mem + 48, lang_arrowPal, lang_arrowPalLen);
+
+    int x = 0, y = 0;
+    u32 tid = 672, pb = 2; // tile id, pal-bank
+
+    obj_set_attr(lang_arrow,
+                 ATTR0_SQUARE,
+                 ATTR1_SIZE_8x8,
+                 ATTR2_PALBANK(pb) | tid | ATTR2_PRIO(1));
+
+    obj_set_pos(lang_arrow, x, y);
+    obj_hide(lang_arrow);
+    // obj_unhide(lang_arrow, 0);
+}
+
 
 // Don't forget to increase the number of sprites loaded in main!!

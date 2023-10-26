@@ -11,6 +11,15 @@
 #define slow_max        1250000
 #define flux_max        1640000
 
+#define INTERNATIONAL 0
+#define JPN_ID  1
+#define ENG_ID  2
+#define FRE_ID  3
+#define ITA_ID  4
+#define GER_ID  5
+#define SPA_ID  7
+#define KOR_ID  8
+
 
 extern const u8 EXP_MAX[252];
 extern const u32 EXP_TYPES[6];

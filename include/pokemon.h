@@ -37,6 +37,7 @@ public:
 
 private:
     byte gen = 2;
+    byte language;
     byte species_index_party;  // The species ID stored in the party. Really only used for egg detection
     byte species_index_struct; // The species ID stored in the pkmn strucutre. The main one to use.
     byte moves[4];

@@ -2,6 +2,7 @@
 #include "pokemon.h"
 #include "pokemon_data.h"
 #include "random.h"
+#include "save_data_manager.h"
 
 Pokemon::Pokemon(){};
 
@@ -17,6 +18,7 @@ void Pokemon::load_data(int index, byte *party_data)
         ot_and_party = 14;
         ot_size = 6;
         nickname_size = 6;
+        language = JPN_ID;
     }
     else if (party_data[GEN1_INT_SIZE + 0] == 0xFD &&
              party_data[GEN1_INT_SIZE + 1] == 0xFD &&
@@ -28,6 +30,7 @@ void Pokemon::load_data(int index, byte *party_data)
         ot_and_party = 19;
         ot_size = 11;
         nickname_size = 11;
+        language = INTERNATIONAL;
     }
     /*
     else if (party_data[GEN2_JPN_SIZE + 0] == 0xFD &&
@@ -41,6 +44,7 @@ void Pokemon::load_data(int index, byte *party_data)
         ot_and_party = 17;
         ot_size = 6;
         nickname_size = 6;
+        language = JPN_ID;
     }*/
     else if (party_data[GEN2_INT_SIZE + 0] == 0xFD &&
              party_data[GEN2_INT_SIZE + 1] == 0xFD &&
@@ -52,6 +56,7 @@ void Pokemon::load_data(int index, byte *party_data)
         ot_and_party = 21;
         ot_size = 11;
         nickname_size = 11;
+        language = INTERNATIONAL;
     }
     else
     {
@@ -232,8 +237,17 @@ void Pokemon::convert_to_gen_three()
     }
     copy_from_to(&secret_id[0], &gen_3_pkmn[6], 2, false); // Set SID
 
-    copy_from_to(convert_text(&nickname[0], 10, 2), &gen_3_pkmn[8], 10, false);    // Nickname
-    gen_3_pkmn[18] = 2;                                                            // Language, set to English
+    copy_from_to(convert_text(&nickname[0], 10, 2), &gen_3_pkmn[8], 10, false); // Nickname
+
+    if (language == JPN_ID) // Language, set to the default
+    {                       // if not JPN
+        gen_3_pkmn[18] = JPN_ID;
+    }
+    else
+    {
+        gen_3_pkmn[18] = get_def_lang();
+    }
+
     gen_3_pkmn[19] = 0b00000010;                                                   // Egg Name
     copy_from_to(convert_text(&trainer_name[0], 7, 2), &gen_3_pkmn[20], 7, false); // OT Name
     gen_3_pkmn[27] = 0b00000000;                                                   // Markings

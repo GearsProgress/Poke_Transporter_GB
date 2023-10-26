@@ -9,13 +9,6 @@
 #define TEXT_CBB 3
 #define TEXT_SBB 28
 
-const int H_MAX = 240;
-const int V_MAX = 160;
-const int LEFT = 8;
-const int RIGHT = H_MAX - LEFT;
-const int TOP = 120;
-const int BOTTOM = V_MAX;
-
 script_obj curr_line;
 uint char_count;
 bool disabled;
@@ -78,12 +71,20 @@ int text_next_obj_id(script_obj current_line)
 void text_enable()
 {
     disabled = false;
-    REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(1);
+    show_text_box();
 }
 
 void text_disable()
 {
     disabled = true;
     tte_erase_screen();
+    hide_text_box();
+}
+
+void show_text_box(){
+    REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(1);
+}
+
+void hide_text_box(){
     REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
 }

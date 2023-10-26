@@ -5,7 +5,7 @@
 #include "debug_mode.h"
 #include "script.h"
 
-
+/*
 byte debug_party_data[GEN2_INT_SIZE + 4] = { // Japanese Gen 1
 	0x07, 0xD8, 0xE3, 0xAB, 0x50, 0x8B, 
 	0x06, 
@@ -34,8 +34,8 @@ byte debug_party_data[GEN2_INT_SIZE + 4] = { // Japanese Gen 1
 	
 	0x40, 0x00, 0x00,
 	0xFD, 0xFD, 0xFD, 0xFD};
+*/
 
-/*
 byte debug_party_data[GEN2_INT_SIZE + 4] = { // International Gen 2
 	0x8A, 0x91, 0x88, 0x92, 0x50, 0x50, 0x50, 0x50, 0x50, 0x50, 0x50,
 	0x06,
@@ -66,7 +66,7 @@ byte debug_party_data[GEN2_INT_SIZE + 4] = { // International Gen 2
 
 	0x00, 0x00, 0x00,
 	0xFD, 0xFD, 0xFD, 0xFD};
-*/
+
 Pokemon_Party::Pokemon_Party(){};
 void Pokemon_Party::start_link()
 {
@@ -97,13 +97,6 @@ void Pokemon_Party::load_pokemon()
 		rand_next_frame();
 		party[i].convert_to_gen_three();
 	}
-}
-
-void Pokemon_Party::inject_pokemon()
-{
-	// tte_write(std::to_string(party_size).c_str());
-	// insert_pokemon(party, party_size);
-	// inject_mystery();
 }
 
 Pokemon *Pokemon_Party::get_full_pokemon_array()

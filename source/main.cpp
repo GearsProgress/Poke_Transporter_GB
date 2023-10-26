@@ -1,7 +1,7 @@
 #include <tonc.h>
 #include <string>
 #include <cstring>
-//#include <maxmod.h> //Music
+// #include <maxmod.h> //Music
 
 #include "debug.h"
 #include "flash_mem.h"
@@ -40,8 +40,7 @@ LINK CABLE:
 
 CONVERSION:
 - Combine gen 1/2 intern char arrays. No reason why they should be different tbh. Make them based on char input
-- Find automatic detection for languages. Japanese is longer, while other languages only use certian characters
-- Korean is not possible, I don't think. Unless it just ignores the names, which we could do? How is the trade data different?
+- Add in conversions from each language, including Korean (Convert to Japanese?)
 
 INJECTION:
 - Switch the gen 3 text conversion to the new array
@@ -117,10 +116,10 @@ int main(void)
 
 	// Sound bank init
 	irq_init(NULL);
-	//irq_set(II_VBLANK, mmVBlank, 0); //Music
+	// irq_set(II_VBLANK, mmVBlank, 0); //Music
 	irq_enable(II_VBLANK);
-	//mmInitDefault((mm_addr)soundbank_bin, 8); //Music
-	//mmStart(MOD_FLATOUTLIES, MM_PLAY_LOOP); //Music
+	// mmInitDefault((mm_addr)soundbank_bin, 8); //Music
+	// mmStart(MOD_FLATOUTLIES, MM_PLAY_LOOP); //Music
 
 	// Graphics init
 	oam_init(obj_buffer, 128);
@@ -141,16 +140,31 @@ int main(void)
 	load_dex_r();
 	load_btn_d_l();
 	load_btn_d_r();
+	load_btn_lang_eng();
+	load_btn_lang_fre();
+	load_btn_lang_ita();
+	load_btn_lang_ger();
+	load_btn_lang_spa();
+	load_btn_lang_kor();
+	load_lang_arrow();
 
-	Button transfer_btn = Button(btn_t_l, btn_t_r, 128, 160);
-	Button pokedex_btn = Button(btn_p_l, btn_p_r, 192, 224);
-	Button credits_btn = Button(btn_c_l, btn_c_r, 256, 288);
-	Button language_btn = Button(btn_d_l, btn_d_r, 416, 448);
+	main_menu_btn_init(Button(btn_t_l, btn_t_r, 128, 160), BTN_TRANSFER);
+	main_menu_btn_init(Button(btn_p_l, btn_p_r, 192, 224), BTN_POKEDEX);
+	main_menu_btn_init(Button(btn_c_l, btn_c_r, 256, 288), BTN_CREDITS);
+	main_menu_btn_init(Button(btn_d_l, btn_d_r, 416, 448), BTN_LANGUAGE);
+
+	main_menu_btn_init(Button(btn_lang_eng, 480), BTN_ENG);
+	main_menu_btn_init(Button(btn_lang_fre, 512), BTN_FRE);
+	main_menu_btn_init(Button(btn_lang_ita, 544), BTN_ITA);
+	main_menu_btn_init(Button(btn_lang_ger, 576), BTN_GER);
+	main_menu_btn_init(Button(btn_lang_spa, 608), BTN_SPA);
+	main_menu_btn_init(Button(btn_lang_kor, 640), BTN_KOR);
+	main_menu_btn_init(Button(lang_arrow, 672), LANG_ARROW);
 
 	pokedex_init(); // Why does this cause the music to stop playing? Also the loop doesn't work
 
 	load_save_data();
-	main_menu_init(transfer_btn, pokedex_btn, credits_btn, language_btn);
+	// main_menu_init(transfer_btn, pokedex_btn, credits_btn, language_btn);
 
 	text_disable();
 
@@ -223,15 +237,19 @@ int main(void)
 	set_caught(15);
 	set_caught(5);
 
+	int curr_lang_btn_num = 3;
+	int old_lang_btn_num = -1;
+	set_arrow_point(curr_lang_btn_num);
+
 	// MAIN LOOP
 	while (1)
 	{
 		switch (main_menu_loop())
 		{
-		case (TRANSFER):
+		case (BTN_TRANSFER):
 			text_enable();
 			break;
-		case (POKEDEX):
+		case (BTN_POKEDEX):
 			pokedex_show();
 			pokedex_loop();
 			if (key_hit(KEY_B))
@@ -240,15 +258,50 @@ int main(void)
 				main_menu_exit();
 			}
 			break;
-		case (LANGUAGE):
-			main_menu_exit();
+		case (BTN_LANGUAGE):
+		    REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(1); // Enable text box
+			show_lang_btns();
+			tte_set_pos(LEFT, TOP);
+			tte_write("Choose the default language\nfor transfering from a non\nJapanese game. Setting will\nbe saved after next transfer.");
+			if (key_hit(KEY_LEFT) && ((curr_lang_btn_num % 3) != 0))
+			{
+				curr_lang_btn_num--;
+			}
+			if (key_hit(KEY_RIGHT) && ((curr_lang_btn_num % 3) != 2))
+			{
+				curr_lang_btn_num++;
+			}
+			if (key_hit(KEY_UP) && ((curr_lang_btn_num > 2)))
+			{
+				curr_lang_btn_num -= 3;
+			}
+			if (key_hit(KEY_DOWN) && ((curr_lang_btn_num <= 2)))
+			{
+				curr_lang_btn_num += 3;
+			}
+			if (curr_lang_btn_num != old_lang_btn_num)
+			{
+				highlight_lang_btn(old_lang_btn_num, false);
+				highlight_lang_btn(curr_lang_btn_num, true);
+				old_lang_btn_num = curr_lang_btn_num;
+			}
+			if (key_hit(KEY_A)){
+				set_arrow_point(curr_lang_btn_num);
+				set_def_lang(curr_lang_btn_num);
+			}
+			if (key_hit(KEY_B)){
+				hide_lang_btns();
+				main_menu_exit();
+				tte_erase_screen();
+				hide_text_box();
+			}
 			break;
-		case (CREDITS):
+		case (BTN_CREDITS):
 			tte_set_pos(0, 0);
 			tte_write("wow cool credits man");
 			if (key_hit(KEY_B))
 			{
-				tte_erase_rect(0, 0, 240, 160);
+				tte_erase_rect(0, 0, H_MAX, V_MAX);
 				main_menu_exit();
 			}
 			break;
@@ -258,10 +311,10 @@ int main(void)
 		rand_next_frame();
 		background_frame();
 		text_next_frame();
-		oam_copy(oam_mem, obj_buffer, 28);
+		oam_copy(oam_mem, obj_buffer, 35);
 
 		VBlankIntrWait();
-		//mmFrame(); //Music
+		// mmFrame(); //Music
 		global_next_frame();
 	}
 }

@@ -11,7 +11,6 @@ public:
     void start_link();
     int get_last_error();
     void load_pokemon();
-    void inject_pokemon();
     Pokemon* get_full_pokemon_array();
 
 private:
