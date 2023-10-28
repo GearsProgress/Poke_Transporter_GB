@@ -7,34 +7,50 @@
 
 script_obj::script_obj()
 {
-    text = "null";
+    text = "";
     next_index = 0;
     conditional_index = 0;
     next_false_index = 0;
 }
 
-script_obj::script_obj(std::string nText, int nNext_index)
+script_obj::script_obj(std::string_view nText, int nNext)
 {
     text = nText;
-    next_index = nNext_index;
+    next_index = nNext;
     conditional_index = 0;
     next_false_index = 0;
 }
 
-script_obj::script_obj(std::string nText, int nNext_index, int nCond_index)
+script_obj::script_obj(std::string_view nText, int nRun, int nNext)
 {
     text = nText;
-    next_index = nNext_index;
-    conditional_index = nCond_index;
-    next_false_index = nNext_index;
+    next_index = nNext;
+    conditional_index = nRun;
+    next_false_index = nNext;
 }
 
-script_obj::script_obj(std::string nText, int nNext_index, int nCond_index, int nFalse_index)
+script_obj::script_obj(int nRun, int nNext)
+{
+    text = "";
+    next_index = nNext;
+    conditional_index = nRun;
+    next_false_index = nNext;
+}
+
+script_obj::script_obj(std::string_view nText, int nRun, int nNext_if_true, int nNext_if_false)
 {
     text = nText;
-    next_index = nNext_index;
-    conditional_index = nCond_index;
-    next_false_index = nFalse_index;
+    next_index = nNext_if_true;
+    conditional_index = nRun;
+    next_false_index = nNext_if_false;
+}
+
+script_obj::script_obj(int nRun, int nNext_if_true, int nNext_if_false)
+{
+    text = "";
+    next_index = nNext_if_true;
+    conditional_index = nRun;
+    next_false_index = nNext_if_false;
 }
 
 

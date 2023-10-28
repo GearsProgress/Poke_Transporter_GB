@@ -82,12 +82,19 @@ class mystery_gift_script
     u8 value_buffer[9];
     u32 jumppoint_location[NUM_JUMPS];
     u32 jumppoint_destination[NUM_JUMPS];
-    std::string_view textboxes[NUM_TEXTBOXES] =
+    std::u16string_view textboxes[NUM_TEXTBOXES] =
+        // Ş = Wait for button and scroll text
+        // ȼ = Wait for button and clear text
+        // Ȇ = Escape character
+        // Ʋ = Variable escape sequence
+        //      À = Player name
+        // Ň = New line
+        // ƞ = string terminator
         {
-            ": Hey /*!-PROFESSOR FENNEL told me that these~were for you!-Don't worry about making room_~I'll send them to the PC!",
-            ": Thanks for helping out FENNEL!",
-            ": It looks like the PC is full_-Come back once you have more room!",
-            "/*'S POK%MON were sent to the PC!",
+            u": Hey ƲÀ!ȼPROFESSOR FENNEL told me that theseŇwere for you!ȼDon’t worry about making room…ŇI’ll send them to the PC!",
+            u": Thanks for helping out FENNEL!",
+            u": It looks like the PC is full…ȼCome back once you have more room!",
+            u"ƲÀ’S POKÉMON were sent to the PC!",
     };
     u32 textbox_location[NUM_TEXTBOXES];
     u32 textbox_destination[NUM_TEXTBOXES];
@@ -97,7 +104,6 @@ class mystery_gift_script
     u16 relative_offset_destination[NUM_RELATIVE_PTR];
     u8 party_data_array[6 * POKEMON_SIZE];
     u8 four_align_value = 0;
-    std::string_view pc_maker = pc_maker;
 
 public:
     mystery_gift_script();
@@ -107,12 +113,12 @@ public:
     int get_offset_wondercard();
     int get_offset_script();
     int get_offset_flags();
-    
+
 private:
     void add_command(int len);
     u16 rev_endian(u16 num);
     void insert_textboxes();
-    u8 convert_char(char convert_char);
+    // u8 convert_char(char convert_char);
     void fill_jumppoint_pointers();
     void fill_textbox_pointers();
     void add_asm(u16 command);

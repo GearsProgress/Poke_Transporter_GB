@@ -32,13 +32,24 @@ extern const std::string_view NAMES[252];
 extern const u8 EVOLUTIONS[252];
 extern const u8 POWER_POINTS[252];
 extern const byte gen_1_index_array[191];
-extern const byte gen_1_char_array[0x80];
-extern const byte gen_2_char_array[0x80];
+//extern const byte gen_1_char_array[0x80];
+//extern const byte gen_2_char_array[0x80];
+extern const u16 gen_1_Jpn_char_array[256];
+extern const u16 gen_1_Eng_char_array[256];
+extern const u16 gen_1_FreGer_char_array[256];
+extern const u16 gen_1_ItaSpa_char_array[256];
+extern const u16 gen_2_Jpn_char_array[256];
+extern const u16 gen_2_Eng_char_array[256];
+extern const u16 gen_2_FreGer_char_array[256];
+extern const u16 gen_2_ItaSpa_char_array[256];
+extern const u16 gen_3_Jpn_char_array[256];
+extern const u16 gen_3_Intern_char_array[256];
 
 u32 get_max_exp(int index_num);
 u8 get_gender_threshold(int index_num, bool is_gen_3);
 bool get_num_abilities(int index_num);
 bool can_learn_move(int pkmn_index, int move_index);
 byte get_earliest_move(int index_num);
+byte get_gen_3_char(u16 input_char, bool is_jpn);
 
 #endif

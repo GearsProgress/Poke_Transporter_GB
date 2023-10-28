@@ -1,6 +1,7 @@
 #include <tonc.h>
 #include "script_builder.h"
 #include "pokemon_party.h"
+#include "pokemon_data.h"
 
 int var_callASM = (VAR_ID_START + 0x00);
 int var_script_ptr_low = (VAR_ID_START + 0x01);
@@ -315,13 +316,13 @@ void mystery_gift_script::insert_textboxes()
         {
             for (unsigned int parser = 0; parser < pc_maker.length(); parser++)
             {
-                mg_script[curr_index] = convert_char(pc_maker.at(parser));
+                mg_script[curr_index] = get_gen_3_char((char16_t)(pc_maker.at(parser)), false);
                 curr_index++;
             }
         }
         for (unsigned int parser = 0; parser < textboxes[i].length(); parser++)
         {
-            mg_script[curr_index] = convert_char(textboxes[i].at(parser));
+            mg_script[curr_index] = get_gen_3_char((char16_t)(textboxes[i].at(parser)), false);
             curr_index++;
         }
         mg_script[curr_index] = 0xFF; // End string
@@ -329,6 +330,7 @@ void mystery_gift_script::insert_textboxes()
     }
 }
 
+/*
 u8 mystery_gift_script::convert_char(char convert_char)
 {
     switch (convert_char)
@@ -369,7 +371,7 @@ u8 mystery_gift_script::convert_char(char convert_char)
         return 0x00;
     }
 }
-
+*/
 u16 mystery_gift_script::calc_checksum() // Implementation taken from PokeEmerald Decomp
 {
     u16 i, j;

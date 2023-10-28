@@ -4,7 +4,7 @@
 #include "pokemon_trade.h"
 #include "output.h"
 #include "LinkGPIO.h"
-#include "script_obj.h"
+#include "script_array.h"
 
 #define BYTE_INCOMPLETE 0
 #define BYTE_COMPLETE 1
@@ -421,7 +421,7 @@ int loop(byte *party_data)
       timeout++;
       if (timeout > TIMEOUT_ONE_LENGTH)
       {
-        return ERROR_TIMEOUT_ONE;
+        return COND_ERROR_TIMEOUT_ONE;
       }
     }
     timeout = 0;
@@ -435,19 +435,19 @@ int loop(byte *party_data)
     else if (
         transfer_state == TIMEOUT)
     {
-      return ERROR_TIMEOUT_TWO;
+      return COND_ERROR_TIMEOUT_TWO;
     }
     if (FF_count > 25)
     {
-      return ERROR_DISCONNECT;
+      return COND_ERROR_DISCONNECT;
     }
     if (zero_count > 25)
     {
-      return ERROR_COM_ENDED;
+      return COND_ERROR_COM_ENDED;
     }
     if (connection_state == COLOSSEUM)
     {
-      return ERROR_COLOSSEUM;
+      return COND_ERROR_COLOSSEUM;
     }
 
     if (trade_centre_state_gen_II == SENDING_PATCH_DATA)

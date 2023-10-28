@@ -29,7 +29,7 @@ public:
     byte get_gen_3_data(int index);
     byte *get_full_gen_3_array();
     byte get_unencrypted_data(int index);
-    byte *convert_text(byte *text_array, int size, int gen);
+    byte *convert_text(byte *text_array, int size, int gen, int lang);
     u32 generate_pid(byte pid_species_index, byte nature, byte *pid_ivs);
     byte rand_reverse_mod(byte modulo_divisor, byte target_mod);
     byte get_rand_gender_byte(byte index_num, byte attack_DVs);

@@ -237,20 +237,16 @@ void Pokemon::convert_to_gen_three()
     }
     copy_from_to(&secret_id[0], &gen_3_pkmn[6], 2, false); // Set SID
 
-    copy_from_to(convert_text(&nickname[0], 10, 2), &gen_3_pkmn[8], 10, false); // Nickname
-
-    if (language == JPN_ID) // Language, set to the default
-    {                       // if not JPN
-        gen_3_pkmn[18] = JPN_ID;
-    }
-    else
+    if (language != JPN_ID) // If not JPN, figure out what the default language is
     {
-        gen_3_pkmn[18] = get_def_lang();
+        language = get_def_lang();
     }
 
-    gen_3_pkmn[19] = 0b00000010;                                                   // Egg Name
-    copy_from_to(convert_text(&trainer_name[0], 7, 2), &gen_3_pkmn[20], 7, false); // OT Name
-    gen_3_pkmn[27] = 0b00000000;                                                   // Markings
+    gen_3_pkmn[18] = language;                                                                 // Language
+    gen_3_pkmn[19] = 0b00000010;                                                               // Egg Name
+    copy_from_to(convert_text(&nickname[0], 10, gen, language), &gen_3_pkmn[8], 10, false);    // Nickname
+    copy_from_to(convert_text(&trainer_name[0], 7, gen, language), &gen_3_pkmn[20], 7, false); // OT Name
+    gen_3_pkmn[27] = 0b00000000;                                                               // Markings
     // ???
 
     // Data:
@@ -436,45 +432,54 @@ byte Pokemon::get_unencrypted_data(int index)
     return unencrypted_data[index];
 }
 
-byte *Pokemon::convert_text(byte *text_array, int size, int gen)
+byte *Pokemon::convert_text(byte *text_array, int size, int gen, int lang)
 {
-    switch (gen)
+    for (int i = 0; i < size; i++)
     {
-    case 1:
-        for (int i = 0; i < size; i++)
+        switch (gen)
         {
-            if (text_array[i] == 0x50)
+        case 1:
+            switch (lang)
             {
-                text_array[i] = 0xFF;
+            case JPN_ID:
+                text_array[i] = get_gen_3_char(gen_1_Jpn_char_array[text_array[i]], true);
+                break;
+            case ENG_ID:
+            default:
+                text_array[i] = get_gen_3_char(gen_1_Eng_char_array[text_array[i]], false);
+                break;
+            case FRE_ID:
+            case GER_ID:
+                text_array[i] = get_gen_3_char(gen_1_FreGer_char_array[text_array[i]], false);
+                break;
+            case SPA_ID:
+            case ITA_ID:
+                text_array[i] = get_gen_3_char(gen_1_ItaSpa_char_array[text_array[i]], false);
+                break;
             }
-            else if (text_array[i] >= 0x80)
+            break;
+        case 2:
+        default:
+            switch (lang)
             {
-                text_array[i] = gen_1_char_array[text_array[i] - 0x80];
+            case JPN_ID:
+                text_array[i] = get_gen_3_char(gen_2_Jpn_char_array[text_array[i]], true);
+                break;
+            case ENG_ID:
+            default:
+                text_array[i] = get_gen_3_char(gen_2_Eng_char_array[text_array[i]], false);
+                break;
+            case FRE_ID:
+            case GER_ID:
+                text_array[i] = get_gen_3_char(gen_2_FreGer_char_array[text_array[i]], false);
+                break;
+            case SPA_ID:
+            case ITA_ID:
+                text_array[i] = get_gen_3_char(gen_2_ItaSpa_char_array[text_array[i]], false);
+                break;
             }
-            else
-            {
-                text_array[i] = 0x00;
-            }
+            break;
         }
-        break;
-
-    case 2:
-        for (int i = 0; i < size; i++)
-        {
-            if (text_array[i] == 0x50)
-            {
-                text_array[i] = 0xFF;
-            }
-            else if (text_array[i] >= 0x80)
-            {
-                text_array[i] = gen_2_char_array[text_array[i] - 0x80];
-            }
-            else
-            {
-                text_array[i] = 0x00;
-            }
-        }
-        break;
     }
     return text_array;
 }

@@ -39,14 +39,9 @@ LINK CABLE:
 - Figure out JP Gen 2
 
 CONVERSION:
-- Combine gen 1/2 intern char arrays. No reason why they should be different tbh. Make them based on char input
-- Add in conversions from each language, including Korean (Convert to Japanese?)
+- Add Korean conversion
 
 INJECTION:
-- Switch the gen 3 text conversion to the new array
-- Redo injection to be picked up like a Mystery Gift
-- Double check that returns false when PC is full BEFORE injecting
-- Fix coruption and Pokemon injection
 - Add Pokemon to Pokedex
 - Randomize base seed
 - Enable ribbon viewing
@@ -113,6 +108,10 @@ int main(void)
 	rand_set_seed(0x12162001);
 	init_text_engine();
 	add_script_party_var(party);
+
+	// Prepare dialouge
+	populate_dialouge();
+	populate_script();
 
 	// Sound bank init
 	irq_init(NULL);
@@ -259,7 +258,7 @@ int main(void)
 			}
 			break;
 		case (BTN_LANGUAGE):
-		    REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(1); // Enable text box
+			REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(1); // Enable text box
 			show_lang_btns();
 			tte_set_pos(LEFT, TOP);
 			tte_write("Choose the default language\nfor transfering from a non\nJapanese game. Setting will\nbe saved after next transfer.");
@@ -285,11 +284,13 @@ int main(void)
 				highlight_lang_btn(curr_lang_btn_num, true);
 				old_lang_btn_num = curr_lang_btn_num;
 			}
-			if (key_hit(KEY_A)){
+			if (key_hit(KEY_A))
+			{
 				set_arrow_point(curr_lang_btn_num);
 				set_def_lang(curr_lang_btn_num);
 			}
-			if (key_hit(KEY_B)){
+			if (key_hit(KEY_B))
+			{
 				hide_lang_btns();
 				main_menu_exit();
 				tte_erase_screen();
