@@ -48,7 +48,12 @@ INJECTION:
 - Set flags for the number of Pokemon injected
 - Set Pokedex flags
 - Check what happens when the PC is full, but the last Pokemon doesn't exist (is zero)
-- Set text color for FRLG (what happens if you set it in RSE?)
+- Set text color for FRLG for when a Pokemon is sent (what happens if you set it in RSE?)
+- Check text overflow for the "recieved" text. What happens if the name is too long?
+	Maybe use the standard function for that? https://www.pokecommunity.com/showthread.php?t=201077
+- Figure out how to shrink the size of the mystery gift script. Especially with padding? idk, there's a lot of
+	multiple FFs and 00s
+	I think we can combine some of the ldr and add functions.
 
 SAVE DATA:
 - Add warning

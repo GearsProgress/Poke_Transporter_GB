@@ -28,14 +28,19 @@
 #define TEXT_FULL 2
 #define TEXT_RECEIVED 3
 
-#define NUM_ASM_OFFSET 4
+#define NUM_ASM_OFFSET 8
 #define ASM_OFFSET_PKMN_OFFSET 0
 #define ASM_OFFSET_PKMN_STRUCT 1
 #define ASM_OFFSET_SENDMON_PTR 2
 #define ASM_OFFSET_BOX_SUC_PTR 3
+#define ASM_OFFSET_DEX_ASM_PTR_1 4
+#define ASM_OFFSET_DEX_SEEN_CAUGHT 5
+#define ASM_OFFSET_DEX_STRUCT 6
+#define ASM_OFFSET_INDEX 7
 
-#define NUM_RELATIVE_PTR 1
+#define NUM_RELATIVE_PTR 1 // THIS STAYS AS 1, THERE IS NO RELATIVE POINTER TO DEX AT THE MOMENT, IT IS A STATIC 28!!!
 #define REL_PTR_ASM_START 0
+#define REL_PTR_DEX_START 1
 
 #define COND_LESSTHAN 0
 #define COND_EQUALS 1
@@ -91,7 +96,7 @@ class mystery_gift_script
         // Ň = New line
         // ƞ = string terminator
         {
-            u": Hey ƲÀ!ȼPROFESSOR FENNEL told me that theseŇwere for you!ȼDon’t worry about making room…ŇI’ll send them to the PC!",
+            u": Hey ƲÀ!ȼPROFESSOR FENNEL",// told me that theseŇwere for you!ȼDon’t worry about making room…ŇI’ll send them to the PC!",
             u": Thanks for helping out FENNEL!",
             u": It looks like the PC is full…ȼCome back once you have more room!",
             u"ƲÀ’S POKÉMON were sent to the PC!",
@@ -132,6 +137,7 @@ private:
     u8 asm_offset_distance(u8 asm_offset_id);
     void four_align();
     void set_ptr_destination(u8 relative_ptr_id);
+    void add_padding();
 
     // Scripting commands
     void setvirtualaddress(u32 location);
@@ -145,13 +151,16 @@ private:
     void setvar(u16 var_id, u16 value);
     void copybyte(u32 destination, u32 source);
     void addvar(u16 var_id, u16 value);
+    void subvar(u16 var_id, u16 value);
     void call(u32 script_ptr);
     void compare(u16 var_id, u16 value);
     void setflag(u16 flag_id);
     void fanfare(u16 fanfare_number);
     void waitfanfare();
+    void special(u16 special_id);
     void release();
     void end();
+    
 
     // ASM commands
     void push(u16 register_list);
@@ -164,6 +173,10 @@ private:
     void bx(u8 rm);
     void str1(u8 immed_5, u8 rn, u8 rd);
     void pop(u16 register_list);
+    void mov1(u8 rd, u8 immed_8);
+    void and1(u8 rd, u8 rm);
+    void ldr2(u8 rd, u8 rn, u8 rm);
+
 
     // Custom scripting/ASM commands
 };

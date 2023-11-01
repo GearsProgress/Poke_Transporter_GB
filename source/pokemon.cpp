@@ -553,3 +553,7 @@ byte Pokemon::get_rand_gender_byte(byte index_num, byte attack_DVs)
         return get_rand_range(gen3_threshold, 256);
     }
 }
+
+byte Pokemon::get_dex_number(){
+    return species_index_party;
+}

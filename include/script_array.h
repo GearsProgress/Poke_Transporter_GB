@@ -73,6 +73,5 @@ void populate_script();
 void populate_dialouge();
 void add_script_party_var(Pokemon_Party var);
 bool run_conditional(int index);
-std::string_view format_text(std::string_view text);
 
 #endif

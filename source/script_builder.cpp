@@ -10,8 +10,10 @@ int var_call_return_1 = (VAR_ID_START + 0x03);
 int var_call_check_flag = (VAR_ID_START + 0x04);
 int var_call_return_2 = (VAR_ID_START + 0x05);
 int var_box_return = (VAR_ID_START + 0x06);
-int var_index = (VAR_ID_START + 0x07);
-int var_pkmn_offset = (VAR_ID_START + 0x08);
+int var_dex_seen_caught = (VAR_ID_START + 0x07);
+int var_dex_num = (VAR_ID_START + 0x08);
+int var_index = (VAR_ID_START + 0x09);
+int var_pkmn_offset = (VAR_ID_START + 0x0A); // FIX SWAPPING 0x8008 AND MAKE THE CODE COMMENTS CORRECT
 
 int ptr_callASM;
 int ptr_script_ptr_low;
@@ -20,6 +22,7 @@ int ptr_call_return_1;
 int ptr_call_check_flag;
 int ptr_call_return_2;
 int ptr_box_return;
+int ptr_dex_seen_caught;
 int ptr_index;
 int ptr_pkmn_offset;
 
@@ -37,6 +40,7 @@ int flag_all_collected = (FLAG_ID_START + 0x6);
 int loc_sendMonToPC;
 int loc_gSpecialVar_0x8000;
 int loc_gSaveBlock1PTR;
+int loc_setPokedexFlag;
 int offset_ramscript; // Source: https://github.com/pret/pokeemerald/blob/master/include/global.h#L1012
 int offset_flags;     // Flag offset as found within the SaveBlock1 struct in global.h
 int offset_wondercard;
@@ -62,6 +66,7 @@ mystery_gift_script::mystery_gift_script()
             loc_sendMonToPC = 0;
             loc_gSpecialVar_0x8000 = 0;
             loc_gSaveBlock1PTR = 0;
+            loc_setPokedexFlag = 0;
             offset_ramscript = 0;
             offset_flags = 0;
             break;
@@ -69,6 +74,7 @@ mystery_gift_script::mystery_gift_script()
             loc_sendMonToPC = 0;
             loc_gSpecialVar_0x8000 = 0;
             loc_gSaveBlock1PTR = 0;
+            loc_setPokedexFlag = 0;
             offset_ramscript = 0;
             offset_flags = 0;
             break;
@@ -76,6 +82,7 @@ mystery_gift_script::mystery_gift_script()
             loc_sendMonToPC = 0;
             loc_gSpecialVar_0x8000 = 0;
             loc_gSaveBlock1PTR = 0;
+            loc_setPokedexFlag = 0;
             offset_ramscript = 0;
             offset_flags = 0;
             break;
@@ -94,6 +101,7 @@ mystery_gift_script::mystery_gift_script()
             loc_sendMonToPC = 0;
             loc_gSpecialVar_0x8000 = 0;
             loc_gSaveBlock1PTR = 0;
+            loc_setPokedexFlag = 0;
             offset_ramscript = 0;
             offset_flags = 0;
             break;
@@ -101,6 +109,7 @@ mystery_gift_script::mystery_gift_script()
             loc_sendMonToPC = 0x08040BA4;
             loc_gSpecialVar_0x8000 = 0x020370B8;
             loc_gSaveBlock1PTR = 0x03005008;
+            loc_setPokedexFlag = 0x08088e5c;
             offset_ramscript = 0x361C;
             offset_flags = 0x0EE0;
             break;
@@ -116,6 +125,7 @@ mystery_gift_script::mystery_gift_script()
         loc_sendMonToPC = 0x0806B490;
         loc_gSpecialVar_0x8000 = 0x020375D8;
         loc_gSaveBlock1PTR = 0x03005D8C;
+        loc_setPokedexFlag = 0;
         offset_ramscript = 0x3728;
         offset_flags = 0x1270;
         break;
@@ -128,8 +138,9 @@ mystery_gift_script::mystery_gift_script()
     ptr_call_check_flag = (loc_gSpecialVar_0x8000 + 0x08);
     ptr_call_return_2 = (loc_gSpecialVar_0x8000 + 0x0A);
     ptr_box_return = (loc_gSpecialVar_0x8000 + 0x0C);
-    ptr_index = (loc_gSpecialVar_0x8000 + 0x0E);
-    ptr_pkmn_offset = (loc_gSpecialVar_0x8000 + 0x10);
+    ptr_dex_seen_caught = (loc_gSpecialVar_0x8000 + 0x0E);
+    ptr_index = (loc_gSpecialVar_0x8000 + 0x12);
+    ptr_pkmn_offset = (loc_gSpecialVar_0x8000 + 0x14); // EXPLAIN HERE TOO. Also like, we can and it??
 
     ptr_block_ptr_low = (loc_gSaveBlock1PTR + 0x00);
     ptr_block_ptr_high = (loc_gSaveBlock1PTR + 0x02);
@@ -160,69 +171,125 @@ void mystery_gift_script::build_script(Pokemon incoming_party_array[])
     setvar(var_call_check_flag, rev_endian(0x2B00));                  // Set the variable to 0x2B. 0x2B = CHECK FLAG
     addvar(var_call_check_flag, rev_endian(FLAG_ID_START));           // Add the starting flag ID to the check flag ASM variable
     setvar(var_call_return_2, rev_endian(0x0003));                    // Set the variable to 0x03. 0x03 = RETURN
-    set_jump_destination(JUMP_LOOP);                                  // Set the jump destination for the JUMP_LOOP
+    /**/ set_jump_destination(JUMP_LOOP);                             // Set the jump destination for the JUMP_LOOP
     call(ptr_call_check_flag);                                        // Call the check flag ASM
     virtualgotoif(COND_FLAGFALSE, JUMP_PKMN_COLLECTED);               // If the "pokemon collected" flag is false, jump to the end of the loop
     call(ptr_callASM);                                                // Call SendMonToPC ASM
     compare(var_box_return, 2);                                       // Compare the resulting return to #2
     virtualgotoif(COND_EQUALS, JUMP_BOX_FULL);                        // If the return value was #2, jump to the box full message
-    set_jump_destination(JUMP_PKMN_COLLECTED);                        // Set the jump destination for if the Pokemon has already been collected
-    addvar(var_pkmn_offset, POKEMON_SIZE);                            // Add the size of one Pokmeon to the Pokemon offset
-    addvar(var_index, 1);                                             // Add one to the index
-    addvar(var_call_check_flag, rev_endian(1));                       // Add one to the flag index
-    compare(var_index, 6);                                            // Compare the index to 6
-    virtualgotoif(COND_LESSTHAN, JUMP_LOOP);                          // if index is less than six, jump to the start of the loop
-    setflag(flag_all_collected);                                      // Set the "all collected" flag
-    fanfare(0xA4);                                                    // Play the received fanfare
-    virtualmsgbox(TEXT_RECEIVED);                                     // Display the recieved text
-    waitfanfare();                                                    // Wait for the fanfare
-    waitmsg();                                                        // Wait for the text to finish
-    waitkeypress();                                                   // Wait for the player to press A/B
-    set_jump_destination(JUMP_ALL_COLLECTED);                         // Set the destination for if all the Pokemon have already been collected
-    virtualmsgbox(TEXT_THANK);                                        // Display the thank test
-    waitmsg();                                                        // Wait for the message
-    waitkeypress();                                                   // Wait for the player to press A/B
-    release();                                                        // Release the player
-    end();                                                            // End the script
-    set_jump_destination(JUMP_BOX_FULL);                              // Set the destination for if the box is full
-    virtualmsgbox(TEXT_FULL);                                         // Display the full box message
-    waitmsg();                                                        // Wait for the message
-    waitkeypress();                                                   // Wait for the player to presse A/B
-    release();                                                        // Release the player
-    end();                                                            // End the script
+    addvar(var_script_ptr_low, 28);                                   //        This is stupid. 28 is the size of the main ASM function
+    setvar(var_dex_num, 6);
+    setvar(var_dex_seen_caught, 2);
+    call(ptr_callASM); //        This should really be changed so that the size isn't static
+    addvar(var_dex_seen_caught, 1);
+    call(ptr_callASM);
+    subvar(var_script_ptr_low, 28);                 //        But it is 11:30 and I can't be bothered right now. It works :|
+    /**/ set_jump_destination(JUMP_PKMN_COLLECTED); // Set the jump destination for if the Pokemon has already been collected
+    addvar(var_pkmn_offset, POKEMON_SIZE);          // Add the size of one Pokmeon to the Pokemon offset
+    addvar(var_index, 1);                           // Add one to the index
+    addvar(var_call_check_flag, rev_endian(1));     // Add one to the flag index
+    compare(var_index, 6);                          // Compare the index to 6
+    virtualgotoif(COND_LESSTHAN, JUMP_LOOP);        // if index is less than six, jump to the start of the loop
+    setflag(flag_all_collected);                    // Set the "all collected" flag
+    fanfare(0xA4);                                  // Play the received fanfare
+    virtualmsgbox(TEXT_RECEIVED);                   // Display the recieved text
+    waitfanfare();                                  // Wait for the fanfare
+    waitmsg();                                      // Wait for the text to finish
+    waitkeypress();                                 // Wait for the player to press A/B
+    /**/ set_jump_destination(JUMP_ALL_COLLECTED);  // Set the destination for if all the Pokemon have already been collected
+    virtualmsgbox(TEXT_THANK);                      // Display the thank test
+    waitmsg();                                      // Wait for the message
+    waitkeypress();                                 // Wait for the player to press A/B
+    release();                                      // Release the player
+    end();                                          // End the script
+    /**/ set_jump_destination(JUMP_BOX_FULL);       // Set the destination for if the box is full
+    virtualmsgbox(TEXT_FULL);                       // Display the full box message
+    waitmsg();                                      // Wait for the message
+    waitkeypress();                                 // Wait for the player to presse A/B
+    release();                                      // Release the player
+    end();                                          // End the script
 
     insert_textboxes();
     four_align();
 
-    set_ptr_destination(REL_PTR_ASM_START);
+    /**/ set_ptr_destination(REL_PTR_ASM_START);
     push(rlist_lr);                                        //    save the load register to the stack
-    ldr3(r3, asm_offset_distance(ASM_OFFSET_PKMN_OFFSET)); //    set r3 to variable to the pokemon offset, variable 0x8008's pointer
+    ldr3(r3, asm_offset_distance(ASM_OFFSET_PKMN_OFFSET)); //    set r3 to the pokemon offset, variable 0x8008's pointer
     ldr1(r3, r3, 0);                                       //    set r3 to the value in memory r3 points to
     add5(r0, asm_offset_distance(ASM_OFFSET_PKMN_STRUCT)); //    set r0 to a pointer 28 bytes ahead, which is the start of the Pokemon struct.
     add3(r0, r0, r3);                                      //    add r3 to r0, giving it the correct offset for the current index
     ldr3(r1, asm_offset_distance(ASM_OFFSET_SENDMON_PTR)); //    set r1 to the location of "SendMonToPC" plus one, since it is thumb code
     mov3(r2, r15);                                         //    move r15 (the program counter) to r2
-    add2(r2, 5);                                           //    add 7 to r2 to compensate for the four following bytes, plus to tell the system to read as thumb code
+    add2(r2, 5);                                           //    add 5 to r2 to compensate for the four following bytes, plus to tell the system to read as thumb code
     mov3(r14, r2);                                         //    move r2 into r14 (the load register)
     bx(r1);                                                //    jump to the pointer stored in r1 (SendMonToPC)
     ldr3(r2, asm_offset_distance(ASM_OFFSET_BOX_SUC_PTR)); //    load variable 0x8006's pointer into r2
     str1(r0, r2, 0);                                       //    put the value of r0 into the memory location pointed at by r2, plus 0
     pop(rlist_r0);                                         //    remove r0 from the stack and put it into r0
     bx(r0);                                                //    jump to r0 (return to where the function was called)
-    set_asm_offset_destination(ASM_OFFSET_SENDMON_PTR);    //    set the SENDMON ptr offset
-    add_word(loc_sendMonToPC + READ_AS_THUMB);             //    the location of "SendMonToPC", plus one (so it is interpreted as thumb code)
-    set_asm_offset_destination(ASM_OFFSET_BOX_SUC_PTR);    //    set the BOX_SUCCESS ptr offset
-    add_word(ptr_box_return);                              //    the location of variable "0x8006" (the return value)
-    set_asm_offset_destination(ASM_OFFSET_PKMN_OFFSET);    //    set the PKMN_OFFSET ptr offset
-    add_word(ptr_pkmn_offset);                             //    the location of variable "0x8008" (the pokemon offset)
-    set_asm_offset_destination(ASM_OFFSET_PKMN_STRUCT);    //    set the PKMN_STRUCT ptr offset
+
+    /**/ set_ptr_destination(REL_PTR_DEX_START);
+    push(rlist_lr);
+    ldr3(r0, asm_offset_distance(ASM_OFFSET_INDEX));
+    ldr1(r0, r0, 0);
+    mov1(r3, 0xFF);
+    and1(r0, r3);
+    add5(r1, asm_offset_distance(ASM_OFFSET_DEX_STRUCT));
+    add3(r0, r0, r1);
+    ldr1(r0, r0, 0);
+    and1(r0, r3);
+
+    // Instead of what we have, set r0 to the value of index, and then add the ASM_OFFSET_DEX_STRUCT,
+    //  since that's the current memory location. That *should* make it work. Also AND it with 0xFF. Same with r1,
+    //  and the index value in general. Idk why I didn't do that earlier
+    //  matter of fact... is index already stored somewhere else?
+    //  No, we store the offset, not the index. And that really should be AND'd as well... but that's gonna be
+    //  two extra bytes. But it's good coding so eh idk. I mean *two* bytes isn't awful for stabilitiy...
+
+    // There are issues! But he shows up lol. I'll take it.
+
+    ldr3(r1, asm_offset_distance(ASM_OFFSET_DEX_SEEN_CAUGHT));
+    ldr1(r1, r1, 0);
+    and1(r1, r3);
+    ldr3(r2, asm_offset_distance(ASM_OFFSET_DEX_ASM_PTR_1));
+    mov3(r3, r15);
+    add2(r3, 5);
+    mov3(r14, r3);
+
+    bx(r2);
+    pop(rlist_r0); //    remove r0 from the stack and put it into r0
+    bx(r0);        //    jump to r0 (return to where the function was called)
+
+    add_padding();
+    set_asm_offset_destination(ASM_OFFSET_SENDMON_PTR); //    set the SENDMON ptr offset
+    add_word(loc_sendMonToPC + READ_AS_THUMB);          //    the location of "SendMonToPC", plus one (so it is interpreted as thumb code)
+    set_asm_offset_destination(ASM_OFFSET_BOX_SUC_PTR); //    set the BOX_SUCCESS ptr offset
+    add_word(ptr_box_return);                           //    the location of variable "0x8006" (the return value)
+    set_asm_offset_destination(ASM_OFFSET_PKMN_OFFSET); //    set the PKMN_OFFSET ptr offset
+    add_word(ptr_pkmn_offset);                          //    the location of variable "0x8008" (the pokemon offset)
+    set_asm_offset_destination(ASM_OFFSET_DEX_ASM_PTR_1);
+    add_word(loc_setPokedexFlag + READ_AS_THUMB);
+    set_asm_offset_destination(ASM_OFFSET_DEX_SEEN_CAUGHT);
+    add_word(ptr_dex_seen_caught);
+    set_asm_offset_destination(ASM_OFFSET_INDEX);
+    add_word(ptr_index);
+
+    set_asm_offset_destination(ASM_OFFSET_DEX_STRUCT);
 
     for (int i = 0; i < 6; i++)
     {
-        Pokemon curr_pkmn = incoming_party_array[i];
+        mg_script[curr_index] = incoming_party_array[i].get_dex_number(); // FIX MEEEEE
+        curr_index++;
+    }
+    curr_index += 2; // make the offset a multiple of 4
+
+    set_asm_offset_destination(ASM_OFFSET_PKMN_STRUCT); //    set the PKMN_STRUCT ptr offset
+
+    for (int i = 0; i < 6; i++)
+    {
         for (int curr_byte = 0; curr_byte < POKEMON_SIZE; curr_byte++)
         {
-            mg_script[curr_index] = curr_pkmn.get_gen_3_data(curr_byte);
+            mg_script[curr_index] = incoming_party_array[i].get_gen_3_data(curr_byte);
             curr_index++;
         }
     }
@@ -519,6 +586,16 @@ void mystery_gift_script::addvar(u16 var_id, u16 value)
     add_command(5);
 }
 
+void mystery_gift_script::subvar(u16 var_id, u16 value)
+{
+    value_buffer[0] = 0x18;
+    value_buffer[1] = var_id >> 0;
+    value_buffer[2] = var_id >> 8;
+    value_buffer[3] = value >> 0;
+    value_buffer[4] = value >> 8;
+    add_command(5);
+}
+
 void mystery_gift_script::call(u32 script_ptr)
 {
     value_buffer[0] = 0x04;
@@ -559,6 +636,14 @@ void mystery_gift_script::waitfanfare()
 {
     value_buffer[0] = 0x32;
     add_command(1);
+}
+
+void mystery_gift_script::special(u16 special_id)
+{
+    value_buffer[0] = 0x25;
+    value_buffer[1] = special_id >> 0;
+    value_buffer[2] = special_id >> 8;
+    add_command(3);
 }
 
 void mystery_gift_script::release()
@@ -694,6 +779,37 @@ void mystery_gift_script::pop(u16 register_list)
 {
     add_asm(0b1011110 << 9 | register_list);
 }
+/**
+ * @brief MOV (1) (Move) moves a large immediate value to a register.
+ *
+ * @param rd Is the destination register for the operation.
+ * @param immed_8 Is an 8-bit immediate value, in the range 0 to 255, to move into <Rd>.
+ */
+void mystery_gift_script::mov1(u8 rd, u8 immed_8)
+{
+    add_asm(0b00100 << 11 | rd << 8 | immed_8);
+}
+/**
+ * @brief AND (Logical AND) performs a bitwise AND of the values in two registers.
+ *
+ * @param rd Specifies the register containing the first operand, and is also the destination register.
+ * @param rm Specifies the register containing the second operand.
+ */
+void mystery_gift_script::and1(u8 rd, u8 rm)
+{
+    add_asm(0b0100000000 << 6 | rm << 3 | rd);
+}
+/**
+ * @brief LDR (2) loads 32-bit memory data into a general-purpose register. The addressing mode is useful for pointer+large offset arithmetic and for accessing a single element of an array.
+ *
+ * @param rd Is the destination register for the word loaded from memory.
+ * @param rn Is the register containing the first value used in forming the memory address.
+ * @param rm Is the register containing the second value used in forming the memory address.
+ */
+void mystery_gift_script::ldr2(u8 rd, u8 rn, u8 rm)
+{
+    add_asm(0b0101100 << 9 | rm << 6 | rm < 3 | rd);
+}
 
 void mystery_gift_script::add_word(u32 word)
 {
@@ -734,4 +850,12 @@ void mystery_gift_script::fill_relative_pointers()
 void mystery_gift_script::set_ptr_destination(u8 relative_ptr_id)
 {
     relative_offset_destination[relative_ptr_id] = curr_index - 4;
+}
+
+void mystery_gift_script::add_padding()
+{
+    if (curr_index % 4 != 0)
+    {
+        add_asm(0x0000);
+    }
 }

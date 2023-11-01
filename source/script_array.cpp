@@ -17,7 +17,7 @@ void populate_dialouge()
     dialouge[DIA_INDEX_E4_1] = "Hi trainer! I'm thrilled\nyou've decided to help with our research, but we need\nthe best of the best!";
     dialouge[DIA_INDEX_E4_2] = "Come back once you've taken down the Elite Four!";
     dialouge[DIA_INDEX_MG] = "Looks like Mystery gift isn't enabled...";
-    dialouge[DIA_INDEX_START] = format_text("Alright then, let's get started! Please connect your Game Boy Advance to a Game Boy family system, using a Game Boy Color link cable. Load the Game Boy Pokemon game you want to transfer Pokemon from. Once both devices have been connected and the Game Boy Pokemon game has been loaded, press A.");
+    dialouge[DIA_INDEX_START] = "Alright then, let's get started! Please connect your Game Boy Advance to a Game Boy family system, using a Game Boy Color link cable. Load the Game Boy Pokemon game you want to transfer Pokemon from. Once both devices have been connected and the Game Boy Pokemon game has been loaded, press A.";
     dialouge[DIA_INDEX_ERROR_1] = "Hmm, it looks like something isn't right. Let's try that again!";
     dialouge[DIA_INDEX_CONN_GOOD] = "Great! Now head to the nearest Pokemon Center. Put any Pokemon you wish to bring out of your dreams into your party, and go to the Cable Club attendant. Ask them to perform a Link Trade, and then press A.";
     dialouge[DIA_INDEX_LINK_GOOD] = "We're almost set! Once you're ready, talk to the trainer across the table from you to start the process!";
@@ -30,13 +30,15 @@ void populate_dialouge()
 
 void populate_script()
 {
+    
     script[SCRIPT_START] = script_obj(CMD_SHOW_PROF, COND_BEAT_E4);
     script[COND_BEAT_E4] = script_obj(COND_BEAT_E4, COND_MG_ENABLED, DIA_F_E4_1);
     script[COND_MG_ENABLED] = script_obj(COND_MG_ENABLED, DIA_F_START, DIA_F_MG);
 
     script[CMD_BACK_TO_MENU] = script_obj(CMD_BACK_TO_MENU, SCRIPT_START);
 
-    script[DIA_F_START] = script_obj(dialouge[DIA_INDEX_START], CMD_BACK_TO_MENU);
+    script[DIA_F_START] = script_obj("welcome", CMD_START_LINK, DIA_F_CONN_GOOD);
+    script[DIA_F_CONN_GOOD] = script_obj("good", CMD_IMPORT_POKEMON, CMD_BACK_TO_MENU);
     script[DIA_F_E4_1] = script_obj(dialouge[DIA_INDEX_E4_1], DIA_F_E4_2);
     script[DIA_F_E4_2] = script_obj(dialouge[DIA_INDEX_E4_2], CMD_HIDE_PROF, CMD_BACK_TO_MENU);
     script[DIA_F_MG] = script_obj(dialouge[DIA_INDEX_MG], CMD_HIDE_PROF, CMD_BACK_TO_MENU);
@@ -127,30 +129,4 @@ bool run_conditional(int index)
         tte_write("ERROR! No conditional found.");
         return false;
     }
-}
-
-#define BOX_LENGTH 28
-
-std::string_view format_text(std::string_view text)
-{
-    std::string out;
-    int last_space = 0;
-    int curr_line_length = 0;
-    for (unsigned int i = 0; i < text.size(); i++)
-    {
-        if (text.at(i) == ' ')
-        {
-            last_space = i;
-        }
-        if (curr_line_length >= BOX_LENGTH)
-        {
-            i = last_space;
-            out += '\n';
-        }
-        else
-        {
-            out += text.at(i);
-        }
-    }
-    return (std::string_view)out;
 }
