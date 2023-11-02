@@ -3,11 +3,11 @@
 
 #include <tonc.h>
 
-#define RUBY_ID 4282454      // AXV
-#define SAPPHIRE_ID 4282448  // AXP
-#define FIRERED_ID 4345938   // BPR
-#define LEAFGREEN_ID 4345927 // BPG
-#define EMERALD_ID 4345925   // BPE
+#define RUBY_ID 0x415856    // AXV
+#define SAPPHIRE_ID 0x415850  // AXP
+#define FIRERED_ID 0x425052   // BPR
+#define LEAFGREEN_ID 0x425047 // BPG
+#define EMERALD_ID 0x425045   // BPE
 
 #define VERS_1_0 0
 #define VERS_1_1 1

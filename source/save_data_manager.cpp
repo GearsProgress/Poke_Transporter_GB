@@ -19,10 +19,9 @@ void load_gamecode()
     }
     else
     {
-        gamecode = (*(vu8 *)(0x80000AC)) << 0x18 |
-                   (*(vu8 *)(0x80000AD)) << 0x10 |
-                   (*(vu8 *)(0x80000AE)) << 0x08 |
-                   (*(vu8 *)(0x80000AF)) << 0x00;
+        gamecode = (*(vu8 *)(0x80000AC)) << 0x10 |
+                   (*(vu8 *)(0x80000AD)) << 0x08 |
+                   (*(vu8 *)(0x80000AE)) << 0x00;
         version = (*(vu8 *)(0x80000BC));
     }
 }

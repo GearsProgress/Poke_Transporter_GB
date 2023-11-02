@@ -40,7 +40,7 @@
 
 #define NUM_RELATIVE_PTR 1 // THIS STAYS AS 1, THERE IS NO RELATIVE POINTER TO DEX AT THE MOMENT, IT IS A STATIC 28!!!
 #define REL_PTR_ASM_START 0
-#define REL_PTR_DEX_START 1
+#//define REL_PTR_DEX_START 1
 
 #define COND_LESSTHAN 0
 #define COND_EQUALS 1
@@ -96,9 +96,10 @@ class mystery_gift_script
         // Ň = New line
         // ƞ = string terminator
         {
-            u": Hey ƲÀ!ȼPROFESSOR FENNEL",// told me that theseŇwere for you!ȼDon’t worry about making room…ŇI’ll send them to the PC!",
+            //u": Hey ƲÀ!ȼPROFESSOR FENNEL told me that theseŇwere for you!ȼDon’t worry about making room…ŇI’ll send them to the PC!",
+            u": Hey ƲÀ!ȼPROFESSOR FENNEL told me that you’dŇbe swinging by!",
             u": Thanks for helping out FENNEL!",
-            u": It looks like the PC is full…ȼCome back once you have more room!",
+            u": It looks like the PC is full…",//ȼCome back once you have more room!",
             u"ƲÀ’S POKÉMON were sent to the PC!",
     };
     u32 textbox_location[NUM_TEXTBOXES];
@@ -158,6 +159,7 @@ private:
     void fanfare(u16 fanfare_number);
     void waitfanfare();
     void special(u16 special_id);
+    void callstd(u8 function_index);
     void release();
     void end();
     

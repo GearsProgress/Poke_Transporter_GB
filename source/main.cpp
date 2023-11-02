@@ -42,11 +42,9 @@ CONVERSION:
 - Add Korean conversion
 
 INJECTION:
-- Add Pokemon to Pokedex
+- Add Pokemon to internal Pokedex
 - Randomize base seed
-- Enable ribbon viewing
 - Set flags for the number of Pokemon injected
-- Set Pokedex flags
 - Check what happens when the PC is full, but the last Pokemon doesn't exist (is zero)
 - Set text color for FRLG for when a Pokemon is sent (what happens if you set it in RSE?)
 - Check text overflow for the "recieved" text. What happens if the name is too long?
@@ -99,108 +97,119 @@ int test_main(void)
 int main(void)
 {
 	int delay_counter = 0;
-
-	// Initalizations
-	linkGPIO->reset();
-
-	REG_DISPCNT = DCNT_MODE0 | DCNT_BG0 | DCNT_BG1 | DCNT_BG2 | DCNT_BG3 | DCNT_OBJ | DCNT_OBJ_1D;
-
-	irq_init(NULL);
-	irq_enable(II_VBLANK);
-
-	flash_init(FLASH_SIZE_128KB);
-	initalize_memory_locations();
-	rand_set_seed(0x12162001);
-	init_text_engine();
-	add_script_party_var(party);
-
-	// Prepare dialouge
-	populate_dialouge();
-	populate_script();
-
-	// Sound bank init
-	irq_init(NULL);
-	// irq_set(II_VBLANK, mmVBlank, 0); //Music
-	irq_enable(II_VBLANK);
-	// mmInitDefault((mm_addr)soundbank_bin, 8); //Music
-	// mmStart(MOD_FLATOUTLIES, MM_PLAY_LOOP); //Music
-
-	// Graphics init
-	oam_init(obj_buffer, 128);
-
-	load_background();
-	load_textbox_background();
-	load_opening_background();
-	load_testroid();
-	load_professor();
-	load_btn_t_l();
-	load_btn_t_r();
-	load_btn_p_l();
-	load_btn_p_r();
-	load_btn_c_l();
-	load_btn_c_r();
-	load_dex_l();
-	load_dex_m();
-	load_dex_r();
-	load_btn_d_l();
-	load_btn_d_r();
-	load_btn_lang_eng();
-	load_btn_lang_fre();
-	load_btn_lang_ita();
-	load_btn_lang_ger();
-	load_btn_lang_spa();
-	load_btn_lang_kor();
-	load_lang_arrow();
-
-	main_menu_btn_init(Button(btn_t_l, btn_t_r, 128, 160), BTN_TRANSFER);
-	main_menu_btn_init(Button(btn_p_l, btn_p_r, 192, 224), BTN_POKEDEX);
-	main_menu_btn_init(Button(btn_c_l, btn_c_r, 256, 288), BTN_CREDITS);
-	main_menu_btn_init(Button(btn_d_l, btn_d_r, 416, 448), BTN_LANGUAGE);
-
-	main_menu_btn_init(Button(btn_lang_eng, 480), BTN_ENG);
-	main_menu_btn_init(Button(btn_lang_fre, 512), BTN_FRE);
-	main_menu_btn_init(Button(btn_lang_ita, 544), BTN_ITA);
-	main_menu_btn_init(Button(btn_lang_ger, 576), BTN_GER);
-	main_menu_btn_init(Button(btn_lang_spa, 608), BTN_SPA);
-	main_menu_btn_init(Button(btn_lang_kor, 640), BTN_KOR);
-	main_menu_btn_init(Button(lang_arrow, 672), LANG_ARROW);
-
-	pokedex_init(); // Why does this cause the music to stop playing? Also the loop doesn't work
-
-	load_save_data();
-	// main_menu_init(transfer_btn, pokedex_btn, credits_btn, language_btn);
-
-	text_disable();
-
-	// Check if the game has been loaded correctly.
-	load_gamecode();
-	while (!((get_gamecode() == RUBY_ID) ||
-			 (get_gamecode() == SAPPHIRE_ID) ||
-			 (get_gamecode() == FIRERED_ID) ||
-			 (get_gamecode() == LEAFGREEN_ID) ||
-			 (get_gamecode() == EMERALD_ID)))
-	{
-		REG_BG0CNT = (REG_BG0CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
-		REG_BG1CNT = (REG_BG1CNT & ~BG_PRIO_MASK) | BG_PRIO(2);
-		REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(1);
-		REG_BG2VOFS = 0;
-		tte_set_pos(40, 24);
-		tte_set_margins(40, 24, 206, 104);
-		tte_write("The Pokemon save\nfile was not loaded successfully. Please\nrestart the console,\nload the Pokemon\ngame normally, and\nthen upload the\nprogram again.");
-		key_poll();
-		while (!key_hit(KEY_A))
+	bool skip = true;
+	do
+	{ // Do not run on the first loop
+		if (!skip)
 		{
+			REG_BG0CNT = (REG_BG0CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
+			REG_BG1CNT = (REG_BG1CNT & ~BG_PRIO_MASK) | BG_PRIO(2);
+			REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(1);
+			REG_BG2VOFS = 0;
+			tte_set_pos(40, 24);
+			tte_set_margins(40, 24, 206, 104);
+			tte_write("The Pokemon save\nfile was not loaded successfully. Please\nrestart the console,\nload the Pokemon\ngame normally, and\nthen upload the\nprogram again.");
+			tte_write(std::to_string(get_gamecode() >> 8).c_str());
 			key_poll();
-			VBlankIntrWait();
+			while (!key_hit(KEY_A))
+			{
+				key_poll();
+				VBlankIntrWait();
+			}
+			tte_erase_screen();
+			delay_counter = 0;
+
+			while (delay_counter < 60)
+			{
+				delay_counter++;
+				VBlankIntrWait();
+			}
 		}
-		tte_erase_screen();
-		delay_counter = 0;
-		while (delay_counter < 60)
-		{
-			delay_counter++;
-			VBlankIntrWait();
-		}
-	}
+		skip = false;
+		// Initalizations
+		linkGPIO->reset();
+
+		REG_DISPCNT = DCNT_MODE0 | DCNT_BG0 | DCNT_BG1 | DCNT_BG2 | DCNT_BG3 | DCNT_OBJ | DCNT_OBJ_1D;
+
+		irq_init(NULL);
+		irq_enable(II_VBLANK);
+
+		flash_init(FLASH_SIZE_128KB);
+		rand_set_seed(0x12162001);
+		init_text_engine();
+		add_script_party_var(party);
+
+		// Prepare dialouge
+		populate_dialouge();
+		populate_script();
+
+		// Sound bank init
+		irq_init(NULL);
+		// irq_set(II_VBLANK, mmVBlank, 0); //Music
+		irq_enable(II_VBLANK);
+		// mmInitDefault((mm_addr)soundbank_bin, 8); //Music
+		// mmStart(MOD_FLATOUTLIES, MM_PLAY_LOOP); //Music
+
+		// Graphics init
+		oam_init(obj_buffer, 128);
+
+		// Load opening background first so it hides everything else
+		load_opening_background();
+		load_background();
+		load_textbox_background();
+		load_testroid();
+		load_professor();
+		load_btn_t_l();
+		load_btn_t_r();
+		load_btn_p_l();
+		load_btn_p_r();
+		load_btn_c_l();
+		load_btn_c_r();
+		load_dex_l();
+		load_dex_m();
+		load_dex_r();
+		load_btn_d_l();
+		load_btn_d_r();
+		load_btn_lang_eng();
+		load_btn_lang_fre();
+		load_btn_lang_ita();
+		load_btn_lang_ger();
+		load_btn_lang_spa();
+		load_btn_lang_kor();
+		load_lang_arrow();
+
+		main_menu_btn_init(Button(btn_t_l, btn_t_r, 128, 160), BTN_TRANSFER);
+		main_menu_btn_init(Button(btn_p_l, btn_p_r, 192, 224), BTN_POKEDEX);
+		main_menu_btn_init(Button(btn_c_l, btn_c_r, 256, 288), BTN_CREDITS);
+		main_menu_btn_init(Button(btn_d_l, btn_d_r, 416, 448), BTN_LANGUAGE);
+
+		main_menu_btn_init(Button(btn_lang_eng, 480), BTN_ENG);
+		main_menu_btn_init(Button(btn_lang_fre, 512), BTN_FRE);
+		main_menu_btn_init(Button(btn_lang_ita, 544), BTN_ITA);
+		main_menu_btn_init(Button(btn_lang_ger, 576), BTN_GER);
+		main_menu_btn_init(Button(btn_lang_spa, 608), BTN_SPA);
+		main_menu_btn_init(Button(btn_lang_kor, 640), BTN_KOR);
+		main_menu_btn_init(Button(lang_arrow, 672), LANG_ARROW);
+
+		pokedex_init(); // Why does this cause the music to stop playing? Also the loop doesn't work
+
+		// main_menu_init(transfer_btn, pokedex_btn, credits_btn, language_btn);
+
+		text_disable();
+
+		// Check if the game has been loaded correctly.
+		load_gamecode();
+	} while (!((get_gamecode() == RUBY_ID) ||
+			   (get_gamecode() == SAPPHIRE_ID) ||
+			   (get_gamecode() == FIRERED_ID) ||
+			   (get_gamecode() == LEAFGREEN_ID) ||
+			   (get_gamecode() == EMERALD_ID)));
+
+	// Reinitalize the flash memory
+	// flash_init(FLASH_SIZE_128KB);
+	// Initalize memory and save data after loading the game
+	initalize_memory_locations();
+	load_save_data();
 
 	// Legal mumbo jumbo
 	tte_set_pos(8, 0);

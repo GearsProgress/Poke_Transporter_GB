@@ -70,7 +70,7 @@ byte debug_party_data[GEN2_INT_SIZE + 4] = { // International Gen 2
 Pokemon_Party::Pokemon_Party(){};
 void Pokemon_Party::start_link()
 {
-	if (DEBUG_MODE)
+	if (IGNORE_LINK_CABLE)
 	{
 		for (int i = 0; i < GEN2_INT_SIZE + 4; i++)
 		{
