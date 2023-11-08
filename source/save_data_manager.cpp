@@ -8,6 +8,7 @@
 
 int gamecode;
 int version;
+int language;
 byte save_data_array[SAVE_DATA_SIZE];
 
 void load_gamecode()
@@ -16,17 +17,19 @@ void load_gamecode()
     {
         gamecode = DEBUG_GAME;
         version = DEBUG_VERS;
+        language = DEBUG_LANG;
     }
     else
     {
         gamecode = (*(vu8 *)(0x80000AC)) << 0x10 |
                    (*(vu8 *)(0x80000AD)) << 0x08 |
                    (*(vu8 *)(0x80000AE)) << 0x00;
+        language = (*(vu8 *)(0x80000AF));
         version = (*(vu8 *)(0x80000BC));
     }
 }
 
-void load_save_data()
+void load_custom_save_data()
 {
     flash_read(HALL_OF_FAME + 0x1000, &global_memory_buffer[0], 0x1000);
     for (int i = 0; i < SAVE_DATA_SIZE; i++)
@@ -35,8 +38,9 @@ void load_save_data()
     }
 }
 
-void write_save_data()
+void write_custom_save_data()
 {
+    flash_read(HALL_OF_FAME + 0x1000, &global_memory_buffer[0], 0x1000);   
     for (int i = 0; i < SAVE_DATA_SIZE; i++)
     {
         global_memory_buffer[HOF_SECTION + i] = save_data_array[i];
@@ -51,8 +55,7 @@ bool is_caught(int dex_num)
 
 void set_caught(int dex_num)
 {
-    load_save_data();
-    save_data_array[CAUGHT_DATA + (dex_num / 8)] = global_memory_buffer[HOF_SECTION + CAUGHT_DATA + (dex_num / 8)] | (1 << (dex_num % 8));
+    save_data_array[CAUGHT_DATA + (dex_num / 8)] = save_data_array[CAUGHT_DATA + (dex_num / 8)] | (1 << (dex_num % 8));
 }
 
 int get_def_lang()
@@ -89,4 +92,8 @@ int get_gamecode()
 int get_version()
 {
     return version;
+}
+
+int get_language(){
+    return language;
 }

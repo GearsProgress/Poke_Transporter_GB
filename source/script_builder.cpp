@@ -39,13 +39,18 @@ int flag_all_collected = (FLAG_ID_START + 0x6);
 
 int loc_sendMonToPC;
 int loc_gSpecialVar_0x8000;
-int loc_gSaveBlock1PTR;
+int loc_gSaveBlock1;    // Only used in R/S
+int loc_gSaveBlock1PTR; // Only used in FR/LG/E
 int loc_setPokedexFlag;
 int offset_ramscript; // Source: https://github.com/pret/pokeemerald/blob/master/include/global.h#L1012
 int offset_flags;     // Flag offset as found within the SaveBlock1 struct in global.h
 int offset_wondercard;
 int offset_script;
-std::string_view pc_maker;
+int text_region;
+
+u8 map_bank;
+u8 map_id;
+u8 npc_id;
 
 mystery_gift_script::mystery_gift_script()
 {
@@ -56,7 +61,10 @@ mystery_gift_script::mystery_gift_script()
     case (RUBY_ID):
     case (SAPPHIRE_ID):
 
-        pc_maker = "LANETTE";
+        map_bank = 0;
+        map_id = 10;
+        npc_id = 1;
+        text_region = TEXT_HOENN;
         offset_wondercard = 0;
         offset_script = 0x0810;
         switch (get_version())
@@ -65,26 +73,26 @@ mystery_gift_script::mystery_gift_script()
         case (VERS_1_0):
             loc_sendMonToPC = 0x0803D998;
             loc_gSpecialVar_0x8000 = 0x0202E8C4;
-            loc_gSaveBlock1PTR = 0x02025734;
-            loc_setPokedexFlag = 0;
-            offset_ramscript = 0;
-            offset_flags = 0;
+            loc_gSaveBlock1 = 0x02025734;
+            loc_setPokedexFlag = 0x08090D90;
+            offset_ramscript = 0x3690;
+            offset_flags = 0x1220;
             break;
         case (VERS_1_1):
-            loc_sendMonToPC = 0;
-            loc_gSpecialVar_0x8000 = 0;
-            loc_gSaveBlock1PTR = 0;
-            loc_setPokedexFlag = 0;
-            offset_ramscript = 0;
-            offset_flags = 0;
+            loc_sendMonToPC = 0x0803D998;
+            loc_gSpecialVar_0x8000 = 0x0202E8C4;
+            loc_gSaveBlock1 = 0x02025734;
+            loc_setPokedexFlag = 0x08090DB0;
+            offset_ramscript = 0x3690;
+            offset_flags = 0x1220;
             break;
         case (VERS_1_2):
-            loc_sendMonToPC = 0;
-            loc_gSpecialVar_0x8000 = 0;
-            loc_gSaveBlock1PTR = 0;
-            loc_setPokedexFlag = 0;
-            offset_ramscript = 0;
-            offset_flags = 0;
+            loc_sendMonToPC = 0x0803D998;
+            loc_gSpecialVar_0x8000 = 0x0202E8C4;
+            loc_gSaveBlock1 = 0x02025734;
+            loc_setPokedexFlag = 0x08090DB0;
+            offset_ramscript = 0x3690;
+            offset_flags = 0x1220;
             break;
         }
         break;
@@ -92,18 +100,21 @@ mystery_gift_script::mystery_gift_script()
     case (FIRERED_ID):
     case (LEAFGREEN_ID):
 
-        pc_maker = "BILL";
+        map_bank = 30;
+        map_id = 0;
+        npc_id = 1;
+        text_region = TEXT_KANTO;
         offset_wondercard = 0x0460;
         offset_script = 0x079C;
         switch (get_version())
         {
         case (VERS_1_0):
-            loc_sendMonToPC = 0;
-            loc_gSpecialVar_0x8000 = 0;
-            loc_gSaveBlock1PTR = 0; // Change this for RS
-            loc_setPokedexFlag = 0;
-            offset_ramscript = 0;
-            offset_flags = 0;
+            loc_sendMonToPC = 0x08040B90;
+            loc_gSpecialVar_0x8000 = 0x020370B8;
+            loc_gSaveBlock1PTR = 0x03005008;
+            loc_setPokedexFlag = 0x08088E74;
+            offset_ramscript = 0x361C;
+            offset_flags = 0x0EE0;
             break;
         case (VERS_1_1):
             loc_sendMonToPC = 0x08040BA4;
@@ -118,7 +129,10 @@ mystery_gift_script::mystery_gift_script()
 
     case (EMERALD_ID):
 
-        pc_maker = "LANETTM";
+        map_bank = 20;
+        map_id = 2;
+        npc_id = 1;
+        text_region = TEXT_HOENN;
         offset_wondercard = 0x056C;
         offset_script = 0x08A8;
 
@@ -149,7 +163,7 @@ mystery_gift_script::mystery_gift_script()
 void mystery_gift_script::build_script(Pokemon incoming_party_array[])
 {
     // Located at 0x?8A8 in the .sav
-    init_npc_location(0xFF, 0xFF, 0xFF);                              // Set the location of the NPC
+    init_npc_location(map_bank, map_id, npc_id);                      // Set the location of the NPC
     setvirtualaddress(0x08000000);                                    // Set virtual address
     lock();                                                           // Lock the player
     faceplayer();                                                     // Have the NPC face the player
@@ -161,10 +175,19 @@ void mystery_gift_script::build_script(Pokemon incoming_party_array[])
     setvar(var_index, 0);                                             // set the index to 0
     setvar(var_callASM, rev_endian(0x0023));                          // set the call_asm variable to 0x23: 0x23 = CALL ASM
     setvar(var_pkmn_offset, 0);                                       // Set the Pokemon struct offset to 0
-    copybyte(ptr_script_ptr_low, ptr_block_ptr_low);                  // Copy the first byte of the saveblock1ptr to a variable
-    copybyte(ptr_script_ptr_low + 1, ptr_block_ptr_low + 1);          // Copy the second byte of the saveblock1ptr to a variable
-    copybyte(ptr_script_ptr_high, ptr_block_ptr_high);                // Copy the third byte of the saveblock1ptr to a variable
-    copybyte(ptr_script_ptr_high + 1, ptr_block_ptr_high + 1);        // Copy the fourth byte of the saveblock1ptr to a variable
+    switch (get_gamecode())                                           // Ruby and Sapphire don't shift their save blocks around,
+    {                                                                 //    so we can hardcode it
+    case (RUBY_ID):                                                   //
+    case (SAPPHIRE_ID):                                               // FOR RUBY AND SAPPHIRE:
+        setvar(var_script_ptr_low, loc_gSaveBlock1 & 0xFFFF);         // Copy the first two bytes of the saveblock1 location to a variable
+        setvar(var_script_ptr_high, loc_gSaveBlock1 >> 16);           // Copy the second two bytes of the saveblock1 location to a variable
+        break;                                                        //
+    default:                                                          // FOR FIRERED, LEAFGREEN, AND EMERALD
+        copybyte(ptr_script_ptr_low, ptr_block_ptr_low);              // Copy the first byte of the saveblock1ptr to a variable
+        copybyte(ptr_script_ptr_low + 1, ptr_block_ptr_low + 1);      // Copy the second byte of the saveblock1ptr to a variable
+        copybyte(ptr_script_ptr_high, ptr_block_ptr_high);            // Copy the third byte of the saveblock1ptr to a variable
+        copybyte(ptr_script_ptr_high + 1, ptr_block_ptr_high + 1);    // Copy the fourth byte of the saveblock1ptr to a variable
+    }                                                                 //
     addvar(var_script_ptr_low, offset_ramscript + 8 + READ_AS_THUMB); // add the offset for ramscript, plus 8. 8 is for the 8 bytes of Checksum, padding and NPC info
     addvar(var_script_ptr_low, get_ptr_offset(REL_PTR_ASM_START));    // Add the offset for the start of ASM
     setvar(var_call_return_1, rev_endian(0x0300));                    // Set the vairable to 0x03. 0x03 = RETURN
@@ -185,6 +208,8 @@ void mystery_gift_script::build_script(Pokemon incoming_party_array[])
     call(ptr_callASM);                                                // Call "PTR_DEX_START" again
     subvar(var_script_ptr_low, 28);                                   // subtract from the CallASM offset so that it points to CALL_ASM again
                                                                       //                THIS 28 IS STATIC AND MUST BE CHANGED IF ANY PART OF THE REL_PTR_ASM FUNCTION IS CHANGED.
+                                                                      //                it would be smart to make this automatically modified, but this is so late into the process
+                                                                      //                that it just simply isn't worth the effort at the moment
     /**/ set_jump_destination(JUMP_PKMN_COLLECTED);                   // Set the jump destination for if the Pokemon has already been collected
     addvar(var_pkmn_offset, POKEMON_SIZE);                            // Add the size of one Pokmeon to the Pokemon offset
     addvar(var_index, 1);                                             // Add one to the index
@@ -370,17 +395,9 @@ void mystery_gift_script::insert_textboxes()
     for (int i = 0; i < NUM_TEXTBOXES; i++)
     {
         textbox_destination[i] = curr_index - NPC_LOCATION_OFFSET;
-        if (i != TEXT_RECEIVED)
+        for (unsigned int parser = 0; parser < textboxes[text_region][i].length(); parser++)
         {
-            for (unsigned int parser = 0; parser < pc_maker.length(); parser++)
-            {
-                mg_script[curr_index] = get_gen_3_char((char16_t)(pc_maker.at(parser)), false);
-                curr_index++;
-            }
-        }
-        for (unsigned int parser = 0; parser < textboxes[i].length(); parser++)
-        {
-            mg_script[curr_index] = get_gen_3_char((char16_t)(textboxes[i].at(parser)), false);
+            mg_script[curr_index] = get_gen_3_char((char16_t)(textboxes[text_region][i].at(parser)), false);
             curr_index++;
         }
         mg_script[curr_index] = 0xFF; // End string
@@ -388,7 +405,20 @@ void mystery_gift_script::insert_textboxes()
     }
 }
 
-u16 mystery_gift_script::calc_checksum() // Implementation taken from PokeEmerald Decomp
+u32 mystery_gift_script::calc_checksum32()
+{
+    u16 i;
+    u32 checksum = 0;
+
+    for (i = 0; i < MG_SCRIPT_SIZE; i++)
+    {
+        checksum += mg_script[i];
+    }
+
+    return checksum;
+}
+
+u16 mystery_gift_script::calc_crc16() // Implementation taken from PokeEmerald Decomp
 {
     u16 i, j;
     u16 crc = 0x1121;
@@ -405,7 +435,7 @@ u16 mystery_gift_script::calc_checksum() // Implementation taken from PokeEmeral
         }
     }
     return ~crc;
-}
+};
 
 void mystery_gift_script::add_asm(u16 command)
 {

@@ -11,6 +11,7 @@ void rand_next_frame(){
 }
 
 unsigned int get_rand_u32(){
+    rand_next_frame();
     return u32_rand;
 }
 

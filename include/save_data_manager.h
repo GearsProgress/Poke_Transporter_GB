@@ -13,6 +13,13 @@
 #define VERS_1_1 1
 #define VERS_1_2 2
 
+#define LANG_JPN 'J'
+#define LANG_ENG 'E'
+#define LANG_FRE 'F'
+#define LANG_GER 'D'
+#define LANG_ITA 'I'
+#define LANG_SPA 'S'
+
 #define NUM_GAME_PAIRS 3
 #define NUM_VERSIONS 3
 
@@ -24,19 +31,20 @@
 
 //                                | Offset  | Size  | Contents
 //                                --------------------------
-#define TUTORIAL_FLAG 0x01    //  | 0x1     | 1     | Has made it through the tutorial
-#define CAUGHT_DATA 0x02      //  | 0x2     | 31    | Flags for each Pokemon species
-#define DEFAULT_LANGUAGE 0x21 //  | 0x21    | 1     | Default international language
+#define CAUGHT_DATA 0x00      //  | 0x0     | 32    | Flags for each Pokemon species
+#define TUTORIAL_FLAG 0x20    //  | 0x1     | 1     | Has made it through the tutorial
+#define DEFAULT_LANGUAGE 0x21 //  | 0x22    | 1     | Default international language
 #define SAVE_DATA_SIZE 0x22
 
 void load_gamecode();
-void load_save_data();
-void write_save_data();
+void load_custom_save_data();
+void write_custom_save_data();
 bool is_caught(int dex_num);
 void set_caught(int dex_num);
 int get_def_lang();
 void set_def_lang(int nLang);
 int get_gamecode();
 int get_version();
+int get_language();
 
 #endif

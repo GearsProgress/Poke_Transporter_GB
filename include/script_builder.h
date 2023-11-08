@@ -28,6 +28,9 @@
 #define TEXT_FULL 2
 #define TEXT_RECEIVED 3
 
+#define TEXT_KANTO 0
+#define TEXT_HOENN 1
+
 #define NUM_ASM_OFFSET 8
 #define ASM_OFFSET_PKMN_OFFSET 0
 #define ASM_OFFSET_PKMN_STRUCT 1
@@ -87,7 +90,7 @@ class mystery_gift_script
     u8 value_buffer[9];
     u32 jumppoint_location[NUM_JUMPS];
     u32 jumppoint_destination[NUM_JUMPS];
-    std::u16string_view textboxes[NUM_TEXTBOXES] =
+    std::u16string_view textboxes[2][NUM_TEXTBOXES] =
         // Ş = Wait for button and scroll text
         // ȼ = Wait for button and clear text
         // Ȇ = Escape character
@@ -95,13 +98,20 @@ class mystery_gift_script
         //      À = Player name
         // Ň = New line
         // ƞ = string terminator
-        {
-            //u": Hey ƲÀ!ȼPROFESSOR FENNEL told me that theseŇwere for you!ȼDon’t worry about making room…ŇI’ll send them to the PC!",
-            u": Hey ƲÀ!ȼPROFESSOR FENNEL told me that you’dŇbe swinging by!",
-            u": Thanks for helping out FENNEL!",
-            u": It looks like the PC is full…",//ȼCome back once you have more room!",
-            u"ƲÀ’S POKÉMON were sent to the PC!",
-    };
+        {{
+            // Kanto
+             u"BILL: Hey ƲÀ!ȼPROFESSOR FENNEL told me that you’dŇbe coming by for these POKÉMON!",
+             u"Thanks for helping out FENNEL!",
+             u"The PC is full…ȼGo make some more room!",
+             u"ȆÀÁƲÀ’S POKÉMON were sent to theŇPC!",
+         },
+         {
+            // Hoenn
+             u"LANETTE: Hey ƲÀ!ȼPROFESSOR FENNEL told me that you’dŇbe coming by for these POKÉMON!",
+             u"Thanks for helping out FENNEL!",
+             u"The PC is full…ȼGo make some more room!",
+             u"ƲÀ’S POKÉMON were sent to the PC!",
+         }};
     u32 textbox_location[NUM_TEXTBOXES];
     u32 textbox_destination[NUM_TEXTBOXES];
     u16 asm_offset_location[NUM_ASM_OFFSET];
@@ -115,7 +125,8 @@ public:
     mystery_gift_script();
     void build_script(Pokemon incoming_party_array[]);
     u8 get_script_value_at(int index);
-    u16 calc_checksum();
+    u32 calc_checksum32();
+    u16 calc_crc16();
     int get_offset_wondercard();
     int get_offset_script();
     int get_offset_flags();
@@ -162,7 +173,6 @@ private:
     void callstd(u8 function_index);
     void release();
     void end();
-    
 
     // ASM commands
     void push(u16 register_list);
@@ -178,7 +188,6 @@ private:
     void mov1(u8 rd, u8 immed_8);
     void and1(u8 rd, u8 rm);
     void ldr2(u8 rd, u8 rn, u8 rm);
-
 
     // Custom scripting/ASM commands
 };
