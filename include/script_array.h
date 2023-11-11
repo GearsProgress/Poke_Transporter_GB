@@ -38,7 +38,7 @@
 #define DIA_F_SEND_FRIEND START_SIZE + DIA_INDEX_SEND_FRIEND
 #define DIA_F_THANK START_SIZE + DIA_INDEX_THANK
 
-#define DIA_SIZE 13
+#define DIA_SIZE 27
 #define DIA_END DIA_SIZE + START_SIZE
 
 // Commands
@@ -70,7 +70,7 @@
 extern script_obj script[];
 
 void populate_script();
-void populate_dialouge();
+void populate_dialogue();
 void add_script_party_var(Pokemon_Party var);
 bool run_conditional(int index);
 

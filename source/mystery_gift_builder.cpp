@@ -1,5 +1,5 @@
 #include <tonc.h>
-#include "script_builder.h"
+#include "mystery_gift_builder.h"
 #include "pokemon_party.h"
 #include "pokemon_data.h"
 

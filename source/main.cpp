@@ -27,8 +27,8 @@
 #include "global_frame_counter.h"
 #include "pkmn_font.h"
 #include "save_data_manager.h"
-#include "script.h"
-#include "script_builder.h"
+#include "mystery_gift_injector.h"
+#include "mystery_gift_builder.h"
 
 /*TODO:
 --------
@@ -125,7 +125,7 @@ void initalization_script(void)
 	add_script_party_var(party);
 
 	// Prepare dialouge
-	populate_dialouge();
+	populate_dialogue();
 	populate_script();
 
 	// Sound bank init

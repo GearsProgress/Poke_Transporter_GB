@@ -1,7 +1,7 @@
 #include "script_array.h"
 #include "main_menu.h"
 #include "text_engine.h"
-#include "script.h"
+#include "mystery_gift_injector.h"
 #include "sprite_data.h"
 #include <tonc.h>
 
@@ -9,23 +9,23 @@ int last_error;
 Pokemon_Party party_data;
 
 script_obj script[SCRIPT_SIZE];
-std::string_view dialouge[DIA_SIZE];
+std::string_view dialogue[DIA_SIZE];
 
-void populate_dialouge()
+void populate_dialogue()
 {
-    dialouge[DIA_INDEX_OPEN] = "Hey there! I'm Professor Fennel. As you can see, I'm a scientist. In fact, the subject I'm researching is Trainers! My dream is to collect save files of various trainers, but I haven't had any breakthroughs yet. In the center of the region where I'm from, there's a location that can make a Pokemon's dreams into reality! This means that any other Pokemon they meet in their dreams become real! That's fantastic, but my goal is to do the same- but for a trainer! I've successfully been able send a Pokemon in and out of a trainer's dream, but I've been unsuccessful in pulling out a Pokemon without... catastrophic results. That's when I had a breakthrough- I realized if I sent in a DITTO, it could transform into the Pokemon found within that trainer's dream! That's why you're here today- I want to bring as many Pokemon out of your dreams as possible! There's just over 250 different Pokemon I want to catalogue in my Dream Pokedex- or Dream Dex for short. But I'll let you keep any Pokemon- they're from your dreams after all! I think that's everything... whenever you're ready, just let me know!";
-    dialouge[DIA_INDEX_E4_1] = "Hi trainer! I'm thrilled\nyou've decided to help with our research, but we need\nthe best of the best!";
-    dialouge[DIA_INDEX_E4_2] = "Come back once you've taken down the Elite Four!";
-    dialouge[DIA_INDEX_MG] = "Looks like Mystery gift isn't enabled...";
-    dialouge[DIA_INDEX_START] = "Alright then, let's get started! Please connect your Game Boy Advance to a Game Boy family system, using a Game Boy Color link cable. Load the Game Boy Pokemon game you want to transfer Pokemon from. Once both devices have been connected and the Game Boy Pokemon game has been loaded, press A.";
-    dialouge[DIA_INDEX_ERROR_1] = "Hmm, it looks like something isn't right. Let's try that again!";
-    dialouge[DIA_INDEX_CONN_GOOD] = "Great! Now head to the nearest Pokemon Center. Put any Pokemon you wish to bring out of your dreams into your party, and go to the Cable Club attendant. Ask them to perform a Link Trade, and then press A.";
-    dialouge[DIA_INDEX_LINK_GOOD] = "We're almost set! Once you're ready, talk to the trainer across the table from you to start the process!";
-    dialouge[DIA_INDEX_TRANS_GOOD] = "Amazing! Fantastic!! Everything went perfectly!";
-    dialouge[DIA_INDEX_NEW_DEX] = "It looks like there's at least one new Pokemon here that isn't in the Dream Dex! I'll give it something extra sweet as a reward for you both.";
-    dialouge[DIA_INDEX_NO_NEW_DEX] = "It doesn't look like there's anything new for your Dream Dex, but that's okay! Any research is good research!";
-    dialouge[DIA_INDEX_SEND_FRIEND] = "I'll send these Pokemon to my friend Bill/Lannette so that you can pick them up. Did you know they developed the Storage System for the Kanto/Hoenn region? My younger sister developed the Storage System where I'm from, so Bill/Lannette is a good friend of ours!";
-    dialouge[DIA_INDEX_THANK] = "Thank you so much for assisting with my research! Whenever you want to transfer more Pokemon, just let me know!";
+    dialogue[DIA_INDEX_OPEN] = "Hey there! I'm Professor Fennel. As you can see, I'm a scientist. In fact, the subject I'm researching is Trainers! My dream is to collect save files of various trainers, but I haven't had any breakthroughs yet. In the center of the region where I'm from, there's a location that can make a Pokemon's dreams into reality! This means that any other Pokemon they meet in their dreams become real! That's fantastic, but my goal is to do the same- but for a trainer! I've successfully been able send a Pokemon in and out of a trainer's dream, but I've been unsuccessful in pulling out a Pokemon without... catastrophic results. That's when I had a breakthrough- I realized if I sent in a DITTO, it could transform into the Pokemon found within that trainer's dream! That's why you're here today- I want to bring as many Pokemon out of your dreams as possible! There's just over 250 different Pokemon I want to catalogue in my Dream Pokedex- or Dream Dex for short. But I'll let you keep any Pokemon- they're from your dreams after all! I think that's everything... whenever you're ready, just let me know!";
+    dialogue[DIA_INDEX_E4_1] = "Hi trainer! I'm thrilled\nyou've decided to help with our research, but we need\nthe best of the best!";
+    dialogue[DIA_INDEX_E4_2] = "Come back once you've taken down the Elite Four!";
+    dialogue[DIA_INDEX_MG] = "Looks like Mystery gift isn't enabled...";
+    dialogue[DIA_INDEX_START] = "Alright then, let's get started! Please connect your Game Boy Advance to a Game Boy family system, using a Game Boy Color link cable. Load the Game Boy Pokemon game you want to transfer Pokemon from. Once both devices have been connected and the Game Boy Pokemon game has been loaded, press A.";
+    dialogue[DIA_INDEX_ERROR_1] = "Hmm, it looks like something isn't right. Let's try that again!";
+    dialogue[DIA_INDEX_CONN_GOOD] = "Great! Now head to the nearest Pokemon Center. Put any Pokemon you wish to bring out of your dreams into your party, and go to the Cable Club attendant. Ask them to perform a Link Trade, and then press A.";
+    dialogue[DIA_INDEX_LINK_GOOD] = "We're almost set! Once you're ready, talk to the trainer across the table from you to start the process!";
+    dialogue[DIA_INDEX_TRANS_GOOD] = "Amazing! Fantastic!! Everything went perfectly!";
+    dialogue[DIA_INDEX_NEW_DEX] = "It looks like there's at least one new Pokemon here that isn't in the Dream Dex! I'll give it something extra sweet as a reward for you both.";
+    dialogue[DIA_INDEX_NO_NEW_DEX] = "It doesn't look like there's anything new for your Dream Dex, but that's okay! Any research is good research!";
+    dialogue[DIA_INDEX_SEND_FRIEND] = "I'll send these Pokemon to my friend Bill/Lannette so that you can pick them up. Did you know they developed the Storage System for the Kanto/Hoenn region? My younger sister developed the Storage System where I'm from, so Bill/Lannette is a good friend of ours!";
+    dialogue[DIA_INDEX_THANK] = "Thank you so much for assisting with my research! Whenever you want to transfer more Pokemon, just let me know!";
 }
 
 void populate_script()
@@ -39,9 +39,9 @@ void populate_script()
 
     script[DIA_F_START] = script_obj("welcome", CMD_START_LINK, DIA_F_CONN_GOOD);
     script[DIA_F_CONN_GOOD] = script_obj("good", CMD_IMPORT_POKEMON, CMD_BACK_TO_MENU);
-    script[DIA_F_E4_1] = script_obj(dialouge[DIA_INDEX_E4_1], DIA_F_E4_2);
-    script[DIA_F_E4_2] = script_obj(dialouge[DIA_INDEX_E4_2], CMD_HIDE_PROF, CMD_BACK_TO_MENU);
-    script[DIA_F_MG] = script_obj(dialouge[DIA_INDEX_MG], CMD_HIDE_PROF, CMD_BACK_TO_MENU);
+    script[DIA_F_E4_1] = script_obj(dialogue[DIA_INDEX_E4_1], DIA_F_E4_2);
+    script[DIA_F_E4_2] = script_obj(dialogue[DIA_INDEX_E4_2], CMD_HIDE_PROF, CMD_BACK_TO_MENU);
+    script[DIA_F_MG] = script_obj(dialogue[DIA_INDEX_MG], CMD_HIDE_PROF, CMD_BACK_TO_MENU);
     /*
     script[0] = script_obj("", 17, CMD_SHOW_PROF);                                                                                            // 0
     script[1] = script_obj("Game not detected. Please turn off your system and upload the program again.", 2);                            // 1

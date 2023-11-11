@@ -1,5 +1,5 @@
-#ifndef SCRIPT_BUILDER_H
-#define SCRIPT_BUILDER_H
+#ifndef MYSTERY_GIFT_BUILDER_H
+#define MYSTERY_GIFT_BUILDER_H
 
 #include <tonc.h>
 #include <string>
