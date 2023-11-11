@@ -227,7 +227,8 @@ void mystery_gift_script::build_script(Pokemon incoming_party_array[])
     waitmsg();                                                        // Wait for the message
     waitkeypress();                                                   // Wait for the player to press A/B
     release();                                                        // Release the player
-    end();                                                            // End the script
+    //end();                                                            // End the script
+    killscript();                                                     // Erase RAMscript
     /**/ set_jump_destination(JUMP_BOX_FULL);                         // Set the destination for if the box is full
     virtualmsgbox(TEXT_FULL);                                         // Display the full box message
     waitmsg();                                                        // Wait for the message
@@ -641,6 +642,12 @@ void mystery_gift_script::release()
 void mystery_gift_script::end()
 {
     value_buffer[0] = 0x02;
+    add_command(1);
+}
+
+void mystery_gift_script::killscript()
+{
+    value_buffer[0] = 0x0D;
     add_command(1);
 }
 

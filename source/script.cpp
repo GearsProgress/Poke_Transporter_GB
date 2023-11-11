@@ -46,15 +46,25 @@ void inject_mystery(Pokemon incoming_party_aray[])
 
     // Set flags
     flash_read(memory_section_array[1 + ((script.get_offset_flags() + (FLAG_ID_START / 8)) / 0xF80)], &global_memory_buffer[0], 0x1000);
-    global_memory_buffer[(script.get_offset_flags() + (FLAG_ID_START / 8)) % 0xF80] |= (0b00111111 << (FLAG_ID_START % 8));  // Set "to obtain" flags to 1
-    global_memory_buffer[(script.get_offset_flags() + (FLAG_ID_START / 8)) % 0xF80] &= (~0b01000000 << (FLAG_ID_START % 8)); // Set "collected all" flag to 0
+    global_memory_buffer[(script.get_offset_flags() + (FLAG_ID_START / 8)) % 0xF80] &= (~0b01111111 << (FLAG_ID_START % 8)); // Set "collected all" flag to 0 and reset the "to obtain" flags
+    for (int i = 0; i < 6; i++)
+    {
+        if (incoming_party_aray[i].get_validity())
+        {
+            global_memory_buffer[(script.get_offset_flags() + (FLAG_ID_START / 8)) % 0xF80] |= ((1 << i) << (FLAG_ID_START % 8)); // Set "to obtain" flags accordingly
+        }
+    }
+
     update_memory_buffer_checksum();
     flash_write(memory_section_array[1 + ((script.get_offset_flags() + (FLAG_ID_START / 8)) / 0xF80)], &global_memory_buffer[0], 0x1000);
 
     // Update and save custom save data
     for (int i = 0; i < 6; i++)
     {
-        set_caught(incoming_party_aray[i].get_dex_number()); // Add the Pokemon to the dream dex
+        if (incoming_party_aray[i].get_validity())
+        {
+            set_caught(incoming_party_aray[i].get_dex_number()); // Add the Pokemon to the dream dex
+        }
     }
     write_custom_save_data();
 }

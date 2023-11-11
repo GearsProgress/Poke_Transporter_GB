@@ -29,6 +29,7 @@ extern const bool NUM_ABILITIES[252];
 extern const byte MOVESETS[252][32];
 extern const byte FIRST_MOVES[252];
 extern const std::string_view NAMES[252];
+extern const u16 JPN_NAMES[252][6];
 extern const u8 EVOLUTIONS[252];
 extern const u8 POWER_POINTS[252];
 extern const byte gen_1_index_array[191];

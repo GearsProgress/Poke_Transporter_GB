@@ -39,32 +39,21 @@ RESEARCH:
 LINK CABLE:
 - Figure out JP Gen 2
 
-CONVERSION:
-- Add Korean conversion
-
 INJECTION:
-- Set flags for the number of Pokemon injected
-- Check what happens when the PC is full, but the last Pokemon doesn't exist (is zero)
 - Hall of Fame / Mystery Gift confirmation
-- Korean GS Conversion
-- Add in Rare Candies for new Pokemon
-- Wonder Card
-- Kill script?
+- Wonder Card/Kill script
+- Add in check for no valid Pokemon
 
 SAVE DATA:
 - Add warning
 - Add ability to erase
 - Add check for Hall of Fame
 - Clear the empty data as part of the initalization
-- Fix default language selection
 
 TESTING:
 - Test all the aspects of a Pokemon (Shiny, Pokerus, etc.)
 - Make sure hall of fame data isn't corrupted
 - Test all 14 different memory locations
-
-DEBUG:
-- Remove number from "game didn't load" text
 
 GENERAL:
 - Music
@@ -73,6 +62,8 @@ GENERAL:
 	- Generalize graphics implementation? Load them only when needed and have one standard function?
 - Add in sound effects for pressing buttons
 - Credits (List all programs, people, and code- plus TPCI)
+- Simplify the sprite initalization
+- Restart the program after a transfer? Transfering twice without restarting corrupts the data (level included?)
 
 FUTURE:
 - Minigame
@@ -200,8 +191,8 @@ void game_load_error(void)
 	REG_BG2VOFS = 0;
 	tte_set_pos(40, 24);
 	tte_set_margins(40, 24, 206, 104);
-	tte_write("The Pokemon save\nfile was not loaded successfully. Please\nrestart the console,\nload the Pokemon\ngame normally, and\nthen upload the\nprogram again.");
-	tte_write(std::to_string(get_gamecode() >> 8).c_str());
+	tte_write("The Pok@mon save\nfile was not loaded successfully.\n\nPlease remove and\nreinsert the Game\nPak, and then press the A button.");
+	// tte_write(std::to_string(get_gamecode() >> 8).c_str());
 	key_poll();
 	while (!key_hit(KEY_A))
 	{
@@ -280,7 +271,7 @@ int main(void)
 
 	// Set up blend to fade to white/black
 
-	int curr_lang_btn_num = 3;
+	int curr_lang_btn_num = get_def_lang_num();
 	int old_lang_btn_num = -1;
 	set_arrow_point(curr_lang_btn_num);
 

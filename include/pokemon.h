@@ -34,6 +34,7 @@ public:
     byte rand_reverse_mod(byte modulo_divisor, byte target_mod);
     byte get_rand_gender_byte(byte index_num, byte attack_DVs);
     byte get_dex_number();
+    bool get_validity();
 
 
 private:
@@ -69,6 +70,7 @@ private:
     byte ivs[6];
     byte ribbons[4];
     u32 iv_egg_ability;
+    bool is_valid;
 };
 
 #endif

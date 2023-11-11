@@ -173,6 +173,7 @@ private:
     void callstd(u8 function_index);
     void release();
     void end();
+    void killscript();
 
     // ASM commands
     void push(u16 register_list);

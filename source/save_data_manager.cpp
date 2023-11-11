@@ -79,6 +79,10 @@ int get_def_lang()
     }
 }
 
+int get_def_lang_num(){
+    return save_data_array[DEFAULT_LANGUAGE];
+}
+
 void set_def_lang(int nLang)
 {
     save_data_array[DEFAULT_LANGUAGE] = nLang;

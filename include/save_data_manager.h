@@ -43,6 +43,7 @@ bool is_caught(int dex_num);
 void set_caught(int dex_num);
 int get_def_lang();
 void set_def_lang(int nLang);
+int get_def_lang_num();
 int get_gamecode();
 int get_version();
 int get_language();

@@ -111,8 +111,10 @@ void Pokemon::convert_to_gen_three()
         species_index_struct == 0 ||                 // Checks that the Pokemon isn't a blank party space
         species_index_struct != species_index_party) // Checks that the Pokemon isn't a hybrid or an egg
     {
+        is_valid = false;
         return;
     }
+    is_valid = true;
     // Generate PID
     u32 n_pid = generate_pid(species_index_struct, *(vu32 *)exp % 25, &dvs[0]);
     for (int i = 0; i < 4; i++)
@@ -203,7 +205,7 @@ void Pokemon::convert_to_gen_three()
     iv_egg_ability |= ((pid[0] & 0x1) ? get_num_abilities(species_index_struct) : 0) << 31;
 
     // Origin info
-    origin_info |= ((caught_data[0] & 0b10000000) << 8); // OT gender - We would shift left 15 bits, but the bit is already shifted over 7
+    origin_info |= ((caught_data[1] & 0b10000000) << 8); // OT gender - We would shift left 15 bits, but the bit is already shifted over 7
     origin_info |= (4 << 11);                            // Ball
     origin_info |= (((gen == 1) ? 4 : 7) << 7);          // Game
     origin_info |= level;                                // Level met
@@ -242,16 +244,68 @@ void Pokemon::convert_to_gen_three()
         language = get_def_lang();
     }
 
-    gen_3_pkmn[18] = language;                                                                 // Language
-    gen_3_pkmn[19] = 0b00000010;                                                               // Egg Name
-    copy_from_to(convert_text(&nickname[0], 10, gen, language), &gen_3_pkmn[8], 10, false);    // Nickname
-    copy_from_to(convert_text(&trainer_name[0], 7, gen, language), &gen_3_pkmn[20], 7, false); // OT Name
-    gen_3_pkmn[27] = 0b00000000;                                                               // Markings
-    // ???
+    if (language == KOR_ID)
+    {
+
+        gen_3_pkmn[18] = JPN_ID; // Set to JPN
+        byte new_nickname[10];
+        byte new_ot[7];
+        for(int i = 0; i < 6; i++)
+        { // Read the JPN name and convert it
+            new_nickname[i] = get_gen_3_char(JPN_NAMES[species_index_struct][i], true);
+        }
+
+        if (gen == 1)
+        {
+            // レッド (Red)
+            new_ot[0] = 0x7A; // レ
+            new_ot[1] = 0xA0; // ッ
+            new_ot[2] = 0x95; // ド
+            new_ot[3] = 0xFF;
+        }
+        else
+        {
+            if (((caught_data[1] & 0b10000000) >> 7) == 1) // Checks if the Gen 2 player is male or female
+            {
+                // クリス (Kurisu)
+                new_ot[0] = 0x58; // ク
+                new_ot[1] = 0x78; // リ
+                new_ot[2] = 0x5D; // ス
+                new_ot[3] = 0xFF;
+            }
+            else
+            {
+                // ヒビキ (Hibiki)
+                new_ot[0] = 0x6B; // ヒ
+                new_ot[1] = 0x97; // ビ
+                new_ot[2] = 0x57; // キ
+                new_ot[3] = 0xFF;
+            }
+        }
+        copy_from_to(&new_nickname[0], &gen_3_pkmn[8], 10, false); // Nickname
+        copy_from_to(&new_ot[0], &gen_3_pkmn[20], 7, false); // OT Name
+    }
+    else
+    {
+        gen_3_pkmn[18] = language;                                                                 // Language
+        copy_from_to(convert_text(&nickname[0], 10, gen, language), &gen_3_pkmn[8], 10, false);    // Nickname
+        copy_from_to(convert_text(&trainer_name[0], 7, gen, language), &gen_3_pkmn[20], 7, false); // OT Name
+    }
+    gen_3_pkmn[19] = 0b00000010; // Egg Name (has species sanity flag)
+    gen_3_pkmn[27] = 0b00000000; // Markings
 
     // Data:
     data_section_G[0] = species_index_struct;
     data_section_G[1] = 0x00; // Species Index, check for glitch Pokemon
+    if (!is_caught(species_index_struct))
+    {
+        data_section_G[2] = 0x44;
+    }
+    else
+    {
+        data_section_G[2] = 0x00;
+    }
+    data_section_G[3] = 0x00;
     copy_from_to(&exp[0], &data_section_G[4], 3, false);
     data_section_G[8] = (pp_bonus[0] << 0 | pp_bonus[1] << 2 | pp_bonus[2] << 4 | pp_bonus[3] << 6);
 
@@ -554,6 +608,12 @@ byte Pokemon::get_rand_gender_byte(byte index_num, byte attack_DVs)
     }
 }
 
-byte Pokemon::get_dex_number(){
-    return species_index_party;
+byte Pokemon::get_dex_number()
+{
+    return species_index_struct;
+}
+
+bool Pokemon::get_validity()
+{
+    return is_valid;
 }
