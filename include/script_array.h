@@ -4,63 +4,51 @@
 #include "script_obj.h"
 #include "pokemon_party.h"
 
-
-// Start!
-#define SCRIPT_START 0
-#define START_SIZE 1
-
 // Dialouge
-#define DIA_INDEX_OPEN 0
-#define DIA_INDEX_E4_1 1
-#define DIA_INDEX_E4_2 2
-#define DIA_INDEX_MG 3
-#define DIA_INDEX_START 4
-#define DIA_INDEX_ERROR_1 5
-#define DIA_INDEX_CONN_GOOD 6
-#define DIA_INDEX_LINK_GOOD 7
-#define DIA_INDEX_TRANS_GOOD 8 
-#define DIA_INDEX_NEW_DEX 9
-#define DIA_INDEX_NO_NEW_DEX 10
-#define DIA_INDEX_SEND_FRIEND 11
-#define DIA_INDEX_THANK 12
+#define DIA_INDEX_OPEN          0
+#define DIA_INDEX_E4            1
+#define DIA_INDEX_MG            2
+#define DIA_INDEX_START         3
+#define DIA_INDEX_ERROR_1       4
+#define DIA_INDEX_CONN_GOOD     5
+#define DIA_INDEX_LINK_GOOD     6
+#define DIA_INDEX_TRANS_GOOD    7 
+#define DIA_INDEX_NEW_DEX       8
+#define DIA_INDEX_NO_NEW_DEX    9
+#define DIA_INDEX_SEND_FRIEND   10
+#define DIA_INDEX_THANK         11
+#define DIA_INDEX_GET_MON       12
+#define DIA_ERROR_TIME_ONE      13
+#define DIA_ERROR_TIME_TWO      14
+#define DIA_ERROR_DISCONNECT    15
+#define DIA_ERROR_COM_ENDED     16
+#define DIA_ERROR_COLOSSEUM     17
 
-#define DIA_F_OPEN START_SIZE + DIA_INDEX_OPEN
-#define DIA_F_E4_1 START_SIZE + DIA_INDEX_E4_1
-#define DIA_F_E4_2 START_SIZE + DIA_INDEX_E4_2
-#define DIA_F_MG START_SIZE + DIA_INDEX_MG
-#define DIA_F_START START_SIZE + DIA_INDEX_START
-#define DIA_F_ERROR_1 START_SIZE + DIA_INDEX_START
-#define DIA_F_CONN_GOOD START_SIZE + DIA_INDEX_CONN_GOOD
-#define DIA_F_LINK_GOOD START_SIZE + DIA_INDEX_LINK_GOOD
-#define DIA_F_TRANS_GOOD START_SIZE + DIA_INDEX_TRANS_GOOD
-#define DIA_F_NEW_DEX START_SIZE + DIA_INDEX_NEW_DEX
-#define DIA_F_NO_NEW_DEX START_SIZE + DIA_INDEX_NO_NEW_DEX
-#define DIA_F_SEND_FRIEND START_SIZE + DIA_INDEX_SEND_FRIEND
-#define DIA_F_THANK START_SIZE + DIA_INDEX_THANK
-
-#define DIA_SIZE 27
-#define DIA_END DIA_SIZE + START_SIZE
+#define                DIA_SIZE 18
+#define DIA_END DIA_SIZE
 
 // Commands
-#define CMD_START_LINK DIA_END + 0
-#define CMD_IMPORT_POKEMON DIA_END + 1
-#define CMD_BACK_TO_MENU DIA_END + 2
-#define CMD_SHOW_PROF DIA_END + 3
-#define CMD_HIDE_PROF DIA_END + 4
+#define SCRIPT_START        DIA_END + 0
+#define CMD_START_LINK      DIA_END + 1
+#define CMD_IMPORT_POKEMON  DIA_END + 2
+#define CMD_BACK_TO_MENU    DIA_END + 3
+#define CMD_SHOW_PROF       DIA_END + 4
+#define CMD_HIDE_PROF       DIA_END + 5
 
-#define CMD_SIZE 5
+#define                     CMD_SIZE  6
 #define CMDS_END DIA_END + CMD_SIZE
 
 // Conditionals
-#define COND_ERROR_TIMEOUT_ONE CMDS_END + 0
-#define COND_ERROR_DISCONNECT CMDS_END + 1
-#define COND_ERROR_COM_ENDED CMDS_END + 2
-#define COND_ERROR_TIMEOUT_TWO CMDS_END + 3
-#define COND_ERROR_COLOSSEUM CMDS_END + 4
-#define COND_BEAT_E4 CMDS_END + 5
-#define COND_MG_ENABLED CMDS_END + 6
+#define COND_ERROR_TIMEOUT_ONE      CMDS_END + 0    // Didn't talk to the Cable Club attendant fast enough or cable not connected
+#define COND_ERROR_DISCONNECT       CMDS_END + 1    // If you unplug the cable after starting SPI
+#define COND_ERROR_COM_ENDED        CMDS_END + 2    // If you don't save the game
+#define COND_ERROR_TIMEOUT_TWO      CMDS_END + 3    // ???
+#define COND_ERROR_COLOSSEUM        CMDS_END + 4    // If the player selects the battle colosseum (shouldn't be possible)
+#define COND_BEAT_E4                CMDS_END + 5
+#define COND_MG_ENABLED             CMDS_END + 6
+#define COND_TUTORIAL_COMPLETE      CMDS_END + 7
 
-#define COND_SIZE 7
+#define                             COND_SIZE  8
 #define COND_END CMDS_END + COND_SIZE
 
 // Ends

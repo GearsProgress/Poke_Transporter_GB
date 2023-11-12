@@ -8,11 +8,9 @@ class script_obj
 {
 public:
     script_obj();
-    script_obj(std::string_view nText, int nNext);
-    script_obj(std::string_view nText, int nRun, int nNext);
-    script_obj(int nRun, int nNext);
-    script_obj(std::string_view nText, int nRun, int nNext_if_true, int nNext_if_false);
-    script_obj(int nRun, int nNext_if_true, int nNext_if_false);
+    script_obj(std::string_view nText, int nNext);               // For dialogue
+    script_obj(int nRun, int nNext);                             // For commands
+    script_obj(int nRun, int nNext_if_true, int nNext_if_false); // for conditionals
 
     std::string get_text();
     int get_true_index();

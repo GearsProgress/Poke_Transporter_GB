@@ -121,12 +121,12 @@ void initalization_script(void)
 
 	flash_init(FLASH_SIZE_128KB);
 	rand_set_seed(0x1216);
-	init_text_engine();
 	add_script_party_var(party);
 
 	// Prepare dialouge
 	populate_dialogue();
 	populate_script();
+	init_text_engine();
 
 	// Sound bank init
 	irq_init(NULL);

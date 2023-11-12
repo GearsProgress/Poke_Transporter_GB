@@ -5,12 +5,15 @@
 #include "text_engine.h"
 #include "global_frame_counter.h"
 #include "pkmn_font.h"
+#include "script_array.h"
 
 #define TEXT_CBB 3
 #define TEXT_SBB 28
 
 script_obj curr_line;
-uint char_count;
+uint char_index;
+uint line_char_index;
+std::string curr_text;
 bool disabled;
 
 void init_text_engine()
@@ -21,9 +24,11 @@ void init_text_engine()
     tte_set_pos(LEFT, TOP);
 
     // Set default variables
-    curr_line = script[0];
-    char_count = 0;
+    curr_line = script[SCRIPT_START];
+    char_index = 0;
+    line_char_index = 0;
     disabled = false;
+    curr_text = curr_line.get_text();
 }
 
 void text_next_frame()
@@ -31,22 +36,34 @@ void text_next_frame()
     if (!disabled)
     {
         tte_set_pos(LEFT, TOP);
-        if (char_count < curr_line.get_text().length())
+        if (char_index < curr_text.length() && curr_text.substr(char_index, 1) != "|")
         {
             if (get_frame_count() % 2 == 0 || key_held(KEY_B))
             {
-                char_count++;
+                char_index++;
                 tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
                 tte_set_ink(CLR_RED);
-                tte_write(curr_line.get_text().substr(0, char_count).c_str());
+                tte_write(curr_text.substr(0, char_index).c_str());
             }
         }
         else
         {
-            if (key_hit(KEY_A) || char_count == 0)
+            if (key_hit(KEY_A) || curr_text.length() == 0)
             {
-                curr_line = script[text_next_obj_id(curr_line)];
-                char_count = 0;
+                if (curr_text.substr(char_index, 1) == "|")
+                {
+                    line_char_index += char_index;
+                    line_char_index++;
+                    curr_text = curr_line.get_text().substr(line_char_index);
+                    char_index = 0;
+                }
+                else
+                {
+                    line_char_index = 0;
+                    curr_line = script[text_next_obj_id(curr_line)];
+                    curr_text = curr_line.get_text();
+                    char_index = 0;
+                }
             }
         }
     }
@@ -81,10 +98,12 @@ void text_disable()
     hide_text_box();
 }
 
-void show_text_box(){
+void show_text_box()
+{
     REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(1);
 }
 
-void hide_text_box(){
+void hide_text_box()
+{
     REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
 }

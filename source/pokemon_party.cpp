@@ -3,7 +3,7 @@
 #include "pokemon.h"
 #include "flash_mem.h"
 #include "debug_mode.h"
-#include "script.h"
+#include "mystery_gift_injector.h"
 
 /*
 byte debug_party_data[GEN2_INT_SIZE + 4] = { // Japanese Gen 1
