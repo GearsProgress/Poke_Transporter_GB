@@ -47,5 +47,7 @@ int get_def_lang_num();
 int get_gamecode();
 int get_version();
 int get_language();
-
+bool get_tutorial_flag();
+void set_tutorial_flag(bool value);
+void initalize_save_data();
 #endif

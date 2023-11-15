@@ -34,36 +34,23 @@
 --------
 RESEARCH:
 - See if shiny Pokemon from gen 2 can be square shinies or if they're all normal
-- Determine how tossing wonder cards works, and if we need to trash the script after it is finished
 
 LINK CABLE:
-- Figure out JP Gen 2
+- Confirm JP Gen 2
 
 INJECTION:
-- Hall of Fame / Mystery Gift confirmation
-- Wonder Card/Kill script
 - Add in check for no valid Pokemon
-
-SAVE DATA:
-- Add warning
-- Add ability to erase
-- Add check for Hall of Fame
-- Clear the empty data as part of the initalization
-
-TESTING:
-- Test all the aspects of a Pokemon (Shiny, Pokerus, etc.)
-- Make sure hall of fame data isn't corrupted
-- Test all 14 different memory locations
+- Combine the gen 3 data pointers into one class
 
 GENERAL:
-- Music
-- Finalize Graphics
-- Fade in and out
-	- Generalize graphics implementation? Load them only when needed and have one standard function?
-- Add in sound effects for pressing buttons
-- Credits (List all programs, people, and code- plus TPCI)
-- Simplify the sprite initalization
+- Finish conditionals
 - Restart the program after a transfer? Transfering twice without restarting corrupts the data (level included?)
+- Finalize Graphics
+- Simplify the sprite initalization
+- Fade in and out
+- Add in sound effects for pressing buttons
+- Music
+- Credits (List all programs, people, and code- plus TPCI)
 
 FUTURE:
 - Minigame
@@ -209,6 +196,18 @@ void game_load_error(void)
 	}
 }
 
+void first_load_message(void)
+{
+	tte_set_pos(8, 0);
+	tte_write("Hello! Thank you for using\nPok@mon Mirror!\n\nJust as a word of caution- \nPok@mon Mirror WILL modify\nyour generation 3 save file.\nThe program is designed to\nnot corrupt anything, but if\nyou do not wish to modify\nyour save file, please turn\noff your Game Boy Advance.\n\nPlease note that Pok@mon\nMirror is still in beta, so\nsave file backups are HIGHLY\nrecommended before using.\nWith that all out of the\nway, please enjoy!\n\n      -The Gears of Progress");
+	while (!key_hit(KEY_A))
+	{
+		key_poll();
+		VBlankIntrWait();
+	}
+	tte_erase_rect(0, 0, H_MAX, V_MAX);
+}
+
 int main(void)
 {
 	do
@@ -234,6 +233,11 @@ int main(void)
 	// Initalize memory and save data after loading the game
 	initalize_memory_locations();
 	load_custom_save_data();
+
+	if (get_tutorial_flag() == false){
+		first_load_message();
+		initalize_save_data();
+	}
 
 	// Legal mumbo jumbo
 	tte_set_pos(8, 0);

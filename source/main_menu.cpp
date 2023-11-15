@@ -1,6 +1,7 @@
 #include <tonc.h>
 #include "main_menu.h"
 #include "button_handler.h"
+#include "save_data_manager.h"
 
 int menu_slot = 1;
 int old_menu_slot = 0;
@@ -79,7 +80,14 @@ int main_menu_loop()
 
         if (key_hit(KEY_A))
         {
-            ani_mode = ENTERING;
+            if ((get_tutorial_flag() == true || menu_slot == BTN_TRANSFER))
+            {
+                ani_mode = ENTERING;
+            }
+            else
+            {
+                // "Bad" noise here
+            }
         }
 
         if (menu_slot != old_menu_slot)
@@ -108,23 +116,28 @@ void main_menu_exit()
     ani_mode = EXITING;
 }
 
-void show_lang_btns(){
-    for (int i = 0; i < LANG_BUTTON_ARRAY_SIZE; i++){
-    lang_button_array[i].show();
+void show_lang_btns()
+{
+    for (int i = 0; i < LANG_BUTTON_ARRAY_SIZE; i++)
+    {
+        lang_button_array[i].show();
     }
 }
 
-void hide_lang_btns(){
-    for (int i = 0; i < LANG_BUTTON_ARRAY_SIZE; i++){
-    lang_button_array[i].hide();
+void hide_lang_btns()
+{
+    for (int i = 0; i < LANG_BUTTON_ARRAY_SIZE; i++)
+    {
+        lang_button_array[i].hide();
     }
 }
 
-void highlight_lang_btn(int index, bool highlight){
+void highlight_lang_btn(int index, bool highlight)
+{
     lang_button_array[index].set_highlight(highlight);
 }
 
-
-void set_arrow_point(int index){
+void set_arrow_point(int index)
+{
     lang_button_array[LANG_ARROW].set_location(lang_button_array[index].x + 16, lang_button_array[index].y - 8);
 }

@@ -40,7 +40,7 @@ void load_custom_save_data()
 
 void write_custom_save_data()
 {
-    flash_read(HALL_OF_FAME + 0x1000, &global_memory_buffer[0], 0x1000);   
+    flash_read(HALL_OF_FAME + 0x1000, &global_memory_buffer[0], 0x1000);
     for (int i = 0; i < SAVE_DATA_SIZE; i++)
     {
         global_memory_buffer[HOF_SECTION + i] = save_data_array[i];
@@ -79,7 +79,8 @@ int get_def_lang()
     }
 }
 
-int get_def_lang_num(){
+int get_def_lang_num()
+{
     return save_data_array[DEFAULT_LANGUAGE];
 }
 
@@ -98,6 +99,27 @@ int get_version()
     return version;
 }
 
-int get_language(){
+int get_language()
+{
     return language;
+}
+
+void set_tutorial_flag(bool value)
+{
+    save_data_array[TUTORIAL_FLAG] = value;
+    write_custom_save_data();
+}
+
+bool get_tutorial_flag()
+{
+    return save_data_array[TUTORIAL_FLAG];
+}
+
+void initalize_save_data()
+{
+    for (int i = 0; i < SAVE_DATA_SIZE; i++)
+    {
+        save_data_array[i] = 0;
+    }
+    write_custom_save_data();
 }
