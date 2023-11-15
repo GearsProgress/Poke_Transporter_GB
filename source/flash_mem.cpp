@@ -2,6 +2,7 @@
 #include "flash_mem.h"
 #include "gba_flash.h"
 #include "pokemon.h"
+#include "rom_data.h"
 
 #define pkmn_length 80
 #define READ_SAVE_SECTIONS 5

@@ -121,26 +121,10 @@ bool run_conditional(int index)
         return true;
 
     case COND_IS_HOENN:
-        switch (get_gamecode())
-        {
-        case (RUBY_ID):
-        case (SAPPHIRE_ID):
-        case (EMERALD_ID):
-            return true;
-        default:
-            return false;
-        }
+        return curr_rom.is_hoenn();
 
     case COND_IS_FRLGE:
-        switch (get_gamecode())
-        {
-        case (FIRERED_ID):
-        case (LEAFGREEN_ID):
-        case (EMERALD_ID):
-            return true;
-        default:
-            return false;
-        }
+        return !curr_rom.is_ruby_sapphire();
 
     case CMD_START_LINK:
         party_data.start_link();

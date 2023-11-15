@@ -14,13 +14,12 @@ void inject_mystery(Pokemon incoming_party_aray[])
     mystery_gift_script script;
     script.build_script(incoming_party_aray);
     u32 checksum = 0;
-    switch (get_gamecode())
+    if (curr_rom.is_ruby_sapphire())
     {
-    case (RUBY_ID):
-    case (SAPPHIRE_ID):
         checksum = script.calc_checksum32();
-        break;
-    default:
+    }
+    else
+    {
         checksum = script.calc_crc16();
     }
 

@@ -29,6 +29,7 @@
 #include "save_data_manager.h"
 #include "mystery_gift_injector.h"
 #include "mystery_gift_builder.h"
+#include "rom_data.h"
 
 /*TODO:
 --------
@@ -65,7 +66,7 @@ FUTURE:
 Pokemon_Party party = Pokemon_Party();
 int delay_counter = 0;
 bool skip = true;
-
+rom_data curr_rom;
 /*
 int test_main(void)
 {
@@ -210,31 +211,20 @@ void first_load_message(void)
 
 int main(void)
 {
-	do
-	{ // Do not run on the first loop
-		if (!skip)
-		{
-			game_load_error();
-		}
-		skip = false;
-
+	initalization_script();
+	// Check if the game has been loaded correctly.
+	while (!curr_rom.load_rom())
+	{
+		game_load_error();
 		initalization_script();
-
-		// Check if the game has been loaded correctly.
-		load_gamecode();
-	} while (
-		!(((get_gamecode() == RUBY_ID) ||
-		   (get_gamecode() == SAPPHIRE_ID) ||
-		   (get_gamecode() == FIRERED_ID) ||
-		   (get_gamecode() == LEAFGREEN_ID) ||
-		   (get_gamecode() == EMERALD_ID)) &&
-		  (get_language() == LANG_ENG))); // Prevents non-English games from loading
+	}
 
 	// Initalize memory and save data after loading the game
 	initalize_memory_locations();
 	load_custom_save_data();
 
-	if (get_tutorial_flag() == false){
+	if (get_tutorial_flag() == false)
+	{
 		first_load_message();
 		initalize_save_data();
 	}
@@ -278,6 +268,8 @@ int main(void)
 	int curr_lang_btn_num = get_def_lang_num();
 	int old_lang_btn_num = -1;
 	set_arrow_point(curr_lang_btn_num);
+
+	curr_rom.load_rom();
 
 	// MAIN LOOP
 	while (1)

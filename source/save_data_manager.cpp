@@ -6,28 +6,7 @@
 #include "main_menu.h"
 #include "pokemon_data.h"
 
-int gamecode;
-int version;
-int language;
 byte save_data_array[SAVE_DATA_SIZE];
-
-void load_gamecode()
-{
-    if (DEBUG_MODE)
-    {
-        gamecode = DEBUG_GAME;
-        version = DEBUG_VERS;
-        language = DEBUG_LANG;
-    }
-    else
-    {
-        gamecode = (*(vu8 *)(0x80000AC)) << 0x10 |
-                   (*(vu8 *)(0x80000AD)) << 0x08 |
-                   (*(vu8 *)(0x80000AE)) << 0x00;
-        language = (*(vu8 *)(0x80000AF));
-        version = (*(vu8 *)(0x80000BC));
-    }
-}
 
 void load_custom_save_data()
 {
@@ -87,21 +66,6 @@ int get_def_lang_num()
 void set_def_lang(int nLang)
 {
     save_data_array[DEFAULT_LANGUAGE] = nLang;
-}
-
-int get_gamecode()
-{
-    return gamecode;
-}
-
-int get_version()
-{
-    return version;
-}
-
-int get_language()
-{
-    return language;
 }
 
 void set_tutorial_flag(bool value)

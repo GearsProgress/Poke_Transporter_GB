@@ -3,6 +3,7 @@
 
 #include "script_obj.h"
 #include "pokemon_party.h"
+#include "rom_data.h"
 
 // Dialouge
 #define DIA_INDEX_OPEN              0
@@ -63,6 +64,7 @@
 #define SCRIPT_SIZE COND_END
 
 extern script_obj script[];
+extern rom_data curr_rom;
 
 void populate_script();
 void populate_dialogue();
