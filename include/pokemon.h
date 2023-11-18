@@ -10,7 +10,7 @@
 // sarts at OT name and ends after the 3 buffer bytes
 #define GEN1_JPN_SIZE 353
 #define GEN1_INT_SIZE 418
-#define GEN2_JPN_SIZE 0
+#define GEN2_JPN_SIZE 383
 #define GEN2_INT_SIZE 444
 
 class Pokemon

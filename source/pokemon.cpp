@@ -39,7 +39,7 @@ void Pokemon::load_data(int index, byte *party_data)
     {
         gen = 2;
         pkmn_size = 48;
-        ot_and_party = 17;
+        ot_and_party = 16;
         ot_size = 6;
         nickname_size = 6;
         language = JPN_ID;
@@ -248,7 +248,7 @@ void Pokemon::convert_to_gen_three()
         gen_3_pkmn[18] = JPN_ID; // Set to JPN
         byte new_nickname[10];
         byte new_ot[7];
-        for(int i = 0; i < 6; i++)
+        for (int i = 0; i < 6; i++)
         { // Read the JPN name and convert it
             new_nickname[i] = get_gen_3_char(JPN_NAMES[species_index_struct][i], true);
         }
@@ -281,7 +281,7 @@ void Pokemon::convert_to_gen_three()
             }
         }
         copy_from_to(&new_nickname[0], &gen_3_pkmn[8], 10, false); // Nickname
-        copy_from_to(&new_ot[0], &gen_3_pkmn[20], 7, false); // OT Name
+        copy_from_to(&new_ot[0], &gen_3_pkmn[20], 7, false);       // OT Name
     }
     else
     {
@@ -293,6 +293,16 @@ void Pokemon::convert_to_gen_three()
     gen_3_pkmn[27] = 0b00000000; // Markings
 
     // Data:
+
+    // Reset the data sections (in case the player runs the program twice)
+    for (int i = 0; i < 12; i++)
+    {
+        data_section_G[i] = 0;
+        data_section_A[i] = 0;
+        data_section_E[i] = 0;
+        data_section_M[i] = 0;
+    }
+
     data_section_G[0] = species_index_struct;
     data_section_G[1] = 0x00; // Species Index, check for glitch Pokemon
     if (!is_caught(species_index_struct))
@@ -379,7 +389,6 @@ void Pokemon::copy_from_to(byte *source, byte *destination, int size, bool rever
 
 void Pokemon::alocate_data_chunks(byte *G, byte *A, byte *E, byte *M)
 {
-    // reverse_endian(pid, 4); // This PERMANENTLY reverses the PID which is 'okay' because it is not used again. Bad practice though...
     word full_pid = (pid[3] << 24 | pid[2] << 16 | pid[1] << 8 | pid[0]);
     byte mod_pid = full_pid % 24;
     unencrypted_data[48] = mod_pid;
