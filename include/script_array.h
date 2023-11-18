@@ -6,22 +6,22 @@
 #include "rom_data.h"
 
 // Dialouge
-#define DIA_INDEX_OPEN              0
-#define DIA_INDEX_E4                1
-#define DIA_INDEX_MG_RS             2
-#define DIA_INDEX_MG_FRLGE          3
-#define DIA_INDEX_START             4
-#define DIA_INDEX_LETS_START        5
-#define DIA_INDEX_ERROR_1           6
-#define DIA_INDEX_CONN_GOOD         7
-#define DIA_INDEX_LINK_GOOD         8
-#define DIA_INDEX_TRANS_GOOD        9    
-#define DIA_INDEX_NEW_DEX           10
-#define DIA_INDEX_NO_NEW_DEX        11
-#define DIA_INDEX_SEND_FRIEND_HOENN 12
-#define DIA_INDEX_SEND_FRIEND_KANTO 13
-#define DIA_INDEX_THANK             14
-#define DIA_INDEX_GET_MON           15
+#define DIA_OPEN                    0
+#define DIA_E4                      1
+#define DIA_MG_RS                   2
+#define DIA_MG_FRLGE                3
+#define DIA_START                   4
+#define DIA_LETS_START              5
+#define DIA_ERROR_1                 6
+#define DIA_CONN_GOOD               7
+#define DIA_LINK_GOOD               8
+#define DIA_TRANS_GOOD              9    
+#define DIA_NEW_DEX                 10
+#define DIA_NO_NEW_DEX              11
+#define DIA_SEND_FRIEND_HOENN       12
+#define DIA_SEND_FRIEND_KANTO       13
+#define DIA_THANK                   14
+#define DIA_GET_MON                 15
 #define DIA_ERROR_TIME_ONE          16
 #define DIA_ERROR_TIME_TWO          17
 #define DIA_ERROR_DISCONNECT        18
@@ -29,20 +29,22 @@
 #define DIA_ERROR_COLOSSEUM         20
 #define DIA_MG_OTHER_EVENT          21
 #define DIA_PKMN_TO_COLLECT         22
+#define DIA_NO_VALID_PKMN           23
 
-#define                    DIA_SIZE 23
+#define                    DIA_SIZE 24
 #define DIA_END DIA_SIZE
 
 // Commands
 #define SCRIPT_START        DIA_END + 0
 #define CMD_START_LINK      DIA_END + 1
-#define CMD_IMPORT_POKEMON  DIA_END + 2
+#define CMD_IMPORT_POKEMON  DIA_END + 2     // This one is special because it can be true or false
 #define CMD_BACK_TO_MENU    DIA_END + 3
 #define CMD_SHOW_PROF       DIA_END + 4
 #define CMD_HIDE_PROF       DIA_END + 5
 #define CMD_SET_TUTOR_TRUE  DIA_END + 6
+#define CMD_END_SCRIPT      DIA_END + 7
 
-#define                     CMD_SIZE  7
+#define                     CMD_SIZE  8
 #define CMDS_END DIA_END + CMD_SIZE
 
 // Conditionals

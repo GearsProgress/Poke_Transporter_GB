@@ -33,12 +33,11 @@
 
 /*
 TODO:
-- Add in check for no valid Pokemon
-- Finish conditionals
 - Add in custom wonder card
 - Confirm JP Gen 2
 - Restart the program after a transfer? Transfering twice without restarting corrupts the data (level included?)
 - Finalize Graphics
+- Fix intro text color
 - Credits (List all programs, people, and code- plus TPCI)
 
 Post Beta:
