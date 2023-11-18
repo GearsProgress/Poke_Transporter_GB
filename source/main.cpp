@@ -33,7 +33,6 @@
 
 /*
 TODO:
-- Add in custom wonder card
 - Confirm JP Gen 2
 - Restart the program after a transfer? Transfering twice without restarting corrupts the data (level included?)
 - Finalize Graphics
