@@ -2,6 +2,7 @@
 #define SAVE_DATA_MANAGER_H
 
 #include <tonc.h>
+#include "rom_data.h"
 
 #define HALL_OF_FAME 0x01C000
 #define HOF_SECTION 2032
@@ -15,6 +16,8 @@
 #define TUTORIAL_FLAG 0x20    //  | 0x1     | 1     | Has made it through the tutorial
 #define DEFAULT_LANGUAGE 0x21 //  | 0x22    | 1     | Default international language
 #define SAVE_DATA_SIZE 0x22
+
+extern rom_data curr_rom;
 
 void load_custom_save_data();
 void write_custom_save_data();

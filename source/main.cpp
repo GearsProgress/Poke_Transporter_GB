@@ -31,29 +31,21 @@
 #include "mystery_gift_builder.h"
 #include "rom_data.h"
 
-/*TODO:
---------
-RESEARCH:
-- See if shiny Pokemon from gen 2 can be square shinies or if they're all normal
-
-LINK CABLE:
-- Confirm JP Gen 2
-
-INJECTION:
+/*
+TODO:
 - Add in check for no valid Pokemon
-- Combine the gen 3 data pointers into one class
-
-GENERAL:
 - Finish conditionals
+- Add in custom wonder card
+- Confirm JP Gen 2
 - Restart the program after a transfer? Transfering twice without restarting corrupts the data (level included?)
 - Finalize Graphics
-- Simplify the sprite initalization
-- Fade in and out
-- Add in sound effects for pressing buttons
-- Music
 - Credits (List all programs, people, and code- plus TPCI)
 
-FUTURE:
+Post Beta:
+- Determine if transfered Shiny Pokemon are square/star sparkles
+- Music and Sound Effects
+- Simplify the sprite initalization
+- Smoother Transitions
 - Minigame
 - Wii Channel
 - Ditto Gift (Ignore Mew/Celebi?)

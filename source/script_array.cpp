@@ -3,6 +3,7 @@
 #include "text_engine.h"
 #include "mystery_gift_injector.h"
 #include "sprite_data.h"
+#include "flash_mem.h"
 #include <tonc.h>
 
 int last_error;
@@ -26,6 +27,8 @@ void populate_dialogue()
     dialogue[DIA_INDEX_SEND_FRIEND_HOENN] = "I'm going to send these\nPokemon to my friend LANNETE so\nthat you can pick them up.\nThey live on route 114!|Did you know they developed the Storage System for the\nHoenn region?|My younger sister developed a version of the Storage\nSystem too, so LANNETE is a\ngood friend of ours!";
     dialogue[DIA_INDEX_THANK] = "Thank you so much for your\nhelp! Whenever you want to\ntransfer more Pokemon, just\nlet me know!|See you around!";
     dialogue[DIA_INDEX_GET_MON] = "Let's get started! Please connect Load the Game Boy Pok@mon game you want to transfer from, and put the Pok@mon you want to transfer into your party. ";
+    dialogue[DIA_MG_OTHER_EVENT] = "Hi Trainer! It looks like\nyou have a different event\ncurrently loaded.|That's no problem, but it\nwill be overwritten if you\ncontinue.|Turn off the system now if\nyou want to experience your\ncurrent event,\nbut otherwise-";
+    dialogue[DIA_PKMN_TO_COLLECT] = "Hi Trainer! It looks like\nyou still have Pok@mon to\npick up...|I can send in new ones, but do know that the Pok@mon you\nhaven't picked up yet will\nbe replaced.|Turn off the system now if\nyou want to recieve those\nmPok@mon, but otherwise-";
 
     dialogue[DIA_ERROR_COLOSSEUM] = "It looks like you went to\nthe colosseum instead of the\ntrading room!|Let's try that again!";
     dialogue[DIA_ERROR_COM_ENDED] = "Communication with the other\ndevice was terminated.|Let's try that again!";
@@ -44,9 +47,13 @@ void populate_script()
     script[COND_IS_FRLGE] = script_obj(COND_IS_FRLGE, DIA_INDEX_MG_FRLGE, DIA_INDEX_MG_RS);
     script[DIA_INDEX_MG_FRLGE] = script_obj(dialogue[DIA_INDEX_MG_FRLGE], CMD_HIDE_PROF);
     script[DIA_INDEX_MG_RS] = script_obj(dialogue[DIA_INDEX_MG_RS], CMD_HIDE_PROF);
-    script[COND_TUTORIAL_COMPLETE] = script_obj(COND_TUTORIAL_COMPLETE, DIA_INDEX_LETS_START, DIA_INDEX_OPEN);
+    script[COND_TUTORIAL_COMPLETE] = script_obj(COND_TUTORIAL_COMPLETE, COND_MG_OTHER_EVENT, DIA_INDEX_OPEN);
     script[DIA_INDEX_OPEN] = script_obj(dialogue[DIA_INDEX_OPEN], CMD_SET_TUTOR_TRUE);
     script[CMD_SET_TUTOR_TRUE] = script_obj(CMD_SET_TUTOR_TRUE, CMD_HIDE_PROF);
+    script[COND_MG_OTHER_EVENT] = script_obj(COND_MG_OTHER_EVENT, DIA_MG_OTHER_EVENT, COND_PKMN_TO_COLLECT);
+    script[COND_PKMN_TO_COLLECT] = script_obj(COND_PKMN_TO_COLLECT, DIA_PKMN_TO_COLLECT, DIA_INDEX_LETS_START);
+    script[DIA_MG_OTHER_EVENT] = script_obj(dialogue[DIA_MG_OTHER_EVENT], DIA_INDEX_LETS_START);
+    script[DIA_PKMN_TO_COLLECT] = script_obj(dialogue[DIA_PKMN_TO_COLLECT], DIA_INDEX_LETS_START);
     script[DIA_INDEX_LETS_START] = script_obj(dialogue[DIA_INDEX_LETS_START], DIA_INDEX_START);
     script[DIA_INDEX_START] = script_obj(dialogue[DIA_INDEX_START], CMD_START_LINK);
     script[CMD_START_LINK] = script_obj(CMD_START_LINK, COND_ERROR_TIMEOUT_ONE);
@@ -106,13 +113,12 @@ bool run_conditional(int index)
         return party_data.get_last_error() != COND_ERROR_COLOSSEUM;
 
     case COND_BEAT_E4:
+    return read_flag(0x800 + 0x39);
     // Emerald Flag ID 0x860 + 0x1F
     
-        return true;
-
     case COND_MG_ENABLED:
-    // Emerald flag ID (SYSTEM_FLAGS + 0x7B)
-        return true;
+    return read_flag(0x800 + 0x39);
+    // Emerald flag ID (0x860 + 0x7B)
 
     case COND_TUTORIAL_COMPLETE:
         return get_tutorial_flag();
@@ -125,6 +131,12 @@ bool run_conditional(int index)
 
     case COND_IS_FRLGE:
         return !curr_rom.is_ruby_sapphire();
+
+    case COND_MG_OTHER_EVENT:
+        return compare_map_and_npc_data(curr_rom.def_map_bank, curr_rom.def_map_id, curr_rom.def_npc_id);
+
+    case COND_PKMN_TO_COLLECT:
+        return compare_map_and_npc_data(curr_rom.map_bank, curr_rom.map_id, curr_rom.npc_id) && !read_flag(FLAG_ID_START + 0x06);
 
     case CMD_START_LINK:
         party_data.start_link();

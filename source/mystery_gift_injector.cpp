@@ -26,36 +26,36 @@ void inject_mystery(Pokemon incoming_party_aray[])
     flash_read(memory_section_array[4], &global_memory_buffer[0], 0x1000);
     for (int i = 0; i < 0x14E; i++)
     {
-        global_memory_buffer[script.get_offset_wondercard() + i] = wonder_card[i];
+        global_memory_buffer[curr_rom.offset_wondercard + i] = wonder_card[i];
     }
 
     // Set checksum and padding
-    global_memory_buffer[script.get_offset_script()] = checksum >> 0;
-    global_memory_buffer[script.get_offset_script() + 1] = checksum >> 8;
-    global_memory_buffer[script.get_offset_script() + 2] = checksum >> 16;
-    global_memory_buffer[script.get_offset_script() + 3] = checksum >> 24;
+    global_memory_buffer[curr_rom.offset_script] = checksum >> 0;
+    global_memory_buffer[curr_rom.offset_script + 1] = checksum >> 8;
+    global_memory_buffer[curr_rom.offset_script + 2] = checksum >> 16;
+    global_memory_buffer[curr_rom.offset_script + 3] = checksum >> 24;
 
     // Add in Mystery Script data
     for (int i = 0; i < MG_SCRIPT_SIZE; i++)
     {
-        global_memory_buffer[script.get_offset_script() + 4 + i] = script.get_script_value_at(i);
+        global_memory_buffer[curr_rom.offset_script + 4 + i] = script.get_script_value_at(i);
     }
     update_memory_buffer_checksum();
     flash_write(memory_section_array[4], &global_memory_buffer[0], 0x1000);
 
     // Set flags
-    flash_read(memory_section_array[1 + ((script.get_offset_flags() + (FLAG_ID_START / 8)) / 0xF80)], &global_memory_buffer[0], 0x1000);
-    global_memory_buffer[(script.get_offset_flags() + (FLAG_ID_START / 8)) % 0xF80] &= (~0b01111111 << (FLAG_ID_START % 8)); // Set "collected all" flag to 0 and reset the "to obtain" flags
+    flash_read(memory_section_array[1 + ((curr_rom.offset_flags + (FLAG_ID_START / 8)) / 0xF80)], &global_memory_buffer[0], 0x1000);
+    global_memory_buffer[(curr_rom.offset_flags + (FLAG_ID_START / 8)) % 0xF80] &= (~0b01111111 << (FLAG_ID_START % 8)); // Set "collected all" flag to 0 and reset the "to obtain" flags
     for (int i = 0; i < 6; i++)
     {
         if (incoming_party_aray[i].get_validity())
         {
-            global_memory_buffer[(script.get_offset_flags() + (FLAG_ID_START / 8)) % 0xF80] |= ((1 << i) << (FLAG_ID_START % 8)); // Set "to obtain" flags accordingly
+            global_memory_buffer[(curr_rom.offset_flags + (FLAG_ID_START / 8)) % 0xF80] |= ((1 << i) << (FLAG_ID_START % 8)); // Set "to obtain" flags accordingly
         }
     }
 
     update_memory_buffer_checksum();
-    flash_write(memory_section_array[1 + ((script.get_offset_flags() + (FLAG_ID_START / 8)) / 0xF80)], &global_memory_buffer[0], 0x1000);
+    flash_write(memory_section_array[1 + ((curr_rom.offset_flags + (FLAG_ID_START / 8)) / 0xF80)], &global_memory_buffer[0], 0x1000);
 
     // Update and save custom save data
     for (int i = 0; i < 6; i++)

@@ -39,6 +39,11 @@ bool rom_data::load_rom()
         map_bank = 0;
         map_id = 10;
         npc_id = 1;
+
+        def_map_bank = 8;
+        def_map_id = 1;
+        def_npc_id = 1;
+
         text_region = TEXT_HOENN;
         offset_wondercard = 0;
         offset_script = 0x0810;
@@ -78,6 +83,11 @@ bool rom_data::load_rom()
         map_bank = 30;
         map_id = 0;
         npc_id = 1;
+
+        def_map_bank = 0xFF;
+        def_map_id = 0xFF;
+        def_npc_id = 0xFF;
+
         text_region = TEXT_KANTO;
         offset_wondercard = 0x0460;
         offset_script = 0x079C;
@@ -107,6 +117,11 @@ bool rom_data::load_rom()
         map_bank = 20;
         map_id = 2;
         npc_id = 1;
+
+        def_map_bank = 0xFF;
+        def_map_id = 0xFF;
+        def_npc_id = 0xFF;
+
         text_region = TEXT_HOENN;
         offset_wondercard = 0x056C;
         offset_script = 0x08A8;
@@ -127,6 +142,7 @@ bool rom_data::is_hoenn()
     return (gamecode == RUBY_ID || gamecode == SAPPHIRE_ID || gamecode == EMERALD_ID);
 }
 
-bool rom_data::is_ruby_sapphire(){
+bool rom_data::is_ruby_sapphire()
+{
     return (gamecode == RUBY_ID || gamecode == SAPPHIRE_ID);
 }

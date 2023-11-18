@@ -27,8 +27,10 @@
 #define DIA_ERROR_DISCONNECT        18
 #define DIA_ERROR_COM_ENDED         19
 #define DIA_ERROR_COLOSSEUM         20
+#define DIA_MG_OTHER_EVENT          21
+#define DIA_PKMN_TO_COLLECT         22
 
-#define                    DIA_SIZE 21
+#define                    DIA_SIZE 23
 #define DIA_END DIA_SIZE
 
 // Commands
@@ -55,8 +57,10 @@
 #define COND_NEW_POKEMON            CMDS_END + 8
 #define COND_IS_HOENN               CMDS_END + 9
 #define COND_IS_FRLGE               CMDS_END + 10
+#define COND_MG_OTHER_EVENT         CMDS_END + 11
+#define COND_PKMN_TO_COLLECT        CMDS_END + 12
 
-#define                             COND_SIZE  11
+#define                             COND_SIZE  13
 #define COND_END CMDS_END + COND_SIZE
 
 // Ends

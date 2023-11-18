@@ -41,6 +41,10 @@ public:
     u8 map_bank;
     u8 map_id;
     u8 npc_id;
+
+    u8 def_map_bank;
+    u8 def_map_id;
+    u8 def_npc_id;
 };
 
 #endif

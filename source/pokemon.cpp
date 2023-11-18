@@ -32,20 +32,18 @@ void Pokemon::load_data(int index, byte *party_data)
         nickname_size = 11;
         language = INTERNATIONAL;
     }
-    /*
     else if (party_data[GEN2_JPN_SIZE + 0] == 0xFD &&
              party_data[GEN2_JPN_SIZE + 1] == 0xFD &&
              party_data[GEN2_JPN_SIZE + 2] == 0xFD &&
              party_data[GEN2_JPN_SIZE + 3] == 0xFD)
     {
-        // DOUBLE CHECK THIS
         gen = 2;
         pkmn_size = 48;
         ot_and_party = 17;
         ot_size = 6;
         nickname_size = 6;
         language = JPN_ID;
-    }*/
+    }
     else if (party_data[GEN2_INT_SIZE + 0] == 0xFD &&
              party_data[GEN2_INT_SIZE + 1] == 0xFD &&
              party_data[GEN2_INT_SIZE + 2] == 0xFD &&
@@ -299,11 +297,11 @@ void Pokemon::convert_to_gen_three()
     data_section_G[1] = 0x00; // Species Index, check for glitch Pokemon
     if (!is_caught(species_index_struct))
     {
-        data_section_G[2] = 0x44;
+        data_section_G[2] = 0x44; // Rare Candy
     }
     else
     {
-        data_section_G[2] = 0x00;
+        data_section_G[2] = 0x00; // No item
     }
     data_section_G[3] = 0x00;
     copy_from_to(&exp[0], &data_section_G[4], 3, false);

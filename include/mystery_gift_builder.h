@@ -127,9 +127,6 @@ public:
     u8 get_script_value_at(int index);
     u32 calc_checksum32();
     u16 calc_crc16();
-    int get_offset_wondercard();
-    int get_offset_script();
-    int get_offset_flags();
 
 private:
     void add_command(int len);

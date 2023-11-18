@@ -136,7 +136,17 @@ void update_memory_buffer_checksum()
     global_memory_buffer[0x0FF7] = (small_checksum & 0xFF00) >> 8;
 }
 
-bool get_flag(u16 flag_id)
+bool read_flag(u16 flag_id)
 {
-    return true;
+    flash_read(memory_section_array[1 + ((curr_rom.offset_flags + (flag_id / 8)) / 0xF80)], &global_memory_buffer[0], 0x1000);
+    u8 flags = global_memory_buffer[(curr_rom.offset_flags + (flag_id / 8)) % 0xF80];
+    return (flags >> (flag_id % 8)) & 0b1;
+}
+
+bool compare_map_and_npc_data(int map_bank, int map_id, int npc_id)
+{
+    flash_read(memory_section_array[4], &global_memory_buffer[0], 0x1000);
+    return (global_memory_buffer[curr_rom.offset_script + 5] == map_bank &&
+            global_memory_buffer[curr_rom.offset_script + 6] == map_id &&
+            global_memory_buffer[curr_rom.offset_script + 7] == npc_id);
 }

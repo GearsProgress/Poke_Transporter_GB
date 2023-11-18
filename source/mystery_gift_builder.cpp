@@ -145,71 +145,70 @@ void mystery_gift_script::build_script(Pokemon incoming_party_array[])
     waitmsg();                                                                 // Wait for the message
     waitkeypress();                                                            // Wait for the player to press A/B
     release();                                                                 // Release the player
-    // end();                                                            // End the script
-    killscript();                                              // Erase RAMscript
-    /**/ set_jump_destination(JUMP_BOX_FULL);                  // Set the destination for if the box is full
-    virtualmsgbox(TEXT_FULL);                                  // Display the full box message
-    waitmsg();                                                 // Wait for the message
-    waitkeypress();                                            // Wait for the player to presse A/B
-    release();                                                 // Release the player
-    end();                                                     // End the script
-                                                               //
-    insert_textboxes();                                        // Insert textbox data
-    four_align();                                              // Align the code so that it is byte aligned
-                                                               //
-    /**/ set_ptr_destination(REL_PTR_ASM_START);               // Set the memory pointer location for ASM start
-    push(rlist_lr);                                            // save the load register to the stack
-    ldr3(r3, asm_offset_distance(ASM_OFFSET_PKMN_OFFSET));     // set r3 to the pointer to the pokemon offset variable
-    ldr1(r3, r3, 0);                                           // set r3 to the value in memory r3 points to
-    add5(r0, asm_offset_distance(ASM_OFFSET_PKMN_STRUCT));     // set r0 to a pointer 28 bytes ahead, which is the start of the Pokemon struct.
-    add3(r0, r0, r3);                                          // add r3 to r0, giving it the correct offset for the current index
-    ldr3(r1, asm_offset_distance(ASM_OFFSET_SENDMON_PTR));     // set r1 to the location of "SendMonToPC" plus one, since it is thumb code
-    mov3(r2, r15);                                             // move r15 (the program counter) to r2
-    add2(r2, 5);                                               // add 5 to r2 to compensate for the four following bytes, plus to tell the system to read as thumb code
-    mov3(r14, r2);                                             // move r2 into r14 (the load register)
-    bx(r1);                                                    // jump to the pointer stored in r1 (SendMonToPC)
-    ldr3(r2, asm_offset_distance(ASM_OFFSET_BOX_SUC_PTR));     // load variable 0x8006's pointer into r2
-    str1(r0, r2, 0);                                           // put the value of r0 into the memory location pointed at by r2, plus 0
-    pop(rlist_r0);                                             // remove r0 from the stack and put it into r0
-    bx(r0);                                                    // jump to r0 (return to where the function was called)
-                                                               //
-    /*set_ptr_destination(REL_PTR_DEX_START);*/                // This stays commented out since the offset is not used.
-    push(rlist_lr);                                            // save the load register to the stack
-    ldr3(r0, asm_offset_distance(ASM_OFFSET_INDEX));           // load the pointer to the index variable into r0
-    ldr1(r0, r0, 0);                                           // load the value at r0's pointer
-    mov1(r3, 0xFF);                                            // load 0xFF into r3
-    and1(r0, r3);                                              // AND r0 and r3, which will give us just the least significant byte
-    add5(r1, asm_offset_distance(ASM_OFFSET_DEX_STRUCT));      // set r1 to the value stored X bytes ahead
-    add3(r0, r0, r1);                                          // add r0 and r1, which is the current index and dex_struct respectivly
-    ldr1(r0, r0, 0);                                           // load the value at the memory location stored in r0
-    and1(r0, r3);                                              // truncate to just the least significant byte, which is the current dex number
-    ldr3(r1, asm_offset_distance(ASM_OFFSET_DEX_SEEN_CAUGHT)); // load the dex_seen_caught variable's pointer into r1
-    ldr1(r1, r1, 0);                                           // load the value of memory pointed at by r1
-    and1(r1, r3);                                              // AND r1 and r3, which will keep only the least significant byte
-    ldr3(r2, asm_offset_distance(ASM_OFFSET_DEX_ASM_PTR_1));   // load the GetSetPokedexFlag function location into r2
-    mov3(r3, r15);                                             // move r15 (the program counter) to r3
-    add2(r3, 5);                                               // add 5 to r3 to compensate for the four following bytes, as well as to tell it to read as THUMB code
-    mov3(r14, r3);                                             // move r3 into r14 (the load register)
-                                                               //
-    bx(r2);                                                    // jump to the pointer stored in r2 (GetSetPokedexFlag)
-    pop(rlist_r0);                                             // remove r0 from the stack and put it into r0
-    bx(r0);                                                    // jump to r0 (return to where the function was called)
-                                                               //
-    add_padding();                                             // add padding so that we are byte aligned again
-    set_asm_offset_destination(ASM_OFFSET_SENDMON_PTR);        // set the SENDMON ptr offset
-    add_word(curr_rom.loc_sendMonToPC + READ_AS_THUMB);        // the location of "SendMonToPC", plus one (so it is interpreted as thumb code)
-    set_asm_offset_destination(ASM_OFFSET_BOX_SUC_PTR);        // set the BOX_SUCCESS ptr offset
-    add_word(ptr_box_return);                                  // the location of variable "0x8006" (the return value)
-    set_asm_offset_destination(ASM_OFFSET_PKMN_OFFSET);        // set the PKMN_OFFSET ptr offset
-    add_word(ptr_pkmn_offset);                                 // the location of variable "0x8008" (the pokemon offset)
-    set_asm_offset_destination(ASM_OFFSET_DEX_ASM_PTR_1);      // set the DEX_ASM_PTR offset
-    add_word(curr_rom.loc_setPokedexFlag + READ_AS_THUMB);     // the location of GetSetPokedexFlag, plus one (so it is interpreted as thumb code)
-    set_asm_offset_destination(ASM_OFFSET_DEX_SEEN_CAUGHT);    // set the DEX_SEEN_CAUGHT offset
-    add_word(ptr_dex_seen_caught);                             // the location of the DEX_SEEN_CAUGHT variable
-    set_asm_offset_destination(ASM_OFFSET_INDEX);              // set the INDEX variable offset
-    add_word(ptr_index);                                       // the location of the INDEX variable
-                                                               //
-    set_asm_offset_destination(ASM_OFFSET_DEX_STRUCT);         // set the DEX_STRUCT offset
+    killscript();                                                              // Erase RAMscript
+    /**/ set_jump_destination(JUMP_BOX_FULL);                                  // Set the destination for if the box is full
+    virtualmsgbox(TEXT_FULL);                                                  // Display the full box message
+    waitmsg();                                                                 // Wait for the message
+    waitkeypress();                                                            // Wait for the player to presse A/B
+    release();                                                                 // Release the player
+    end();                                                                     // End the script
+                                                                               //
+    insert_textboxes();                                                        // Insert textbox data
+    four_align();                                                              // Align the code so that it is byte aligned
+                                                                               //
+    /**/ set_ptr_destination(REL_PTR_ASM_START);                               // Set the memory pointer location for ASM start
+    push(rlist_lr);                                                            // save the load register to the stack
+    ldr3(r3, asm_offset_distance(ASM_OFFSET_PKMN_OFFSET));                     // set r3 to the pointer to the pokemon offset variable
+    ldr1(r3, r3, 0);                                                           // set r3 to the value in memory r3 points to
+    add5(r0, asm_offset_distance(ASM_OFFSET_PKMN_STRUCT));                     // set r0 to a pointer 28 bytes ahead, which is the start of the Pokemon struct.
+    add3(r0, r0, r3);                                                          // add r3 to r0, giving it the correct offset for the current index
+    ldr3(r1, asm_offset_distance(ASM_OFFSET_SENDMON_PTR));                     // set r1 to the location of "SendMonToPC" plus one, since it is thumb code
+    mov3(r2, r15);                                                             // move r15 (the program counter) to r2
+    add2(r2, 5);                                                               // add 5 to r2 to compensate for the four following bytes, plus to tell the system to read as thumb code
+    mov3(r14, r2);                                                             // move r2 into r14 (the load register)
+    bx(r1);                                                                    // jump to the pointer stored in r1 (SendMonToPC)
+    ldr3(r2, asm_offset_distance(ASM_OFFSET_BOX_SUC_PTR));                     // load variable 0x8006's pointer into r2
+    str1(r0, r2, 0);                                                           // put the value of r0 into the memory location pointed at by r2, plus 0
+    pop(rlist_r0);                                                             // remove r0 from the stack and put it into r0
+    bx(r0);                                                                    // jump to r0 (return to where the function was called)
+                                                                               //
+    /*set_ptr_destination(REL_PTR_DEX_START);*/                                // This stays commented out since the offset is not used.
+    push(rlist_lr);                                                            // save the load register to the stack
+    ldr3(r0, asm_offset_distance(ASM_OFFSET_INDEX));                           // load the pointer to the index variable into r0
+    ldr1(r0, r0, 0);                                                           // load the value at r0's pointer
+    mov1(r3, 0xFF);                                                            // load 0xFF into r3
+    and1(r0, r3);                                                              // AND r0 and r3, which will give us just the least significant byte
+    add5(r1, asm_offset_distance(ASM_OFFSET_DEX_STRUCT));                      // set r1 to the value stored X bytes ahead
+    add3(r0, r0, r1);                                                          // add r0 and r1, which is the current index and dex_struct respectivly
+    ldr1(r0, r0, 0);                                                           // load the value at the memory location stored in r0
+    and1(r0, r3);                                                              // truncate to just the least significant byte, which is the current dex number
+    ldr3(r1, asm_offset_distance(ASM_OFFSET_DEX_SEEN_CAUGHT));                 // load the dex_seen_caught variable's pointer into r1
+    ldr1(r1, r1, 0);                                                           // load the value of memory pointed at by r1
+    and1(r1, r3);                                                              // AND r1 and r3, which will keep only the least significant byte
+    ldr3(r2, asm_offset_distance(ASM_OFFSET_DEX_ASM_PTR_1));                   // load the GetSetPokedexFlag function location into r2
+    mov3(r3, r15);                                                             // move r15 (the program counter) to r3
+    add2(r3, 5);                                                               // add 5 to r3 to compensate for the four following bytes, as well as to tell it to read as THUMB code
+    mov3(r14, r3);                                                             // move r3 into r14 (the load register)
+                                                                               //
+    bx(r2);                                                                    // jump to the pointer stored in r2 (GetSetPokedexFlag)
+    pop(rlist_r0);                                                             // remove r0 from the stack and put it into r0
+    bx(r0);                                                                    // jump to r0 (return to where the function was called)
+                                                                               //
+    add_padding();                                                             // add padding so that we are byte aligned again
+    set_asm_offset_destination(ASM_OFFSET_SENDMON_PTR);                        // set the SENDMON ptr offset
+    add_word(curr_rom.loc_sendMonToPC + READ_AS_THUMB);                        // the location of "SendMonToPC", plus one (so it is interpreted as thumb code)
+    set_asm_offset_destination(ASM_OFFSET_BOX_SUC_PTR);                        // set the BOX_SUCCESS ptr offset
+    add_word(ptr_box_return);                                                  // the location of variable "0x8006" (the return value)
+    set_asm_offset_destination(ASM_OFFSET_PKMN_OFFSET);                        // set the PKMN_OFFSET ptr offset
+    add_word(ptr_pkmn_offset);                                                 // the location of variable "0x8008" (the pokemon offset)
+    set_asm_offset_destination(ASM_OFFSET_DEX_ASM_PTR_1);                      // set the DEX_ASM_PTR offset
+    add_word(curr_rom.loc_setPokedexFlag + READ_AS_THUMB);                     // the location of GetSetPokedexFlag, plus one (so it is interpreted as thumb code)
+    set_asm_offset_destination(ASM_OFFSET_DEX_SEEN_CAUGHT);                    // set the DEX_SEEN_CAUGHT offset
+    add_word(ptr_dex_seen_caught);                                             // the location of the DEX_SEEN_CAUGHT variable
+    set_asm_offset_destination(ASM_OFFSET_INDEX);                              // set the INDEX variable offset
+    add_word(ptr_index);                                                       // the location of the INDEX variable
+                                                                               //
+    set_asm_offset_destination(ASM_OFFSET_DEX_STRUCT);                         // set the DEX_STRUCT offset
 
     for (int i = 0; i < 6; i++) // Add in the dex numbers
     {
@@ -264,21 +263,6 @@ void mystery_gift_script::add_command(int len)
         mg_script[curr_index] = value_buffer[i];
         curr_index++;
     }
-}
-
-int mystery_gift_script::get_offset_wondercard()
-{
-    return curr_rom.offset_wondercard;
-}
-
-int mystery_gift_script::get_offset_script()
-{
-    return curr_rom.offset_script;
-}
-
-int mystery_gift_script::get_offset_flags()
-{
-    return curr_rom.offset_flags;
 }
 
 void mystery_gift_script::fill_jumppoint_pointers()
