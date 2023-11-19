@@ -308,6 +308,7 @@ void Pokemon::convert_to_gen_three()
     if (!is_caught(species_index_struct))
     {
         data_section_G[2] = 0x44; // Rare Candy
+        is_new = true;
     }
     else
     {
@@ -623,4 +624,8 @@ byte Pokemon::get_dex_number()
 bool Pokemon::get_validity()
 {
     return is_valid;
+}
+
+bool Pokemon::get_is_new(){
+    return is_new;
 }

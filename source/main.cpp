@@ -33,11 +33,10 @@
 
 /*
 TODO:
-- Finalize Graphics
-- Fix intro text color
 - Credits (List all programs, people, and code- plus TPCI)
 
 Post Beta:
+- Better custom sprites (Progress, Fennel, Title)
 - Determine if transfered Shiny Pokemon are square/star sparkles
 - Music and Sound Effects
 - Simplify the sprite initalization
@@ -99,11 +98,6 @@ void initalization_script(void)
 	rand_set_seed(0x1216);
 	add_script_party_var(party);
 
-	// Prepare dialouge
-	populate_dialogue();
-	populate_script();
-	init_text_engine();
-
 	// Sound bank init
 	irq_init(NULL);
 	// irq_set(II_VBLANK, mmVBlank, 0); //Music
@@ -151,6 +145,11 @@ void initalization_script(void)
 	main_menu_btn_init(Button(btn_lang_spa, 608), BTN_SPA);
 	main_menu_btn_init(Button(btn_lang_kor, 640), BTN_KOR);
 	main_menu_btn_init(Button(lang_arrow, 672), LANG_ARROW);
+	
+	// Prepare dialouge
+	populate_dialogue();
+	populate_script();
+	init_text_engine();
 
 	pokedex_init(); // Why does this cause the music to stop playing? Also the loop doesn't work
 
@@ -188,7 +187,8 @@ void game_load_error(void)
 void first_load_message(void)
 {
 	tte_set_pos(8, 0);
-	tte_write("Hello! Thank you for using\nPok@mon Mirror!\n\nJust as a word of caution- \nPok@mon Mirror WILL modify\nyour generation 3 save file.\nThe program is designed to\nnot corrupt anything, but if\nyou do not wish to modify\nyour save file, please turn\noff your Game Boy Advance.\n\nPlease note that Pok@mon\nMirror is still in beta, so\nsave file backups are HIGHLY\nrecommended before using.\nWith that all out of the\nway, please enjoy!\n\n      -The Gears of Progress");
+	tte_set_ink(10);
+	tte_write("#{cx:0x2000}Hello! Thank you for using\nPok@mon Mirror!\n\nJust as a word of caution- \nPok@mon Mirror WILL modify\nyour generation 3 save file.\nThe program is designed to\nnot corrupt anything, but if\nyou do not wish to modify\nyour save file, please turn\noff your Game Boy Advance.\n\nPlease note that Pok@mon\nMirror is still in beta, so\nsave file backups are HIGHLY\nrecommended before using.\nWith that all out of the\nway, please enjoy!\n\n      -The Gears of Progress");
 	while (!key_hit(KEY_A))
 	{
 		key_poll();
@@ -200,6 +200,7 @@ void first_load_message(void)
 int main(void)
 {
 	initalization_script();
+
 	// Check if the game has been loaded correctly.
 	while (!curr_rom.load_rom())
 	{
@@ -219,7 +220,8 @@ int main(void)
 
 	// Legal mumbo jumbo
 	tte_set_pos(8, 0);
-	tte_write("\n\nPokemon Mirror was created\nout of love and appreciation\nfor the Pokemon franchise\nwith no profit in mind.\nIt will ALWAYS be free.\n\nPlease support the original developers-\nNintendo and GAME FREAK.\n\nAll Pokemon names, sprites, and music are owned by \nNintendo, Creatures Inc, and\nGAME FREAK Inc.");
+	tte_write("#{cx:0xE000}\n\nPokemon Mirror was created\nout of love and appreciation\nfor the Pokemon franchise\nwith no profit in mind.\nIt will ALWAYS be free.\n\nPlease support the original developers-\nNintendo and GAME FREAK.\n\nAll Pokemon names, sprites, and music are owned by \nNintendo, Creatures Inc, and\nGAME FREAK Inc.");
+	tte_write("#{cx:0xF000}"); // Set the color to grey
 	while (delay_counter < 2500000)
 	{
 		delay_counter++;

@@ -19,9 +19,13 @@ bool disabled;
 void init_text_engine()
 {
     // Load the TTE
-    tte_init_se(3, BG_CBB(TEXT_CBB) | BG_SBB(TEXT_SBB) | BG_PRIO(0), 0xF000, 0b0001100011100110, 0, &pkmn_fontFont, NULL);
+    tte_init_se(3, BG_CBB(TEXT_CBB) | BG_SBB(TEXT_SBB) | BG_PRIO(0), 0, CLR_WHITE, 14, &pkmn_fontFont, NULL);
     tte_set_margins(LEFT, TOP, RIGHT, BOTTOM);
     tte_set_pos(LEFT, TOP);
+
+    pal_bg_bank[14][15]= 0b0000001001111111;
+    pal_bg_bank[15][15]= 0b0001100011100110;
+    
 
     // Set default variables
     curr_line = script[SCRIPT_START];
@@ -42,7 +46,6 @@ void text_next_frame()
             {
                 char_index++;
                 tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
-                tte_set_ink(CLR_RED);
                 tte_write(curr_text.substr(0, char_index).c_str());
             }
         }

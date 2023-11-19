@@ -22,7 +22,7 @@ void populate_dialogue()
     dialogue[DIA_START] = "On a second Game Boy family\nsystem, please load the Game\nBoy Pok@mon game you wish to\ntransfer from.|In your Game Boy Pok@mon\ngame, put any Pokemon you\nwant to bring out of\nyour dreams into your party.|Then connect this Game Boy\nAdvance to the other Game\nBoy family system using a\nGame Boy Color link cable.|Once you're ready, press A\non this device, talk to the Cable Club attendant, and\nthen initiate a trade.";
     dialogue[DIA_TRANS_GOOD] = "Amazing! Fantastic!\nEverything went perfectly!";
     dialogue[DIA_NEW_DEX] = "It looks like there's at\nleast one new Pokemon here\nthat isn't in the Dream Dex!|I'll give them something\nextra sweet as a reward for you both.";
-    dialogue[DIA_NO_NEW_DEX] = "It doesn't look like there's\nanything new for your Dream\nDex, but that's okay!|Any research is good\research!";
+    dialogue[DIA_NO_NEW_DEX] = "It doesn't look like there's\nanything new for your Dream\nDex, but that's okay!|It's important to confirm\nresearch results with\nmultiple tests!";
     dialogue[DIA_SEND_FRIEND_KANTO] = "I'm going to send these\nPokemon to my friend BILL so\nthat you can pick them up.\nThey live on Route 25!|Did you know they developed the Storage System for the\nKanto region?|My younger sister developed a version of the Storage\nSystem too, so BILL is a\ngood friend of ours!";
     dialogue[DIA_SEND_FRIEND_HOENN] = "I'm going to send these\nPokemon to my friend LANNETE so\nthat you can pick them up.\nThey live on route 114!|Did you know they developed the Storage System for the\nHoenn region?|My younger sister developed a version of the Storage\nSystem too, so LANNETE is a\ngood friend of ours!";
     dialogue[DIA_THANK] = "Thank you so much for your\nhelp! Whenever you want to\ntransfer more Pokemon, just\nlet me know!|See you around!";
@@ -127,7 +127,7 @@ bool run_conditional(int index)
         return get_tutorial_flag();
 
     case COND_NEW_POKEMON:
-        return true;
+        return party_data.get_has_new_pkmn();
 
     case COND_IS_HOENN:
         return curr_rom.is_hoenn();

@@ -12,6 +12,7 @@ public:
     int get_last_error();
     void load_pokemon();
     Pokemon* get_full_pokemon_array();
+    bool get_has_new_pkmn();
 
 private:
     Pokemon party[6];
