@@ -145,7 +145,7 @@ void initalization_script(void)
 	main_menu_btn_init(Button(btn_lang_spa, 608), BTN_SPA);
 	main_menu_btn_init(Button(btn_lang_kor, 640), BTN_KOR);
 	main_menu_btn_init(Button(lang_arrow, 672), LANG_ARROW);
-	
+
 	// Prepare dialouge
 	populate_dialogue();
 	populate_script();
@@ -166,7 +166,7 @@ void game_load_error(void)
 	REG_BG2VOFS = 0;
 	tte_set_pos(40, 24);
 	tte_set_margins(40, 24, 206, 104);
-	tte_write("The Pok@mon save\nfile was not loaded successfully.\n\nPlease remove and\nreinsert the Game\nPak, and then press the A button.");
+	tte_write("#{cx:0xF000}The Pok@mon save\nfile was not loaded successfully.\n\nPlease remove and\nreinsert the Game\nPak, and then press the A button.");
 	// tte_write(std::to_string(get_gamecode() >> 8).c_str());
 	key_poll();
 	while (!key_hit(KEY_A))
@@ -186,9 +186,10 @@ void game_load_error(void)
 
 void first_load_message(void)
 {
+	while (key_hit(KEY_A)){}; // Wait until A is no longer being held
 	tte_set_pos(8, 0);
 	tte_set_ink(10);
-	tte_write("#{cx:0x2000}Hello! Thank you for using\nPok@mon Mirror!\n\nJust as a word of caution- \nPok@mon Mirror WILL modify\nyour generation 3 save file.\nThe program is designed to\nnot corrupt anything, but if\nyou do not wish to modify\nyour save file, please turn\noff your Game Boy Advance.\n\nPlease note that Pok@mon\nMirror is still in beta, so\nsave file backups are HIGHLY\nrecommended before using.\nWith that all out of the\nway, please enjoy!\n\n      -The Gears of Progress");
+	tte_write("#{cx:0xE000}Hello! Thank you for using\nPok@mon Mirror!\n\nJust as a word of caution- \nPok@mon Mirror WILL modify\nyour generation 3 save file.\nThe program is designed to\nnot corrupt anything, but if\nyou do not wish to modify\nyour save file, please turn\noff your Game Boy Advance.\n\nPlease note that Pok@mon\nMirror is still in beta, so\nsave file backups are HIGHLY\nrecommended before using.\nWith that all out of the\nway, please enjoy!\n\n      -The Gears of Progress");
 	while (!key_hit(KEY_A))
 	{
 		key_poll();
@@ -222,14 +223,14 @@ int main(void)
 	tte_set_pos(8, 0);
 	tte_write("#{cx:0xE000}\n\nPokemon Mirror was created\nout of love and appreciation\nfor the Pokemon franchise\nwith no profit in mind.\nIt will ALWAYS be free.\n\nPlease support the original developers-\nNintendo and GAME FREAK.\n\nAll Pokemon names, sprites, and music are owned by \nNintendo, Creatures Inc, and\nGAME FREAK Inc.");
 	tte_write("#{cx:0xF000}"); // Set the color to grey
-	while (delay_counter < 2500000)
+	while (delay_counter < (15 * 60))
 	{
 		delay_counter++;
 		rand_next_frame();
 		key_poll();
 		if (key_hit(KEY_A))
 		{
-			delay_counter = 2500000;
+			delay_counter = (15 * 60);
 		}
 		VBlankIntrWait();
 	}
@@ -239,14 +240,14 @@ int main(void)
 	tte_erase_rect(0, 0, 240, 160);
 	REG_BG1VOFS = 0;
 	delay_counter = 0;
-	while (delay_counter < 2500000)
+	while (delay_counter < (15 * 60))
 	{
 		delay_counter++;
 		rand_next_frame();
 		key_poll();
 		if (key_hit(KEY_A))
 		{
-			delay_counter = 2500000;
+			delay_counter = (15 * 60);
 		}
 		VBlankIntrWait();
 	}
@@ -264,6 +265,9 @@ int main(void)
 	// MAIN LOOP
 	while (1)
 	{
+		if (DEBUG_MODE){
+			print_mem_section();
+		}
 		switch (main_menu_loop())
 		{
 		case (BTN_TRANSFER):

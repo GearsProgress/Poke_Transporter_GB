@@ -23,8 +23,9 @@ void init_text_engine()
     tte_set_margins(LEFT, TOP, RIGHT, BOTTOM);
     tte_set_pos(LEFT, TOP);
 
-    pal_bg_bank[14][15]= 0b0000001001111111;
-    pal_bg_bank[15][15]= 0b0001100011100110;
+    pal_bg_bank[13][15] = CLR_WHITE;
+    pal_bg_bank[14][15] = 0b0000001001111111;
+    pal_bg_bank[15][15] = 0b0001100011100110;
     
 
     // Set default variables

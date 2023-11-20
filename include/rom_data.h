@@ -27,6 +27,7 @@ public:
     bool load_rom();
     bool is_hoenn();
     bool is_ruby_sapphire();
+
     int loc_sendMonToPC;
     int loc_gSpecialVar_0x8000;
     int loc_gSaveBlock1;    // Only used in R/S
@@ -37,6 +38,10 @@ public:
     int offset_wondercard;
     int offset_script;
     int text_region;
+
+    // PKHeX's list of flags is useful for making sure the detection is accurate: https://github.com/kwsch/PKHeX/blob/78a557c3cdaa6f48b42cc96df8ccb4d20b897937/PKHeX.Core/Resources/text/other/flags_rs.txt
+    int e4_flag; // The flag that is set when you become champion. Often listed as "GAME_CLEAR"
+    int mg_flag; // The flag that is set when you enable Mystery Gift. Known as "EXDATA_ENABLE" in RS
 
     u8 map_bank;
     u8 map_id;

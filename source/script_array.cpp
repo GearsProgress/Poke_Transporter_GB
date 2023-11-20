@@ -24,7 +24,7 @@ void populate_dialogue()
     dialogue[DIA_NEW_DEX] = "It looks like there's at\nleast one new Pokemon here\nthat isn't in the Dream Dex!|I'll give them something\nextra sweet as a reward for you both.";
     dialogue[DIA_NO_NEW_DEX] = "It doesn't look like there's\nanything new for your Dream\nDex, but that's okay!|It's important to confirm\nresearch results with\nmultiple tests!";
     dialogue[DIA_SEND_FRIEND_KANTO] = "I'm going to send these\nPokemon to my friend BILL so\nthat you can pick them up.\nThey live on Route 25!|Did you know they developed the Storage System for the\nKanto region?|My younger sister developed a version of the Storage\nSystem too, so BILL is a\ngood friend of ours!";
-    dialogue[DIA_SEND_FRIEND_HOENN] = "I'm going to send these\nPokemon to my friend LANNETE so\nthat you can pick them up.\nThey live on route 114!|Did you know they developed the Storage System for the\nHoenn region?|My younger sister developed a version of the Storage\nSystem too, so LANNETE is a\ngood friend of ours!";
+    dialogue[DIA_SEND_FRIEND_HOENN] = "I'm going to send these\nPokemon to my friend LANNETE\nso that you can pick them\nup. They live on route 114!|Did you know they developed the Storage System for the\nHoenn region?|My younger sister developed a version of the Storage\nSystem too, so LANNETE is a\ngood friend of ours!";
     dialogue[DIA_THANK] = "Thank you so much for your\nhelp! Whenever you want to\ntransfer more Pokemon, just\nlet me know!|See you around!";
     dialogue[DIA_GET_MON] = "Let's get started! Please connect Load the Game Boy Pok@mon game you want to transfer from, and put the Pok@mon you want to transfer into your party. ";
     dialogue[DIA_MG_OTHER_EVENT] = "Hi Trainer! It looks like\nyou have a different event\ncurrently loaded.|That's no problem, but it\nwill be overwritten if you\ncontinue.|Turn off the system now if\nyou want to experience your\ncurrent event,\nbut otherwise-";
@@ -116,12 +116,10 @@ bool run_conditional(int index)
         return party_data.get_last_error() != COND_ERROR_COLOSSEUM;
 
     case COND_BEAT_E4:
-        return read_flag(0x800 + 0x39);
-        // Emerald Flag ID 0x860 + 0x1F
+        return read_flag(curr_rom.e4_flag);
 
     case COND_MG_ENABLED:
-        return read_flag(0x800 + 0x39);
-        // Emerald flag ID (0x860 + 0x7B)
+        return read_flag(curr_rom.mg_flag);
 
     case COND_TUTORIAL_COMPLETE:
         return get_tutorial_flag();

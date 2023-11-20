@@ -111,6 +111,6 @@ bool Pokemon_Party::get_has_new_pkmn()
 		{
 			return true;
 		}
-		return false;
 	}
+	return false;
 }

@@ -36,8 +36,8 @@ bool rom_data::load_rom()
     case (RUBY_ID):
     case (SAPPHIRE_ID):
 
-        map_bank = 0;
-        map_id = 10;
+        map_bank = 20;
+        map_id = 2;
         npc_id = 1;
 
         def_map_bank = 8;
@@ -47,8 +47,11 @@ bool rom_data::load_rom()
         text_region = TEXT_HOENN;
         offset_wondercard = 0;
         offset_script = 0x0810;
-        switch (version)
 
+        e4_flag = 0x800 + 0x04;
+        mg_flag = 0x800 + 0x4C;
+
+        switch (version)
         {
         case (VERS_1_0):
             loc_sendMonToPC = 0x0803D998;
@@ -57,7 +60,7 @@ bool rom_data::load_rom()
             loc_setPokedexFlag = 0x08090D90;
             offset_ramscript = 0x3690;
             offset_flags = 0x1220;
-            break;
+            return true;
         case (VERS_1_1):
             loc_sendMonToPC = 0x0803D998;
             loc_gSpecialVar_0x8000 = 0x0202E8C4;
@@ -65,7 +68,7 @@ bool rom_data::load_rom()
             loc_setPokedexFlag = 0x08090DB0;
             offset_ramscript = 0x3690;
             offset_flags = 0x1220;
-            break;
+            return true;
         case (VERS_1_2):
             loc_sendMonToPC = 0x0803D998;
             loc_gSpecialVar_0x8000 = 0x0202E8C4;
@@ -73,10 +76,9 @@ bool rom_data::load_rom()
             loc_setPokedexFlag = 0x08090DB0;
             offset_ramscript = 0x3690;
             offset_flags = 0x1220;
-            break;
+            return true;
         }
-        return true;
-
+        break;
     case (FIRERED_ID):
     case (LEAFGREEN_ID):
 
@@ -91,6 +93,10 @@ bool rom_data::load_rom()
         text_region = TEXT_KANTO;
         offset_wondercard = 0x0460;
         offset_script = 0x079C;
+
+        e4_flag = 0x800 + 0x2C;
+        mg_flag = 0x800 + 0x39;
+
         switch (version)
         {
         case (VERS_1_0):
@@ -100,7 +106,7 @@ bool rom_data::load_rom()
             loc_setPokedexFlag = 0x08088E74;
             offset_ramscript = 0x361C;
             offset_flags = 0x0EE0;
-            break;
+            return true;
         case (VERS_1_1):
             loc_sendMonToPC = 0x08040BA4;
             loc_gSpecialVar_0x8000 = 0x020370B8;
@@ -108,10 +114,9 @@ bool rom_data::load_rom()
             loc_setPokedexFlag = 0x08088E5C;
             offset_ramscript = 0x361C;
             offset_flags = 0x0EE0;
-            break;
+            return true;
         }
-        return true;
-
+        break;
     case (EMERALD_ID):
 
         map_bank = 20;
@@ -125,6 +130,9 @@ bool rom_data::load_rom()
         text_region = TEXT_HOENN;
         offset_wondercard = 0x056C;
         offset_script = 0x08A8;
+
+        e4_flag = 0x860 + 0x04;
+        mg_flag = 0x860 + 0x7B;
 
         loc_sendMonToPC = 0x0806B490;
         loc_gSpecialVar_0x8000 = 0x020375D8;
