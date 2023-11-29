@@ -27,6 +27,11 @@ public:
     bool load_rom();
     bool is_hoenn();
     bool is_ruby_sapphire();
+    void print_rom_info();
+
+    int gamecode;
+    int version;
+    int language;
 
     int loc_sendMonToPC;
     int loc_gSpecialVar_0x8000;

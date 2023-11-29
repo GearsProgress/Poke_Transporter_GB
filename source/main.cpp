@@ -3,7 +3,6 @@
 #include <cstring>
 // #include <maxmod.h> //Music
 
-#include "debug.h"
 #include "flash_mem.h"
 #include "gba_flash.h"
 #include "interrupt.h"
@@ -33,10 +32,12 @@
 
 /*
 TODO:
+- Center buttons?
 - Credits (List all programs, people, and code- plus TPCI)
 
 Post Beta:
 - Better custom sprites (Progress, Fennel, Title)
+- Add a % or x/250 for the Dream Dex
 - Determine if transfered Shiny Pokemon are square/star sparkles
 - Music and Sound Effects
 - Simplify the sprite initalization
@@ -54,6 +55,7 @@ Pokemon_Party party = Pokemon_Party();
 int delay_counter = 0;
 bool skip = true;
 rom_data curr_rom;
+
 /*
 int test_main(void)
 {
@@ -186,7 +188,9 @@ void game_load_error(void)
 
 void first_load_message(void)
 {
-	while (key_hit(KEY_A)){}; // Wait until A is no longer being held
+	while (key_is_down(KEY_A))
+	{
+	}; // Wait until A is no longer being held
 	tte_set_pos(8, 0);
 	tte_set_ink(10);
 	tte_write("#{cx:0xE000}Hello! Thank you for using\nPok@mon Mirror!\n\nJust as a word of caution- \nPok@mon Mirror WILL modify\nyour generation 3 save file.\nThe program is designed to\nnot corrupt anything, but if\nyou do not wish to modify\nyour save file, please turn\noff your Game Boy Advance.\n\nPlease note that Pok@mon\nMirror is still in beta, so\nsave file backups are HIGHLY\nrecommended before using.\nWith that all out of the\nway, please enjoy!\n\n      -The Gears of Progress");
@@ -260,13 +264,34 @@ int main(void)
 	int old_lang_btn_num = -1;
 	set_arrow_point(curr_lang_btn_num);
 
+#define CREDITS_ARRAY_SIZE 14
+	int curr_credits_num = 0;
+	std::string credits_array[CREDITS_ARRAY_SIZE] = {
+		"Developed by:\n\n\nThe Gears\nof Progress",
+		"Developed using\nlibTONC from\ndevkitPro",
+		"Inspired by the\nworks of:\n\n-Goppier\n-Lorenzooone\n-im a blissey\n-RETIRE",
+		"Programs used:\n\n\n-HexManiacAdvance\n-PKHeX\n-WC3Tool\n-Usenti\n",
+		"Open Source Code and\nLibraries:\n\n-libtonc-examples\n-libsavgba\n-gba-link-connection\n-awesome-gbadev\n-arduino-poke-gen2",
+		"Research resources:\n\n-arm-docs\n-PokemonGen3toGenX\n\nFull links can be\nfound on this\nprogram's GitHub",
+		"ROM data obtained\nfrom decompilations created by the PRET team",
+		"Pok@mon data\nobtained from:\n\n-Bulbapedia\n-Serebii\n-PokeAPI.com",
+		"Discord community\nassistance:\n\n-Hex Maniac Advance\n Development\n-gbadev\n-pret",
+		"Sprite work:\n\n\n-lite_thespark",
+		"Writing assistance:\n\n\n-Mad",
+		"Special thanks:\n\n\nEnn, Roku, Luca,\nArctic, and everyone\nwho has listened to me talk about this\nfor months",
+		"All Pok@mon names,\nsprites, and names\nof related resources\nare copyright\nNintendo,\nCreatures Inc.,\nand GAME FREAK Inc.",
+		"This project is not endorsed or\nsupported by\nGameFreak/Nintendo.\n\nPlease support the\noriginal developers.",
+	};
+
 	curr_rom.load_rom();
 
 	// MAIN LOOP
 	while (1)
 	{
-		if (DEBUG_MODE){
+		if (DEBUG_MODE)
+		{
 			print_mem_section();
+			curr_rom.print_rom_info();
 		}
 		switch (main_menu_loop())
 		{
@@ -323,12 +348,28 @@ int main(void)
 			}
 			break;
 		case (BTN_CREDITS):
-			tte_set_pos(0, 0);
-			tte_write("wow cool credits man");
+			tte_set_pos(40, 24);
+			tte_set_margins(40, 24, 206, 104);
+			tte_erase_screen();
+			tte_write(credits_array[curr_credits_num].c_str());
+			REG_BG0CNT = (REG_BG0CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
+			REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(2);
+			REG_BG2VOFS = 0;
 			if (key_hit(KEY_B))
 			{
 				tte_erase_rect(0, 0, H_MAX, V_MAX);
+				REG_BG0CNT = (REG_BG0CNT & ~BG_PRIO_MASK) | BG_PRIO(2);
+				REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
+				REG_BG2VOFS = 96;
 				main_menu_exit();
+			}
+			if (key_hit(KEY_LEFT) && curr_credits_num > 0)
+			{
+				curr_credits_num--;
+			}
+			if (key_hit(KEY_RIGHT) && curr_credits_num < (CREDITS_ARRAY_SIZE - 1))
+			{
+				curr_credits_num++;
 			}
 			break;
 		}

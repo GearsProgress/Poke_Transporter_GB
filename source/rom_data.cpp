@@ -3,14 +3,10 @@
 #include "pokemon_party.h"
 #include "pokemon_data.h"
 
-int gamecode;
-int version;
-int language;
-
 rom_data::rom_data() {}
 bool rom_data::load_rom()
 {
-    if (DEBUG_MODE)
+    if (IGNORE_GAME_PAK)
     {
         gamecode = DEBUG_GAME;
         version = DEBUG_VERS;
@@ -153,4 +149,33 @@ bool rom_data::is_hoenn()
 bool rom_data::is_ruby_sapphire()
 {
     return (gamecode == RUBY_ID || gamecode == SAPPHIRE_ID);
+}
+
+void rom_data::print_rom_info()
+{
+    std::string out;
+    switch (gamecode)
+    {
+    case (RUBY_ID):
+        out += "R";
+        break;
+    case (SAPPHIRE_ID):
+        out += "S";
+        break;
+    case (FIRERED_ID):
+        out += "F";
+        break;
+    case (LEAFGREEN_ID):
+        out += "L";
+        break;
+    case (EMERALD_ID):
+        out += "E";
+        break;
+    }
+    out += "-";
+    out += std::to_string(version);
+    out += "-";
+    out += char(language);
+    tte_set_pos(0, 8);
+    tte_write(out.c_str());
 }

@@ -1,3 +1,5 @@
+// Original code created by StevenChaulk https://github.com/stevenchaulk/arduino-poke-gen2
+
 #include <tonc.h>
 #include <string>
 #include "gameboy_colour.h"
@@ -5,6 +7,7 @@
 #include "output.h"
 #include "LinkGPIO.h"
 #include "script_array.h"
+#include "debug_mode.h"
 
 #define BYTE_INCOMPLETE 0
 #define BYTE_COMPLETE 1
@@ -46,7 +49,7 @@ char output[2];
 std::string outHexStr(vu8 inputNum)
 {
   std::string out = "XX";
-  out[0] = (inputNum)&0xF;
+  out[0] = (inputNum) & 0xF;
   out[1] = (inputNum >> 4) & 0xF;
   return out;
 }
@@ -120,9 +123,12 @@ void setup()
   LINK_SPI_SET_HIGH(REG_RCNT, LINK_SPI_BIT_GENERAL_PURPOSE_HIGH);
   */
 
-  tte_erase_screen();
-  tte_set_pos(0, 0);
-  tte_write("FEED ME POKEMON, I HUNGER!\n");
+  if (DEBUG_MODE)
+  {
+    tte_erase_screen();
+    tte_set_pos(0, 0);
+    tte_write("FEED ME POKEMON, I HUNGER!\n");
+  }
 
   // digitalWrite(MOSI_, LOW);
   linkGPIO->writePin(LinkGPIO::Pin::SO, 0);
@@ -371,11 +377,14 @@ int transferBit(byte *party_data)
   {
     shift = 0;
     out_data = handleIncomingByte(in_data); // in_data
-    print(
-        std::to_string(trade_centre_state_gen_II) + " " +
-        std::to_string(connection_state) + " " +
-        std::to_string(in_data) + " " +
-        std::to_string(out_data) + "\n");
+    if (DEBUG_MODE)
+    {
+      print(
+          std::to_string(trade_centre_state_gen_II) + " " +
+          std::to_string(connection_state) + " " +
+          std::to_string(in_data) + " " +
+          std::to_string(out_data) + "\n");
+    }
     if (trade_centre_state_gen_II == SENDING_DATA)
     {
       party_data[0] = in_data;

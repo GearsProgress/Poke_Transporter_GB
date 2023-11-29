@@ -1,4 +1,4 @@
-//Created by StevenChaulk? https://github.com/stevenchaulk/arduino-poke-gen2
+//Created by StevenChaulk https://github.com/stevenchaulk/arduino-poke-gen2
 
 #ifndef GAMEBOY_COLOUR_H_
 #define GAMEBOY_COLOUR_H_

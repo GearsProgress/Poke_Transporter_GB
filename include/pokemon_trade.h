@@ -1,4 +1,4 @@
-//Created by StevenChaulk? https://github.com/stevenchaulk/arduino-poke-gen2
+//Created by StevenChaulk https://github.com/stevenchaulk/arduino-poke-gen2
 
 #ifndef POKEMON_TRADE_H_
 #define POKEMON_TRADE_H_

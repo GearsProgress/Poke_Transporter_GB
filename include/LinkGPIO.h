@@ -1,3 +1,5 @@
+// Created by afska https://github.com/afska/gba-link-connection
+
 #ifndef LINK_GPIO_H
 #define LINK_GPIO_H
 

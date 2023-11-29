@@ -585,6 +585,7 @@ u32 Pokemon::generate_pid(byte pid_species_index, byte nature, byte *pid_dvs)
         // Randomize rest of PID
         new_pid |= get_rand_u32() & 0xFFFFFF00;
 
+        // Set nature
         while (new_pid % 25 != nature)
         {
             new_pid = new_pid + 256;

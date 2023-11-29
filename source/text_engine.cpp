@@ -40,6 +40,7 @@ void text_next_frame()
 {
     if (!disabled)
     {
+        tte_set_margins(LEFT, TOP, RIGHT, BOTTOM);
         tte_set_pos(LEFT, TOP);
         if (char_index < curr_text.length() && curr_text.substr(char_index, 1) != "|")
         {
