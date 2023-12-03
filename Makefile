@@ -39,7 +39,7 @@ GRAPHICS	:= graphics
 ARCH	:=	-mthumb -mthumb-interwork
 
 CFLAGS	:=	-g -Wall -O2\
-		-mcpu=arm7tdmi -mtune=arm7tdmi\
+		-mcpu=arm7tdmi -mtune=arm7tdmi -masm-syntax-unified\
 		$(ARCH)
 
 CFLAGS	+=	$(INCLUDE)
@@ -52,7 +52,7 @@ LDFLAGS	=	-g $(ARCH) -Wl,-Map,$(notdir $*.map)
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
-LIBS	:= -lmm -ltonc
+LIBS	:= -lmm -ltonc -lgba
 
 
 #---------------------------------------------------------------------------------
@@ -60,7 +60,7 @@ LIBS	:= -lmm -ltonc
 # include and lib.
 # the LIBGBA path should remain in this list if you want to use maxmod
 #---------------------------------------------------------------------------------
-LIBDIRS	:=	$(LIBGBA) $(LIBTONC) 
+LIBDIRS	:=	$(LIBGBA) $(LIBTONC) $(LIBGBA)
 
 #---------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional

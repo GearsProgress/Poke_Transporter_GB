@@ -29,6 +29,7 @@
 #include "mystery_gift_injector.h"
 #include "mystery_gift_builder.h"
 #include "rom_data.h"
+#include "save.h"
 
 /*
 TODO:
@@ -211,7 +212,7 @@ int main(void)
 	}
 
 	// Initalize memory and save data after loading the game
-	flash_init(FLASH_SIZE_128KB);
+	init_bank();
 	initalize_memory_locations();
 	load_custom_save_data();
 
