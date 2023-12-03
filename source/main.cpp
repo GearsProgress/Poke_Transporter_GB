@@ -57,7 +57,7 @@ bool skip = true;
 rom_data curr_rom;
 
 /*
-int test_main(void)
+int test_main(void) Music
 {
 
 	irq_init(NULL);
@@ -96,7 +96,6 @@ void initalization_script(void)
 	irq_init(NULL);
 	irq_enable(II_VBLANK);
 
-	flash_init(FLASH_SIZE_128KB);
 	rand_set_seed(0x1216);
 	add_script_party_var(party);
 
@@ -188,12 +187,10 @@ void game_load_error(void)
 
 void first_load_message(void)
 {
-	while (key_is_down(KEY_A))
-	{
-	}; // Wait until A is no longer being held
 	tte_set_pos(8, 0);
 	tte_set_ink(10);
 	tte_write("#{cx:0xE000}Hello! Thank you for using\nPok@mon Mirror!\n\nJust as a word of caution- \nPok@mon Mirror WILL modify\nyour generation 3 save file.\nThe program is designed to\nnot corrupt anything, but if\nyou do not wish to modify\nyour save file, please turn\noff your Game Boy Advance.\n\nPlease note that Pok@mon\nMirror is still in beta, so\nsave file backups are HIGHLY\nrecommended before using.\nWith that all out of the\nway, please enjoy!\n\n      -The Gears of Progress");
+	key_poll();
 	while (!key_hit(KEY_A))
 	{
 		key_poll();
@@ -214,13 +211,14 @@ int main(void)
 	}
 
 	// Initalize memory and save data after loading the game
+	flash_init(FLASH_SIZE_128KB);
 	initalize_memory_locations();
 	load_custom_save_data();
 
 	if (get_tutorial_flag() == false)
 	{
 		first_load_message();
-		initalize_save_data();
+		// initalize_save_data();
 	}
 
 	// Legal mumbo jumbo
@@ -264,11 +262,10 @@ int main(void)
 	int old_lang_btn_num = -1;
 	set_arrow_point(curr_lang_btn_num);
 
-#define CREDITS_ARRAY_SIZE 14
+#define CREDITS_ARRAY_SIZE 13
 	int curr_credits_num = 0;
 	std::string credits_array[CREDITS_ARRAY_SIZE] = {
-		"Developed by:\n\n\nThe Gears\nof Progress",
-		"Developed using\nlibTONC from\ndevkitPro",
+		"Developed by:\n\n\nThe Gears\nof Progress\n\nusing libTONC from\ndevkitPro",
 		"Inspired by the\nworks of:\n\n-Goppier\n-Lorenzooone\n-im a blissey\n-RETIRE",
 		"Programs used:\n\n\n-HexManiacAdvance\n-PKHeX\n-WC3Tool\n-Usenti\n",
 		"Open Source Code and\nLibraries:\n\n-libtonc-examples\n-libsavgba\n-gba-link-connection\n-awesome-gbadev\n-arduino-poke-gen2",
@@ -387,12 +384,3 @@ int main(void)
 		global_next_frame();
 	}
 }
-
-/*Credits:
-https://github.com/laqieer/libsavgba
-https://github.com/rodri042/gba-link-connection
-arduino-boy
-
-Notes:
-- GBA and GBC link cables are different, that's why it didn't work initally on mGBA
-*/

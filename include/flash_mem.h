@@ -20,7 +20,7 @@ void initalize_memory_locations();
 void print_mem_section();
 //bool insert_pokemon(Pokemon party_array[], int num);
 void reverse_endian(u8 *data, size_t size);
-void update_memory_buffer_checksum();
+void update_memory_buffer_checksum(bool hall_of_fame);
 bool read_flag(u16 flag_id);
 bool compare_map_and_npc_data(int map_bank, int map_id, int npc_id);
 

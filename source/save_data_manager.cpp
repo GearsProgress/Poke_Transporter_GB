@@ -24,7 +24,21 @@ void write_custom_save_data()
     {
         global_memory_buffer[HOF_SECTION + i] = save_data_array[i];
     }
-    flash_write(HALL_OF_FAME + 0x1000, &global_memory_buffer[0], 0x1000);
+    update_memory_buffer_checksum(true);
+    int out = flash_write(HALL_OF_FAME + 0x1000, &global_memory_buffer[0], 0x1000);
+    if (out != 0 && DEBUG_MODE)
+    {
+        tte_set_pos(0, 0);
+        tte_write("error writing custom save data: ");
+        tte_write(std::to_string(out).c_str());
+        key_poll();
+        VBlankIntrWait();
+        while (!key_hit(KEY_SELECT))
+        {
+            key_poll();
+            VBlankIntrWait();
+        }
+    }
 }
 
 bool is_caught(int dex_num)

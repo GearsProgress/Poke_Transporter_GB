@@ -43,6 +43,8 @@ void initalize_memory_locations()
         }
         mem_id = (mem_id + 1) % TOTAL_SAVE_SECTIONS;
     }
+    // Bring the Memory ID back to the first one
+    mem_id = (mem_id + 1) % TOTAL_SAVE_SECTIONS;
 
     if (false) // This will print out a section of the FLASH mem for debugging purposes
     {
@@ -55,9 +57,12 @@ void initalize_memory_locations()
         tte_write("\n");
         for (int i = mem_start; i < (128 + mem_start); i++)
         {
-            if (i % 2 == 0){
+            if (i % 2 == 0)
+            {
                 tte_write("#{cx:0xE000}");
-            } else {
+            }
+            else
+            {
                 tte_write("#{cx:0xD000}");
             }
             tte_write(std::to_string(global_memory_buffer[i]).c_str());
@@ -170,7 +175,7 @@ bool insert_pokemon(Pokemon party[], int total_num)
 */
 
 // Updates the checksum in the current memory buffer to match what is expected
-void update_memory_buffer_checksum()
+void update_memory_buffer_checksum(bool hall_of_fame)
 {
     vu32 checksum = 0x00;
 
@@ -186,8 +191,16 @@ void update_memory_buffer_checksum()
     }
 
     vu16 small_checksum = ((checksum & 0xFFFF0000) >> 16) + (checksum & 0x0000FFFF);
-    global_memory_buffer[0x0FF6] = small_checksum & 0x00FF;
-    global_memory_buffer[0x0FF7] = (small_checksum & 0xFF00) >> 8;
+    if (hall_of_fame)
+    {
+        global_memory_buffer[0x0FF4] = small_checksum & 0x00FF;
+        global_memory_buffer[0x0FF5] = (small_checksum & 0xFF00) >> 8;
+    }
+    else
+    {
+        global_memory_buffer[0x0FF6] = small_checksum & 0x00FF;
+        global_memory_buffer[0x0FF7] = (small_checksum & 0xFF00) >> 8;
+    }
 }
 
 bool read_flag(u16 flag_id)

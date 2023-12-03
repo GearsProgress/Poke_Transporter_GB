@@ -62,8 +62,21 @@ bool inject_mystery(Pokemon incoming_party_array[])
     {
         global_memory_buffer[curr_rom.offset_script + 4 + i] = script.get_script_value_at(i);
     }
-    update_memory_buffer_checksum();
-    flash_write(memory_section_array[4], &global_memory_buffer[0], 0x1000);
+    update_memory_buffer_checksum(false);
+int out = flash_write(memory_section_array[4], &global_memory_buffer[0], 0x1000);
+    if (out != 0 && DEBUG_MODE)
+    {
+        tte_set_pos(0, 0);
+        tte_write("error writing script data: ");
+        tte_write(std::to_string(out).c_str());
+        key_poll();
+        VBlankIntrWait();
+        while (!key_hit(KEY_SELECT))
+        {
+            key_poll();
+            VBlankIntrWait();
+        }
+    }
 
     // Set flags
     flash_read(memory_section_array[1 + ((curr_rom.offset_flags + (FLAG_ID_START / 8)) / 0xF80)], &global_memory_buffer[0], 0x1000);
@@ -76,8 +89,21 @@ bool inject_mystery(Pokemon incoming_party_array[])
         }
     }
 
-    update_memory_buffer_checksum();
-    flash_write(memory_section_array[1 + ((curr_rom.offset_flags + (FLAG_ID_START / 8)) / 0xF80)], &global_memory_buffer[0], 0x1000);
+    update_memory_buffer_checksum(false);
+    out = flash_write(memory_section_array[1 + ((curr_rom.offset_flags + (FLAG_ID_START / 8)) / 0xF80)], &global_memory_buffer[0], 0x1000);
+    if (out != 0 && DEBUG_MODE)
+    {
+        tte_set_pos(0, 0);
+        tte_write("error writing flags: ");
+        tte_write(std::to_string(out).c_str());
+        key_poll();
+        VBlankIntrWait();
+        while (!key_hit(KEY_SELECT))
+        {
+            key_poll();
+            VBlankIntrWait();
+        }
+    }
 
     // Update and save custom save data
     for (int i = 0; i < 6; i++)
