@@ -1,16 +1,17 @@
 #include <tonc.h>
 #include "save_data_manager.h"
-#include "gba_flash.h"
 #include "flash_mem.h"
 #include "debug_mode.h"
 #include "main_menu.h"
 #include "pokemon_data.h"
+#include "save.h"
+
 
 byte save_data_array[SAVE_DATA_SIZE];
 
 void load_custom_save_data()
 {
-    flash_read(HALL_OF_FAME + 0x1000, &global_memory_buffer[0], 0x1000);
+    copy_save_to_ram(HALL_OF_FAME + 0x1000, &global_memory_buffer[0], 0x1000);
     for (int i = 0; i < SAVE_DATA_SIZE; i++)
     {
         save_data_array[i] = global_memory_buffer[HOF_SECTION + i];
@@ -19,26 +20,14 @@ void load_custom_save_data()
 
 void write_custom_save_data()
 {
-    flash_read(HALL_OF_FAME + 0x1000, &global_memory_buffer[0], 0x1000);
+    copy_save_to_ram(HALL_OF_FAME + 0x1000, &global_memory_buffer[0], 0x1000);
     for (int i = 0; i < SAVE_DATA_SIZE; i++)
     {
         global_memory_buffer[HOF_SECTION + i] = save_data_array[i];
     }
     update_memory_buffer_checksum(true);
-    int out = flash_write(HALL_OF_FAME + 0x1000, &global_memory_buffer[0], 0x1000);
-    if (out != 0 && DEBUG_MODE)
-    {
-        tte_set_pos(0, 0);
-        tte_write("error writing custom save data: ");
-        tte_write(std::to_string(out).c_str());
-        key_poll();
-        VBlankIntrWait();
-        while (!key_hit(KEY_SELECT))
-        {
-            key_poll();
-            VBlankIntrWait();
-        }
-    }
+    erase_sector(HALL_OF_FAME + 0x1000);
+    copy_ram_to_save(&global_memory_buffer[0], HALL_OF_FAME + 0x1000, 0x1000);
 }
 
 bool is_caught(int dex_num)

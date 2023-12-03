@@ -4,7 +4,6 @@
 // #include <maxmod.h> //Music
 
 #include "flash_mem.h"
-#include "gba_flash.h"
 #include "interrupt.h"
 #include "gb_link.h"
 #include "gameboy_colour.h"
@@ -96,6 +95,10 @@ void initalization_script(void)
 
 	irq_init(NULL);
 	irq_enable(II_VBLANK);
+
+	// Disable for save data read/write
+	REG_IME = 0;
+	REG_IE = 0;
 
 	rand_set_seed(0x1216);
 	add_script_party_var(party);

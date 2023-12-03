@@ -1,9 +1,9 @@
 #include <tonc.h>
 #include <string>
 #include "flash_mem.h"
-#include "gba_flash.h"
 #include "pokemon.h"
 #include "rom_data.h"
+#include "save.h"
 
 #define pkmn_length 80
 #define READ_SAVE_SECTIONS 5
@@ -21,8 +21,8 @@ void initalize_memory_locations()
 {
     u8 save_A_index[4];
     u8 save_B_index[4];
-    flash_read(SAVE_A_OFFSET + SAVE_INDEX_OFFSET, &save_A_index[0], 0x04);
-    flash_read(SAVE_B_OFFSET + SAVE_INDEX_OFFSET, &save_B_index[0], 0x04);
+    copy_save_to_ram(SAVE_A_OFFSET + SAVE_INDEX_OFFSET, &save_A_index[0], 0x04);
+    copy_save_to_ram(SAVE_B_OFFSET + SAVE_INDEX_OFFSET, &save_B_index[0], 0x04);
     reverse_endian(&save_A_index[0], 0x04);
     reverse_endian(&save_B_index[0], 0x04);
 
@@ -34,7 +34,7 @@ void initalize_memory_locations()
     }
 
     // Populates the memory_section_array with the correct pointer locations
-    flash_read(newest_save_offset + SECTION_ID_OFFSET, &mem_id, 1);
+    copy_save_to_ram(newest_save_offset + SECTION_ID_OFFSET, &mem_id, 1);
     for (int i = 0; i < TOTAL_SAVE_SECTIONS; i++)
     {
         if (mem_id < READ_SAVE_SECTIONS)
@@ -50,7 +50,7 @@ void initalize_memory_locations()
     {
         int mem_start = 0xF80;
         int mem_section = 1;
-        flash_read(memory_section_array[mem_section], &global_memory_buffer[0], 0x1000);
+        copy_save_to_ram(memory_section_array[mem_section], &global_memory_buffer[0], 0x1000);
         tte_set_pos(8, 0);
         tte_write("loc: ");
         tte_write(std::to_string(memory_section_array[mem_section] + mem_start).c_str());
@@ -215,7 +215,7 @@ bool read_flag(u16 flag_id)
         tte_write(" for flag ");
         tte_write(std::to_string(flag_id).c_str());
         tte_write(". Flag is ");
-        flash_read(memory_section_array[1 + ((curr_rom.offset_flags + (flag_id / 8)) / 0xF80)], &global_memory_buffer[0], 0x1000);
+        copy_save_to_ram(memory_section_array[1 + ((curr_rom.offset_flags + (flag_id / 8)) / 0xF80)], &global_memory_buffer[0], 0x1000);
         u8 flags = global_memory_buffer[(curr_rom.offset_flags + (flag_id / 8)) % 0xF80];
         tte_write(std::to_string((flags >> (flag_id % 8)) & 0b1).c_str());
         while (true)
@@ -223,14 +223,14 @@ bool read_flag(u16 flag_id)
         };
     }
 
-    flash_read(memory_section_array[1 + ((curr_rom.offset_flags + (flag_id / 8)) / 0xF80)], &global_memory_buffer[0], 0x1000);
+    copy_save_to_ram(memory_section_array[1 + ((curr_rom.offset_flags + (flag_id / 8)) / 0xF80)], &global_memory_buffer[0], 0x1000);
     u8 flags = global_memory_buffer[(curr_rom.offset_flags + (flag_id / 8)) % 0xF80];
     return (flags >> (flag_id % 8)) & 0b1;
 }
 
 bool compare_map_and_npc_data(int map_bank, int map_id, int npc_id)
 {
-    flash_read(memory_section_array[4], &global_memory_buffer[0], 0x1000);
+    copy_save_to_ram(memory_section_array[4], &global_memory_buffer[0], 0x1000);
     return (global_memory_buffer[curr_rom.offset_script + 5] == map_bank &&
             global_memory_buffer[curr_rom.offset_script + 6] == map_id &&
             global_memory_buffer[curr_rom.offset_script + 7] == npc_id);
