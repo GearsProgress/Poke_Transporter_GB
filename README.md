@@ -21,11 +21,13 @@ Pokémon Mirror is a Multiboot program for the Game Boy Advance. There are two m
 A list of modifications made to transfered Pokémon can be found [here](https://github.com/Starport75/Pokémon_Mirror/blob/master/Pokemon_Modifications.md)!
 
 ## Screenshots and Video
-![Pokemon_Mirror_mb-1](https://github.com/Starport75/Pokemon_Mirror/assets/23065741/368c907e-e4dc-4165-8712-2bdd7ec53b07)
-![Pokemon_Mirror_mb-6](https://github.com/Starport75/Pokemon_Mirror/assets/23065741/4368e8bb-fb8f-4da9-af64-ad40d771dcc3)
-![Pokemon_Mirror_mb-8](https://github.com/Starport75/Pokemon_Mirror/assets/23065741/3fa2b87d-4886-4350-a7a7-1697f4e02094)
-![Pokemon_Mirror_mb-9](https://github.com/Starport75/Pokemon_Mirror/assets/23065741/942270d9-add7-4efa-bb52-4191f43a5c4b)
-![Pokemon_Mirror_mb-2](https://github.com/Starport75/Pokemon_Mirror/assets/23065741/62bae42b-729a-4647-8c6d-4792c5f87db9)
+![Pokemon_Mirror_mb-0](https://github.com/Starport75/Pokemon_Mirror/assets/23065741/a58463c0-9067-4ec0-a8b1-d16fa14cb85e)
+![Pokemon_Mirror_mb-1](https://github.com/Starport75/Pokemon_Mirror/assets/23065741/7a54892d-17a0-491e-8c68-4f6d0d796a00)
+![Pokemon_Mirror_mb-2](https://github.com/Starport75/Pokemon_Mirror/assets/23065741/f6e74e7e-4f44-4359-ba2a-a524a40eb234)
+
+![Pokemon_Mirror_mb-3](https://github.com/Starport75/Pokemon_Mirror/assets/23065741/481bac72-0d57-475c-940f-a53876eaaa3b)
+![Pokemon_Mirror_mb-4](https://github.com/Starport75/Pokemon_Mirror/assets/23065741/3b5df6f8-c76e-466b-8dbd-351d7d4676d1)
+![Pokemon_Mirror_mb-5](https://github.com/Starport75/Pokemon_Mirror/assets/23065741/5c98426d-9717-4c1d-89b9-4fd6bfe13b4e)
 
 A video of Pokémon Mirror in action can be found [here](https://youtu.be/fo0f9B8qcoA?si=TX7DPTo4BD1f3ndK)!
 
