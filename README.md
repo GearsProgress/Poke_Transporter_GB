@@ -19,6 +19,8 @@ Pokémon Mirror is a Multiboot program for the Game Boy Advance. There are two m
 - Use a program such as FIX94's [GBA Link Cable ROM Sender](https://github.com/FIX94/gba-link-cable-rom-sender) on a GameCube or Wii running Homebrew along with a GBA GameCube Link Cable
 - Upload the Multiboot ROM to a GBA Flash Cart, launch the game in Multiboot mode (often by holding L when selecting the ROM), and swap the Game Pak after the program loads.
 
+Please note that transfering Pokémon will only work with a Game Boy Color Link Cable. Game Boy Advance Link Cables will not work.
+
 ## Modifications to Transfered Pokémon
 A list of modifications made to transfered Pokémon can be found [here](https://github.com/Starport75/Pokemon_Mirror/blob/master/modifications.md)!
 
