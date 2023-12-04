@@ -1,11 +1,13 @@
 ## About
 Pokémon Mirror is a transfer tool for created to transfer Pokémon from Pokémon Red, Blue, Yellow, Gold, Silver, and Crystal to Pokémon Ruby, Sapphire, FireRed, LeafGreen, and Emerald. Pokémon Mirror is designed to emulate what GameFreak may have released should they persued it. Many inspirations were taken from the Pal Park, PokéTransfer Lab, and PokéTransporte to keep a "GameFreak" feeling.
 
-_Pokémon Mirror WILL modify your generation 3 save file. The program is designed to not corrupt anything, but if you do not wish to modify your save file, this isn't the program for you._
+_Pokémon Mirror WILL modify your generation 3 save file. The program is designed to not corrupt anything, but if you do not wish to modify your save file then you should bypass this experience._
 
 _**Please note that Pokémon Mirror is still in beta, so save file backups are HIGHLY recommended before using**._
 
 ## Notes
+Pokémon transfered using Pokémon Mirror will pass through Pokémon Bank and Pokémon HOME, but are not guarenteed to (and likely won't) pass PKHeX's legality filter. This will hopefully change in the future.
+
 Pokémon Transfered using Pokémon Mirror will *not* be removed from Green, Red, Blue, Yellow, Gold Silver, or Crystal. This is not only to save on time when transfering, but also to guarentee that Pokémon are not lost and are able to be transfered again if a large update is made to the program.
 
 Currently the only release is in English. Releases supporting other languages is planned for the near future.
