@@ -34,7 +34,7 @@ A list of modifications made to transfered Pokémon can be found [here](https://
 A video of Pokémon Mirror in action can be found [here](https://youtu.be/fo0f9B8qcoA?si=TX7DPTo4BD1f3ndK)!
 
 ## Why?
-One of my favorite aspects of the Pokémon franchise is the ability to send Pokémon forward into the most recent generation. Of course, this isn't possible from the Gameboy games into the Gameboy Advance era- and I wanted to fix that. A handful of Poeople have bridged the gap before, but Pokémon Mirror is the first tool designed to transfer Pokémon like the Pal Park, PokéTransport Lab, and PokéTransporter for Generation 1 and 2 to Generation 3.
+One of my favorite aspects of the Pokémon franchise is the ability to send Pokémon forward into the most recent generation. Of course, this isn't possible from the Gameboy games into the Gameboy Advance era- and I wanted to fix that. A handful of Poeople have bridged the gap before, but Pokémon Mirror is the first tool designed to transfer Pokémon like the Pal Park, PokéTransport Lab, and PokéTransporter for Generation 1 and 2 to Generation 3. A document detailing some of the design process of Pokémon Mirror can be found [here](https://carpets-allow-kwy.craft.me/EnjwBLUok7rcv8)!
 
 # Credits
 ## Inspired by the works of:
