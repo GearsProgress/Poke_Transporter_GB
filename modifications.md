@@ -3,6 +3,7 @@
 - Abilities, Characteristics, and Size are randomized
 - Gender, Shininess, and Unown forms are retained from previous generations
 - OT name and ID are retained, but SID is set to 00000 (unless the Pokémon is shiny)
+- All Pokémon will have Square sparkles in Sword and Shield, both due to the SID and due to the Fateful Encounter flag.
 - Nicknames are retained, however some special characters have been replaced
 - Language is set to match whatever the language is in Ruby, Sapphire, FireRed, LeafGreen, or Emerald.
 - Korean Pokémon are set to Japanese and given their default Japanese names, due to Generation 3 not supporting the Korean language
