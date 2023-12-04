@@ -4,4 +4,5 @@ build/
 *.gba
 *.lnk
 *.elf
+*.zip
 .vscode/
