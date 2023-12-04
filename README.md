@@ -20,7 +20,7 @@ Pokémon Mirror is a Multiboot program for the Game Boy Advance. There are two m
 - Upload the Multiboot ROM to a GBA Flash Cart, launch the game in Multiboot mode (often by holding L when selecting the ROM), and swap the Game Pak after the program loads.
 
 ## Modifications to Transfered Pokémon
-A list of modifications made to transfered Pokémon can be found [here](https://github.com/Starport75/Pokemon_Mirror/blob/master/modifications)!
+A list of modifications made to transfered Pokémon can be found [here](https://github.com/Starport75/Pokemon_Mirror/blob/master/modifications.md)!
 
 ## Screenshots and Video
 ![Pokemon_Mirror_mb-0](https://github.com/Starport75/Pokemon_Mirror/assets/23065741/a58463c0-9067-4ec0-a8b1-d16fa14cb85e)
