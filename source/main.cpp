@@ -31,22 +31,18 @@
 #include "save.h"
 
 /*
-TODO:
-- Center buttons?
-- Credits (List all programs, people, and code- plus TPCI)
-
-Post Beta:
+Post Beta TODO:
 - Better custom sprites (Progress, Fennel, Title)
 - Add a % or x/250 for the Dream Dex
 - Determine if transfered Shiny Pokemon are square/star sparkles
-- Music and Sound Effects
+- Music and sound effects
 - Simplify the sprite initalization
-- Smoother Transitions
+- Smoother transitions
 - Minigame
 - Wii Channel
-- Ditto Gift (Ignore Mew/Celebi?)
+- Ditto gift (ignore Mew/Celebi?)
 - MissingNo/Enigma Berry
-- Text Translations
+- Text translations
 - Add support for other languages
 --------
 */
@@ -266,19 +262,21 @@ int main(void)
 	int old_lang_btn_num = -1;
 	set_arrow_point(curr_lang_btn_num);
 
-#define CREDITS_ARRAY_SIZE 13
+#define CREDITS_ARRAY_SIZE 15
 	int curr_credits_num = 0;
 	std::string credits_array[CREDITS_ARRAY_SIZE] = {
-		"Developed by:\n\n\nThe Gears\nof Progress\n\nusing libTONC from\ndevkitPro",
+		"Developed by:\n\n\nThe Gears\nof Progress",
+		"Built using:\n\n\n-DevkitPro\n-LibTonc\n-LibGBA",
 		"Inspired by the\nworks of:\n\n-Goppier\n-Lorenzooone\n-im a blissey\n-RETIRE",
 		"Programs used:\n\n\n-HexManiacAdvance\n-PKHeX\n-WC3Tool\n-Usenti\n",
-		"Open Source Code and\nLibraries:\n\n-libtonc-examples\n-libsavgba\n-gba-link-connection\n-awesome-gbadev\n-arduino-poke-gen2",
+		"Open Source Code and\nLibraries:\n\n-libtonc-examples\n-PokemonGen3toGenX\n-gba-link-connection\n-awesome-gbadev\n-arduino-poke-gen2",
 		"Research resources:\n\n-arm-docs\n-PokemonGen3toGenX\n\nFull links can be\nfound on this\nprogram's GitHub",
 		"ROM data obtained\nfrom decompilations created by the PRET team",
 		"Pok@mon data\nobtained from:\n\n-Bulbapedia\n-Serebii\n-PokeAPI.com",
 		"Discord community\nassistance:\n\n-Hex Maniac Advance\n Development\n-gbadev\n-pret",
 		"Sprite work:\n\n\n-lite_thespark",
 		"Writing assistance:\n\n\n-Mad",
+		"An immense thanks to\nLorenzooone for\ntheir assistance in\nreading/writing save\ndata. Without them,\nthis project would\nnot have been\npossible.",
 		"Special thanks:\n\n\nEnn, Roku, Luca,\nArctic, and everyone\nwho has listened to me talk about this\nfor months",
 		"All Pok@mon names,\nsprites, and names\nof related resources\nare copyright\nNintendo,\nCreatures Inc.,\nand GAME FREAK Inc.",
 		"This project is not endorsed or\nsupported by\nGameFreak/Nintendo.\n\nPlease support the\noriginal developers.",

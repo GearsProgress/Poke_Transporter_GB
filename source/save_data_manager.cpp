@@ -74,7 +74,6 @@ void set_def_lang(int nLang)
 void set_tutorial_flag(bool value)
 {
     save_data_array[TUTORIAL_FLAG] = value;
-    write_custom_save_data();
 }
 
 bool get_tutorial_flag()

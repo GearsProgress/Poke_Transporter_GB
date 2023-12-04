@@ -60,7 +60,7 @@ LIBS	:= -lmm -ltonc -lgba
 # include and lib.
 # the LIBGBA path should remain in this list if you want to use maxmod
 #---------------------------------------------------------------------------------
-LIBDIRS	:=	$(LIBGBA) $(LIBTONC) $(LIBGBA)
+LIBDIRS	:=	$(LIBGBA) $(LIBTONC)
 
 #---------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional

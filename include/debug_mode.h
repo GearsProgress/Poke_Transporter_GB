@@ -1,5 +1,3 @@
-//Created by Lorenzooone https://github.com/Lorenzooone/Pokemon-Gen3-to-Gen-X
-
 #ifndef DEBUG_MODE_H
 #define DEBUG_MODE_H
 
