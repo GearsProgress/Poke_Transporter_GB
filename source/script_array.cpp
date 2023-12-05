@@ -116,10 +116,10 @@ bool run_conditional(int index)
         return party_data.get_last_error() != COND_ERROR_COLOSSEUM;
 
     case COND_BEAT_E4:
-        return read_flag(curr_rom.e4_flag);
+        return read_flag(curr_rom.e4_flag) || IGNORE_MG_E4_FLAGS;
 
     case COND_MG_ENABLED:
-        return read_flag(curr_rom.mg_flag);
+        return read_flag(curr_rom.mg_flag) || IGNORE_MG_E4_FLAGS;
 
     case COND_TUTORIAL_COMPLETE:
         return get_tutorial_flag();

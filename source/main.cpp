@@ -267,7 +267,7 @@ int main(void)
 	std::string credits_array[CREDITS_ARRAY_SIZE] = {
 		"Developed by:\n\n\nThe Gears\nof Progress",
 		"Built using:\n\n\n-DevkitPro\n-LibTonc\n-LibGBA",
-		"Inspired by the\nworks of:\n\n-Goppier\n-Lorenzooone\n-im a blissey\n-RETIRE",
+		"Inspired by the\nworks of:\n\n-Goppier\n-Lorenzooone\n-im a blisy\n-RETIRE",
 		"Programs used:\n\n\n-HexManiacAdvance\n-PKHeX\n-WC3Tool\n-Usenti\n",
 		"Open Source Code and\nLibraries:\n\n-libtonc-examples\n-PokemonGen3toGenX\n-gba-link-connection\n-awesome-gbadev\n-arduino-poke-gen2",
 		"Research resources:\n\n-arm-docs\n-PokemonGen3toGenX\n\nFull links can be\nfound on this\nprogram's GitHub",
