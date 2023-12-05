@@ -42,7 +42,7 @@ One of my favorite aspects of the Pok√©mon franchise is the ability to send Pok√
 ## Inspired by the works of:
 - [Goppier](https://www.youtube.com/@Goppier)
 - [Lorenzooone](https://www.youtube.com/@Lorenzooone)
-- [im a blissey](https://www.youtube.com/c/imablisy)
+- [im a blisy](https://www.youtube.com/c/imablisy)
 - [RETIRE](https://www.youtube.com/@RETIREglitch)
 
 ## Programs used:
