@@ -8,6 +8,7 @@
 #include "LinkGPIO.h"
 #include "script_array.h"
 #include "debug_mode.h"
+#include "payload.h"
 
 #define BYTE_INCOMPLETE 0
 #define BYTE_COMPLETE 1
@@ -15,7 +16,7 @@
 #define TIMEOUT_ONE_LENGTH 1000000 // Maybe keep a 10:1 ratio between ONE and TWO?
 #define TIMEOUT_TWO_LENGTH 100000
 
-const int MODE = 1; // mode=0 will transfer pokemon data from pokemon.h
+const int MODE = 0; // mode=0 will transfer pokemon data from pokemon.h
                     // mode=1 will copy pokemon party data being received
 
 LinkGPIO *linkGPIO = new LinkGPIO();
@@ -73,7 +74,7 @@ void print(std::string str)
 
 void updateFrames()
 {
-  if (((connection_state > 1) && (frame - last_bit >= ((trade_centre_state_gen_II >= WAITING_TO_SEND_DATA) ? 10 : 1000))) /*|| connection_state == PRE_CONNECTED*/)
+  if (((connection_state > 1) && (frame - last_bit >= ((trade_centre_state_gen_II >= WAITING_TO_SEND_DATA) ? FAST_SPEED : SLOW_SPEED))) /*|| connection_state == PRE_CONNECTED*/)
   {
     SC_state = !SC_state;
     linkGPIO->writePin(LinkGPIO::Pin::SC, SC_state);
@@ -270,8 +271,8 @@ byte handleIncomingByte(byte in)
       switch (MODE)
       {
       case 0:
-        send = DATA_BLOCK_GEN_II[counter];
-        INPUT_BLOCK_GEN_II[counter] = in;
+        send = gen1_party_bootstrap[counter];
+        //INPUT_BLOCK_GEN_II[counter] = in;
         break;
       case 1:
         send = in;
@@ -288,8 +289,8 @@ byte handleIncomingByte(byte in)
       switch (MODE)
       {
       case 0:
-        send = DATA_BLOCK_GEN_II[counter];
-        INPUT_BLOCK_GEN_II[counter] = in;
+        send = gen1_party_bootstrap[counter];
+        //INPUT_BLOCK_GEN_II[counter] = in;
         break;
       case 1:
         send = in;
@@ -299,7 +300,7 @@ byte handleIncomingByte(byte in)
         break;
       }
       counter++;
-      if (counter == PLAYER_LENGTH_GEN_II)
+      if (counter == PLAYER_LENGTH_GEN_I)
       {
         trade_centre_state_gen_II = SENDING_PATCH_DATA;
       }
@@ -311,8 +312,24 @@ byte handleIncomingByte(byte in)
     }
     else if (trade_centre_state_gen_II == SENDING_PATCH_DATA && in != 0xFD)
     {
-      send = in;
-      trade_centre_state_gen_II = MIMIC;
+      switch (MODE)
+      {
+      case 0:
+        send = gen1_omnipayload[counter];
+        //INPUT_BLOCK_GEN_II[counter] = in;
+        break;
+      case 1:
+        send = in;
+        break;
+      default:
+        send = in;
+        break;
+      }
+      counter++;
+      if (counter == PATCH_LIST_LEN_GEN_I)
+      {
+        trade_centre_state_gen_II = MIMIC;
+      }
     }
     else if (trade_centre_state_gen_II == MIMIC)
     {
@@ -383,7 +400,8 @@ int transferBit(byte *party_data)
           std::to_string(trade_centre_state_gen_II) + " " +
           std::to_string(connection_state) + " " +
           std::to_string(in_data) + " " +
-          std::to_string(out_data) + "\n");
+          std::to_string(out_data) + " " +
+          std::to_string(counter) + "\n");
     }
     if (trade_centre_state_gen_II == SENDING_DATA)
     {
@@ -459,7 +477,7 @@ int loop(byte *party_data)
       return COND_ERROR_COLOSSEUM;
     }
 
-    if (trade_centre_state_gen_II == SENDING_PATCH_DATA)
+    if (trade_centre_state_gen_II == MIMIC)
     {
       return 0;
     }

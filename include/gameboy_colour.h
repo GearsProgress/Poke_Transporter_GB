@@ -26,6 +26,10 @@
 */
 
 
+// The number of frames(?) between changing the clock signals
+#define FAST_SPEED 10
+#define SLOW_SPEED 1000
+
 void setup();
 byte handleIncomingByte(byte in);
 int transferBit(byte *party_data);

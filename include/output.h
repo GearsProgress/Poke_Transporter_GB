@@ -2,11 +2,15 @@
 
 #include <stdint.h>
 
-#define PLAYER_LENGTH 418			//11+8+(44*6)+(11*6)+(11*6)+3
+#define PLAYER_LENGTH_GEN_I  418	//11+8+(44*6)+(11*6)+(11*6)
 #define PLAYER_LENGTH_GEN_II 444	//11+8+2+(48*6)+(11*6)+(11*6)+3
 
-uint8_t INPUT_BLOCK[PLAYER_LENGTH];
-uint8_t INPUT_BLOCK_GEN_II[PLAYER_LENGTH_GEN_II];
+
+#define PATCH_LIST_LEN_GEN_I 196
+
+
+//uint8_t INPUT_BLOCK_GEN_I[PLAYER_LENGTH_GEN_I];
+//uint8_t INPUT_BLOCK_GEN_II[PLAYER_LENGTH_GEN_II];
 
 /* const uint8_t DATA_BLOCK[PLAYER_LENGTH] PROGMEM = {
 0x80, 0x91, 0x83, 0x94, 0x88, 0x8D, 0x8E, 0x50, 0x00, 0x00, 0x00, // name
@@ -36,6 +40,7 @@ uint8_t INPUT_BLOCK_GEN_II[PLAYER_LENGTH_GEN_II];
 // 2 useless bytes??
 0x00, 0x00, 0x00}; */
 
+/*
 const uint8_t DATA_BLOCK_GEN_II[PLAYER_LENGTH_GEN_II] = {
 0x80, 0x91, 0x83, 0x94, 0x88, 0x8D, 0x8E, 0x50, 0x00, 0x00, 0x00, // name
 0x1, 0x5C, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, // number of pokemon in party (0x00), pokemon ID (0x01 - 0x06), stop byte (0x07)
@@ -64,3 +69,4 @@ const uint8_t DATA_BLOCK_GEN_II[PLAYER_LENGTH_GEN_II] = {
 0x8C, 0x80, 0x86, 0x88, 0x8A, 0x80, 0x91, 0x8F, 0x50, 0x50, 0x50,
 // 2 useless bytes??
 0x00, 0x00, 0x00};
+*/

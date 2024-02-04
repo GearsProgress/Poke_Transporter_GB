@@ -1,7 +1,6 @@
 #include <tonc.h>
 #include <string>
 #include "script_obj.h"
-#include "gba_flash.h"
 #include "pokemon.h"
 #include "pokemon_party.h"
 #include "script_array.h"

@@ -31,6 +31,12 @@
 #include "save.h"
 
 /*
+
+TODO:
+- Implement patch list (as described here: https://web.archive.org/web/20180508011842/https://vaguilar.js.org/posts/1/)
+	But this isn't going to be relevant after the ACE is implemented, since we will be pulling directly from the box... right?
+	is 0xFE being a terminator part of the SPI function or is it implemented specifically in the trade/battle code?
+
 Post Beta TODO:
 - Better custom sprites (Progress, Fennel, Title)
 - Add a % or x/250 for the Dream Dex
@@ -44,6 +50,8 @@ Post Beta TODO:
 - MissingNo/Enigma Berry
 - Text translations
 - Add support for other languages
+- Champion ribbons (u/NinjaKnight92)
+- Doxygen generation
 --------
 */
 
