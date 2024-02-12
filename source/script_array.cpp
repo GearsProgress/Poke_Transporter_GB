@@ -134,10 +134,10 @@ bool run_conditional(int index)
         return !curr_rom.is_ruby_sapphire();
 
     case COND_MG_OTHER_EVENT:
-        return compare_map_and_npc_data(curr_rom.def_map_bank, curr_rom.def_map_id, curr_rom.def_npc_id);
+        return compare_map_and_npc_data(curr_rom.def_map_bank, curr_rom.def_map_id, curr_rom.def_npc_id) && !IGNORE_MG_E4_FLAGS;
 
     case COND_PKMN_TO_COLLECT:
-        return compare_map_and_npc_data(curr_rom.map_bank, curr_rom.map_id, curr_rom.npc_id) && !read_flag(FLAG_ID_START + 0x06);
+        return compare_map_and_npc_data(curr_rom.map_bank, curr_rom.map_id, curr_rom.npc_id) && !read_flag(FLAG_ID_START + 0x06) && !IGNORE_MG_E4_FLAGS;
 
     case CMD_START_LINK:
         party_data.start_link();

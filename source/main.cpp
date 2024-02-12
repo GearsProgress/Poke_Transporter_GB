@@ -7,7 +7,6 @@
 #include "interrupt.h"
 #include "gb_link.h"
 #include "gameboy_colour.h"
-#include "LinkGPIO.h"
 #include "pokemon.h"
 #include "random.h"
 #include "text_engine.h"
@@ -38,6 +37,7 @@ TODO:
 	is 0xFE being a terminator part of the SPI function or is it implemented specifically in the trade/battle code?
 
 Post Beta TODO:
+- Implement global next frame
 - Better custom sprites (Progress, Fennel, Title)
 - Add a % or x/250 for the Dream Dex
 - Determine if transfered Shiny Pokemon are square/star sparkles
@@ -93,7 +93,6 @@ int test_main(void) Music
 void initalization_script(void)
 {
 	// Initalizations
-	linkGPIO->reset();
 
 	REG_DISPCNT = DCNT_MODE0 | DCNT_BG0 | DCNT_BG1 | DCNT_BG2 | DCNT_BG3 | DCNT_OBJ | DCNT_OBJ_1D;
 

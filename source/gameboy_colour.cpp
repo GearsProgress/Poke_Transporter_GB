@@ -5,96 +5,123 @@
 #include "gameboy_colour.h"
 #include "pokemon_trade.h"
 #include "output.h"
-#include "LinkGPIO.h"
 #include "script_array.h"
 #include "debug_mode.h"
 #include "payload.h"
+#include "interrupt.h"
+#include "text_engine.h"
 
-#define BYTE_INCOMPLETE 0
-#define BYTE_COMPLETE 1
 #define TIMEOUT 2
 #define TIMEOUT_ONE_LENGTH 1000000 // Maybe keep a 10:1 ratio between ONE and TWO?
 #define TIMEOUT_TWO_LENGTH 100000
 
-const int MODE = 0; // mode=0 will transfer pokemon data from pokemon.h
+#define hs 0
+#define ack 1
+#define menu 2
+#define trade 3
+#define preamble 4
+#define colosseum 5
+#define cancel 6
+#define trade_data 7
+
+const int MODE = 1; // mode=0 will transfer pokemon data from pokemon.h
                     // mode=1 will copy pokemon party data being received
 
-LinkGPIO *linkGPIO = new LinkGPIO();
+LinkSPI *linkSPI = new LinkSPI();
 
-uint8_t shift;
 uint8_t in_data;
 uint8_t out_data;
 uint frame;
 
-bool SC_state;
-
 connection_state_t connection_state;
 trade_centre_state_gen_II_t trade_centre_state_gen_II;
+
 int counter;
+int data_counter = 0;
 int gen_1_room_counter = 0;
-
 int gen;
-
 int trade_pokemon;
-
-unsigned long last_bit;
 
 int FF_count;
 int zero_count;
 
-char hexArr[16] = {
-    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'A', 'B', 'C', 'D', 'E', 'F'};
-
-char output[2];
-
-std::string outHexStr(vu8 inputNum)
-{
-  std::string out = "XX";
-  out[0] = (inputNum) & 0xF;
-  out[1] = (inputNum >> 4) & 0xF;
-  return out;
-}
+int state;
 
 std::string out_array[10];
 
+byte data[637] = {0, 0, 0, 0, 0, 0xCD, 0x87, 0xD8, 184, 165, 253, 253, 253, 253, 253, 253, 253, 253, 248, 0, 54, 253, 1, 62, 88, 197, 195, 214, 197, 6, 21, 21, 21, 21, 21, 21, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 252, 227, 227, 255, 33, 160, 195, 1, 136, 1, 62, 0, 205, 224, 54, 17, 24, 218, 33, 89, 196, 205, 85, 25, 195, 21, 218, 139, 142, 128, 131, 136, 141, 134, 232, 232, 232, 80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 64, 0, 0, 253, 253, 253, 253, 253, 255, 255, 62, 99, 245, 33, 160, 195, 1, 136, 1, 205, 224, 54, 17, 255, 197, 33, 87, 196, 205, 85, 25, 118, 118, 118, 118, 118, 118, 118, 241, 60, 14, 108, 185, 194, 216, 197, 62, 99, 195, 216, 197, 127, 135, 132, 139, 139, 142, 127, 150, 142, 145, 139, 131, 231, 127, 80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+/*
+byte data[638] = {
+    // Seed
+    182, 147, 113, 81, 51, 23, 228, 205, 184, 165,
+    // Preamble
+    253, 253, 253, 253, 253, 253, 253, 253,
+    // Party
+    248, 0, 54, 253, 1, 62, 88, 197, 195, 0xd6, 0xc5, 8, 21, 21, 22, 21, 22, 21, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227,
+    227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 227, 206, 227, 227, 255, 33, 160, 195, 1, 136, 1, 62, 0, 205, 224, 54, 17, 24, 218, 33, 89, 196, 205, 85, 25, 195, 21, 218, 139, 142, 128, 131, 136, 141, 134, 232, 232, 232, 80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 255, 64, 0, 0,
+    // Preamble
+    253, 253, 253, 253, 255, 255,
+    // Patch list
+    0x3E, 0x63, 0xF5, 0x21, 0xA0, 0xC3, 0x01, 0x88,
+    0x01, 0xCD, 0xE0, 0x36, 0x11, 0xFF, 0xC5, 0x21,
+    0x57, 0xC4, 0xCD, 0x55, 0x19, 0x76, 0x76, 0x76,
+    0x76, 0x76, 0x76, 0x76, 0xF1, 0x3C, 0x0E, 0x6C,
+    0xB9, 0xC2, 0xD8, 0xC5, 0x3E, 0x63, 0xC3, 0xD8,
+    0xC5, 0x7F, 0x87, 0x84, 0x8B, 0x8B, 0x8E, 0x7F,
+    0x96, 0x8E, 0x91, 0x8B, 0x83, 0xE7, 0x7F, 0x50,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00};
+*/
 void print(std::string str)
 {
   for (int i = 10; i > 0; i--)
   {
     out_array[i] = out_array[i - 1];
   }
-  out_array[0] = std::to_string(frame) + ": " + str + "\n";
-  tte_erase_screen();
-  tte_set_pos(0, 0);
+  out_array[0] = str + "\n";
+
+  tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
+  tte_set_pos(LEFT, 0);
   for (int j = 0; j < 10; j++)
   {
+    tte_write("#{cx:0xE000}");
     tte_write(out_array[j].c_str());
   }
 }
 
-void updateFrames()
-{
-  if (((connection_state > 1) && (frame - last_bit >= ((trade_centre_state_gen_II >= WAITING_TO_SEND_DATA) ? FAST_SPEED : SLOW_SPEED))) /*|| connection_state == PRE_CONNECTED*/)
-  {
-    SC_state = !SC_state;
-    linkGPIO->writePin(LinkGPIO::Pin::SC, SC_state);
-    // print(SC_state ? "True" : "False");
-    last_bit = frame;
-  }
-  frame++;
-}
-
 void setup()
 {
+  interrupt_init();
+  interrupt_set_handler(INTR_SERIAL, LINK_SPI_ISR_SERIAL);
+  interrupt_enable(INTR_SERIAL);
 
-  shift = 0;
+  linkSPI->activate(LinkSPI::Mode::MASTER_256KBPS);
+  linkSPI->setWaitModeActive(false);
+
+  state = hs;
+
   in_data = 0;
   out_data = 0;
   frame = 0;
 
-  SC_state = 0;
-
-  connection_state = PRE_CONNECT_ONE;
+  connection_state = NOT_CONNECTED;
   trade_centre_state_gen_II = INIT;
   counter = 0;
 
@@ -105,372 +132,98 @@ void setup()
   FF_count = 0;
   zero_count = 0;
 
-  // pinMode(SCLK_, INPUT);
-  // pinMode(MISO_, INPUT);
-  // pinMode(MOSI_, OUTPUT);
-
-  linkGPIO->reset();
-
-  linkGPIO->setMode(LinkGPIO::Pin::SC, LinkGPIO::Direction::INPUT);
-  linkGPIO->setMode(LinkGPIO::Pin::SO, LinkGPIO::Direction::OUTPUT);
-  linkGPIO->setMode(LinkGPIO::Pin::SI, LinkGPIO::Direction::INPUT);
-
-  /*
-  LINK_SPI_SET_LOW(REG_RCNT, 4);
-  LINK_SPI_SET_LOW(REG_RCNT, 6);
-  LINK_SPI_SET_HIGH(REG_RCNT, 7);
-
-  LINK_SPI_SET_LOW(REG_RCNT, LINK_SPI_BIT_GENERAL_PURPOSE_LOW);
-  LINK_SPI_SET_HIGH(REG_RCNT, LINK_SPI_BIT_GENERAL_PURPOSE_HIGH);
-  */
-
   if (DEBUG_MODE)
   {
-    tte_erase_screen();
+    tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
     tte_set_pos(0, 0);
     tte_write("FEED ME POKEMON, I HUNGER!\n");
   }
-
-  // digitalWrite(MOSI_, LOW);
-  linkGPIO->writePin(LinkGPIO::Pin::SO, 0);
-  out_data <<= 1;
 }
 
 byte handleIncomingByte(byte in)
 {
-  byte send = 0x00;
-
-  if (trade_centre_state_gen_II < WAITING_TO_SEND_DATA)
+  if (state == hs)
   {
-    switch (in)
+    if (in == 0x00)
     {
-    case 0x00:
-      FF_count = 0;
-      zero_count++;
-      break;
-
-    case 0xFF:
-      zero_count = 0;
-      FF_count++;
-      break;
-
-    default:
-      FF_count = 0;
-      zero_count = 0;
-      break;
+      state = ack;
+      return 0x01;
     }
   }
 
-  switch (connection_state)
+  else if (state == ack)
   {
-  case PRE_CONNECT_ONE:
-    if (in == PKMN_MASTER)
+    if (in == 0x00)
     {
-      connection_state = PRE_CONNECT_TWO;
+      state = menu;
+      return 0x00;
     }
-    send = PKMN_MASTER;
-    break;
+  }
 
-  case PRE_CONNECT_TWO:
-    if (in == PKMN_MASTER)
+  else if (state == menu)
+  {
+    if (in == 0xd4)
     {
-      connection_state = NOT_CONNECTED;
-      linkGPIO->setMode(LinkGPIO::Pin::SC, LinkGPIO::Direction::OUTPUT);
-      shift = shift + 1;
-    }
-    send = PKMN_MASTER;
-    break;
-
-  case NOT_CONNECTED:
-    if (in == PKMN_SLAVE)
-      send = PKMN_MASTER;
-    else if (in == PKMN_BLANK)
-    {
-      send = PKMN_BLANK;
-    }
-    else if (in == PKMN_CONNECTED_I)
-    {
-      send = PKMN_CONNECTED_I;
-      gen = 1;
-      connection_state = CONNECTED;
-    }
-    else if (in == PKMN_CONNECTED_II)
-    {
-      send = PKMN_CONNECTED_II;
-      gen = 2;
-      connection_state = CONNECTED;
-    }
-    else if (in == 127)
-    {
-      shift++;
-    }
-    break;
-
-  case CONNECTED:
-    if (in == PKMN_CONNECTED_I)
-    { // acknowledge connection
-      send = PKMN_CONNECTED_I;
-      gen_1_room_counter = 0;
-    }
-    else if (in == PKMN_CONNECTED_II)
-    { // acknowledge connection
-      send = PKMN_CONNECTED_II;
-      gen_1_room_counter = 0;
-    }
-    else if (in == ITEM_1_HIGHLIGHTED)
-    { // select gen 1 trade room automatically
-      send = ITEM_1_SELECTED;
-      if (gen_1_room_counter >= 3)
-      {
-        connection_state = TRADE_CENTRE;
-      }
-      gen_1_room_counter++;
-    }
-    else if (in == GEN_II_CABLE_TRADE_CENTER)
-    { // acknowledge trade center selection
-      connection_state = TRADE_CENTRE;
-      send = GEN_II_CABLE_TRADE_CENTER;
-    }
-    else if (in == GEN_II_CABLE_CLUB_COLOSSEUM)
-    { // acknowledge colosseum selection
-      connection_state = COLOSSEUM;
-      send = GEN_II_CABLE_CLUB_COLOSSEUM;
+      state = trade;
+      return in;
     }
     else
     {
-      send = in;
+      return in;
     }
-    break;
-
-  case TRADE_CENTRE:
-    if (trade_centre_state_gen_II == INIT && in == 0x00)
-    {
-      trade_centre_state_gen_II = READY_TO_GO;
-      send = 0x00;
-    }
-    else if (trade_centre_state_gen_II == READY_TO_GO && in == 0xFD)
-    {
-      trade_centre_state_gen_II = SEEN_FIRST_WAIT;
-      send = 0xFD;
-    }
-    else if (trade_centre_state_gen_II == SEEN_FIRST_WAIT && in != 0xFD)
-    {
-      // random data of slave is ignored.
-      send = in;
-      trade_centre_state_gen_II = SENDING_RANDOM_DATA;
-    }
-    else if (trade_centre_state_gen_II == SENDING_RANDOM_DATA && in == 0xFD)
-    {
-      trade_centre_state_gen_II = WAITING_TO_SEND_DATA;
-      send = 0xFD;
-    }
-    else if (trade_centre_state_gen_II == WAITING_TO_SEND_DATA && in != 0xFD)
-    {
-      counter = 0;
-      // send first byte
-      switch (MODE)
-      {
-      case 0:
-        send = gen1_party_bootstrap[counter];
-        //INPUT_BLOCK_GEN_II[counter] = in;
-        break;
-      case 1:
-        send = in;
-        break;
-      default:
-        send = in;
-        break;
-      }
-      counter++;
-      trade_centre_state_gen_II = SENDING_DATA;
-    }
-    else if (trade_centre_state_gen_II == SENDING_DATA)
-    {
-      switch (MODE)
-      {
-      case 0:
-        send = gen1_party_bootstrap[counter];
-        //INPUT_BLOCK_GEN_II[counter] = in;
-        break;
-      case 1:
-        send = in;
-        break;
-      default:
-        send = in;
-        break;
-      }
-      counter++;
-      if (counter == PLAYER_LENGTH_GEN_I)
-      {
-        trade_centre_state_gen_II = SENDING_PATCH_DATA;
-      }
-    }
-    else if (trade_centre_state_gen_II == SENDING_PATCH_DATA && in == 0xFD)
-    {
-      counter = 0;
-      send = 0xFD;
-    }
-    else if (trade_centre_state_gen_II == SENDING_PATCH_DATA && in != 0xFD)
-    {
-      switch (MODE)
-      {
-      case 0:
-        send = gen1_omnipayload[counter];
-        //INPUT_BLOCK_GEN_II[counter] = in;
-        break;
-      case 1:
-        send = in;
-        break;
-      default:
-        send = in;
-        break;
-      }
-      counter++;
-      if (counter == PATCH_LIST_LEN_GEN_I)
-      {
-        trade_centre_state_gen_II = MIMIC;
-      }
-    }
-    else if (trade_centre_state_gen_II == MIMIC)
-    {
-      send = in;
-    }
-    else if (trade_centre_state_gen_II == TRADE_PENDING && (in & 0x60) == 0x60)
-    {
-      if (in == 0x6f)
-      {
-        trade_centre_state_gen_II = READY_TO_GO;
-        send = 0x6f;
-      }
-      else
-      {
-        send = 0x60; // first pokemon
-        trade_pokemon = in - 0x60;
-      }
-    }
-    else if (trade_centre_state_gen_II == TRADE_PENDING && in == 0x00)
-    {
-      send = 0;
-      trade_centre_state_gen_II = TRADE_CONFIRMATION;
-    }
-    else if (trade_centre_state_gen_II == TRADE_CONFIRMATION && (in & 0x60) == 0x60)
-    {
-      send = in;
-      if (in == 0x61)
-      {
-        trade_pokemon = -1;
-        trade_centre_state_gen_II = TRADE_PENDING;
-      }
-      else
-      {
-        trade_centre_state_gen_II = DONE;
-      }
-    }
-    else if (trade_centre_state_gen_II == DONE && in == 0x00)
-    {
-      send = 0;
-      trade_centre_state_gen_II = INIT;
-    }
-    else
-    {
-      send = in;
-    }
-    break;
-
-  default:
-    send = in;
-    break;
   }
 
-  return send;
-}
-
-int transferBit(byte *party_data)
-{
-  int timeout = 0;
-  int flag = BYTE_INCOMPLETE;
-  in_data |= (linkGPIO->readPin(LinkGPIO::Pin::SI)) << (7 - shift); /*digitalRead(MISO_)*/
-  if (++shift > 7)
+  else if (state == trade)
   {
-    shift = 0;
-    out_data = handleIncomingByte(in_data); // in_data
-    if (DEBUG_MODE)
+    if (in == 0xfd)
     {
-      print(
-          std::to_string(trade_centre_state_gen_II) + " " +
-          std::to_string(connection_state) + " " +
-          std::to_string(in_data) + " " +
-          std::to_string(out_data) + " " +
-          std::to_string(counter) + "\n");
+      state = preamble;
     }
-    if (trade_centre_state_gen_II == SENDING_DATA)
-    {
-      party_data[0] = in_data;
-      flag = BYTE_COMPLETE;
-    }
-    in_data = 0;
+    return in;
   }
-  while (!((connection_state >= 2) ? SC_state : linkGPIO->readPin(LinkGPIO::Pin::SC)))
-  {
-    updateFrames();
-    timeout++;
-    if (timeout > TIMEOUT_TWO_LENGTH)
-    {
-      timeout = 0;
-      return TIMEOUT;
-    }
-    /*
-    if (timeout % 100 == 0)
-    {
-      tte_set_pos(0, 0);
-      tte_erase_line();
-      tte_write(std::to_string(timeout).c_str());
-    }*/
-  } // no activity when clock is low //!digitalRead(SCLK_)
-  // digitalWrite(MOSI_, out_data & 0x80 ? HIGH : LOW);
 
-  linkGPIO->writePin(LinkGPIO::Pin::SO, (out_data >> 7));
-  out_data <<= 1;
-  return flag;
+  else if (state == preamble)
+  {
+    if (in != 0xfd)
+    {
+      state = trade_data;
+      return exchange_parties(in);
+    }
+    return in;
+  }
+
+  else if (state == trade_data)
+  {
+    return exchange_parties(in);
+  }
+
+  return in;
 }
 
 int loop(byte *party_data)
 {
   int counter = 0;
-  int timeout;
-  int transfer_state = BYTE_INCOMPLETE;
   while (true)
   {
-    last_bit = frame;
-    while (((connection_state >= 2) ? SC_state : linkGPIO->readPin(LinkGPIO::Pin::SC))) /*digitalRead(SCLK_)*/
-    {
-      updateFrames();
-      timeout++;
-      if (timeout > TIMEOUT_ONE_LENGTH)
-      {
-        return COND_ERROR_TIMEOUT_ONE;
-      }
-    }
-    timeout = 0;
-    // updateFrames();
-    transfer_state = transferBit(&party_data[counter]); // This statement will cause a loop. If that loop takes too long, then the transfer state will be TIMEOUT
+    in_data = linkSPI->transfer(out_data);
 
-    if (transfer_state == BYTE_COMPLETE)
-    {
-      counter++;
-    }
-    else if (
-        transfer_state == TIMEOUT)
-    {
-      return COND_ERROR_TIMEOUT_TWO;
-    }
+    print(
+        std::to_string(counter) + ": [" +
+        std::to_string(data_counter) + "][" +
+        std::to_string(state) + "][" +
+        std::to_string(in_data) + "][" +
+        std::to_string(out_data) + "]\n");
+
+    out_data = handleIncomingByte(in_data);
+    party_data[counter] = in_data;
+
     if (FF_count > 25)
     {
-      return COND_ERROR_DISCONNECT;
+      // return COND_ERROR_DISCONNECT;
     }
     if (zero_count > 25)
     {
-      return COND_ERROR_COM_ENDED;
+      // return COND_ERROR_COM_ENDED;
     }
     if (connection_state == COLOSSEUM)
     {
@@ -481,5 +234,18 @@ int loop(byte *party_data)
     {
       return 0;
     }
+    counter++;
+    for (int i = 0; i < 3; i++)
+    {
+      VBlankIntrWait();
+    }
   }
-}
+};
+
+byte exchange_parties(byte curr_in)
+{
+  int ret = data[data_counter];
+  data_counter += 1;
+  // return curr_in;
+  return ret;
+};

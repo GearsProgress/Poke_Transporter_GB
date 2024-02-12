@@ -4,7 +4,6 @@
 #define POKEMON_TRADE_H_
 
 typedef enum {
-	PRE_CONNECT_ONE,
 	PRE_CONNECT_TWO,
 	NOT_CONNECTED,
 	CONNECTED,

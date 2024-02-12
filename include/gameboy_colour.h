@@ -5,7 +5,7 @@
 
 #include <tonc.h>
 #include <string>
-#include "LinkGPIO.h"
+#include "LinkSPI.hpp"
 
 /*
 #define LINK_SPI_NO_DATA 0xffffffff
@@ -36,5 +36,6 @@ int transferBit(byte *party_data);
 int loop(byte *party_data);
 std::string outHexStr(vu8 inputNum);
 void updateFrames();
+byte exchange_parties(byte);
 
 #endif /* GAMEBOY_COLOUR_H_ */
