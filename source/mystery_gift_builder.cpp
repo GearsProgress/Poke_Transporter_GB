@@ -79,7 +79,7 @@ mystery_gift_script::mystery_gift_script()
     ptr_block_ptr_high = (curr_rom.loc_gSaveBlock1PTR + 0x02);
 }
 
-void mystery_gift_script::build_script(Pokemon incoming_party_array[])
+void mystery_gift_script::build_script(Pokemon_Party incoming_box_data)
 {
     // Located at 0x?8A8 in the .sav
     init_npc_location(curr_rom.map_bank, curr_rom.map_id, curr_rom.npc_id);    // Set the location of the NPC
@@ -210,22 +210,24 @@ void mystery_gift_script::build_script(Pokemon incoming_party_array[])
                                                                                //
     set_asm_offset_destination(ASM_OFFSET_DEX_STRUCT);                         // set the DEX_STRUCT offset
 
-    for (int i = 0; i < 6; i++) // Add in the dex numbers
+    for (int i = 0; i < incoming_box_data.get_num_pkmn(); i++) // Add in the dex numbers
     {
-        mg_script[curr_index] = incoming_party_array[i].get_dex_number();
+        mg_script[curr_index] = incoming_box_data.get_dex_num(i);
         curr_index++;
     }
     curr_index += 2; // make the offset a multiple of 4
 
     set_asm_offset_destination(ASM_OFFSET_PKMN_STRUCT); // set the PKMN_STRUCT ptr offset
 
-    for (int i = 0; i < 6; i++) // Add in the Pokemon data
+    for (int i = 0; i < incoming_box_data.get_num_pkmn(); i++) // Add in the Pokemon data
     {
+        Pokemon curr_pkmn = incoming_box_data.get_converted_pkmn(i);
         for (int curr_byte = 0; curr_byte < POKEMON_SIZE; curr_byte++)
         {
-            mg_script[curr_index] = incoming_party_array[i].get_gen_3_data(curr_byte);
+            mg_script[curr_index] = curr_pkmn.get_gen_3_data(curr_byte);
             curr_index++;
         }
+        validity_array[i] = curr_pkmn.get_validity();
     }
 
     fill_jumppoint_pointers();

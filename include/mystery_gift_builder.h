@@ -118,15 +118,16 @@ class mystery_gift_script
     u16 asm_offset_destination[NUM_ASM_OFFSET];
     u16 relative_offset_location[NUM_RELATIVE_PTR];
     u16 relative_offset_destination[NUM_RELATIVE_PTR];
-    u8 party_data_array[6 * POKEMON_SIZE];
     u8 four_align_value = 0;
 
 public:
     mystery_gift_script();
-    void build_script(Pokemon incoming_party_array[]);
+    void build_script(Pokemon_Party incoming_box_data);
     u8 get_script_value_at(int index);
     u32 calc_checksum32();
     u16 calc_crc16();
+    bool validity_array[30];
+
 
 private:
     void add_command(int len);

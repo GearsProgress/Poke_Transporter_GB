@@ -4,6 +4,6 @@
 #include "pokemon_party.h"
 #include "mystery_gift_builder.h"
 
-bool inject_mystery(Pokemon incoming_party_array[]);
+bool inject_mystery(Pokemon_Party incoming_box_data);
 
 #endif

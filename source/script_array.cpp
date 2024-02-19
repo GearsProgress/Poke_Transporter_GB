@@ -4,6 +4,7 @@
 #include "mystery_gift_injector.h"
 #include "sprite_data.h"
 #include "flash_mem.h"
+#include "pokemon_data.h"
 #include <tonc.h>
 
 int last_error;
@@ -144,8 +145,10 @@ bool run_conditional(int index)
         return true;
 
     case CMD_IMPORT_POKEMON:
-        party_data.load_pokemon();
-        return inject_mystery(party_data.get_full_pokemon_array());
+        party_data.set_lang(ENG_ID);
+        party_data.set_game(RED_ID);
+        // REMOVE ME ^
+        return inject_mystery(party_data);
 
     case CMD_BACK_TO_MENU:
         text_disable();
@@ -165,6 +168,14 @@ bool run_conditional(int index)
         return true;
 
     case CMD_END_SCRIPT:
+        return true;
+
+    case CMD_ASK_LANG:
+        //party_data.set_lang();
+        return true;
+
+    case CMD_ASK_GAME:
+        //party_data.set_game();
         return true;
 
     default:

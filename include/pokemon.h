@@ -21,7 +21,7 @@ public:
     int ot_size = 0;
     int nickname_size = 0;
     Pokemon();
-    void load_data(int index, byte *party_data);
+    void load_data(int index, byte *party_data, int game, int lang);
     void convert_to_gen_three();
     void copy_from_to(byte *source, byte *destination, int size, bool reverse_endian);
     void alocate_data_chunks(byte *G, byte *A, byte *E, byte *M);
@@ -73,6 +73,7 @@ private:
     u32 iv_egg_ability;
     bool is_valid;
     bool is_new = false;
+    int box_size;
 };
 
 #endif

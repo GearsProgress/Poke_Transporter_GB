@@ -1,9 +1,13 @@
+// This file is a MESS and needs to be made way more clean.
+
 #include <tonc.h>
 #include <cstring>
 #include "sprite_data.h"
 
 OBJ_ATTR obj_buffer[128];
 OBJ_AFFINE *obj_aff_buffer = (OBJ_AFFINE *)obj_buffer;
+
+// BACKGROUNDS
 
 #include "background.h"
 void load_background()
@@ -51,6 +55,8 @@ void load_textbox_background()
     REG_BG2VOFS = 96;
     REG_BG2CNT = BG_CBB(CBB) | BG_SBB(SBB) | BG_4BPP | BG_REG_32x32 | BG_PRIO(3);
 }
+
+// SPRITES
 
 #include "metr.h"
 OBJ_ATTR *testroid = &obj_buffer[0];

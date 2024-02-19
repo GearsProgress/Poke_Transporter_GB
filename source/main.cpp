@@ -90,30 +90,8 @@ int test_main(void) Music
 }
 */
 
-void initalization_script(void)
+void load_graphics()
 {
-	// Initalizations
-	REG_DISPCNT = DCNT_MODE0 | DCNT_BG0 | DCNT_BG1 | DCNT_BG2 | DCNT_BG3 | DCNT_OBJ | DCNT_OBJ_1D;
-	irq_init(NULL);
-	irq_enable(II_VBLANK);
-
-	// Disable for save data read/write
-	REG_IME = 0;
-	REG_IE = 0;
-
-	rand_set_seed(0x1216);
-	add_script_party_var(party);
-
-	// Sound bank init
-	irq_init(NULL);
-	// irq_set(II_VBLANK, mmVBlank, 0); //Music
-	irq_enable(II_VBLANK);
-	// mmInitDefault((mm_addr)soundbank_bin, 8); //Music
-	// mmStart(MOD_FLATOUTLIES, MM_PLAY_LOOP); //Music
-
-	// Graphics init
-	oam_init(obj_buffer, 128);
-
 	// Load opening background first so it hides everything else
 	load_opening_background();
 	load_background();
@@ -151,6 +129,32 @@ void initalization_script(void)
 	main_menu_btn_init(Button(btn_lang_spa, 608), BTN_SPA);
 	main_menu_btn_init(Button(btn_lang_kor, 640), BTN_KOR);
 	main_menu_btn_init(Button(lang_arrow, 672), LANG_ARROW);
+}
+
+void initalization_script(void)
+{
+	// Initalizations
+	REG_DISPCNT = DCNT_MODE0 | DCNT_BG0 | DCNT_BG1 | DCNT_BG2 | DCNT_BG3 | DCNT_OBJ | DCNT_OBJ_1D;
+	irq_init(NULL);
+	irq_enable(II_VBLANK);
+
+	// Disable for save data read/write
+	REG_IME = 0;
+	REG_IE = 0;
+
+	rand_set_seed(0x1216);
+	add_script_party_var(party);
+
+	// Sound bank init
+	irq_init(NULL);
+	// irq_set(II_VBLANK, mmVBlank, 0); //Music
+	irq_enable(II_VBLANK);
+	// mmInitDefault((mm_addr)soundbank_bin, 8); //Music
+	// mmStart(MOD_FLATOUTLIES, MM_PLAY_LOOP); //Music
+
+	// Graphics init
+	oam_init(obj_buffer, 128);
+	load_graphics();
 
 	// Prepare dialouge
 	populate_dialogue();

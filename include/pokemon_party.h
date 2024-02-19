@@ -10,16 +10,21 @@ public:
     Pokemon_Party();
     void start_link();
     int get_last_error();
-    void load_pokemon();
-    Pokemon* get_full_pokemon_array();
+    Pokemon get_converted_pkmn(int index);
     bool get_has_new_pkmn();
+    void set_game(int nGame);
+    void set_lang(int nLang);
+    int get_num_pkmn();
+    int get_dex_num(int index);
+
 
 private:
-    Pokemon party[6];
-    byte party_data_array[GEN2_INT_SIZE + 4];
+    byte box_data_array[0x462];
     int last_error;
-    int party_size;
-    int gen;
+    int num_pokemon;
+    int game;
+    char lang;
+    bool has_new_pkmn;
 };
 
 #endif

@@ -4,7 +4,6 @@
 #include <tonc.h>
 #include "output.h"
 
-extern byte gen1_party_bootstrap[PLAYER_LENGTH_GEN_I];
-extern byte gen1_omnipayload[PATCH_LIST_LEN_GEN_I];
+extern byte gen1_eng_payload[637];
 
 #endif

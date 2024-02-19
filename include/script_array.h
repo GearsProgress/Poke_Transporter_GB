@@ -43,8 +43,10 @@
 #define CMD_HIDE_PROF       DIA_END + 5
 #define CMD_SET_TUTOR_TRUE  DIA_END + 6
 #define CMD_END_SCRIPT      DIA_END + 7
+#define CMD_ASK_LANG        DIA_END + 8
+#define CMD_ASK_GAME        DIA_END + 9
 
-#define                     CMD_SIZE  8
+#define                     CMD_SIZE  10
 #define CMDS_END DIA_END + CMD_SIZE
 
 // Conditionals
