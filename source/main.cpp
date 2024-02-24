@@ -55,7 +55,7 @@ Post Beta TODO:
 --------
 */
 
-Pokemon_Party party = Pokemon_Party();
+//Pokemon_Party party = Pokemon_Party();
 int delay_counter = 0;
 bool skip = true;
 rom_data curr_rom;
@@ -142,9 +142,6 @@ void initalization_script(void)
 	REG_IME = 0;
 	REG_IE = 0;
 
-	rand_set_seed(0x1216);
-	add_script_party_var(party);
-
 	// Sound bank init
 	irq_init(NULL);
 	// irq_set(II_VBLANK, mmVBlank, 0); //Music
@@ -166,6 +163,8 @@ void initalization_script(void)
 	// main_menu_init(transfer_btn, pokedex_btn, credits_btn, language_btn);
 
 	text_disable();
+	
+	rand_set_seed(0x1216);
 };
 
 void game_load_error(void)

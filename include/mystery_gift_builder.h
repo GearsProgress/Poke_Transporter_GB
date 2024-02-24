@@ -4,6 +4,7 @@
 #include <tonc.h>
 #include <string>
 #include <map>
+#include <vector>
 #include "pokemon_party.h"
 #include "debug_mode.h"
 #include "save_data_manager.h"
@@ -99,14 +100,14 @@ class mystery_gift_script
         // Ň = New line
         // ƞ = string terminator
         {{
-            // Kanto
+             // Kanto
              u"BILL: Hey ƲÀ!ȼPROFESSOR FENNEL told me that you’dŇbe coming by for these POKÉMON!",
              u"Thanks for helping out FENNEL!",
              u"The PC is full…ȼGo make some more room!",
              u"ȆÀÁƲÀ’S POKÉMON were sent to theŇPC!",
          },
          {
-            // Hoenn
+             // Hoenn
              u"LANETTE: Hey ƲÀ!ȼPROFESSOR FENNEL told me that you’dŇbe coming by for these POKÉMON!",
              u"Thanks for helping out FENNEL!",
              u"The PC is full…ȼGo make some more room!",
@@ -114,7 +115,7 @@ class mystery_gift_script
          }};
     u32 textbox_location[NUM_TEXTBOXES];
     u32 textbox_destination[NUM_TEXTBOXES];
-    u16 asm_offset_location[NUM_ASM_OFFSET];
+u16 asm_offset_location[NUM_ASM_OFFSET];
     u16 asm_offset_destination[NUM_ASM_OFFSET];
     u16 relative_offset_location[NUM_RELATIVE_PTR];
     u16 relative_offset_destination[NUM_RELATIVE_PTR];
@@ -122,12 +123,11 @@ class mystery_gift_script
 
 public:
     mystery_gift_script();
-    void build_script(Pokemon_Party incoming_box_data);
+    void build_script(Pokemon_Party &incoming_box_data);
     u8 get_script_value_at(int index);
     u32 calc_checksum32();
     u16 calc_crc16();
     bool validity_array[30];
-
 
 private:
     void add_command(int len);
@@ -138,15 +138,15 @@ private:
     void fill_textbox_pointers();
     void add_asm(u16 command);
     void fill_asm_pointers();
-    void fill_relative_pointers();
+void fill_relative_pointers();
     void set_jump_destination(u8 jumppoint_id);
     u8 get_ptr_offset(u8 jumppoint_id);
     void init_npc_location(u8 bank, u8 map, u8 npc);
     void add_word(u32 word);
-    void set_asm_offset_destination(u8 asm_offset_id);
+void set_asm_offset_destination(u8 asm_offset_id);
     u8 asm_offset_distance(u8 asm_offset_id);
     void four_align();
-    void set_ptr_destination(u8 relative_ptr_id);
+void set_ptr_destination(u8 relative_ptr_id);
     void add_padding();
 
     // Scripting commands
@@ -191,4 +191,16 @@ private:
     // Custom scripting/ASM commands
 };
 
+class asm_var
+{
+public:
+    asm_var();
+    u32 set_value(u32 nValue, u32 currLoc); // Set the value of the variable
+    u32 add_script_location(u32 currLoc); // Add a location for the variable to be refrenced in the script
+    void set_pointer(u32 currLoc); // Add the pointer to where the variable is stored
+    void fill_script_pointers(u8 script_array[]); // goes through all the script locations and updates them to point to the value
+    u32 memory_location;
+    u32 value;
+    std::vector<u32> script_locations;
+};
 #endif

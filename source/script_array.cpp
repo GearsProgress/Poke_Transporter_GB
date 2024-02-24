@@ -8,7 +8,7 @@
 #include <tonc.h>
 
 int last_error;
-Pokemon_Party party_data;
+Pokemon_Party party_data = Pokemon_Party();
 
 script_obj script[SCRIPT_SIZE];
 std::string_view dialogue[DIA_SIZE];
@@ -89,11 +89,6 @@ void populate_script()
     script[CMD_HIDE_PROF] = script_obj(CMD_HIDE_PROF, CMD_BACK_TO_MENU);
     script[CMD_BACK_TO_MENU] = script_obj(CMD_BACK_TO_MENU, SCRIPT_START);
 };
-
-void add_script_party_var(Pokemon_Party var)
-{
-    party_data = var;
-}
 
 bool run_conditional(int index)
 {

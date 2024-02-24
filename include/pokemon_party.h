@@ -4,6 +4,8 @@
 #include <tonc.h>
 #include "pokemon.h"
 
+#define BOX_DATA_ARRAY_SIZE 0x462
+
 class Pokemon_Party
 {
 public:
@@ -22,9 +24,9 @@ private:
     byte box_data_array[0x462];
     int last_error;
     int num_pokemon;
+    bool has_new_pkmn;
     int game;
     char lang;
-    bool has_new_pkmn;
 };
 
 #endif

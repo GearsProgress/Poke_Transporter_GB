@@ -199,6 +199,10 @@ int loop(byte *party_data)
     {
       VBlankIntrWait();
     }
+
+    if (counter > (60*10)){
+       return COND_ERROR_TIMEOUT_ONE;
+    }
   }
 };
 

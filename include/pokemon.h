@@ -51,7 +51,7 @@ private:
     byte trainer_name[7];
     byte pokerus;
     byte caught_data[2];
-    byte level;
+    byte met_level;
     byte gen_3_pkmn[80];
     byte unencrypted_data[49];                                      // Contains the 48 GAEM bytes, along with the modulo int
     byte pid[4] = {0b00000001, 0b10101010, 0b11111111, 0b10011001}; // Little Endian, reverse of Bulbapedia
