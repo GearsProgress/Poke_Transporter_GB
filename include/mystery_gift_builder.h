@@ -194,13 +194,14 @@ void set_ptr_destination(u8 relative_ptr_id);
 class asm_var
 {
 public:
-    asm_var();
-    u32 set_value(u32 nValue, u32 currLoc); // Set the value of the variable
-    u32 add_script_location(u32 currLoc); // Add a location for the variable to be refrenced in the script
-    void set_pointer(u32 currLoc); // Add the pointer to where the variable is stored
-    void fill_script_pointers(u8 script_array[]); // goes through all the script locations and updates them to point to the value
-    u32 memory_location;
+    asm_var(u32 nValue, std::vector<asm_var*> &var_list_ref, int* nCurr_loc_ptr);
+    u32 place_word(); // Place the value in memory
+    u8 add_reference(); // Add a location for the variable to be refrenced in the script
+    void start(); // Add a pointer to where the start is
+    void fill_refrences(u8 mg_array_ptr[]); // goes through all the script locations and updates them to point to the start
+    int *curr_loc_ptr;
     u32 value;
-    std::vector<u32> script_locations;
+    std::vector<u32> location_list;
+    u32 start_location_in_script;
 };
 #endif
