@@ -32,8 +32,8 @@ bool rom_data::load_rom()
     case (RUBY_ID):
     case (SAPPHIRE_ID):
 
-        map_bank = 20;
-        map_id = 2;
+        map_bank = 0; // Testing girl is 0-10-1, lanette is 20-2-1
+        map_id = 10;
         npc_id = 1;
 
         def_map_bank = 8;

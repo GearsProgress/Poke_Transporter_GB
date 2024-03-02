@@ -129,5 +129,5 @@ int Pokemon_Party::get_num_pkmn(){
 }
 
 int Pokemon_Party::get_dex_num(int index){
-	return 1;
+	return 63; // Abra, for testing
 }
