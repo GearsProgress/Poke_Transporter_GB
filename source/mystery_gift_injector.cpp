@@ -4,6 +4,7 @@
 #include "mystery_gift_builder.h"
 #include "rom_data.h"
 #include "save.h"
+#include "pokemon_data.h"
 
 // This will need to be modified for the JP releases
 static u8 bill_wonder_card[0x14E] = {
@@ -57,10 +58,11 @@ bool inject_mystery(Pokemon_Party &incoming_box_data)
     erase_sector(memory_section_array[4]);
     copy_ram_to_save(&global_memory_buffer[0], memory_section_array[4], 0x1000);
 
-    // Add in Pokemon data
-    copy_save_to_ram(0x1C000, &global_memory_buffer[0], 0x1000);
+    // Add in Pokemon and Dex data
+    copy_save_to_ram(0x1E000, &global_memory_buffer[0], 0x1000);
     int curr_index = 0;
-    for (int i = 0; i < incoming_box_data.get_num_pkmn(); i++) // Add in the Pokemon data
+
+    for (int i = 0; i < MAX_PKMN_IN_BOX; i++) // Add in the Pokemon data
     {
         Pokemon curr_pkmn = incoming_box_data.get_converted_pkmn(i);
         for (int curr_byte = 0; curr_byte < POKEMON_SIZE; curr_byte++)
@@ -69,13 +71,23 @@ bool inject_mystery(Pokemon_Party &incoming_box_data)
             curr_index++;
         }
         script.validity_array[i] = curr_pkmn.get_validity();
+        script.dex_array[i] = curr_pkmn.get_dex_number();
     }
-    copy_ram_to_save(&global_memory_buffer[0], 0x1C000, 0x1000);
+    
+    for (int i = 0; i < MAX_PKMN_IN_BOX; i++) // Add in the dex numbers
+    {
+        global_memory_buffer[curr_index] = script.dex_array[i];
+        curr_index++;
+    }
+
+    update_memory_buffer_checksum(false);
+    erase_sector(0x1E000);
+    copy_ram_to_save(&global_memory_buffer[0], 0x1E000, 0x1000);
 
     // Set flags
     copy_save_to_ram(memory_section_array[1 + ((curr_rom.offset_flags + (FLAG_ID_START / 8)) / 0xF80)], &global_memory_buffer[0], 0x1000);
     global_memory_buffer[(curr_rom.offset_flags + (FLAG_ID_START / 8)) % 0xF80] &= (~0b01111111 << (FLAG_ID_START % 8)); // Set "collected all" flag to 0 and reset the "to obtain" flags
-    for (int i = 0; i < incoming_box_data.get_num_pkmn(); i++)
+for (int i = 0; i < MAX_PKMN_IN_BOX; i++)
     {
         if (script.validity_array[i])
         {

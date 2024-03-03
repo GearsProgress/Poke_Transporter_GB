@@ -28,6 +28,8 @@
 #define SILVER_ID 5
 #define CRYSTAL_ID 6
 
+#define MAX_PKMN_IN_BOX 6
+
 
 extern const u8 EXP_MAX[252];
 extern const u32 EXP_TYPES[6];

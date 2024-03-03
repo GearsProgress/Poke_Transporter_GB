@@ -38,6 +38,8 @@ public:
     int loc_gSaveBlock1;    // Only used in R/S
     int loc_gSaveBlock1PTR; // Only used in FR/LG/E
     int loc_setPokedexFlag;
+    int loc_gSaveDataBuffer; // The location of the saveDataBuffer
+    int loc_readFlashSector;
     int offset_ramscript; // Ramscript offset as found within the SaveBlock1 struct in global.h
     int offset_flags;     // Flag offset as found within the SaveBlock1 struct in global.h
     int offset_wondercard;

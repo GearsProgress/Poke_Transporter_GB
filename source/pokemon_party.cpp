@@ -92,7 +92,6 @@ void Pokemon_Party::start_link()
 		setup();
 		last_error = loop(&box_data_array[0]);
 	}
-	num_pokemon = 6;
 }
 
 int Pokemon_Party::get_last_error()
@@ -122,12 +121,4 @@ void Pokemon_Party::set_game(int nGame)
 void Pokemon_Party::set_lang(int nLang)
 {
 	lang = nLang;
-}
-
-int Pokemon_Party::get_num_pkmn(){
-	return num_pokemon;
-}
-
-int Pokemon_Party::get_dex_num(int index){
-	return 63; // Abra, for testing
 }

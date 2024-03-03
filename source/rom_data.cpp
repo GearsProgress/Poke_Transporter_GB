@@ -134,6 +134,9 @@ bool rom_data::load_rom()
         loc_gSpecialVar_0x8000 = 0x020375D8;
         loc_gSaveBlock1PTR = 0x03005D8C;
         loc_setPokedexFlag = 0x080C0664;
+        loc_gSaveDataBuffer = 0x0203ABBC;
+        loc_readFlashSector = 0x0815314C;
+
         offset_ramscript = 0x3728;
         offset_flags = 0x1270;
         return true;
