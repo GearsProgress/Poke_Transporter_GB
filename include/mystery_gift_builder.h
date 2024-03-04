@@ -16,10 +16,6 @@
 #define NPC_LOCATION_OFFSET 0x4
 #define READ_AS_THUMB 0x1
 
-#define FLAG_ID_START 0x21
-
-
-
 #define VAR_ID_START 0x8000 // This one should also stay consistant
 #define VIRTUAL_ADDRESS 0x08000000 // This will also stay constant
 
@@ -77,8 +73,6 @@ public:
     u8 get_script_value_at(int index);
     u32 calc_checksum32();
     u16 calc_crc16();
-    bool validity_array[MAX_PKMN_IN_BOX];
-    int dex_array[MAX_PKMN_IN_BOX];
 
 private:
     void add_command(int len);

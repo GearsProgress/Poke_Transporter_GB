@@ -47,8 +47,11 @@ public:
     int text_region;
 
     // PKHeX's list of flags is useful for making sure the detection is accurate: https://github.com/kwsch/PKHeX/blob/78a557c3cdaa6f48b42cc96df8ccb4d20b897937/PKHeX.Core/Resources/text/other/flags_rs.txt
-    int e4_flag; // The flag that is set when you become champion. Often listed as "GAME_CLEAR"
-    int mg_flag; // The flag that is set when you enable Mystery Gift. Known as "EXDATA_ENABLE" in RS
+    int e4_flag;                   // The flag that is set when you become champion. Often listed as "GAME_CLEAR"
+    int mg_flag;                   // The flag that is set when you enable Mystery Gift. Known as "EXDATA_ENABLE" in RS
+    int unused_flag_start; // The start of the unused flags and must have 31 open flags in a row
+    int all_collected_flag;    // The flag for if everything has been collected
+    int pkmn_collected_flag_start; // The beginning of the flags for each of the Pokemon
 
     u8 map_bank;
     u8 map_id;

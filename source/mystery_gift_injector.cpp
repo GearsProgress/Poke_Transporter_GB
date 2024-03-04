@@ -14,6 +14,9 @@ static u8 lanette_wonder_card[0x14E] = {
 
 bool inject_mystery(Pokemon_Party &incoming_box_data)
 {
+    int validity_array[MAX_PKMN_IN_BOX];
+    int dex_array[MAX_PKMN_IN_BOX];
+
     mystery_gift_script script;
     script.build_script(incoming_box_data);
     u32 checksum = 0;
@@ -70,13 +73,13 @@ bool inject_mystery(Pokemon_Party &incoming_box_data)
             global_memory_buffer[curr_index] = curr_pkmn.get_gen_3_data(curr_byte);
             curr_index++;
         }
-        script.validity_array[i] = curr_pkmn.get_validity();
-        script.dex_array[i] = curr_pkmn.get_dex_number();
+        validity_array[i] = curr_pkmn.get_validity();
+        dex_array[i] = curr_pkmn.get_dex_number();
     }
-    
+
     for (int i = 0; i < MAX_PKMN_IN_BOX; i++) // Add in the dex numbers
     {
-        global_memory_buffer[curr_index] = script.dex_array[i];
+        global_memory_buffer[curr_index] = dex_array[i];
         curr_index++;
     }
 
@@ -85,19 +88,24 @@ bool inject_mystery(Pokemon_Party &incoming_box_data)
     copy_ram_to_save(&global_memory_buffer[0], 0x1E000, 0x1000);
 
     // Set flags
-    copy_save_to_ram(memory_section_array[1 + ((curr_rom.offset_flags + (FLAG_ID_START / 8)) / 0xF80)], &global_memory_buffer[0], 0x1000);
-    global_memory_buffer[(curr_rom.offset_flags + (FLAG_ID_START / 8)) % 0xF80] &= (~0b01111111 << (FLAG_ID_START % 8)); // Set "collected all" flag to 0 and reset the "to obtain" flags
-for (int i = 0; i < MAX_PKMN_IN_BOX; i++)
+    int memory_section = 1 + ((curr_rom.offset_flags + (curr_rom.unused_flag_start / 8)) / 0xF80); // This sets the correct memory section, since flags stretch between section 1 and 2.
+    copy_save_to_ram(memory_section_array[memory_section], &global_memory_buffer[0], 0x1000);
+    global_memory_buffer[(curr_rom.offset_flags + (curr_rom.all_collected_flag / 8)) % 0xF80] &= ~(1 << (curr_rom.all_collected_flag % 8)); // Set "collected all" flag to 0
+
+    for (int i = 0; i < MAX_PKMN_IN_BOX; i++)
     {
-        if (script.validity_array[i])
+        int curr_flag;
+        curr_flag = curr_rom.pkmn_collected_flag_start + i;
+        global_memory_buffer[(curr_rom.offset_flags + (curr_flag / 8)) % 0xF80] &= ~(1 << (curr_flag % 8)); // Reset the flag
+        if (validity_array[i])
         {
-            global_memory_buffer[(curr_rom.offset_flags + (FLAG_ID_START / 8)) % 0xF80] |= ((1 << i) << (FLAG_ID_START % 8)); // Set "to obtain" flags accordingly
+            global_memory_buffer[(curr_rom.offset_flags + (curr_flag / 8)) % 0xF80] |= (1 << (curr_flag % 8)); // Set flag accordingly
         }
     }
 
     update_memory_buffer_checksum(false);
-    erase_sector(memory_section_array[1 + ((curr_rom.offset_flags + (FLAG_ID_START / 8)) / 0xF80)]);
-    copy_ram_to_save(&global_memory_buffer[0], memory_section_array[1 + ((curr_rom.offset_flags + (FLAG_ID_START / 8)) / 0xF80)], 0x1000);
+    erase_sector(memory_section_array[memory_section]);
+    copy_ram_to_save(&global_memory_buffer[0], memory_section_array[memory_section], 0x1000);
 
     // Save custom save data
     write_custom_save_data();

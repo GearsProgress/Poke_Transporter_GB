@@ -20,13 +20,12 @@ int var_dex_num = (VAR_ID_START + 0x08);
 int var_index = (VAR_ID_START + 0x09);
 int var_pkmn_offset = (VAR_ID_START + 0x0A);
 
-//int flag_pkmn_1 = (FLAG_ID_START + 0x0);
-//int flag_pkmn_2 = (FLAG_ID_START + 0x1);
-//int flag_pkmn_3 = (FLAG_ID_START + 0x2);
-//int flag_pkmn_4 = (FLAG_ID_START + 0x3);
-//int flag_pkmn_5 = (FLAG_ID_START + 0x4);
-//int flag_pkmn_6 = (FLAG_ID_START + 0x5);
-int flag_all_collected = (FLAG_ID_START + 6);
+// int flag_pkmn_1 = (FLAG_ID_START + 0x0);
+// int flag_pkmn_2 = (FLAG_ID_START + 0x1);
+// int flag_pkmn_3 = (FLAG_ID_START + 0x2);
+// int flag_pkmn_4 = (FLAG_ID_START + 0x3);
+// int flag_pkmn_5 = (FLAG_ID_START + 0x4);
+// int flag_pkmn_6 = (FLAG_ID_START + 0x5);
 
 // These will all be set based on the ROM pointers
 /*
@@ -126,40 +125,40 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     textReceived.set_text(u"ȆÀÁƲÀ’S POKÉMON were sent to theŇPC!");
 
     // Located at 0x?8A8 in the .sav
-    init_npc_location(curr_rom.map_bank, curr_rom.map_id, curr_rom.npc_id);    // Set the location of the NPC
-    setvirtualaddress(VIRTUAL_ADDRESS);                                        // Set virtual address
-    lock();                                                                    // Lock the player
-    faceplayer();                                                              // Have the NPC face the player
-    checkflag(flag_all_collected);                                             // Check if the "all collected" flag has been set
-    virtualgotoif(COND_FLAGTRUE, jumpAllCollected.add_reference(2));           // If "all collected" is true, then jump to the "thank you" text
-    virtualmsgbox(textGreet.add_reference(1));                                 // Otherwise, greet the player
-    waitmsg();                                                                 // Wait for the message to finish
-    waitkeypress();                                                            // Wait for the player to press A/B
-    setvar(var_index, 0);                                                      // set the index to 0
-    setvar(var_callASM, rev_endian(0x0023));                                   // set the call_asm variable to 0x23: 0x23 = CALL ASM
-    setvar(var_pkmn_offset, 0);                                                // Set the Pokemon struct offset to 0
-    if (curr_rom.is_ruby_sapphire())                                           // Ruby and Sapphire don't shift their save blocks around, so we can hardcode it
-    {                                                                          // FOR RUBY AND SAPPHIRE:
-        setvar(var_script_ptr_low, curr_rom.loc_gSaveBlock1 & 0xFFFF);         // Copy the first two bytes of the saveblock1 location to a variable
-        setvar(var_script_ptr_high, curr_rom.loc_gSaveBlock1 >> 16);           // Copy the second two bytes of the saveblock1 location to a variable
-    }                                                                          //
-    else                                                                       //
-    {                                                                          // FOR FIRERED, LEAFGREEN, AND EMERALD
-        copybyte(ptr_script_ptr_low, ptr_block_ptr_low);                       // Copy the first byte of the saveblock1ptr to a variable
-        copybyte(ptr_script_ptr_low + 1, ptr_block_ptr_low + 1);               // Copy the second byte of the saveblock1ptr to a variable
-        copybyte(ptr_script_ptr_high, ptr_block_ptr_high);                     // Copy the third byte of the saveblock1ptr to a variable
-        copybyte(ptr_script_ptr_high + 1, ptr_block_ptr_high + 1);             // Copy the fourth byte of the saveblock1ptr to a variable
-    }                                                                          //
-    addvar(var_script_ptr_low, curr_rom.offset_ramscript + 8 + READ_AS_THUMB); // add the offset for ramscript, plus 8. 8 is for the 8 bytes of Checksum, padding and NPC info
-    addvar(var_script_ptr_low, readFlashStart.add_reference(3));               // Add the offset for the start of ASM
-    setvar(var_call_return_1, rev_endian(0x0300));                             // Set the vairable to 0x03. 0x03 = RETURN
-    setvar(var_call_check_flag, rev_endian(0x2B00));                           // Set the variable to 0x2B. 0x2B = CHECK FLAG
-    addvar(var_call_check_flag, rev_endian(FLAG_ID_START));                    // Add the starting flag ID to the check flag ASM variable
-    setvar(var_call_return_2, rev_endian(0x0003));                             // Set the variable to 0x03. 0x03 = RETURN
-    jumpLoop.set_start();                                                      // Set the jump destination for the JUMP_LOOP
-    call(ptr_call_check_flag);                                                 // Call the check flag ASM
-    virtualgotoif(COND_FLAGFALSE, jumpPkmnCollected.add_reference(2));         // If the "pokemon collected" flag is false, jump to the end of the loop
-    call(ptr_callASM);                                                         // Call readFlash ASM
+    init_npc_location(curr_rom.map_bank, curr_rom.map_id, curr_rom.npc_id);      // Set the location of the NPC
+    setvirtualaddress(VIRTUAL_ADDRESS);                                          // Set virtual address
+    lock();                                                                      // Lock the player
+    faceplayer();                                                                // Have the NPC face the player
+    checkflag(curr_rom.all_collected_flag);                                      // Check if the "all collected" flag has been set
+    virtualgotoif(COND_FLAGTRUE, jumpAllCollected.add_reference(2));             // If "all collected" is true, then jump to the "thank you" text
+    virtualmsgbox(textGreet.add_reference(1));                                   // Otherwise, greet the player
+    waitmsg();                                                                   // Wait for the message to finish
+    waitkeypress();                                                              // Wait for the player to press A/B
+    setvar(var_index, 0);                                                        // set the index to 0
+    setvar(var_callASM, rev_endian(0x0023));                                     // set the call_asm variable to 0x23: 0x23 = CALL ASM
+    setvar(var_pkmn_offset, 0);                                                  // Set the Pokemon struct offset to 0
+    if (curr_rom.is_ruby_sapphire())                                             // Ruby and Sapphire don't shift their save blocks around, so we can hardcode it
+    {                                                                            // FOR RUBY AND SAPPHIRE:
+        setvar(var_script_ptr_low, curr_rom.loc_gSaveBlock1 & 0xFFFF);           // Copy the first two bytes of the saveblock1 location to a variable
+        setvar(var_script_ptr_high, curr_rom.loc_gSaveBlock1 >> 16);             // Copy the second two bytes of the saveblock1 location to a variable
+    }                                                                            //
+    else                                                                         //
+    {                                                                            // FOR FIRERED, LEAFGREEN, AND EMERALD
+        copybyte(ptr_script_ptr_low, ptr_block_ptr_low);                         // Copy the first byte of the saveblock1ptr to a variable
+        copybyte(ptr_script_ptr_low + 1, ptr_block_ptr_low + 1);                 // Copy the second byte of the saveblock1ptr to a variable
+        copybyte(ptr_script_ptr_high, ptr_block_ptr_high);                       // Copy the third byte of the saveblock1ptr to a variable
+        copybyte(ptr_script_ptr_high + 1, ptr_block_ptr_high + 1);               // Copy the fourth byte of the saveblock1ptr to a variable
+    }                                                                            //
+    addvar(var_script_ptr_low, curr_rom.offset_ramscript + 8 + READ_AS_THUMB);   // add the offset for ramscript, plus 8. 8 is for the 8 bytes of Checksum, padding and NPC info
+    addvar(var_script_ptr_low, readFlashStart.add_reference(3));                 // Add the offset for the start of ASM
+    setvar(var_call_return_1, rev_endian(0x0300));                               // Set the vairable to 0x03. 0x03 = RETURN
+    setvar(var_call_check_flag, rev_endian(0x2B00));                             // Set the variable to 0x2B. 0x2B = CHECK FLAG
+    addvar(var_call_check_flag, rev_endian(curr_rom.pkmn_collected_flag_start)); // Add the starting flag ID (plus one to ignore the is collected flag) to the check flag ASM variable
+    setvar(var_call_return_2, rev_endian(0x0003));                               // Set the variable to 0x03. 0x03 = RETURN
+    jumpLoop.set_start();                                                        // Set the jump destination for the JUMP_LOOP
+    call(ptr_call_check_flag);                                                   // Call the check flag ASM
+    virtualgotoif(COND_FLAGFALSE, jumpPkmnCollected.add_reference(2));           // If the "pokemon collected" flag is false, jump to the end of the loop
+    call(ptr_callASM);                                                           // Call readFlash ASM
     addvar(var_script_ptr_low, mainAsmStart.add_reference(3, &readFlashStart));
 
     call(ptr_callASM);                                                       // Call SendMonToPC ASM
@@ -178,7 +177,7 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     addvar(var_call_check_flag, rev_endian(1));              // Add one to the flag index
     compare(var_index, MAX_PKMN_IN_BOX);                     // Compare the index to 30
     virtualgotoif(COND_LESSTHAN, jumpLoop.add_reference(2)); // if index is less than six, jump to the start of the loop
-    setflag(flag_all_collected);                             // Set the "all collected" flag
+    setflag(curr_rom.all_collected_flag);                    // Set the "all collected" flag
     fanfare(0xA4);                                           // Play the received fanfare
     virtualmsgbox(textReceived.add_reference(1));            // Display the recieved text
     waitfanfare();                                           // Wait for the fanfare

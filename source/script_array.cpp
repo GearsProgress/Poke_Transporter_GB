@@ -5,6 +5,7 @@
 #include "sprite_data.h"
 #include "flash_mem.h"
 #include "pokemon_data.h"
+#include "mystery_gift_builder.h"
 #include <tonc.h>
 
 int last_error;
@@ -133,7 +134,7 @@ bool run_conditional(int index)
         return compare_map_and_npc_data(curr_rom.def_map_bank, curr_rom.def_map_id, curr_rom.def_npc_id) && !IGNORE_MG_E4_FLAGS;
 
     case COND_PKMN_TO_COLLECT:
-        return compare_map_and_npc_data(curr_rom.map_bank, curr_rom.map_id, curr_rom.npc_id) && !read_flag(FLAG_ID_START + 0x06) && !IGNORE_MG_E4_FLAGS;
+        return compare_map_and_npc_data(curr_rom.map_bank, curr_rom.map_id, curr_rom.npc_id) && !read_flag(curr_rom.all_collected_flag) && !IGNORE_MG_E4_FLAGS;
 
     case CMD_START_LINK:
         party_data.start_link();

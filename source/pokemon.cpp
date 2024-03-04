@@ -135,9 +135,8 @@ void Pokemon::convert_to_gen_three()
         species_index_struct == 0 ||                 // Checks that the Pokemon isn't a blank party space
         species_index_struct != species_index_party) // Checks that the Pokemon isn't a hybrid or an egg
     {
-        // while(true){};
-        // is_valid = false;
-        // return;
+        is_valid = false;
+        return;
     }
     is_valid = true;
     // Generate PID
@@ -642,7 +641,7 @@ byte Pokemon::get_rand_gender_byte(byte index_num, byte attack_DVs)
 
 byte Pokemon::get_dex_number()
 {
-    return species_index_struct;
+    return (is_valid ? species_index_struct : 0);
 }
 
 bool Pokemon::get_validity()
@@ -652,5 +651,5 @@ bool Pokemon::get_validity()
 
 bool Pokemon::get_is_new()
 {
-    return is_new;
+    return (is_valid ? is_new : false);
 }

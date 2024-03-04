@@ -115,9 +115,9 @@ bool rom_data::load_rom()
         break;
     case (EMERALD_ID):
 
-        map_bank = 20;
-        map_id = 2;
-        npc_id = 1;
+        map_bank = 5; //20;
+        map_id = 4; //2;
+        npc_id = 2; //1;
 
         def_map_bank = 0xFF;
         def_map_id = 0xFF;
@@ -129,6 +129,9 @@ bool rom_data::load_rom()
 
         e4_flag = 0x860 + 0x04;
         mg_flag = 0x860 + 0x7B;
+        unused_flag_start = 0x20;
+        all_collected_flag = 0x20;
+        pkmn_collected_flag_start = 0x21;
 
         loc_sendMonToPC = 0x0806B490;
         loc_gSpecialVar_0x8000 = 0x020375D8;
