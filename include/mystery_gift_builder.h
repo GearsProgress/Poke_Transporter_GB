@@ -87,7 +87,7 @@ private:
     void setvirtualaddress(u32 location);
     void lock();
     void faceplayer();
-    void checkflag(u8 flag_id);
+    void checkflag(u16 flag_id);
     void virtualgotoif(u8 condition, u32 location);
     void virtualmsgbox(u32 location);
     void waitmsg();

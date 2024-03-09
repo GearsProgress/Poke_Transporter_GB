@@ -1,8 +1,7 @@
-#ifndef ROM_POINTERS_H
-#define ROM_POINTERS_H
+#ifndef BASE_ROM_STRUCT_H
+#define BASE_ROM_STRUCT_H
 
 #include <tonc.h>
-#include "rom_values/base_rom_struct.h"
 
 #define RUBY_ID 0x415856      // AXV
 #define SAPPHIRE_ID 0x415850  // AXP
@@ -21,24 +20,24 @@
 #define LANG_ITA 'I'
 #define LANG_SPA 'S'
 
-class rom_data
+#define TEXT_KANTO 0
+#define TEXT_HOENN 1
+
+#define NUM_ROMS 11
+
+struct ROM_DATA
 {
-public:
-    rom_data();
-    bool load_rom();
-    bool is_hoenn();
-    bool is_ruby_sapphire();
-    void print_rom_info();
+    bool is_valid;
 
     int gamecode;
     int version;
     int language;
 
-    int loc_sendMonToPC;
+    int loc_copyMonToPC;
     int loc_gSpecialVar_0x8000;
     int loc_gSaveBlock1;    // Only used in R/S
     int loc_gSaveBlock1PTR; // Only used in FR/LG/E
-    int loc_setPokedexFlag;
+    int loc_getSetPokedexFlag;
     int loc_gSaveDataBuffer; // The location of the saveDataBuffer
     int loc_readFlashSector;
     int offset_ramscript; // Ramscript offset as found within the SaveBlock1 struct in global.h
@@ -50,9 +49,7 @@ public:
     // PKHeX's list of flags is useful for making sure the detection is accurate: https://github.com/kwsch/PKHeX/blob/78a557c3cdaa6f48b42cc96df8ccb4d20b897937/PKHeX.Core/Resources/text/other/flags_rs.txt
     int e4_flag;                   // The flag that is set when you become champion. Often listed as "GAME_CLEAR"
     int mg_flag;                   // The flag that is set when you enable Mystery Gift. Known as "EXDATA_ENABLE" in RS
-    int unused_flag_start; // The start of the unused flags and must have 31 open flags in a row
-    int all_collected_flag;    // The flag for if everything has been collected
-    int pkmn_collected_flag_start; // The beginning of the flags for each of the Pokemon
+    int unused_flag_start;         // The start of the unused flags and must have 31 open flags in a row
 
     u8 map_bank;
     u8 map_id;
@@ -61,9 +58,10 @@ public:
     u8 def_map_bank;
     u8 def_map_id;
     u8 def_npc_id;
-    
-    private:
-    void fill_values(const ROM_DATA *rom_values);
+
+    u8 test_map_bank;
+    u8 test_map_id;
+    u8 test_npc_id;
 };
 
 #endif

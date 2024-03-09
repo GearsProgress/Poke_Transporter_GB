@@ -109,6 +109,7 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     textbox_var textReceived(asm_variable_list, &curr_index);
     textbox_var textPCFull(asm_variable_list, &curr_index);
     textbox_var textThank(asm_variable_list, &curr_index);
+    textbox_var textTest(asm_variable_list, &curr_index);
 
     // Ş = Wait for button and scroll text
     // ȼ = Wait for button and clear text
@@ -123,6 +124,7 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     textThank.set_text(u"Thanks for helping out FENNEL!");
     textPCFull.set_text(u"The PC is full…ȼGo make some more room!");
     textReceived.set_text(u"ȆÀÁƲÀ’S POKÉMON were sent to theŇPC!");
+    textTest.set_text(u"Testing...");
 
     // Located at 0x?8A8 in the .sav
     init_npc_location(curr_rom.map_bank, curr_rom.map_id, curr_rom.npc_id);      // Set the location of the NPC
@@ -158,6 +160,7 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     jumpLoop.set_start();                                                        // Set the jump destination for the JUMP_LOOP
     call(ptr_call_check_flag);                                                   // Call the check flag ASM
     virtualgotoif(COND_FLAGFALSE, jumpPkmnCollected.add_reference(2));           // If the "pokemon collected" flag is false, jump to the end of the loop
+
     call(ptr_callASM);                                                           // Call readFlash ASM
     addvar(var_script_ptr_low, mainAsmStart.add_reference(3, &readFlashStart));
 
@@ -167,7 +170,7 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     addvar(var_script_ptr_low, dexAsmStart.add_reference(3, &mainAsmStart)); // add to the CallASM offset so that it points to PTR_DEX_START instead
     setvar(var_dex_seen_caught, 2);                                          // set the seen caught variable to 2, so that the Pokemon is set to "seen"
     call(ptr_callASM);                                                       // call "PTR_DEX_START"
-    addvar(var_dex_seen_caught, 1);                                          // add 1 to the seen caught variable so that the Pokemon will be "Caught"
+    addvar(var_dex_seen_caught, 1); // add 1 to the seen caught variable so that the Pokemon will be "Caught"
     call(ptr_callASM);                                                       // Call "PTR_DEX_START" again
     subvar(var_script_ptr_low, dexAsmStart.add_reference(3, &mainAsmStart)); // subtract from the CallASM offset so that it points to CALL_ASM again
     subvar(var_script_ptr_low, mainAsmStart.add_reference(3, &readFlashStart));
@@ -200,6 +203,7 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     textThank.insert_text(mg_script);
     textPCFull.insert_text(mg_script);
     textReceived.insert_text(mg_script);
+    textTest.insert_text(mg_script);
     four_align(); // Align the code so that it is byte aligned
 
     readFlashStart.set_start();
@@ -370,7 +374,7 @@ void mystery_gift_script::faceplayer()
     add_command(1);
 }
 
-void mystery_gift_script::checkflag(u8 flag_id)
+void mystery_gift_script::checkflag(u16 flag_id)
 {
     value_buffer[0] = 0x2B;
     value_buffer[1] = flag_id >> 0;

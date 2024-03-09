@@ -2,10 +2,25 @@
 #include "mystery_gift_builder.h"
 #include "pokemon_party.h"
 #include "pokemon_data.h"
+#include "rom_values/rom_values_eng.h"
 
 rom_data::rom_data() {}
 bool rom_data::load_rom()
 {
+    const ROM_DATA *list_of_roms[NUM_ROMS] = {
+        &ENG_RUBY_v0,
+        &ENG_SAPPHIRE_v0,
+        &ENG_RUBY_v1,
+        &ENG_SAPPHIRE_v1,
+        &ENG_RUBY_v2,
+        &ENG_SAPPHIRE_v2,
+        &ENG_FIRERED_v0,
+        &ENG_LEAFGREEN_v0,
+        &ENG_FIRERED_v1,
+        &ENG_LEAFGREEN_v1,
+        &ENG_EMERALD_v0,
+    };
+
     if (IGNORE_GAME_PAK)
     {
         gamecode = DEBUG_GAME;
@@ -21,130 +36,47 @@ bool rom_data::load_rom()
         version = (*(vu8 *)(0x80000BC));
     }
 
-    // This section will need to be updated when more languages are added. It wil likely have to be a 3D array
-    if (language != LANG_ENG)
+    for (int i = 0; i < NUM_ROMS; i++)
     {
-        return false;
-    }
-
-    switch (gamecode)
-    {
-    case (RUBY_ID):
-    case (SAPPHIRE_ID):
-
-        map_bank = 0; // Testing girl is 0-10-1, lanette is 20-2-1
-        map_id = 10;
-        npc_id = 1;
-
-        def_map_bank = 8;
-        def_map_id = 1;
-        def_npc_id = 1;
-
-        text_region = TEXT_HOENN;
-        offset_wondercard = 0;
-        offset_script = 0x0810;
-
-        e4_flag = 0x800 + 0x04;
-        mg_flag = 0x800 + 0x4C;
-
-        switch (version)
+        if (gamecode == list_of_roms[i]->gamecode &&
+            language == list_of_roms[i]->language &&
+            version == list_of_roms[i]->version)
         {
-        case (VERS_1_0):
-            loc_sendMonToPC = 0x0803D998;
-            loc_gSpecialVar_0x8000 = 0x0202E8C4;
-            loc_gSaveBlock1 = 0x02025734;
-            loc_setPokedexFlag = 0x08090D90;
-            offset_ramscript = 0x3690;
-            offset_flags = 0x1220;
-            return true;
-        case (VERS_1_1):
-            loc_sendMonToPC = 0x0803D998;
-            loc_gSpecialVar_0x8000 = 0x0202E8C4;
-            loc_gSaveBlock1 = 0x02025734;
-            loc_setPokedexFlag = 0x08090DB0;
-            offset_ramscript = 0x3690;
-            offset_flags = 0x1220;
-            return true;
-        case (VERS_1_2):
-            loc_sendMonToPC = 0x0803D998;
-            loc_gSpecialVar_0x8000 = 0x0202E8C4;
-            loc_gSaveBlock1 = 0x02025734;
-            loc_setPokedexFlag = 0x08090DB0;
-            offset_ramscript = 0x3690;
-            offset_flags = 0x1220;
+            fill_values(list_of_roms[i]);
             return true;
         }
-        break;
-    case (FIRERED_ID):
-    case (LEAFGREEN_ID):
-
-        map_bank = 30;
-        map_id = 0;
-        npc_id = 1;
-
-        def_map_bank = 0xFF;
-        def_map_id = 0xFF;
-        def_npc_id = 0xFF;
-
-        text_region = TEXT_KANTO;
-        offset_wondercard = 0x0460;
-        offset_script = 0x079C;
-
-        e4_flag = 0x800 + 0x2C;
-        mg_flag = 0x800 + 0x39;
-
-        switch (version)
-        {
-        case (VERS_1_0):
-            loc_sendMonToPC = 0x08040B90;
-            loc_gSpecialVar_0x8000 = 0x020370B8;
-            loc_gSaveBlock1PTR = 0x03005008;
-            loc_setPokedexFlag = 0x08088E74;
-            offset_ramscript = 0x361C;
-            offset_flags = 0x0EE0;
-            return true;
-        case (VERS_1_1):
-            loc_sendMonToPC = 0x08040BA4;
-            loc_gSpecialVar_0x8000 = 0x020370B8;
-            loc_gSaveBlock1PTR = 0x03005008;
-            loc_setPokedexFlag = 0x08088E5C;
-            offset_ramscript = 0x361C;
-            offset_flags = 0x0EE0;
-            return true;
-        }
-        break;
-    case (EMERALD_ID):
-
-        map_bank = 5; //20;
-        map_id = 4; //2;
-        npc_id = 2; //1;
-
-        def_map_bank = 0xFF;
-        def_map_id = 0xFF;
-        def_npc_id = 0xFF;
-
-        text_region = TEXT_HOENN;
-        offset_wondercard = 0x056C;
-        offset_script = 0x08A8;
-
-        e4_flag = 0x860 + 0x04;
-        mg_flag = 0x860 + 0x7B;
-        unused_flag_start = 0x20;
-        all_collected_flag = 0x20;
-        pkmn_collected_flag_start = 0x21;
-
-        loc_sendMonToPC = 0x0806B490;
-        loc_gSpecialVar_0x8000 = 0x020375D8;
-        loc_gSaveBlock1PTR = 0x03005D8C;
-        loc_setPokedexFlag = 0x080C0664;
-        loc_gSaveDataBuffer = 0x0203ABBC;
-        loc_readFlashSector = 0x0815314C;
-
-        offset_ramscript = 0x3728;
-        offset_flags = 0x1270;
-        return true;
     }
     return false;
+}
+
+void rom_data::fill_values(const ROM_DATA *rom_values)
+{
+    loc_sendMonToPC = rom_values->loc_copyMonToPC;
+    loc_gSpecialVar_0x8000 = rom_values->loc_gSpecialVar_0x8000;
+    loc_gSaveBlock1 = rom_values->loc_gSaveBlock1;
+    loc_gSaveBlock1PTR = rom_values->loc_gSaveBlock1PTR;
+    loc_setPokedexFlag = rom_values->loc_getSetPokedexFlag;
+    loc_gSaveDataBuffer = rom_values->loc_gSaveDataBuffer;
+    loc_readFlashSector = rom_values->loc_readFlashSector;
+    offset_ramscript = rom_values->offset_ramscript;
+    offset_flags = rom_values->offset_flags;
+    offset_wondercard = rom_values->offset_wondercard;
+    offset_script = rom_values->offset_script;
+    text_region = rom_values->text_region;
+
+    e4_flag = rom_values->e4_flag;                   // The flag that is set when you become champion. Often listed as "GAME_CLEAR"
+    mg_flag = rom_values->mg_flag;                   // The flag that is set when you enable Mystery Gift. Known as "EXDATA_ENABLE" in RS
+    unused_flag_start = rom_values->unused_flag_start;         // The start of the unused flags and must have 31 open flags in a row
+    all_collected_flag = rom_values->unused_flag_start;        // The flag for if everything has been collected
+    pkmn_collected_flag_start = rom_values->unused_flag_start + 1; // The beginning of the flags for each of the Pokemon
+
+    map_bank = (DEBUG_MODE ? rom_values->test_map_bank : rom_values->map_bank);
+    map_id = (DEBUG_MODE ? rom_values->test_map_id : rom_values->map_id);
+    npc_id = (DEBUG_MODE ? rom_values->test_npc_id : rom_values->npc_id);
+
+    def_map_bank = rom_values->def_map_bank;
+    def_map_id = rom_values->def_map_id;
+    def_npc_id = rom_values->def_npc_id;
 }
 
 bool rom_data::is_hoenn()
