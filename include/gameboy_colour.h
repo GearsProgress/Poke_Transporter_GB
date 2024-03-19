@@ -5,7 +5,7 @@
 
 #include <tonc.h>
 #include <string>
-#include "LinkSPI.hpp"
+#include "libraries/gba-link-connection/LinkSPI.hpp"
 
 /*
 #define LINK_SPI_NO_DATA 0xffffffff

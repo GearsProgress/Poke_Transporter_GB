@@ -1,10 +1,11 @@
-//Created by Lorenzooone https://github.com/Lorenzooone/Pokemon-Gen3-to-Gen-X
+// Originally created by Lorenzooone and modified with their permission
+// Source: https://github.com/Lorenzooone/Pokemon-Gen3-to-Gen-X
 
-#include "base_include.h"
+#include "libraries/Pokemon-Gen3-to-Gen-X/include/base_include.h"
 #include <stddef.h>
-#include "useful_qualifiers.h"
-#include "timing_basic.h"
-#include "delays.h"
+#include "libraries/Pokemon-Gen3-to-Gen-X/include/useful_qualifiers.h"
+#include "libraries/Pokemon-Gen3-to-Gen-X/include/timing_basic.h"
+#include "libraries/Pokemon-Gen3-to-Gen-X/include/delays.h"
 
 #define NUM_CYCLES_PER_ITER 4
 #define NUM_CYCLES_PER_ITER_CHECK 8

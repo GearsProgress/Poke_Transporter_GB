@@ -27,7 +27,7 @@
 #include "mystery_gift_injector.h"
 #include "mystery_gift_builder.h"
 #include "rom_data.h"
-#include "save.h"
+#include "libraries/Pokemon-Gen3-to-Gen-X/include/save.h"
 
 /*
 

@@ -1,4 +1,5 @@
-//Created by Lorenzooone https://github.com/Lorenzooone/Pokemon-Gen3-to-Gen-X
+// Originally created by Lorenzooone and modified with their permission
+// Source: https://github.com/Lorenzooone/Pokemon-Gen3-to-Gen-X
 
 #ifndef TIMING_BASIC__
 #define TIMING_BASIC__

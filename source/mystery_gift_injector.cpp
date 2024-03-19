@@ -3,7 +3,7 @@
 #include "flash_mem.h"
 #include "mystery_gift_builder.h"
 #include "rom_data.h"
-#include "save.h"
+#include "libraries/Pokemon-Gen3-to-Gen-X/include/save.h"
 #include "pokemon_data.h"
 
 // This will need to be modified for the JP releases

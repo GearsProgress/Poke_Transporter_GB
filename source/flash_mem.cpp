@@ -3,7 +3,7 @@
 #include "flash_mem.h"
 #include "pokemon.h"
 #include "rom_data.h"
-#include "save.h"
+#include "libraries/Pokemon-Gen3-to-Gen-X/include/save.h"
 
 #define pkmn_length 80
 #define READ_SAVE_SECTIONS 5

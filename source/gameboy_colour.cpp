@@ -1,4 +1,5 @@
-// Original code created by StevenChaulk https://github.com/stevenchaulk/arduino-poke-gen2
+// Loosely based on code created by StevenChaulk 
+// Source: https://github.com/stevenchaulk/arduino-poke-gen2
 
 #include <tonc.h>
 #include <string>

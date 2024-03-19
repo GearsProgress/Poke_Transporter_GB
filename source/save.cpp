@@ -1,11 +1,14 @@
-//Created by Lorenzooone https://github.com/Lorenzooone/Pokemon-Gen3-to-Gen-X
+// Originally created by Lorenzooone and modified with their permission
+// Source: https://github.com/Lorenzooone/Pokemon-Gen3-to-Gen-X
 
-#include "base_include.h"
-#include "save.h"
+#include "libraries/Pokemon-Gen3-to-Gen-X/include/base_include.h"
+#include "libraries/Pokemon-Gen3-to-Gen-X/include/delays.h"
+#include "libraries/Pokemon-Gen3-to-Gen-X/include/save.h"
+#include "libraries/Pokemon-Gen3-to-Gen-X/include/useful_qualifiers.h"
+#include "libraries/Pokemon-Gen3-to-Gen-X/include/timing_basic.h"
+
 #include <stddef.h>
-#include "useful_qualifiers.h"
-#include "timing_basic.h"
-#include "delays.h"
+
 
 #define IS_FLASH 1
 #define SAVE_POS SRAM

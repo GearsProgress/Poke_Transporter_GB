@@ -1,4 +1,3 @@
-
 #include <tonc.h>
 #include <string>
 #include "script_var.h"
