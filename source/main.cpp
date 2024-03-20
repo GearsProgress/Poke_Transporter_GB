@@ -35,27 +35,25 @@ TODO:
 - Implement patch list (as described here: https://web.archive.org/web/20180508011842/https://vaguilar.js.org/posts/1/)
 	But this isn't going to be relevant after the ACE is implemented, since we will be pulling directly from the box... right?
 	is 0xFE being a terminator part of the SPI function or is it implemented specifically in the trade/battle code?
-
-Post Beta TODO:
+- Rename to PokeTransporter GB
 - Implement global next frame
+- Remove global variables
 - Better custom sprites (Progress, Fennel, Title)
 - Add a % or x/250 for the Dream Dex
 - Determine if transfered Shiny Pokemon are square/star sparkles
 - Music and sound effects
 - Simplify the sprite initalization
 - Smoother transitions
-- Minigame
 - Wii Channel
-- Ditto gift (ignore Mew/Celebi?)
+- Events
+- ignore Mew/Celebi
 - MissingNo/Enigma Berry
 - Text translations
 - Add support for other languages
-- Champion ribbons (u/NinjaKnight92)
 - Doxygen generation
 --------
 */
 
-//Pokemon_Party party = Pokemon_Party();
 int delay_counter = 0;
 bool skip = true;
 rom_data curr_rom;
@@ -144,8 +142,8 @@ void initalization_script(void)
 
 	// Sound bank init
 	irq_init(NULL);
-	// irq_set(II_VBLANK, mmVBlank, 0); //Music
 	irq_enable(II_VBLANK);
+	// irq_set(II_VBLANK, mmVBlank, 0); //Music
 	// mmInitDefault((mm_addr)soundbank_bin, 8); //Music
 	// mmStart(MOD_FLATOUTLIES, MM_PLAY_LOOP); //Music
 
@@ -158,10 +156,10 @@ void initalization_script(void)
 	populate_script();
 	init_text_engine();
 
-	pokedex_init(); // Why does this cause the music to stop playing? Also the loop doesn't work
+	// Initalize the Pokedex
+	pokedex_init();
 
-	// main_menu_init(transfer_btn, pokedex_btn, credits_btn, language_btn);
-
+	// Disable text (this is not a good way to do this)
 	text_disable();
 	
 	rand_set_seed(0x1216);
@@ -226,7 +224,7 @@ int main(void)
 	if (get_tutorial_flag() == false)
 	{
 		first_load_message();
-		// initalize_save_data();
+		initalize_save_data();
 	}
 
 	// Legal mumbo jumbo
