@@ -119,7 +119,7 @@ bool run_conditional(int index)
         return read_flag(curr_rom.mg_flag) || IGNORE_MG_E4_FLAGS;
 
     case COND_TUTORIAL_COMPLETE:
-        return get_tutorial_flag();
+        return get_tutorial_flag() || IGNORE_MG_E4_FLAGS;
 
     case COND_NEW_POKEMON:
         return party_data.get_has_new_pkmn();

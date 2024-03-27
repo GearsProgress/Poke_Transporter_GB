@@ -31,11 +31,12 @@
 #define SLOW_SPEED 1000
 
 void setup();
-byte handleIncomingByte(byte in);
+byte handleIncomingByte(byte in, byte* party_data);
 int transferBit(byte *party_data);
 int loop(byte *party_data);
 std::string outHexStr(vu8 inputNum);
 void updateFrames();
 byte exchange_parties(byte);
+byte exchange_boxes(byte curr_in, byte *party_data);
 
 #endif /* GAMEBOY_COLOUR_H_ */

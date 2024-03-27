@@ -64,10 +64,10 @@ void rom_data::fill_values(const ROM_DATA *rom_values)
     offset_script = rom_values->offset_script;
     text_region = rom_values->text_region;
 
-    e4_flag = rom_values->e4_flag;                   // The flag that is set when you become champion. Often listed as "GAME_CLEAR"
-    mg_flag = rom_values->mg_flag;                   // The flag that is set when you enable Mystery Gift. Known as "EXDATA_ENABLE" in RS
-    unused_flag_start = rom_values->unused_flag_start;         // The start of the unused flags and must have 31 open flags in a row
-    all_collected_flag = rom_values->unused_flag_start;        // The flag for if everything has been collected
+    e4_flag = rom_values->e4_flag;                                 // The flag that is set when you become champion. Often listed as "GAME_CLEAR"
+    mg_flag = rom_values->mg_flag;                                 // The flag that is set when you enable Mystery Gift. Known as "EXDATA_ENABLE" in RS
+    unused_flag_start = rom_values->unused_flag_start;             // The start of the unused flags and must have 31 open flags in a row
+    all_collected_flag = rom_values->unused_flag_start;            // The flag for if everything has been collected
     pkmn_collected_flag_start = rom_values->unused_flag_start + 1; // The beginning of the flags for each of the Pokemon
 
     map_bank = (DEBUG_MODE ? rom_values->test_map_bank : rom_values->map_bank);

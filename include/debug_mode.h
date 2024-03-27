@@ -2,7 +2,7 @@
 #define DEBUG_MODE_H
 
 #define DEBUG_MODE true
-#define IGNORE_GAME_PAK true
+#define IGNORE_GAME_PAK false
 #define IGNORE_LINK_CABLE false
 #define IGNORE_MG_E4_FLAGS true
 

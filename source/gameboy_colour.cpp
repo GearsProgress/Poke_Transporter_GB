@@ -1,4 +1,4 @@
-// Loosely based on code created by StevenChaulk 
+// Loosely based on code created by StevenChaulk
 // Source: https://github.com/stevenchaulk/arduino-poke-gen2
 
 #include <tonc.h>
@@ -20,10 +20,13 @@
 #define ack 1
 #define menu 2
 #define trade 3
-#define preamble 4
+#define party_preamble 4
 #define colosseum 5
 #define cancel 6
 #define trade_data 7
+#define box_preamble 8
+#define box_data 9
+#define end 10
 
 const int MODE = 1; // mode=0 will transfer pokemon data from pokemon.h
                     // mode=1 will copy pokemon party data being received
@@ -35,7 +38,6 @@ uint8_t out_data;
 uint frame;
 
 connection_state_t connection_state;
-trade_centre_state_gen_II_t trade_centre_state_gen_II;
 
 int counter;
 int data_counter = 0;
@@ -47,6 +49,7 @@ int FF_count;
 int zero_count;
 
 int state;
+int mosi_delay = 3; // inital delay, speeds up once sending PKMN
 
 std::string out_array[10];
 
@@ -83,7 +86,6 @@ void setup()
   frame = 0;
 
   connection_state = NOT_CONNECTED;
-  trade_centre_state_gen_II = INIT;
   counter = 0;
 
   gen = 0;
@@ -101,7 +103,7 @@ void setup()
   }
 }
 
-byte handleIncomingByte(byte in)
+byte handleIncomingByte(byte in, byte *box_data_storage)
 {
   if (state == hs)
   {
@@ -138,12 +140,13 @@ byte handleIncomingByte(byte in)
   {
     if (in == 0xfd)
     {
-      state = preamble;
+      state = party_preamble;
+      mosi_delay = 0;
     }
     return in;
   }
 
-  else if (state == preamble)
+  else if (state == party_preamble)
   {
     if (in != 0xfd)
     {
@@ -155,28 +158,55 @@ byte handleIncomingByte(byte in)
 
   else if (state == trade_data)
   {
+    if (data_counter >= PAYLOAD_SIZE && in == 0xFD)
+    {
+      state = box_preamble;
+    }
     return exchange_parties(in);
+  }
+
+  else if (state == box_preamble)
+  {
+    if (in != 0xFD)
+    {
+      state = box_data;
+      data_counter = 0;
+      mosi_delay = 1;
+      return exchange_boxes(in, box_data_storage);
+    }
+    return in;
+  }
+
+  else if (state == box_data)
+  {
+    if (data_counter >= BOX_DATA_ARRAY_SIZE)
+    {
+      state = end;
+    }
+    return exchange_boxes(in, box_data_storage);
   }
 
   return in;
 }
 
-int loop(byte *party_data)
+int loop(byte *box_data_storage)
 {
   int counter = 0;
   while (true)
   {
+    // TODO: Restore Errors
     in_data = linkSPI->transfer(out_data);
 
-    print(
-        std::to_string(counter) + ": [" +
-        std::to_string(data_counter) + "][" +
-        std::to_string(state) + "][" +
-        std::to_string(in_data) + "][" +
-        std::to_string(out_data) + "]\n");
-
-    out_data = handleIncomingByte(in_data);
-    party_data[counter] = in_data;
+    if (DEBUG_MODE)
+    {
+      print(
+          std::to_string(counter) + ": [" +
+          std::to_string(data_counter) + "][" +
+          std::to_string(state) + "][" +
+          std::to_string(in_data) + "][" +
+          std::to_string(out_data) + "]\n");
+    }
+    out_data = handleIncomingByte(in_data, box_data_storage);
 
     if (FF_count > 25)
     {
@@ -191,18 +221,25 @@ int loop(byte *party_data)
       return COND_ERROR_COLOSSEUM;
     }
 
-    if (trade_centre_state_gen_II == MIMIC)
+    if (state == end)
     {
       return 0;
     }
+
+    if (DEBUG_MODE && key_hit(KEY_SELECT)){
+      return COND_ERROR_DISCONNECT;
+    }
+
     counter++;
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < mosi_delay; i++)
     {
+      key_poll();
       VBlankIntrWait();
     }
 
-    if (counter > (60*10)){
-       return COND_ERROR_TIMEOUT_ONE;
+    if (counter > (60 * 10))
+    {
+      // return COND_ERROR_TIMEOUT_ONE;
     }
   }
 };
@@ -211,6 +248,12 @@ byte exchange_parties(byte curr_in)
 {
   int ret = gen1_eng_payload[data_counter];
   data_counter += 1;
-  // return curr_in;
   return ret;
+};
+
+byte exchange_boxes(byte curr_in, byte *box_data_storage)
+{
+  box_data_storage[data_counter] = curr_in;
+  data_counter += 1;
+  return curr_in;
 };
