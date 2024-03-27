@@ -1,21 +1,21 @@
 ## About
-Pokémon Mirror is a transfer tool for created to transfer Pokémon from Pokémon Red, Blue, Yellow, Gold, Silver, and Crystal to Pokémon Ruby, Sapphire, FireRed, LeafGreen, and Emerald. Pokémon Mirror is designed to emulate what GameFreak may have released should they persued it. Many inspirations were taken from the Pal Park, PokéTransfer Lab, and PokéTransporte to keep a "GameFreak" feeling.
+Poké Transporter GB is a transfer tool for created to transfer Pokémon from Pokémon Red, Blue, Yellow, Gold, Silver, and Crystal to Pokémon Ruby, Sapphire, FireRed, LeafGreen, and Emerald. Poké Transporter GB is designed to emulate what GameFreak may have released should they persued it. Many inspirations were taken from the Pal Park, PokéTransfer Lab, and PokéTransporte to keep a "GameFreak" feeling.
 
-_Pokémon Mirror WILL modify your generation 3 save file. The program is designed to not corrupt anything, but if you do not wish to modify your save file then you should bypass this experience._
+_Poké Transporter GB WILL modify your generation 3 save file. The program is designed to not corrupt anything, but if you do not wish to modify your save file then you should bypass this experience._
 
-_**Please note that Pokémon Mirror is still in beta, so save file backups are HIGHLY recommended before using**._
+_**Please note that Poké Transporter GB is still in beta, so save file backups are HIGHLY recommended before using**._
 
 ## Notes
-Pokémon transfered using Pokémon Mirror will pass through Pokémon Bank and Pokémon HOME, but are not guarenteed to (and likely won't) pass PKHeX's legality filter. This will hopefully change in the future.
+Pokémon transfered using Poké Transporter GB will pass through Pokémon Bank and Pokémon HOME, but are not guarenteed to (and likely won't) pass PKHeX's legality filter. This will hopefully change in the future.
 
-Pokémon Transfered using Pokémon Mirror will *not* be removed from Green, Red, Blue, Yellow, Gold Silver, or Crystal. This is not only to save on time when transfering, but also to guarentee that Pokémon are not lost and are able to be transfered again if a large update is made to the program.
+Pokémon Transfered using Poké Transporter GB will *not* be removed from Green, Red, Blue, Yellow, Gold Silver, or Crystal. This is not only to save on time when transfering, but also to guarentee that Pokémon are not lost and are able to be transfered again if a large update is made to the program.
 
 Currently the only release is in English. Releases supporting other languages is planned for the near future.
 
 Only English copies of Ruby, Sappire, FireRed, LeafGreen, and Emerald are supported at this time. However, all languages of Green, Red, Blue, Yellow, Gold Silver, and Crystal are supported! Compatibility for other languages will be added in the near future.
 
 ## Usage
-Pokémon Mirror is a Multiboot program for the Game Boy Advance. There are two main ways to run the Pokémon Mirror ROM on a Game Boy Advance:
+Poké Transporter GB is a Multiboot program for the Game Boy Advance. There are two main ways to run the Poké Transporter GB ROM on a Game Boy Advance:
 - Use a program such as FIX94's [GBA Link Cable ROM Sender](https://github.com/FIX94/gba-link-cable-rom-sender) on a GameCube or Wii running Homebrew along with a GBA GameCube Link Cable
 - Upload the Multiboot ROM to a GBA Flash Cart, launch the game in Multiboot mode (often by holding L when selecting the ROM), and swap the Game Pak after the program loads.
 
@@ -33,10 +33,10 @@ A list of modifications made to transfered Pokémon can be found [here](https://
 ![Pokemon_Mirror_mb-4](https://github.com/Starport75/Pokemon_Mirror/assets/23065741/3b5df6f8-c76e-466b-8dbd-351d7d4676d1)
 ![Pokemon_Mirror_mb-5](https://github.com/Starport75/Pokemon_Mirror/assets/23065741/5c98426d-9717-4c1d-89b9-4fd6bfe13b4e)
 
-A video of Pokémon Mirror in action can be found [here](https://www.youtube.com/watch?v=72e0I003Gfg)!
+A video of Poké Transporter GB in action can be found [here](https://www.youtube.com/watch?v=72e0I003Gfg)!
 
 ## Why?
-One of my favorite aspects of the Pokémon franchise is the ability to send Pokémon forward into the most recent generation. Of course, this isn't possible from the Gameboy games into the Gameboy Advance era- and I wanted to fix that. A handful of Poeople have bridged the gap before, but Pokémon Mirror is the first tool designed to transfer Pokémon like the Pal Park, PokéTransport Lab, and PokéTransporter for Generation 1 and 2 to Generation 3. A document detailing some of the design process of Pokémon Mirror can be found [here](https://carpets-allow-kwy.craft.me/EnjwBLUok7rcv8)!
+One of my favorite aspects of the Pokémon franchise is the ability to send Pokémon forward into the most recent generation. Of course, this isn't possible from the Gameboy games into the Gameboy Advance era- and I wanted to fix that. A handful of Poeople have bridged the gap before, but Poké Transporter GB is the first tool designed to transfer Pokémon like the Pal Park, PokéTransport Lab, and PokéTransporter for Generation 1 and 2 to Generation 3. A document detailing some of the design process of Poké Transporter GB can be found [here](https://carpets-allow-kwy.craft.me/EnjwBLUok7rcv8)!
 
 # Credits
 ## Inspired by the works of:
