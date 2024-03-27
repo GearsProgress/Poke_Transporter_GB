@@ -21,7 +21,7 @@
 #include "soundbank_bin.h"
 #include "dex_handler.h"
 #include "pokedex.h"
-#include "global_frame_counter.h"
+#include "global_frame_controller.h"
 #include "pkmn_font.h"
 #include "save_data_manager.h"
 #include "mystery_gift_injector.h"
@@ -178,8 +178,7 @@ void game_load_error(void)
 	key_poll();
 	while (!key_hit(KEY_A))
 	{
-		key_poll();
-		VBlankIntrWait();
+		global_next_frame();
 	}
 	tte_erase_screen();
 	delay_counter = 0;
@@ -187,7 +186,7 @@ void game_load_error(void)
 	while (delay_counter < 60)
 	{
 		delay_counter++;
-		VBlankIntrWait();
+		global_next_frame();
 	}
 }
 
@@ -196,11 +195,9 @@ void first_load_message(void)
 	tte_set_pos(8, 0);
 	tte_set_ink(10);
 	tte_write("#{cx:0xE000}Hello! Thank you for using\nPok@ Transporter GB!\n\nJust as a word of caution- \nPok@ Transporter GB WILL modify\nyour generation 3 save file.\nThe program is designed to\nnot corrupt anything, but if\nyou do not wish to modify\nyour save file, please turn\noff your Game Boy Advance.\n\nPlease note that Pok@mon\nMirror is still in beta, so\nsave file backups are HIGHLY\nrecommended before using.\nWith that all out of the\nway, please enjoy!\n\n      -The Gears of Progress");
-	key_poll();
 	while (!key_hit(KEY_A))
 	{
-		key_poll();
-		VBlankIntrWait();
+		global_next_frame();
 	}
 	tte_erase_rect(0, 0, H_MAX, V_MAX);
 }
@@ -233,16 +230,13 @@ int main(void)
 	tte_write("#{cx:0xF000}"); // Set the color to grey
 	while (delay_counter < (15 * 60))
 	{
+		global_next_frame();
 		delay_counter++;
-		rand_next_frame();
-		key_poll();
 		if (key_hit(KEY_A))
 		{
 			delay_counter = (15 * 60);
 		}
-		VBlankIntrWait();
 	}
-	key_poll();
 
 	// Gears of Progress
 	tte_erase_rect(0, 0, 240, 160);
@@ -250,20 +244,19 @@ int main(void)
 	delay_counter = 0;
 	while (delay_counter < (15 * 60))
 	{
+		global_next_frame();
 		delay_counter++;
-		rand_next_frame();
-		key_poll();
 		if (key_hit(KEY_A))
 		{
 			delay_counter = (15 * 60);
 		}
-		VBlankIntrWait();
 	}
-	key_poll();
 	REG_BG1CNT = REG_BG1CNT | BG_PRIO(3);
 
 	// Set up blend to fade to white/black
 
+	global_next_frame();
+	show_main_btns();
 	int curr_lang_btn_num = get_def_lang_num();
 	int old_lang_btn_num = -1;
 	set_arrow_point(curr_lang_btn_num);
@@ -378,17 +371,6 @@ int main(void)
 			}
 			break;
 		}
-
-		key_poll();
-		rand_next_frame();
-		tte_set_pos(0, 0);
-		// tte_write(std::to_string(get_rand_u32()).c_str());
-		background_frame();
-		text_next_frame();
-		oam_copy(oam_mem, obj_buffer, 35);
-
-		VBlankIntrWait();
-		// mmFrame(); //Music
 		global_next_frame();
 	}
 }

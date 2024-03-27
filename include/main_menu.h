@@ -32,6 +32,8 @@ void main_menu_enter();
 void main_menu_exit();
 void show_lang_btns();
 void hide_lang_btns();
+void show_main_btns();
+void hide_main_btns();
 void highlight_lang_btn(int index, bool highlight);
 void set_arrow_point(int index);
 

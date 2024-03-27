@@ -6,7 +6,7 @@
 #include "dex_handler.h"
 #include "sprite_data.h"
 #include "pokemon_data.h"
-#include "global_frame_counter.h"
+#include "global_frame_controller.h"
 #include "save_data_manager.h"
 
 Dex dex_array[DEX_MAX];

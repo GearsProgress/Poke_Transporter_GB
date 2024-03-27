@@ -480,5 +480,3 @@ void load_lang_arrow()
     // obj_unhide(lang_arrow, 0);
 }
 
-
-// Don't forget to increase the number of sprites loaded in main!!

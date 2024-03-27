@@ -3,7 +3,7 @@
 #include "button_handler.h"
 #include "save_data_manager.h"
 
-#define MAX_X_CORD 72 //128
+#define MAX_X_CORD 72 // 128
 
 int menu_slot = 1;
 int old_menu_slot = 0;
@@ -22,7 +22,7 @@ void main_menu_btn_init(Button nButton, int index)
     {
         wide_button_array[index] = nButton;
         wide_button_array[index].set_location(MAX_X_CORD, 7 + (38 * (index - 1)));
-        wide_button_array[index].show();
+        wide_button_array[index].hide();
     }
     else
     {
@@ -131,6 +131,22 @@ void hide_lang_btns()
     for (int i = 0; i < LANG_BUTTON_ARRAY_SIZE; i++)
     {
         lang_button_array[i].hide();
+    }
+}
+
+void show_main_btns()
+{
+    for (int i = 0; i < WIDE_BUTTON_ARRAY_SIZE; i++)
+    {
+        wide_button_array[i].show();
+    }
+}
+
+void hide_main_btns()
+{
+    for (int i = 0; i < WIDE_BUTTON_ARRAY_SIZE; i++)
+    {
+        wide_button_array[i].hide();
     }
 }
 

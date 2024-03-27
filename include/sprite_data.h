@@ -48,3 +48,4 @@ void load_btn_lang_ger();
 void load_btn_lang_spa();
 void load_btn_lang_kor();
 void load_lang_arrow();
+#define NUM_SPRITES 35

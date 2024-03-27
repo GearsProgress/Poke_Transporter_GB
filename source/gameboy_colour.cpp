@@ -11,6 +11,7 @@
 #include "payload.h"
 #include "interrupt.h"
 #include "text_engine.h"
+#include "global_frame_controller.h"
 
 #define TIMEOUT 2
 #define TIMEOUT_ONE_LENGTH 1000000 // Maybe keep a 10:1 ratio between ONE and TWO?
@@ -233,8 +234,7 @@ int loop(byte *box_data_storage)
     counter++;
     for (int i = 0; i < mosi_delay; i++)
     {
-      key_poll();
-      VBlankIntrWait();
+      global_next_frame();
     }
 
     if (counter > (60 * 10))
