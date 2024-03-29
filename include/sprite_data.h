@@ -28,6 +28,7 @@ extern OBJ_ATTR *btn_d_l;
 #include "btn_d_r.h"
 extern OBJ_ATTR *btn_d_r;
 
+#define SPRITE_BATCH_DEX 0
 #include "dex_l.h"
 #define DEX_SPRITE_LEFT 0
 #include "dex_m.h"
@@ -36,6 +37,7 @@ extern OBJ_ATTR *btn_d_r;
 #define DEX_SPRITE_RIGHT 2
 extern OBJ_ATTR *dex_sprites[3][6];
 
+#define SPRITE_BATCH_LANG 1
 #include "btn_lang_eng.h"
 extern OBJ_ATTR *btn_lang_eng;
 #include "btn_lang_fre.h"
@@ -48,8 +50,27 @@ extern OBJ_ATTR *btn_lang_ger;
 extern OBJ_ATTR *btn_lang_spa;
 #include "btn_lang_kor.h"
 extern OBJ_ATTR *btn_lang_kor;
-#include "lang_arrow.h"
-extern OBJ_ATTR *lang_arrow;
+
+#define SPRITE_BATCH_GAMES 2
+#include "button_red_green_left.h"
+extern OBJ_ATTR *button_red_green_left;
+extern OBJ_ATTR *button_red_green_right;
+#include "button_blue_left.h"
+extern OBJ_ATTR *button_blue_left;
+extern OBJ_ATTR *button_blue_right;
+#include "button_red_blue_left.h"
+extern OBJ_ATTR *button_red_blue_left;
+extern OBJ_ATTR *button_red_blue_right;
+#include "button_yellow_left.h"
+extern OBJ_ATTR *button_yellow_left;
+extern OBJ_ATTR *button_yellow_right;
+#include "button_gold_silver_left.h"
+extern OBJ_ATTR *button_gold_silver_left;
+extern OBJ_ATTR *button_gold_silver_right;
+#include "button_crystal_left.h"
+extern OBJ_ATTR *button_crystal_left;
+extern OBJ_ATTR *button_crystal_right;
+#include "button_game_select_edge.h"
 
 #define METR_PAL 0
 #define PROF_PAL 1
@@ -61,7 +82,8 @@ void load_sprite(OBJ_ATTR *sprite, const unsigned int objTiles[], int objTilesLe
 void load_background();
 void load_textbox_background();
 void load_opening_background();
-void load_sprites();
+void load_eternal_sprites();
+void load_temp_sprites(int sprite_batch_id);
 void load_btn_lang_eng();
 void load_btn_lang_fre();
 void load_btn_lang_ita();

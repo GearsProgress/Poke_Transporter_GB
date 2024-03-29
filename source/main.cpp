@@ -95,7 +95,7 @@ void load_graphics()
 	load_opening_background();
 	load_background();
 	load_textbox_background();
-	load_sprites();
+	load_eternal_sprites();
 
 	// Set up main menu
 	main_menu.add_button(Button(btn_t_l, btn_t_r), BTN_TRANSFER);
@@ -131,9 +131,6 @@ void initalization_script(void)
 	populate_script();
 	populate_buttons();
 	init_text_engine();
-
-	// Initalize the Pokedex
-	pokedex_init();
 
 	// Set the random seed
 	rand_set_seed(0x1216);

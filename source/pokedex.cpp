@@ -28,7 +28,11 @@ void pokedex_init()
 
 int pokedex_loop()
 {
+    load_temp_sprites(SPRITE_BATCH_DEX);
+    pokedex_init();
     pokedex_show();
+    // TODO: For some reason there is screen tearing here. Probably not noticable on console, 
+    // but it should be removed at some point
     while (true)
     {
         if (key_hit(KEY_B)){

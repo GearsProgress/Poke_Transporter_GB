@@ -117,12 +117,12 @@ void populate_buttons()
     lang_select.add_button(Button(btn_lang_kor), BTN_KOR);
 
     game_select.set_xy_min_max(48, 240, 0, 120);
-    game_select.add_button(Button(btn_lang_eng), BTN_ENG);
-    game_select.add_button(Button(btn_lang_fre), BTN_FRE);
-    game_select.add_button(Button(btn_lang_ita), BTN_ITA);
-    game_select.add_button(Button(btn_lang_ger), BTN_GER);
-    game_select.add_button(Button(btn_lang_spa), BTN_SPA);
-    game_select.add_button(Button(btn_lang_kor), BTN_KOR);
+    game_select.add_button(Button(button_red_green_left, button_red_green_right), 0);
+    game_select.add_button(Button(button_blue_left, button_blue_right), 0);
+    game_select.add_button(Button(button_red_blue_left, button_red_blue_right), 0);
+    game_select.add_button(Button(button_yellow_left, button_yellow_right), 0);
+    game_select.add_button(Button(button_gold_silver_left, button_gold_silver_right), 0);
+    game_select.add_button(Button(button_crystal_left, button_crystal_right), 0);
 }
 
 bool run_conditional(int index)
@@ -202,10 +202,12 @@ bool run_conditional(int index)
         return true;
 
     case CMD_LANG_MENU:
+        load_temp_sprites(SPRITE_BATCH_LANG);
         party_data.set_lang(lang_select.button_main());
         return true;
 
     case CMD_GAME_MENU:
+        load_temp_sprites(SPRITE_BATCH_GAMES);
         party_data.set_game(game_select.button_main());
         return true;
 

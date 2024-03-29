@@ -86,9 +86,23 @@ OBJ_ATTR *btn_lang_ita = &obj_buffer[num_sprites++];
 OBJ_ATTR *btn_lang_ger = &obj_buffer[num_sprites++];
 OBJ_ATTR *btn_lang_spa = &obj_buffer[num_sprites++];
 OBJ_ATTR *btn_lang_kor = &obj_buffer[num_sprites++];
-OBJ_ATTR *lang_arrow = &obj_buffer[num_sprites++];
 
-void load_sprites()
+OBJ_ATTR *button_red_green_left = &obj_buffer[num_sprites++];
+OBJ_ATTR *button_red_green_right = &obj_buffer[num_sprites++];
+OBJ_ATTR *button_blue_left = &obj_buffer[num_sprites++];
+OBJ_ATTR *button_blue_right = &obj_buffer[num_sprites++];
+OBJ_ATTR *button_red_blue_left = &obj_buffer[num_sprites++];
+OBJ_ATTR *button_red_blue_right = &obj_buffer[num_sprites++];
+OBJ_ATTR *button_yellow_left = &obj_buffer[num_sprites++];
+OBJ_ATTR *button_yellow_right = &obj_buffer[num_sprites++];
+OBJ_ATTR *button_gold_silver_left = &obj_buffer[num_sprites++];
+OBJ_ATTR *button_gold_silver_right = &obj_buffer[num_sprites++];
+OBJ_ATTR *button_crystal_left = &obj_buffer[num_sprites++];
+OBJ_ATTR *button_crystal_right = &obj_buffer[num_sprites++];
+
+u32 global_tile_id_end = 0;
+
+void load_eternal_sprites()
 {
     memcpy(pal_obj_mem + (METR_PAL * 16), metrPal, metrPalLen);
     memcpy(pal_obj_mem + (PROF_PAL * 16), profPal, profPalLen);
@@ -106,20 +120,48 @@ void load_sprites()
     load_sprite(btn_c_r, btn_c_rTiles, btn_c_rTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
     load_sprite(btn_d_l, btn_d_lTiles, btn_d_lTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
     load_sprite(btn_d_r, btn_d_rTiles, btn_d_rTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-    for (int col = 0; col < 6; col++)
-    {
-        load_sprite(dex_sprites[DEX_SPRITE_LEFT][col], dex_lTiles, dex_lTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 2);
-        load_sprite(dex_sprites[DEX_SPRITE_MID][col], dex_mTiles, dex_mTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 2);
-        load_sprite(dex_sprites[DEX_SPRITE_RIGHT][col], dex_rTiles, dex_rTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_16x32, 2);
-    }
+    global_tile_id_end = curr_tile_id;
+}
 
-    load_sprite(btn_lang_eng, btn_lang_engTiles, btn_lang_engTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-    load_sprite(btn_lang_fre, btn_lang_freTiles, btn_lang_freTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-    load_sprite(btn_lang_ita, btn_lang_itaTiles, btn_lang_itaTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-    load_sprite(btn_lang_ger, btn_lang_gerTiles, btn_lang_gerTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-    load_sprite(btn_lang_spa, btn_lang_spaTiles, btn_lang_spaTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-    load_sprite(btn_lang_kor, btn_lang_korTiles, btn_lang_korTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-    load_sprite(lang_arrow, lang_arrowTiles, lang_arrowTilesLen, curr_tile_id, BTN_PAL, ATTR0_SQUARE, ATTR1_SIZE_8x8, 1);
+void load_temp_sprites(int sprite_batch_id)
+{
+    u32 curr_tile_id = global_tile_id_end;
+    switch (sprite_batch_id)
+    {
+    case SPRITE_BATCH_DEX:
+        for (int col = 0; col < 6; col++)
+        {
+            load_sprite(dex_sprites[DEX_SPRITE_LEFT][col], dex_lTiles, dex_lTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 2);
+            load_sprite(dex_sprites[DEX_SPRITE_MID][col], dex_mTiles, dex_mTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 2);
+            load_sprite(dex_sprites[DEX_SPRITE_RIGHT][col], dex_rTiles, dex_rTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_16x32, 2);
+        }
+        break;
+    case SPRITE_BATCH_LANG:
+
+        load_sprite(btn_lang_eng, btn_lang_engTiles, btn_lang_engTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
+        load_sprite(btn_lang_fre, btn_lang_freTiles, btn_lang_freTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
+        load_sprite(btn_lang_ita, btn_lang_itaTiles, btn_lang_itaTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
+        load_sprite(btn_lang_ger, btn_lang_gerTiles, btn_lang_gerTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
+        load_sprite(btn_lang_spa, btn_lang_spaTiles, btn_lang_spaTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
+        load_sprite(btn_lang_kor, btn_lang_korTiles, btn_lang_korTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
+        break;
+
+    case SPRITE_BATCH_GAMES:
+
+        load_sprite(button_red_green_left, button_red_green_leftTiles, button_red_green_leftTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
+        load_sprite(button_red_green_right, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
+        load_sprite(button_blue_left, button_blue_leftTiles, button_blue_leftTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
+        load_sprite(button_blue_right, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
+        load_sprite(button_red_blue_left, button_red_blue_leftTiles, button_red_blue_leftTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
+        load_sprite(button_red_blue_right, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
+        load_sprite(button_yellow_left, button_yellow_leftTiles, button_yellow_leftTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
+        load_sprite(button_yellow_right, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
+        load_sprite(button_gold_silver_left, button_gold_silver_leftTiles, button_gold_silver_leftTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
+        load_sprite(button_gold_silver_right, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
+        load_sprite(button_crystal_left, button_crystal_leftTiles, button_crystal_leftTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
+        load_sprite(button_crystal_right, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
+        break;
+    }
 }
 
 void load_sprite(OBJ_ATTR *sprite, const unsigned int objTiles[], int objTilesLen,
