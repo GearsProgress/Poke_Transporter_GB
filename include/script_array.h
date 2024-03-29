@@ -30,23 +30,28 @@
 #define DIA_MG_OTHER_EVENT          21
 #define DIA_PKMN_TO_COLLECT         22
 #define DIA_NO_VALID_PKMN           23
+#define DIA_WHAT_GAME               24
+#define DIA_WHAT_LANG               25
+#define DIA_ASK_QUEST               26
 
-#define                    DIA_SIZE 24
+#define                    DIA_SIZE 27
 #define DIA_END DIA_SIZE
 
 // Commands
-#define SCRIPT_START        DIA_END + 0
-#define CMD_START_LINK      DIA_END + 1
-#define CMD_IMPORT_POKEMON  DIA_END + 2     // This one is special because it can be true or false
-#define CMD_BACK_TO_MENU    DIA_END + 3
-#define CMD_SHOW_PROF       DIA_END + 4
-#define CMD_HIDE_PROF       DIA_END + 5
-#define CMD_SET_TUTOR_TRUE  DIA_END + 6
-#define CMD_END_SCRIPT      DIA_END + 7
-#define CMD_ASK_LANG        DIA_END + 8
-#define CMD_ASK_GAME        DIA_END + 9
+#define SCRIPT_START            DIA_END + 0
+#define CMD_START_LINK          DIA_END + 1
+#define CMD_IMPORT_POKEMON      DIA_END + 2     // This one is special because it can be true or false
+#define CMD_BACK_TO_MENU        DIA_END + 3
+#define CMD_SHOW_PROF           DIA_END + 4
+#define CMD_HIDE_PROF           DIA_END + 5
+#define CMD_SET_TUTOR_TRUE      DIA_END + 6
+#define CMD_END_SCRIPT          DIA_END + 7
+#define CMD_GAME_MENU           DIA_END + 8
+#define CMD_LANG_MENU           DIA_END + 9
+#define CMD_SLIDE_PROF_LEFT     DIA_END + 10
+#define CMD_SLIDE_PROF_RIGHT    DIA_END + 11
 
-#define                     CMD_SIZE  10
+#define                     CMD_SIZE  12
 #define CMDS_END DIA_END + CMD_SIZE
 
 // Conditionals
@@ -76,7 +81,7 @@ extern rom_data curr_rom;
 
 void populate_script();
 void populate_dialogue();
-void add_script_party_var(Pokemon_Party var);
+void populate_buttons();
 bool run_conditional(int index);
 
 #endif

@@ -2,20 +2,17 @@
 
 Button::Button() {}
 
-Button::Button(OBJ_ATTR *L, OBJ_ATTR *R, u32 ntidL, u32 ntidR)
+Button::Button(OBJ_ATTR *L, OBJ_ATTR *R)
 {
     button_L = L;
     button_R = R;
-    tidL = ntidL;
-    tidR = ntidR;
     isWide = true;
     hide();
 }
 
-Button::Button(OBJ_ATTR *L, u32 ntidL)
+Button::Button(OBJ_ATTR *B)
 {
-    button_L = L;
-    tidL = ntidL;
+    button_L = B;
     isWide = false;
     hide();
 }
@@ -32,10 +29,13 @@ void Button::set_location(int nx, int ny)
 }
 void Button::set_highlight(bool highlight)
 {
-    button_L->attr2 = ATTR2_BUILD(tidL, (highlight ? 3 : 2), 0);
+    button_L->attr2 &= ~ATTR2_PALBANK_MASK;
+    button_L->attr2 |= ATTR2_PALBANK(highlight ? 3 : 2);
+
     if (isWide)
     {
-        button_R->attr2 = ATTR2_BUILD(tidR, (highlight ? 3 : 2), 0);
+        button_R->attr2 &= ~ATTR2_PALBANK_MASK;
+        button_R->attr2 |= ATTR2_PALBANK(highlight ? 3 : 2);
     }
 }
 void Button::hide()

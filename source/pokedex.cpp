@@ -21,76 +21,89 @@ void pokedex_init()
 {
     for (int i = 0; i < DEX_MAX; i++)
     {
-        dex_array[i] = Dex(dex_l[i], dex_m[i], dex_r[i], 320, 352, 384);
+        dex_array[i] = Dex(dex_sprites[DEX_SPRITE_LEFT][i], dex_sprites[DEX_SPRITE_MID][i], dex_sprites[DEX_SPRITE_RIGHT][i]);
         dex_array[i].set_location(dex_x_cord, (i * (8 * 3)) + 8);
     }
 }
 
 int pokedex_loop()
 {
-    if (key_hit(KEY_DOWN) || key_hit(KEY_UP))
+    pokedex_show();
+    while (true)
     {
-        dex_shift += key_tri_vert();
-    }
-    else if (key_held(KEY_DOWN) || key_held(KEY_UP))
-    {
-        if (delay > SPEED_DELAY)
+        if (key_hit(KEY_B)){
+            pokedex_hide();
+            return 0;
+        }
+        else if (key_hit(KEY_DOWN) || key_hit(KEY_UP))
         {
-            if ((get_frame_count() % speed == 0))
+            dex_shift += key_tri_vert();
+        }
+        else if (key_held(KEY_DOWN) || key_held(KEY_UP))
+        {
+            if (delay > SPEED_DELAY)
             {
-                if (count > 3 && speed >= 5)
+                if ((get_frame_count() % speed == 0))
                 {
-                    speed = speed / 2;
-                    count = 0;
+                    if (count > 3 && speed >= 5)
+                    {
+                        speed = speed / 2;
+                        count = 0;
+                    }
+                    else
+                    {
+                        count++;
+                    }
+                    dex_shift += key_tri_vert();
                 }
-                else
-                {
-                    count++;
-                }
-                dex_shift += key_tri_vert();
+            }
+            else
+            {
+                delay++;
             }
         }
         else
         {
-            delay++;
+            speed = 20;
+            delay = 0;
+            count = 0;
         }
-    }
-    else
-    {
-        speed = 20;
-        delay = 0;
-        count = 0;
-    }
 
-    if (dex_shift > DEX_SHIFT_MAX)
-    {
-        dex_shift = DEX_SHIFT_MAX;
-    }
-    else if (dex_shift < 0)
-    {
-        dex_shift = 0;
-    }
-
-    tte_erase_rect(0, 0, 240, 160);
-    for (int i = 0; i < DEX_MAX; i++)
-    {
-        tte_set_pos(dex_x_cord + (1 * 8), (i * 8 * 3) + 16);
-        tte_write(is_caught(dex_shift + i + 1) ? "^" : " ");
-        tte_set_pos(dex_x_cord + (3 * 8), (i * 8 * 3) + 16);
-        tte_write(is_caught(dex_shift + i + 1) ? std::string(NAMES[dex_shift + i + 1]).data() : "----------");
-        tte_set_pos(dex_x_cord + (14 * 8), (i * 8 * 3) + 16);
-        tte_write("000");
-        if(dex_shift + i + 1 < 10){
-            leading_zeros = 2;
-        } else if (dex_shift + i + 1 < 100){
-            leading_zeros = 1;
-        } else {
-            leading_zeros = 0;
+        if (dex_shift > DEX_SHIFT_MAX)
+        {
+            dex_shift = DEX_SHIFT_MAX;
         }
-        tte_set_pos(dex_x_cord + ((14 + leading_zeros) * 8), (i * 8 * 3) + 16);
-        tte_write(std::to_string(dex_shift + i + 1).c_str());
+        else if (dex_shift < 0)
+        {
+            dex_shift = 0;
+        }
+
+        tte_erase_rect(0, 0, 240, 160);
+        for (int i = 0; i < DEX_MAX; i++)
+        {
+            tte_set_pos(dex_x_cord + (1 * 8), (i * 8 * 3) + 16);
+            tte_write(is_caught(dex_shift + i + 1) ? "^" : " ");
+            tte_set_pos(dex_x_cord + (3 * 8), (i * 8 * 3) + 16);
+            tte_write(is_caught(dex_shift + i + 1) ? std::string(NAMES[dex_shift + i + 1]).data() : "----------");
+            tte_set_pos(dex_x_cord + (14 * 8), (i * 8 * 3) + 16);
+            tte_write("000");
+            if (dex_shift + i + 1 < 10)
+            {
+                leading_zeros = 2;
+            }
+            else if (dex_shift + i + 1 < 100)
+            {
+                leading_zeros = 1;
+            }
+            else
+            {
+                leading_zeros = 0;
+            }
+            tte_set_pos(dex_x_cord + ((14 + leading_zeros) * 8), (i * 8 * 3) + 16);
+            tte_write(std::to_string(dex_shift + i + 1).c_str());
+        }
+        global_next_frame();
     }
-    return 0;
 }
 
 void pokedex_show()

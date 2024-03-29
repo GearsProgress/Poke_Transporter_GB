@@ -6,10 +6,14 @@
 #include "flash_mem.h"
 #include "pokemon_data.h"
 #include "mystery_gift_builder.h"
+#include "global_frame_controller.h"
 #include <tonc.h>
 
 int last_error;
 Pokemon_Party party_data = Pokemon_Party();
+
+Button_Menu lang_select(2, 3, 40, 24);
+Button_Menu game_select(2, 3, 40, 24);
 
 script_obj script[SCRIPT_SIZE];
 std::string_view dialogue[DIA_SIZE];
@@ -20,7 +24,7 @@ void populate_dialogue()
     dialogue[DIA_E4] = "Hi trainer! I'm thrilled\nyou've decided to help with our research, but we need\nthe best of the best!|Come back after you've\nbeaten the Elite Four and\nbecome the Champion!";
     dialogue[DIA_MG_FRLGE] = "Sorry trainer, one more\nthing to take care of before\nwe can begin- you need to\nenable MYSTERY GIFT!|Head to the nearest Pok@\nMart and fill out the\nquestionnaire as follows:\nLINK TOGETHER WITH ALL|After that, you should be\nall set to go!|See you soon!";
     dialogue[DIA_MG_RS] = "Sorry trainer, one more\nthing to take care of before\nwe can begin- you need to\nenable MYSTERY EVENT!|Head to the PETALBURG\nPok@mon Center and tell the\nman next to the PC:\nMYSTERY EVENT IS EXCITING|After that, you should be\nall set to go!|See you soon!";
-    dialogue[DIA_LETS_START] = "Let's get started!";
+    dialogue[DIA_LETS_START] = "Perfect, that's all the\ninformation I need! Let's\nget started!";
     dialogue[DIA_START] = "On a second Game Boy family\nsystem, please load the Game\nBoy Pok@mon game you wish to\ntransfer from.|In your Game Boy Pok@mon\ngame, put any Pok@mon you\nwant to bring out of\nyour dreams into your party.|Then connect this Game Boy\nAdvance to the other Game\nBoy family system using a\nGame Boy Color link cable.|Once you're ready, press A\non this device, talk to the Cable Club attendant, and\nthen initiate a trade.";
     dialogue[DIA_TRANS_GOOD] = "Amazing! Fantastic!\nEverything went perfectly!|You may now turn off your\nother Game Boy family\nsystem.";
     dialogue[DIA_NEW_DEX] = "It looks like there's at\nleast one new Pok@mon here\nthat isn't in the Dream Dex!|I'll give them something\nextra sweet as a reward for you both.";
@@ -32,6 +36,9 @@ void populate_dialogue()
     dialogue[DIA_MG_OTHER_EVENT] = "Hi Trainer! It looks like\nyou have a different event\ncurrently loaded.|That's no problem, but it\nwill be overwritten if you\ncontinue.|Turn off the system now if\nyou want to experience your\ncurrent event,\nbut otherwise-";
     dialogue[DIA_PKMN_TO_COLLECT] = "Hi Trainer! It looks like\nyou still have Pok@mon to\npick up...|I can send in new ones, but do know that the Pok@mon you\nhaven't picked up yet will\nbe replaced.|Turn off the system now if\nyou want to recieve those\nPok@mon, but otherwise-";
     dialogue[DIA_NO_VALID_PKMN] = "Sorry Trainer, it doesn't\nlook like you have any valid\nPok@mon in your party right\nnow.|Double check your party and we'll give it another shot!";
+    dialogue[DIA_ASK_QUEST] = "Hi trainer! Before we begin,\nI need to ask you a few\nquestions.";
+    dialogue[DIA_WHAT_GAME] = "First, which Game Boy\nPok@mon game are you\ntransfering from?";
+    dialogue[DIA_WHAT_LANG] = "What language is the Game\nBoy Pok@mon game that you're\ntransfering from?";
 
     dialogue[DIA_ERROR_COLOSSEUM] = "It looks like you went to\nthe colosseum instead of the\ntrading room!|Let's try that again!";
     dialogue[DIA_ERROR_COM_ENDED] = "Communication with the other\ndevice was terminated.|Let's try that again!";
@@ -54,12 +61,21 @@ void populate_script()
     script[DIA_OPEN] = script_obj(dialogue[DIA_OPEN], CMD_SET_TUTOR_TRUE);
     script[CMD_SET_TUTOR_TRUE] = script_obj(CMD_SET_TUTOR_TRUE, CMD_END_SCRIPT);
     script[COND_MG_OTHER_EVENT] = script_obj(COND_MG_OTHER_EVENT, DIA_MG_OTHER_EVENT, COND_PKMN_TO_COLLECT);
-    script[COND_PKMN_TO_COLLECT] = script_obj(COND_PKMN_TO_COLLECT, DIA_PKMN_TO_COLLECT, DIA_LETS_START);
-    script[DIA_MG_OTHER_EVENT] = script_obj(dialogue[DIA_MG_OTHER_EVENT], DIA_LETS_START);
-    script[DIA_PKMN_TO_COLLECT] = script_obj(dialogue[DIA_PKMN_TO_COLLECT], DIA_LETS_START);
+    script[COND_PKMN_TO_COLLECT] = script_obj(COND_PKMN_TO_COLLECT, DIA_PKMN_TO_COLLECT, DIA_ASK_QUEST);
+    script[DIA_MG_OTHER_EVENT] = script_obj(dialogue[DIA_MG_OTHER_EVENT], DIA_ASK_QUEST);
+    script[DIA_PKMN_TO_COLLECT] = script_obj(dialogue[DIA_PKMN_TO_COLLECT], DIA_ASK_QUEST);
+
+    // Ask the user what game and language they're using
     script[DIA_LETS_START] = script_obj(dialogue[DIA_LETS_START], DIA_START);
     script[DIA_START] = script_obj(dialogue[DIA_START], CMD_START_LINK);
     script[CMD_START_LINK] = script_obj(CMD_START_LINK, COND_ERROR_TIMEOUT_ONE);
+    script[DIA_WHAT_GAME] = script_obj(dialogue[DIA_WHAT_GAME], CMD_GAME_MENU);
+    script[CMD_GAME_MENU] = script_obj(CMD_GAME_MENU, DIA_WHAT_LANG);
+    script[DIA_WHAT_LANG] = script_obj(dialogue[DIA_WHAT_LANG], CMD_LANG_MENU);
+    script[CMD_LANG_MENU] = script_obj(CMD_LANG_MENU, CMD_SLIDE_PROF_RIGHT);
+    script[DIA_ASK_QUEST] = script_obj(dialogue[DIA_ASK_QUEST], CMD_SLIDE_PROF_LEFT);
+    script[CMD_SLIDE_PROF_LEFT] = script_obj(CMD_SLIDE_PROF_LEFT, DIA_WHAT_GAME);
+    script[CMD_SLIDE_PROF_RIGHT] = script_obj(CMD_SLIDE_PROF_RIGHT, DIA_LETS_START);
 
     // Initiate the transfer and check for errors
     script[COND_ERROR_TIMEOUT_ONE] = script_obj(COND_ERROR_TIMEOUT_ONE, COND_ERROR_TIMEOUT_TWO, DIA_ERROR_TIME_ONE);
@@ -86,10 +102,28 @@ void populate_script()
     script[DIA_THANK] = script_obj(dialogue[DIA_THANK], CMD_END_SCRIPT);
 
     // Hide the dialouge and professor
-    script[CMD_END_SCRIPT] = script_obj(CMD_END_SCRIPT, CMD_HIDE_PROF);
-    script[CMD_HIDE_PROF] = script_obj(CMD_HIDE_PROF, CMD_BACK_TO_MENU);
+    script[CMD_END_SCRIPT] = script_obj(CMD_END_SCRIPT, CMD_BACK_TO_MENU);
     script[CMD_BACK_TO_MENU] = script_obj(CMD_BACK_TO_MENU, SCRIPT_START);
 };
+
+void populate_buttons()
+{
+    lang_select.set_xy_min_max(48, 240, 0, 120);
+    lang_select.add_button(Button(btn_lang_eng), BTN_ENG);
+    lang_select.add_button(Button(btn_lang_fre), BTN_FRE);
+    lang_select.add_button(Button(btn_lang_ita), BTN_ITA);
+    lang_select.add_button(Button(btn_lang_ger), BTN_GER);
+    lang_select.add_button(Button(btn_lang_spa), BTN_SPA);
+    lang_select.add_button(Button(btn_lang_kor), BTN_KOR);
+
+    game_select.set_xy_min_max(48, 240, 0, 120);
+    game_select.add_button(Button(btn_lang_eng), BTN_ENG);
+    game_select.add_button(Button(btn_lang_fre), BTN_FRE);
+    game_select.add_button(Button(btn_lang_ita), BTN_ITA);
+    game_select.add_button(Button(btn_lang_ger), BTN_GER);
+    game_select.add_button(Button(btn_lang_spa), BTN_SPA);
+    game_select.add_button(Button(btn_lang_kor), BTN_KOR);
+}
 
 bool run_conditional(int index)
 {
@@ -147,12 +181,13 @@ bool run_conditional(int index)
         return inject_mystery(party_data);
 
     case CMD_BACK_TO_MENU:
-        text_disable();
-        main_menu_exit();
+        set_text_exit();
+        obj_hide(prof);
         return true;
 
     case CMD_SHOW_PROF:
         obj_unhide(prof, 0);
+        obj_set_pos(prof, 96, 56);
         return true;
 
     case CMD_HIDE_PROF:
@@ -166,12 +201,28 @@ bool run_conditional(int index)
     case CMD_END_SCRIPT:
         return true;
 
-    case CMD_ASK_LANG:
-        //party_data.set_lang();
+    case CMD_LANG_MENU:
+        party_data.set_lang(lang_select.button_main());
         return true;
 
-    case CMD_ASK_GAME:
-        //party_data.set_game();
+    case CMD_GAME_MENU:
+        party_data.set_game(game_select.button_main());
+        return true;
+
+    case CMD_SLIDE_PROF_LEFT:
+        for (int i = 0; i < 48; i++)
+        {
+            obj_set_pos(prof, (prof->attr1 & ATTR1_X_MASK) - 2, prof->attr0 & ATTR0_Y_MASK);
+            global_next_frame();
+        }
+        return true;
+
+    case CMD_SLIDE_PROF_RIGHT:
+        for (int i = 0; i < 48; i++)
+        {
+            obj_set_pos(prof, (prof->attr1 & ATTR1_X_MASK) + 2, prof->attr0 & ATTR0_Y_MASK);
+            global_next_frame();
+        }
         return true;
 
     default:

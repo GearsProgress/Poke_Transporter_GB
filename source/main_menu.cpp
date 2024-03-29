@@ -2,160 +2,126 @@
 #include "main_menu.h"
 #include "button_handler.h"
 #include "save_data_manager.h"
+#include "global_frame_controller.h"
 
-#define MAX_X_CORD 72 // 128
-
-int menu_slot = 1;
-int old_menu_slot = 0;
-int menu_mode = BTN_MAIN_MENU;
-int ani_mode = 0;
-int menu_x_cord = MAX_X_CORD;
-int lang_btn_slot;
-int old_lang_btn_slot;
-
-Button wide_button_array[WIDE_BUTTON_ARRAY_SIZE];
-Button lang_button_array[LANG_BUTTON_ARRAY_SIZE];
-
-void main_menu_btn_init(Button nButton, int index)
+Button_Menu::Button_Menu(int nRows, int nColumns, int nButton_width, int nButton_height)
 {
-    if (nButton.isWide)
-    {
-        wide_button_array[index] = nButton;
-        wide_button_array[index].set_location(MAX_X_CORD, 7 + (38 * (index - 1)));
-        wide_button_array[index].hide();
-    }
-    else
-    {
-        lang_button_array[index] = nButton;
-        lang_button_array[index].set_location(30 + ((40 + 30) * (index % 3)), 24 + ((24 + 24) * (index / 3)));
-        lang_button_array[index].hide();
-    }
+    columns = nColumns;
+    rows = nRows;
+    button_height = nButton_height;
+    button_width = nButton_width;
+    curr_position = 0;
+    x_min = 0;
+    x_max = 240;
+    y_min = 0;
+    y_max = 160;
 }
 
-int main_menu_loop()
+void Button_Menu::set_xy_min_max(int nX_min, int nX_max, int nY_min, int nY_max){
+    x_min = nX_min;
+    x_max = nX_max;
+    y_min = nY_min;
+    y_max = nY_max;
+}
+
+int Button_Menu::button_main()
 {
-    switch (ani_mode)
+    tte_set_pos(0, 0);
+    organize_buttons();
+    show_buttons();
+    button_vector.at(curr_position).set_highlight(true);
+    int curr_x;
+    int curr_y;
+
+    key_poll(); // Reset the buttons
+
+    while (true)
     {
-    case ENTERING:
-    {
-        menu_x_cord = menu_x_cord + 4;
-        for (int i = 1; i < (WIDE_BUTTON_ARRAY_SIZE + 1); i++)
+        curr_x = get_x_from_pos(curr_position);
+        curr_y = get_y_from_pos(curr_position);
+
+        if (key_hit(KEY_RIGHT) && (curr_x < (columns - 1)))
         {
-            wide_button_array[i].set_location(menu_x_cord, 7 + (38 * (i - 1)));
+            curr_x++;
         }
-        if (menu_x_cord > 240)
+        else if (key_hit(KEY_DOWN) && (curr_y < (rows - 1)))
         {
-            ani_mode = DISABLE;
+            curr_y++;
         }
-        break;
-    }
-    case EXITING:
-    {
-        menu_x_cord = menu_x_cord - 4;
-        for (int i = 1; i < (WIDE_BUTTON_ARRAY_SIZE + 1); i++)
+        else if (key_hit(KEY_LEFT) && (curr_x > 0))
         {
-            wide_button_array[i].set_location(menu_x_cord, 7 + (38 * (i - 1)));
+            curr_x--;
         }
-        if (menu_x_cord <= MAX_X_CORD)
+        else if (key_hit(KEY_UP) && (curr_y > 0))
         {
-            ani_mode = BTN_MAIN_MENU;
+            curr_y--;
         }
-        break;
-    }
-    case BTN_MAIN_MENU:
-    {
-        if (key_hit(KEY_DOWN))
+        else if (key_hit(KEY_A))
         {
-            if (menu_slot != (WIDE_BUTTON_ARRAY_SIZE - 1))
-            {
-                menu_slot++;
-            }
+            hide_buttons();
+            return return_values.at(curr_position);
         }
 
-        if (key_hit(KEY_UP))
+        if (get_pos_from_xy(curr_x, curr_y) != curr_position)
         {
-            if (menu_slot != BTN_TRANSFER)
-            {
-                menu_slot--;
-            }
+            button_vector.at(curr_position).set_highlight(false);
+            curr_position = get_pos_from_xy(curr_x, curr_y);
+            button_vector.at(curr_position).set_highlight(true);
         }
-
-        if (key_hit(KEY_A))
-        {
-            if ((get_tutorial_flag() == true || menu_slot == BTN_TRANSFER))
-            {
-                ani_mode = ENTERING;
-            }
-            else
-            {
-                // "Bad" noise here
-            }
-        }
-
-        if (menu_slot != old_menu_slot)
-        {
-            wide_button_array[menu_slot].set_highlight(true);
-            wide_button_array[old_menu_slot].set_highlight(false);
-            old_menu_slot = menu_slot;
-        }
-        return 0;
-    }
-    };
-    if (ani_mode == DISABLE)
-    {
-        return menu_slot;
+        global_next_frame();
     }
     return 0;
 }
 
-void main_menu_enter()
+void Button_Menu::add_button(Button btn, int return_val)
 {
-    ani_mode = ENTERING;
+    button_vector.push_back(btn);
+    return_values.push_back(return_val);
 }
 
-void main_menu_exit()
+void Button_Menu::show_buttons()
 {
-    ani_mode = EXITING;
-}
-
-void show_lang_btns()
-{
-    for (int i = 0; i < LANG_BUTTON_ARRAY_SIZE; i++)
+    for (unsigned int i = 0; i < button_vector.size(); i++)
     {
-        lang_button_array[i].show();
+        button_vector.at(i).show();
     }
 }
 
-void hide_lang_btns()
+void Button_Menu::hide_buttons()
 {
-    for (int i = 0; i < LANG_BUTTON_ARRAY_SIZE; i++)
+    for (Button &curr_btn : button_vector)
     {
-        lang_button_array[i].hide();
+        curr_btn.hide();
     }
 }
 
-void show_main_btns()
+void Button_Menu::organize_buttons()
 {
-    for (int i = 0; i < WIDE_BUTTON_ARRAY_SIZE; i++)
+    // Total space, minus the space taken up by the buttons, divided by the spaces between the buttons.
+    int vertical_space =
+        ((y_max - y_min) - ((button_vector.size() / columns) * button_height)) / ((button_vector.size() / columns) + 1);
+    int horizonal_space =
+        ((x_max - x_min) - ((button_vector.size() / rows) * button_width)) / ((button_vector.size() / rows) + 1);
+
+    for (unsigned int i = 0; i < button_vector.size(); i++)
     {
-        wide_button_array[i].show();
+        button_vector.at(i).set_location(
+            ((horizonal_space + button_width) * get_x_from_pos(i)) + horizonal_space + x_min,
+            ((vertical_space + button_height) * get_y_from_pos(i)) + vertical_space + y_min);
     }
 }
 
-void hide_main_btns()
+unsigned int Button_Menu::get_pos_from_xy(int nX, int nY)
 {
-    for (int i = 0; i < WIDE_BUTTON_ARRAY_SIZE; i++)
-    {
-        wide_button_array[i].hide();
-    }
+    return (nY * columns) + nX;
 }
 
-void highlight_lang_btn(int index, bool highlight)
+unsigned int Button_Menu::get_x_from_pos(int nPos)
 {
-    lang_button_array[index].set_highlight(highlight);
+    return (nPos % columns);
 }
 
-void set_arrow_point(int index)
+unsigned int Button_Menu::get_y_from_pos(int nPos)
 {
-    lang_button_array[LANG_ARROW].set_location(lang_button_array[index].x + 16, lang_button_array[index].y - 8);
+    return (nPos / columns);
 }

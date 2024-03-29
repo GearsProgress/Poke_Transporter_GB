@@ -57,6 +57,7 @@ TODO:
 int delay_counter = 0;
 bool skip = true;
 rom_data curr_rom;
+Button_Menu main_menu(3, 1, 96, 32);
 
 /*
 int test_main(void) Music
@@ -94,39 +95,13 @@ void load_graphics()
 	load_opening_background();
 	load_background();
 	load_textbox_background();
-	load_testroid();
-	load_professor();
-	load_btn_t_l();
-	load_btn_t_r();
-	load_btn_p_l();
-	load_btn_p_r();
-	load_btn_c_l();
-	load_btn_c_r();
-	load_dex_l();
-	load_dex_m();
-	load_dex_r();
-	load_btn_d_l();
-	load_btn_d_r();
-	load_btn_lang_eng();
-	load_btn_lang_fre();
-	load_btn_lang_ita();
-	load_btn_lang_ger();
-	load_btn_lang_spa();
-	load_btn_lang_kor();
-	load_lang_arrow();
+	load_sprites();
 
-	main_menu_btn_init(Button(btn_t_l, btn_t_r, 128, 160), BTN_TRANSFER);
-	main_menu_btn_init(Button(btn_p_l, btn_p_r, 192, 224), BTN_POKEDEX);
-	main_menu_btn_init(Button(btn_c_l, btn_c_r, 256, 288), BTN_CREDITS);
-	main_menu_btn_init(Button(btn_d_l, btn_d_r, 416, 448), BTN_LANGUAGE);
-
-	main_menu_btn_init(Button(btn_lang_eng, 480), BTN_ENG);
-	main_menu_btn_init(Button(btn_lang_fre, 512), BTN_FRE);
-	main_menu_btn_init(Button(btn_lang_ita, 544), BTN_ITA);
-	main_menu_btn_init(Button(btn_lang_ger, 576), BTN_GER);
-	main_menu_btn_init(Button(btn_lang_spa, 608), BTN_SPA);
-	main_menu_btn_init(Button(btn_lang_kor, 640), BTN_KOR);
-	main_menu_btn_init(Button(lang_arrow, 672), LANG_ARROW);
+	// Set up main menu
+	main_menu.add_button(Button(btn_t_l, btn_t_r), BTN_TRANSFER);
+	main_menu.add_button(Button(btn_p_l, btn_p_r), BTN_POKEDEX);
+	//main_menu.add_button(Button(btn_d_l, btn_d_r), BTN_LANGUAGE);
+	main_menu.add_button(Button(btn_c_l, btn_c_r), BTN_CREDITS);
 }
 
 void initalization_script(void)
@@ -154,14 +129,13 @@ void initalization_script(void)
 	// Prepare dialouge
 	populate_dialogue();
 	populate_script();
+	populate_buttons();
 	init_text_engine();
 
 	// Initalize the Pokedex
 	pokedex_init();
 
-	// Disable text (this is not a good way to do this)
-	text_disable();
-	
+	// Set the random seed
 	rand_set_seed(0x1216);
 };
 
@@ -200,6 +174,57 @@ void first_load_message(void)
 		global_next_frame();
 	}
 	tte_erase_rect(0, 0, H_MAX, V_MAX);
+}
+
+int credits()
+{
+	#define CREDITS_ARRAY_SIZE 15
+	int curr_credits_num = 0;
+	std::string credits_array[CREDITS_ARRAY_SIZE] = {
+		"Developed by:\n\n\nThe Gears\nof Progress",
+		"Built using:\n\n\n-DevkitPro\n-LibTonc\n-LibGBA",
+		"Inspired by the\nworks of:\n\n-Goppier\n-Lorenzooone\n-im a blisy\n-RETIRE",
+		"Programs used:\n\n\n-HexManiacAdvance\n-PKHeX\n-WC3Tool\n-Usenti\n",
+		"Open Source Code and\nLibraries:\n\n-libtonc-examples\n-PokemonGen3toGenX\n-gba-link-connection\n-awesome-gbadev\n-arduino-poke-gen2",
+		"Research resources:\n\n-arm-docs\n-PokemonGen3toGenX\n\nFull links can be\nfound on this\nprogram's GitHub",
+		"ROM data obtained\nfrom decompilations created by the PRET team",
+		"Pok@mon data\nobtained from:\n\n-Bulbapedia\n-Serebii\n-PokeAPI.com",
+		"Discord community\nassistance:\n\n-Hex Maniac Advance\n Development\n-gbadev\n-pret",
+		"Sprite work:\n\n\n-lite_thespark",
+		"Writing assistance:\n\n\n-Mad",
+		"An immense thanks to\nLorenzooone for\ntheir assistance in\nreading/writing save\ndata. Without them,\nthis project would\nnot have been\npossible.",
+		"Special thanks:\n\n\nEnn, Roku, Luca,\nArctic, and everyone\nwho has listened to me talk about this\nfor months",
+		"All Pok@mon names,\nsprites, and names\nof related resources\nare copyright\nNintendo,\nCreatures Inc.,\nand GAME FREAK Inc.",
+		"This project is not endorsed or\nsupported by\nGameFreak/Nintendo.\n\nPlease support the\noriginal developers.",
+	};
+
+	while (true)
+	{
+		tte_set_pos(40, 24);
+		tte_set_margins(40, 24, 206, 104);
+		tte_erase_screen();
+		tte_write(credits_array[curr_credits_num].c_str());
+		REG_BG0CNT = (REG_BG0CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
+		REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(2);
+		REG_BG2VOFS = 0;
+		if (key_hit(KEY_B))
+		{
+			tte_erase_rect(0, 0, H_MAX, V_MAX);
+			REG_BG0CNT = (REG_BG0CNT & ~BG_PRIO_MASK) | BG_PRIO(2);
+			REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
+			REG_BG2VOFS = 96;
+			return 0;
+		}
+		if (key_hit(KEY_LEFT) && curr_credits_num > 0)
+		{
+			curr_credits_num--;
+		}
+		if (key_hit(KEY_RIGHT) && curr_credits_num < (CREDITS_ARRAY_SIZE - 1))
+		{
+			curr_credits_num++;
+		}
+		global_next_frame();
+	}
 }
 
 int main(void)
@@ -255,34 +280,8 @@ int main(void)
 
 	// Set up blend to fade to white/black
 
-	global_next_frame();
-	show_main_btns();
-	int curr_lang_btn_num = get_def_lang_num();
-	int old_lang_btn_num = -1;
-	set_arrow_point(curr_lang_btn_num);
-
-#define CREDITS_ARRAY_SIZE 15
-	int curr_credits_num = 0;
-	std::string credits_array[CREDITS_ARRAY_SIZE] = {
-		"Developed by:\n\n\nThe Gears\nof Progress",
-		"Built using:\n\n\n-DevkitPro\n-LibTonc\n-LibGBA",
-		"Inspired by the\nworks of:\n\n-Goppier\n-Lorenzooone\n-im a blisy\n-RETIRE",
-		"Programs used:\n\n\n-HexManiacAdvance\n-PKHeX\n-WC3Tool\n-Usenti\n",
-		"Open Source Code and\nLibraries:\n\n-libtonc-examples\n-PokemonGen3toGenX\n-gba-link-connection\n-awesome-gbadev\n-arduino-poke-gen2",
-		"Research resources:\n\n-arm-docs\n-PokemonGen3toGenX\n\nFull links can be\nfound on this\nprogram's GitHub",
-		"ROM data obtained\nfrom decompilations created by the PRET team",
-		"Pok@mon data\nobtained from:\n\n-Bulbapedia\n-Serebii\n-PokeAPI.com",
-		"Discord community\nassistance:\n\n-Hex Maniac Advance\n Development\n-gbadev\n-pret",
-		"Sprite work:\n\n\n-lite_thespark",
-		"Writing assistance:\n\n\n-Mad",
-		"An immense thanks to\nLorenzooone for\ntheir assistance in\nreading/writing save\ndata. Without them,\nthis project would\nnot have been\npossible.",
-		"Special thanks:\n\n\nEnn, Roku, Luca,\nArctic, and everyone\nwho has listened to me talk about this\nfor months",
-		"All Pok@mon names,\nsprites, and names\nof related resources\nare copyright\nNintendo,\nCreatures Inc.,\nand GAME FREAK Inc.",
-		"This project is not endorsed or\nsupported by\nGameFreak/Nintendo.\n\nPlease support the\noriginal developers.",
-	};
-
+	key_poll(); // Reset the keys
 	curr_rom.load_rom();
-
 	// MAIN LOOP
 	while (1)
 	{
@@ -291,86 +290,19 @@ int main(void)
 			print_mem_section();
 			curr_rom.print_rom_info();
 		}
-		switch (main_menu_loop())
+		switch (main_menu.button_main())
 		{
 		case (BTN_TRANSFER):
-			text_enable();
+			text_loop();
 			break;
 		case (BTN_POKEDEX):
-			pokedex_show();
 			pokedex_loop();
-			if (key_hit(KEY_B))
-			{
-				pokedex_hide();
-				main_menu_exit();
-			}
-			break;
-		case (BTN_LANGUAGE):
-			REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(1); // Enable text box
-			show_lang_btns();
-			tte_set_pos(LEFT, TOP);
-			tte_write("Choose the default language\nfor transfering from a non\nJapanese game. Setting will\nbe saved after next transfer.");
-			if (key_hit(KEY_LEFT) && ((curr_lang_btn_num % 3) != 0))
-			{
-				curr_lang_btn_num--;
-			}
-			if (key_hit(KEY_RIGHT) && ((curr_lang_btn_num % 3) != 2))
-			{
-				curr_lang_btn_num++;
-			}
-			if (key_hit(KEY_UP) && ((curr_lang_btn_num > 2)))
-			{
-				curr_lang_btn_num -= 3;
-			}
-			if (key_hit(KEY_DOWN) && ((curr_lang_btn_num <= 2)))
-			{
-				curr_lang_btn_num += 3;
-			}
-			if (curr_lang_btn_num != old_lang_btn_num)
-			{
-				highlight_lang_btn(old_lang_btn_num, false);
-				highlight_lang_btn(curr_lang_btn_num, true);
-				old_lang_btn_num = curr_lang_btn_num;
-			}
-			if (key_hit(KEY_A))
-			{
-				set_arrow_point(curr_lang_btn_num);
-				set_def_lang(curr_lang_btn_num);
-			}
-			if (key_hit(KEY_B))
-			{
-				hide_lang_btns();
-				main_menu_exit();
-				tte_erase_screen();
-				hide_text_box();
-			}
 			break;
 		case (BTN_CREDITS):
-			tte_set_pos(40, 24);
-			tte_set_margins(40, 24, 206, 104);
-			tte_erase_screen();
-			tte_write(credits_array[curr_credits_num].c_str());
-			REG_BG0CNT = (REG_BG0CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
-			REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(2);
-			REG_BG2VOFS = 0;
-			if (key_hit(KEY_B))
-			{
-				tte_erase_rect(0, 0, H_MAX, V_MAX);
-				REG_BG0CNT = (REG_BG0CNT & ~BG_PRIO_MASK) | BG_PRIO(2);
-				REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
-				REG_BG2VOFS = 96;
-				main_menu_exit();
-			}
-			if (key_hit(KEY_LEFT) && curr_credits_num > 0)
-			{
-				curr_credits_num--;
-			}
-			if (key_hit(KEY_RIGHT) && curr_credits_num < (CREDITS_ARRAY_SIZE - 1))
-			{
-				curr_credits_num++;
-			}
+			credits();
 			break;
+		default:
+			global_next_frame();
 		}
-		global_next_frame();
 	}
 }

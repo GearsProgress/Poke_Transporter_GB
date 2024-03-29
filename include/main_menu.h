@@ -2,6 +2,7 @@
 #define MAIN_MENU_H
 
 #include <tonc.h>
+#include <vector>
 
 #include "button_handler.h"
 
@@ -26,15 +27,33 @@
 #define EXITING -2
 #define DISABLE -3
 
-void main_menu_btn_init(Button nButton, int index);
-int main_menu_loop();
-void main_menu_enter();
-void main_menu_exit();
-void show_lang_btns();
-void hide_lang_btns();
-void show_main_btns();
-void hide_main_btns();
-void highlight_lang_btn(int index, bool highlight);
-void set_arrow_point(int index);
 
+
+class Button_Menu
+{
+public:
+    Button_Menu(int nRows, int nColumns, int nButton_width, int nButton_height);
+    int button_main();
+    void add_button(Button btn, int return_val);
+    void hide_buttons();
+    void show_buttons();
+    void organize_buttons();
+    unsigned int get_pos_from_xy(int nX, int nY);
+    unsigned int get_x_from_pos(int nPos);
+    unsigned int get_y_from_pos(int nPos);
+    void set_xy_min_max(int nX_min, int nX_max, int nY_min, int nY_max);
+
+private:
+    std::vector<Button> button_vector;
+    std::vector<int> return_values;
+    int columns;
+    int rows;
+    int button_height;
+    int button_width;
+    unsigned int curr_position;
+    int x_min;
+    int x_max;
+    int y_min;
+    int y_max;
+};
 #endif

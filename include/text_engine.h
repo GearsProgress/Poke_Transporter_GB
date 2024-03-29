@@ -15,11 +15,10 @@
 #define BOTTOM V_MAX
 
     void init_text_engine();
-    void text_next_frame();
+    int text_loop();
     int text_next_obj_id(script_obj current_line);
-    void text_enable();
-    void text_disable();
     void show_text_box();
     void hide_text_box();
+    void set_text_exit();
 
 #endif

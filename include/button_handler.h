@@ -7,8 +7,8 @@ class Button
 {
 public:
     Button();
-    Button(OBJ_ATTR *L, OBJ_ATTR *R, u32 tidL, u32 tidR); // wide buttons
-    Button(OBJ_ATTR *B, u32 ntidB);                       // short button
+    Button(OBJ_ATTR *L, OBJ_ATTR *R); // wide buttons
+    Button(OBJ_ATTR *B);              // short button
     bool isWide;
     void set_location(int x, int y);
     void set_highlight(bool highlight);
@@ -21,8 +21,6 @@ private:
     bool highlighted;
     OBJ_ATTR *button_L;
     OBJ_ATTR *button_R;
-    u32 tidL;
-    u32 tidR;
 };
 
 #endif
