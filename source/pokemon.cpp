@@ -16,8 +16,8 @@ void Pokemon::load_data(int index, byte *party_data, int game, int lang)
     {
         switch (game)
         {
-        case GREEN_ID:
-        case RED_ID:
+        case RED_GREEN_ID:
+        case RED_BLUE_ID:
         case BLUE_ID:
         case YELLOW_ID:
             gen = 1;
@@ -26,8 +26,7 @@ void Pokemon::load_data(int index, byte *party_data, int game, int lang)
             nickname_size = 6;
             box_size = 30;
             break;
-        case GOLD_ID:
-        case SILVER_ID:
+        case GOLD_SILVER_ID:
         case CRYSTAL_ID:
             gen = 2;
             pkmn_size = 48;
@@ -41,8 +40,8 @@ void Pokemon::load_data(int index, byte *party_data, int game, int lang)
     {
         switch (game)
         {
-        case GREEN_ID:
-        case RED_ID:
+        case RED_GREEN_ID:
+        case RED_BLUE_ID:
         case BLUE_ID:
         case YELLOW_ID:
             gen = 1;
@@ -51,8 +50,7 @@ void Pokemon::load_data(int index, byte *party_data, int game, int lang)
             nickname_size = 11;
             box_size = 20;
             break;
-        case GOLD_ID:
-        case SILVER_ID:
+        case GOLD_SILVER_ID:
         case CRYSTAL_ID:
             gen = 2;
             pkmn_size = 48;

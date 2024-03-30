@@ -3,6 +3,7 @@
 
 #include <tonc.h>
 #include "pokemon.h"
+#include "payloads/eng_payloads.h"
 
 #define BOX_DATA_ARRAY_SIZE 0x462
 
@@ -17,6 +18,8 @@ public:
     void set_game(int nGame);
     void set_lang(int nLang);
     int get_lang();
+    bool load_payload();
+    PAYLOAD curr_payload;
 
 private:
     byte box_data_array[0x462];

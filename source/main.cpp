@@ -98,6 +98,7 @@ void load_graphics()
 	load_eternal_sprites();
 
 	// Set up main menu
+	main_menu.clear_vector();
 	main_menu.add_button(Button(btn_t_l, btn_t_r, 48), BTN_TRANSFER);
 	main_menu.add_button(Button(btn_p_l, btn_p_r, 48), BTN_POKEDEX);
 	//main_menu.add_button(Button(btn_d_l, btn_d_r), BTN_LANGUAGE);

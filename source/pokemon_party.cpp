@@ -4,6 +4,11 @@
 #include "flash_mem.h"
 #include "debug_mode.h"
 #include "mystery_gift_injector.h"
+#include "payloads/base_payload_struct.h"
+
+const PAYLOAD *list_of_payloads[NUM_PAYLOADS] = {
+        &ENG_RED_BLUE
+    };
 
 byte debug_box_data[0x462] = {
 	// Preamble
@@ -90,7 +95,7 @@ void Pokemon_Party::start_link()
 	else
 	{
 		setup();
-		last_error = loop(&box_data_array[0]);
+		last_error = loop(&box_data_array[0], &curr_payload);
 	}
 }
 
@@ -125,4 +130,17 @@ void Pokemon_Party::set_lang(int nLang)
 
 int Pokemon_Party::get_lang(){
 	return lang;
+}
+
+bool Pokemon_Party::load_payload(){
+	for (int i = 0; i < NUM_PAYLOADS; i++)
+	{
+		if (lang == list_of_payloads[i]->language &&
+			game == list_of_payloads[i]->version)
+		{
+			curr_payload = *list_of_payloads[i];
+			return true;
+		}
+	}  
+	return false;
 }

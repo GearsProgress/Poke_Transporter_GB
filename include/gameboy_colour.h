@@ -6,6 +6,7 @@
 #include <tonc.h>
 #include <string>
 #include "libraries/gba-link-connection/LinkSPI.hpp"
+#include "pokemon_party.h"
 
 /*
 #define LINK_SPI_NO_DATA 0xffffffff
@@ -31,12 +32,12 @@
 #define SLOW_SPEED 1000
 
 void setup();
-byte handleIncomingByte(byte in, byte* party_data);
+byte handleIncomingByte(byte in, byte *box_data_storage, PAYLOAD *curr_payload);
 int transferBit(byte *party_data);
-int loop(byte *party_data);
+int loop(byte *box_data_storage, PAYLOAD *curr_payload);
 std::string outHexStr(vu8 inputNum);
 void updateFrames();
-byte exchange_parties(byte);
+byte exchange_parties(byte curr_in, PAYLOAD *curr_payload);
 byte exchange_boxes(byte curr_in, byte *party_data);
 
 #endif /* GAMEBOY_COLOUR_H_ */

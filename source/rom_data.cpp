@@ -2,7 +2,7 @@
 #include "mystery_gift_builder.h"
 #include "pokemon_party.h"
 #include "pokemon_data.h"
-#include "rom_values/rom_values_eng.h"
+#include "rom_values/eng_rom_values.h"
 
 rom_data::rom_data() {}
 bool rom_data::load_rom()

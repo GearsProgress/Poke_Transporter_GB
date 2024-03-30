@@ -8,10 +8,10 @@
 #include "output.h"
 #include "script_array.h"
 #include "debug_mode.h"
-#include "payload.h"
 #include "interrupt.h"
 #include "text_engine.h"
 #include "global_frame_controller.h"
+#include "payloads/base_payload_struct.h"
 
 #define TIMEOUT 2
 #define TIMEOUT_ONE_LENGTH 1000000 // Maybe keep a 10:1 ratio between ONE and TWO?
@@ -50,7 +50,7 @@ int FF_count;
 int zero_count;
 
 int state;
-int mosi_delay = 3; // inital delay, speeds up once sending PKMN
+int mosi_delay = 4; // inital delay, speeds up once sending PKMN
 
 std::string out_array[10];
 
@@ -104,7 +104,7 @@ void setup()
   }
 }
 
-byte handleIncomingByte(byte in, byte *box_data_storage)
+byte handleIncomingByte(byte in, byte *box_data_storage, PAYLOAD *curr_payload)
 {
   if (state == hs)
   {
@@ -142,7 +142,6 @@ byte handleIncomingByte(byte in, byte *box_data_storage)
     if (in == 0xfd)
     {
       state = party_preamble;
-      mosi_delay = 0;
     }
     return in;
   }
@@ -152,7 +151,7 @@ byte handleIncomingByte(byte in, byte *box_data_storage)
     if (in != 0xfd)
     {
       state = trade_data;
-      return exchange_parties(in);
+      return exchange_parties(in, curr_payload);
     }
     return in;
   }
@@ -163,7 +162,7 @@ byte handleIncomingByte(byte in, byte *box_data_storage)
     {
       state = box_preamble;
     }
-    return exchange_parties(in);
+    return exchange_parties(in, curr_payload);
   }
 
   else if (state == box_preamble)
@@ -190,7 +189,7 @@ byte handleIncomingByte(byte in, byte *box_data_storage)
   return in;
 }
 
-int loop(byte *box_data_storage)
+int loop(byte *box_data_storage, PAYLOAD *curr_payload)
 {
   int counter = 0;
   while (true)
@@ -207,7 +206,7 @@ int loop(byte *box_data_storage)
           std::to_string(in_data) + "][" +
           std::to_string(out_data) + "]\n");
     }
-    out_data = handleIncomingByte(in_data, box_data_storage);
+    out_data = handleIncomingByte(in_data, box_data_storage, curr_payload);
 
     if (FF_count > 25)
     {
@@ -244,9 +243,9 @@ int loop(byte *box_data_storage)
   }
 };
 
-byte exchange_parties(byte curr_in)
+byte exchange_parties(byte curr_in, PAYLOAD *curr_payload)
 {
-  int ret = gen1_eng_payload[data_counter];
+  int ret = curr_payload->payload_array[data_counter];
   data_counter += 1;
   return ret;
 };

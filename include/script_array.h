@@ -33,8 +33,9 @@
 #define DIA_WHAT_GAME               24
 #define DIA_WHAT_LANG               25
 #define DIA_ASK_QUEST               26
+#define DIA_NO_PAYLOAD              27
 
-#define                    DIA_SIZE 27
+#define                    DIA_SIZE 28
 #define DIA_END DIA_SIZE
 
 // Commands
@@ -68,8 +69,9 @@
 #define COND_IS_FRLGE               CMDS_END + 10
 #define COND_MG_OTHER_EVENT         CMDS_END + 11
 #define COND_PKMN_TO_COLLECT        CMDS_END + 12
+#define COND_PAYLOAD_EXISTS         CMDS_END + 13
 
-#define                             COND_SIZE  13
+#define                             COND_SIZE  14
 #define COND_END CMDS_END + COND_SIZE
 
 // Ends

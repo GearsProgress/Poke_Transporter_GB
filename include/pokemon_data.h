@@ -20,13 +20,12 @@
 #define SPA_ID  7
 #define KOR_ID  8
 
-#define GREEN_ID 0
-#define RED_ID 1
+#define RED_GREEN_ID 0
+#define RED_BLUE_ID 1
 #define BLUE_ID 2
 #define YELLOW_ID 3
-#define GOLD_ID 4
-#define SILVER_ID 5
-#define CRYSTAL_ID 6
+#define GOLD_SILVER_ID 4
+#define CRYSTAL_ID 5
 
 #define MAX_PKMN_IN_BOX 30
 

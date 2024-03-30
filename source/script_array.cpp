@@ -13,7 +13,9 @@ int last_error;
 Pokemon_Party party_data = Pokemon_Party();
 
 Button_Menu lang_select(2, 4, 40, 24, false);
-Button_Menu game_select(2, 2, 72, 32, true);
+Button_Menu game_select_def(2, 2, 72, 32, true);
+Button_Menu game_select_jpn(3, 2, 72, 32, true);
+Button_Menu game_select_kor(1, 1, 72, 32, true);
 
 script_obj script[SCRIPT_SIZE];
 std::string_view dialogue[DIA_SIZE];
@@ -37,8 +39,9 @@ void populate_dialogue()
     dialogue[DIA_PKMN_TO_COLLECT] = "Hi Trainer! It looks like\nyou still have Pok@mon to\npick up...|I can send in new ones, but do know that the Pok@mon you\nhaven't picked up yet will\nbe replaced.|Turn off the system now if\nyou want to recieve those\nPok@mon, but otherwise-";
     dialogue[DIA_NO_VALID_PKMN] = "Sorry Trainer, it doesn't\nlook like you have any valid\nPok@mon in your party right\nnow.|Double check your party and we'll give it another shot!";
     dialogue[DIA_ASK_QUEST] = "Hi trainer! Before we begin,\nI need to ask you a few\nquestions.";
-    dialogue[DIA_WHAT_GAME] = "And which Game Boy Pok@mon\ngame are you transfering\nfrom?";
-    dialogue[DIA_WHAT_LANG] = "What language is the Game\nBoy Pok@mon game that you're\ntransfering from?";
+    dialogue[DIA_WHAT_GAME] = "And which Game Boy Pok@mon\ngame are you transferring\nfrom?";
+    dialogue[DIA_WHAT_LANG] = "What language is the Game\nBoy Pok@mon game that you're\ntransferring from?";
+    dialogue[DIA_NO_PAYLOAD] = "I'm sorry, but that version\nin that language is not\ncurrently supported.";
 
     dialogue[DIA_ERROR_COLOSSEUM] = "It looks like you went to\nthe colosseum instead of the\ntrading room!|Let's try that again!";
     dialogue[DIA_ERROR_COM_ENDED] = "Communication with the other\ndevice was terminated.|Let's try that again!";
@@ -70,12 +73,14 @@ void populate_script()
     script[DIA_START] = script_obj(dialogue[DIA_START], CMD_START_LINK);
     script[CMD_START_LINK] = script_obj(CMD_START_LINK, COND_ERROR_TIMEOUT_ONE);
     script[DIA_WHAT_GAME] = script_obj(dialogue[DIA_WHAT_GAME], CMD_GAME_MENU);
-    script[CMD_GAME_MENU] = script_obj(CMD_GAME_MENU, CMD_SLIDE_PROF_RIGHT, DIA_WHAT_LANG);
+    script[CMD_GAME_MENU] = script_obj(CMD_GAME_MENU, COND_PAYLOAD_EXISTS, DIA_WHAT_LANG);
     script[DIA_WHAT_LANG] = script_obj(dialogue[DIA_WHAT_LANG], CMD_LANG_MENU);
     script[CMD_LANG_MENU] = script_obj(CMD_LANG_MENU, DIA_WHAT_GAME);
     script[DIA_ASK_QUEST] = script_obj(dialogue[DIA_ASK_QUEST], CMD_SLIDE_PROF_LEFT);
     script[CMD_SLIDE_PROF_LEFT] = script_obj(CMD_SLIDE_PROF_LEFT, DIA_WHAT_LANG);
     script[CMD_SLIDE_PROF_RIGHT] = script_obj(CMD_SLIDE_PROF_RIGHT, DIA_LETS_START);
+    script[COND_PAYLOAD_EXISTS] = script_obj(COND_PAYLOAD_EXISTS, CMD_SLIDE_PROF_RIGHT, DIA_NO_PAYLOAD);
+    script[DIA_NO_PAYLOAD] = script_obj(dialogue[DIA_NO_PAYLOAD], DIA_WHAT_LANG);
 
     // Initiate the transfer and check for errors
     script[COND_ERROR_TIMEOUT_ONE] = script_obj(COND_ERROR_TIMEOUT_ONE, COND_ERROR_TIMEOUT_TWO, DIA_ERROR_TIME_ONE);
@@ -118,31 +123,28 @@ void populate_lang_buttons()
     lang_select.add_button(Button(btn_lang_spa), SPA_ID);
     lang_select.add_button(Button(btn_lang_kor), KOR_ID);
 }
+
 void populate_game_buttons()
 {
-    game_select.clear_vector();
-    switch (party_data.get_lang())
-    {
-    case JPN_ID:
-        game_select.set_rows_and_columns(3, 2);
-        game_select.add_button(Button(button_red_green_left, button_red_green_right, 64), 0);
-        game_select.add_button(Button(button_blue_left, button_blue_right, 64), 0);
-        game_select.add_button(Button(button_yellow_left, button_yellow_right, 64), 0);
-        game_select.add_button(Button(button_gold_silver_left, button_gold_silver_right, 64), 0);
-        game_select.add_button(Button(button_crystal_left, button_crystal_right, 64), 0);
-        break;
-    case KOR_ID:
-        game_select.set_rows_and_columns(1, 1);
-        game_select.add_button(Button(button_gold_silver_left, button_gold_silver_right, 64), 0);
-        break;
-    default:
-    game_select.set_rows_and_columns(2, 2);
-        game_select.add_button(Button(button_red_blue_left, button_red_blue_right, 64), 0);
-        game_select.add_button(Button(button_yellow_left, button_yellow_right, 64), 0);
-        game_select.add_button(Button(button_gold_silver_left, button_gold_silver_right, 64), 0);
-        game_select.add_button(Button(button_crystal_left, button_crystal_right, 64), 0);
-    }
-    game_select.set_xy_min_max(48, 240, 0, 120);
+    game_select_jpn.clear_vector();
+    game_select_jpn.add_button(Button(button_red_green_left, button_red_green_right, 64), RED_GREEN_ID);
+    game_select_jpn.add_button(Button(button_blue_left, button_blue_right, 64), BLUE_ID);
+    game_select_jpn.add_button(Button(button_yellow_left, button_yellow_right, 64), YELLOW_ID);
+    game_select_jpn.add_button(Button(button_gold_silver_left, button_gold_silver_right, 64), GOLD_SILVER_ID);
+    game_select_jpn.add_button(Button(button_crystal_left, button_crystal_right, 64), CRYSTAL_ID);
+    game_select_jpn.set_xy_min_max(48, 240, 0, 120);
+
+    game_select_kor.clear_vector();
+    game_select_kor.add_button(Button(button_gold_silver_left, button_gold_silver_right, 64), GOLD_SILVER_ID);
+    game_select_kor.set_xy_min_max(48, 240, 0, 120);
+
+    game_select_def.clear_vector();
+    game_select_def.set_rows_and_columns(2, 2);
+    game_select_def.add_button(Button(button_red_blue_left, button_red_blue_right, 64), RED_BLUE_ID);
+    game_select_def.add_button(Button(button_yellow_left, button_yellow_right, 64), YELLOW_ID);
+    game_select_def.add_button(Button(button_gold_silver_left, button_gold_silver_right, 64), GOLD_SILVER_ID);
+    game_select_def.add_button(Button(button_crystal_left, button_crystal_right, 64), CRYSTAL_ID);
+    game_select_def.set_xy_min_max(48, 240, 0, 120);
 }
 
 bool run_conditional(int index)
@@ -231,7 +233,18 @@ bool run_conditional(int index)
     case CMD_GAME_MENU:
         load_temp_sprites(SPRITE_BATCH_GAMES);
         populate_game_buttons();
-        game = game_select.button_main();
+        switch (party_data.get_lang())
+        {
+        case JPN_ID:
+            game = game_select_jpn.button_main();
+            break;
+        case KOR_ID:
+            game = game_select_kor.button_main();
+            break;
+        default:
+            game = game_select_def.button_main();
+            break;
+        }
         if (game == BUTTON_CANCEL)
         {
             return false;
@@ -254,6 +267,9 @@ bool run_conditional(int index)
             global_next_frame();
         }
         return true;
+
+    case COND_PAYLOAD_EXISTS:
+        return party_data.load_payload();
 
     default:
         tte_set_pos(0, 0);
