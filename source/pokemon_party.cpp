@@ -122,3 +122,7 @@ void Pokemon_Party::set_lang(int nLang)
 {
 	lang = nLang;
 }
+
+int Pokemon_Party::get_lang(){
+	return lang;
+}

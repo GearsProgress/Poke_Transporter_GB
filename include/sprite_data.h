@@ -38,6 +38,8 @@ extern OBJ_ATTR *btn_d_r;
 extern OBJ_ATTR *dex_sprites[3][6];
 
 #define SPRITE_BATCH_LANG 1
+#include "btn_lang_jpn.h"
+extern OBJ_ATTR *btn_lang_jpn;
 #include "btn_lang_eng.h"
 extern OBJ_ATTR *btn_lang_eng;
 #include "btn_lang_fre.h"

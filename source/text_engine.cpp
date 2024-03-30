@@ -6,6 +6,7 @@
 #include "global_frame_controller.h"
 #include "pkmn_font.h"
 #include "script_array.h"
+#include "debug_mode.h"
 
 #define TEXT_CBB 3
 #define TEXT_SBB 28
@@ -46,7 +47,17 @@ int text_loop()
         {
             if (get_frame_count() % 2 == 0 || key_held(KEY_B) || key_held(KEY_A))
             {
-                char_index++;
+                if (DEBUG_MODE)
+                {
+                    while (char_index < curr_text.length() && curr_text.substr(char_index, 1) != "|")
+                    {
+                        char_index++;
+                    }
+                }
+                else
+                {
+                    char_index++;
+                }
                 tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
                 tte_write(curr_text.substr(0, char_index).c_str());
             }

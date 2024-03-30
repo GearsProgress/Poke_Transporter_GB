@@ -57,7 +57,7 @@ TODO:
 int delay_counter = 0;
 bool skip = true;
 rom_data curr_rom;
-Button_Menu main_menu(3, 1, 96, 32);
+Button_Menu main_menu(3, 1, 96, 32, false);
 
 /*
 int test_main(void) Music
@@ -98,10 +98,10 @@ void load_graphics()
 	load_eternal_sprites();
 
 	// Set up main menu
-	main_menu.add_button(Button(btn_t_l, btn_t_r), BTN_TRANSFER);
-	main_menu.add_button(Button(btn_p_l, btn_p_r), BTN_POKEDEX);
+	main_menu.add_button(Button(btn_t_l, btn_t_r, 48), BTN_TRANSFER);
+	main_menu.add_button(Button(btn_p_l, btn_p_r, 48), BTN_POKEDEX);
 	//main_menu.add_button(Button(btn_d_l, btn_d_r), BTN_LANGUAGE);
-	main_menu.add_button(Button(btn_c_l, btn_c_r), BTN_CREDITS);
+	main_menu.add_button(Button(btn_c_l, btn_c_r, 48), BTN_CREDITS);
 }
 
 void initalization_script(void)
@@ -129,7 +129,6 @@ void initalization_script(void)
 	// Prepare dialouge
 	populate_dialogue();
 	populate_script();
-	populate_buttons();
 	init_text_engine();
 
 	// Set the random seed

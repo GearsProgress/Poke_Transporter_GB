@@ -12,8 +12,8 @@
 int last_error;
 Pokemon_Party party_data = Pokemon_Party();
 
-Button_Menu lang_select(2, 3, 40, 24);
-Button_Menu game_select(2, 3, 40, 24);
+Button_Menu lang_select(2, 4, 40, 24, false);
+Button_Menu game_select(2, 2, 72, 32, true);
 
 script_obj script[SCRIPT_SIZE];
 std::string_view dialogue[DIA_SIZE];
@@ -37,7 +37,7 @@ void populate_dialogue()
     dialogue[DIA_PKMN_TO_COLLECT] = "Hi Trainer! It looks like\nyou still have Pok@mon to\npick up...|I can send in new ones, but do know that the Pok@mon you\nhaven't picked up yet will\nbe replaced.|Turn off the system now if\nyou want to recieve those\nPok@mon, but otherwise-";
     dialogue[DIA_NO_VALID_PKMN] = "Sorry Trainer, it doesn't\nlook like you have any valid\nPok@mon in your party right\nnow.|Double check your party and we'll give it another shot!";
     dialogue[DIA_ASK_QUEST] = "Hi trainer! Before we begin,\nI need to ask you a few\nquestions.";
-    dialogue[DIA_WHAT_GAME] = "First, which Game Boy\nPok@mon game are you\ntransfering from?";
+    dialogue[DIA_WHAT_GAME] = "And which Game Boy Pok@mon\ngame are you transfering\nfrom?";
     dialogue[DIA_WHAT_LANG] = "What language is the Game\nBoy Pok@mon game that you're\ntransfering from?";
 
     dialogue[DIA_ERROR_COLOSSEUM] = "It looks like you went to\nthe colosseum instead of the\ntrading room!|Let's try that again!";
@@ -70,11 +70,11 @@ void populate_script()
     script[DIA_START] = script_obj(dialogue[DIA_START], CMD_START_LINK);
     script[CMD_START_LINK] = script_obj(CMD_START_LINK, COND_ERROR_TIMEOUT_ONE);
     script[DIA_WHAT_GAME] = script_obj(dialogue[DIA_WHAT_GAME], CMD_GAME_MENU);
-    script[CMD_GAME_MENU] = script_obj(CMD_GAME_MENU, DIA_WHAT_LANG);
+    script[CMD_GAME_MENU] = script_obj(CMD_GAME_MENU, CMD_SLIDE_PROF_RIGHT, DIA_WHAT_LANG);
     script[DIA_WHAT_LANG] = script_obj(dialogue[DIA_WHAT_LANG], CMD_LANG_MENU);
-    script[CMD_LANG_MENU] = script_obj(CMD_LANG_MENU, CMD_SLIDE_PROF_RIGHT);
+    script[CMD_LANG_MENU] = script_obj(CMD_LANG_MENU, DIA_WHAT_GAME);
     script[DIA_ASK_QUEST] = script_obj(dialogue[DIA_ASK_QUEST], CMD_SLIDE_PROF_LEFT);
-    script[CMD_SLIDE_PROF_LEFT] = script_obj(CMD_SLIDE_PROF_LEFT, DIA_WHAT_GAME);
+    script[CMD_SLIDE_PROF_LEFT] = script_obj(CMD_SLIDE_PROF_LEFT, DIA_WHAT_LANG);
     script[CMD_SLIDE_PROF_RIGHT] = script_obj(CMD_SLIDE_PROF_RIGHT, DIA_LETS_START);
 
     // Initiate the transfer and check for errors
@@ -106,28 +106,49 @@ void populate_script()
     script[CMD_BACK_TO_MENU] = script_obj(CMD_BACK_TO_MENU, SCRIPT_START);
 };
 
-void populate_buttons()
+void populate_lang_buttons()
 {
-    lang_select.set_xy_min_max(48, 240, 0, 120);
-    lang_select.add_button(Button(btn_lang_eng), BTN_ENG);
-    lang_select.add_button(Button(btn_lang_fre), BTN_FRE);
-    lang_select.add_button(Button(btn_lang_ita), BTN_ITA);
-    lang_select.add_button(Button(btn_lang_ger), BTN_GER);
-    lang_select.add_button(Button(btn_lang_spa), BTN_SPA);
-    lang_select.add_button(Button(btn_lang_kor), BTN_KOR);
-
+    lang_select.set_xy_min_max(48, 240, 0, 112);
+    lang_select.clear_vector();
+    lang_select.add_button(Button(btn_lang_jpn), JPN_ID);
+    lang_select.add_button(Button(btn_lang_eng), ENG_ID);
+    lang_select.add_button(Button(btn_lang_fre), FRE_ID);
+    lang_select.add_button(Button(btn_lang_ita), ITA_ID);
+    lang_select.add_button(Button(btn_lang_ger), GER_ID);
+    lang_select.add_button(Button(btn_lang_spa), SPA_ID);
+    lang_select.add_button(Button(btn_lang_kor), KOR_ID);
+}
+void populate_game_buttons()
+{
+    game_select.clear_vector();
+    switch (party_data.get_lang())
+    {
+    case JPN_ID:
+        game_select.set_rows_and_columns(3, 2);
+        game_select.add_button(Button(button_red_green_left, button_red_green_right, 64), 0);
+        game_select.add_button(Button(button_blue_left, button_blue_right, 64), 0);
+        game_select.add_button(Button(button_yellow_left, button_yellow_right, 64), 0);
+        game_select.add_button(Button(button_gold_silver_left, button_gold_silver_right, 64), 0);
+        game_select.add_button(Button(button_crystal_left, button_crystal_right, 64), 0);
+        break;
+    case KOR_ID:
+        game_select.set_rows_and_columns(1, 1);
+        game_select.add_button(Button(button_gold_silver_left, button_gold_silver_right, 64), 0);
+        break;
+    default:
+    game_select.set_rows_and_columns(2, 2);
+        game_select.add_button(Button(button_red_blue_left, button_red_blue_right, 64), 0);
+        game_select.add_button(Button(button_yellow_left, button_yellow_right, 64), 0);
+        game_select.add_button(Button(button_gold_silver_left, button_gold_silver_right, 64), 0);
+        game_select.add_button(Button(button_crystal_left, button_crystal_right, 64), 0);
+    }
     game_select.set_xy_min_max(48, 240, 0, 120);
-    game_select.add_button(Button(button_red_green_left, button_red_green_right), 0);
-    game_select.add_button(Button(button_blue_left, button_blue_right), 0);
-    game_select.add_button(Button(button_red_blue_left, button_red_blue_right), 0);
-    game_select.add_button(Button(button_yellow_left, button_yellow_right), 0);
-    game_select.add_button(Button(button_gold_silver_left, button_gold_silver_right), 0);
-    game_select.add_button(Button(button_crystal_left, button_crystal_right), 0);
 }
 
 bool run_conditional(int index)
 {
     // Here is most of the logic that drives what lines show up where. It's probably not the best way to code it, but it works
+    int game;
     switch (index)
     {
 
@@ -175,9 +196,9 @@ bool run_conditional(int index)
         return true;
 
     case CMD_IMPORT_POKEMON:
-        party_data.set_lang(ENG_ID);
-        party_data.set_game(RED_ID);
-        // REMOVE ME ^
+        // party_data.set_lang(ENG_ID);
+        // party_data.set_game(RED_ID);
+        //  REMOVE ME ^
         return inject_mystery(party_data);
 
     case CMD_BACK_TO_MENU:
@@ -203,12 +224,19 @@ bool run_conditional(int index)
 
     case CMD_LANG_MENU:
         load_temp_sprites(SPRITE_BATCH_LANG);
+        populate_lang_buttons();
         party_data.set_lang(lang_select.button_main());
         return true;
 
     case CMD_GAME_MENU:
         load_temp_sprites(SPRITE_BATCH_GAMES);
-        party_data.set_game(game_select.button_main());
+        populate_game_buttons();
+        game = game_select.button_main();
+        if (game == BUTTON_CANCEL)
+        {
+            return false;
+        }
+        party_data.set_game(game);
         return true;
 
     case CMD_SLIDE_PROF_LEFT:

@@ -2,11 +2,12 @@
 
 Button::Button() {}
 
-Button::Button(OBJ_ATTR *L, OBJ_ATTR *R)
+Button::Button(OBJ_ATTR *L, OBJ_ATTR *R, int nLeft_button_width)
 {
     button_L = L;
     button_R = R;
     isWide = true;
+    left_button_width = nLeft_button_width;
     hide();
 }
 
@@ -24,7 +25,7 @@ void Button::set_location(int nx, int ny)
     obj_set_pos(button_L, x, y);
     if (isWide)
     {
-        obj_set_pos(button_R, x + 48, y);
+        obj_set_pos(button_R, x + left_button_width, y);
     }
 }
 void Button::set_highlight(bool highlight)

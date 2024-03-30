@@ -11,28 +11,12 @@
 #define BTN_POKEDEX 2
 #define BTN_LANGUAGE 3
 #define BTN_CREDITS 4
-#define WIDE_BUTTON_ARRAY_SIZE 5
-
-#define BTN_ENG 0
-#define BTN_FRE 1
-#define BTN_ITA 2
-#define BTN_GER 3
-#define BTN_SPA 4
-#define BTN_KOR 5
-#define LANG_ARROW 6
-#define LANG_BUTTON_ARRAY_SIZE 7
-
-#define NO_ANI 0
-#define ENTERING -1
-#define EXITING -2
-#define DISABLE -3
-
-
+#define BUTTON_CANCEL -1
 
 class Button_Menu
 {
 public:
-    Button_Menu(int nRows, int nColumns, int nButton_width, int nButton_height);
+    Button_Menu(int nRows, int nColumns, int nButton_width, int nButton_height, bool enable_cancel);
     int button_main();
     void add_button(Button btn, int return_val);
     void hide_buttons();
@@ -42,6 +26,9 @@ public:
     unsigned int get_x_from_pos(int nPos);
     unsigned int get_y_from_pos(int nPos);
     void set_xy_min_max(int nX_min, int nX_max, int nY_min, int nY_max);
+    void set_rows_and_columns(int nRows, int nColumns);
+    void set_bottom_row_offset(int nBottom_offset);
+    void clear_vector();
 
 private:
     std::vector<Button> button_vector;
@@ -55,5 +42,7 @@ private:
     int x_max;
     int y_min;
     int y_max;
+    int bottom_offset;
+    bool cancel_enabled;
 };
 #endif

@@ -40,27 +40,6 @@ void set_caught(int dex_num)
     save_data_array[CAUGHT_DATA + (dex_num / 8)] = save_data_array[CAUGHT_DATA + (dex_num / 8)] | (1 << (dex_num % 8));
 }
 
-int get_def_lang()
-{
-    switch (save_data_array[DEFAULT_LANGUAGE])
-    {
-    case BTN_ENG:
-        return ENG_ID;
-    case BTN_FRE:
-        return FRE_ID;
-    case BTN_ITA:
-        return ITA_ID;
-    case BTN_GER:
-        return GER_ID;
-    case BTN_SPA:
-        return SPA_ID;
-    case BTN_KOR:
-        return KOR_ID;
-    default:
-        return ENG_ID;
-    }
-}
-
 int get_def_lang_num()
 {
     return save_data_array[DEFAULT_LANGUAGE];

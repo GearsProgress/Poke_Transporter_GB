@@ -16,7 +16,7 @@ public:
     bool get_has_new_pkmn();
     void set_game(int nGame);
     void set_lang(int nLang);
-
+    int get_lang();
 
 private:
     byte box_data_array[0x462];

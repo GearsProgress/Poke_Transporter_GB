@@ -80,6 +80,7 @@ OBJ_ATTR *dex_sprites[3][6] = { // Fills the dex sprites top to bottom, left to 
     {&obj_buffer[num_sprites++], &obj_buffer[num_sprites++], &obj_buffer[num_sprites++],
      &obj_buffer[num_sprites++], &obj_buffer[num_sprites++], &obj_buffer[num_sprites++]}};
 
+OBJ_ATTR *btn_lang_jpn = &obj_buffer[num_sprites++];
 OBJ_ATTR *btn_lang_eng = &obj_buffer[num_sprites++];
 OBJ_ATTR *btn_lang_fre = &obj_buffer[num_sprites++];
 OBJ_ATTR *btn_lang_ita = &obj_buffer[num_sprites++];
@@ -138,6 +139,7 @@ void load_temp_sprites(int sprite_batch_id)
         break;
     case SPRITE_BATCH_LANG:
 
+        load_sprite(btn_lang_jpn, btn_lang_jpnTiles, btn_lang_jpnTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
         load_sprite(btn_lang_eng, btn_lang_engTiles, btn_lang_engTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
         load_sprite(btn_lang_fre, btn_lang_freTiles, btn_lang_freTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
         load_sprite(btn_lang_ita, btn_lang_itaTiles, btn_lang_itaTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
