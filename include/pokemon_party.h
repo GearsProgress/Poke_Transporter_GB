@@ -12,6 +12,7 @@ class Pokemon_Party
 public:
     Pokemon_Party();
     void start_link();
+    void continue_link();
     int get_last_error();
     Pokemon get_converted_pkmn(int index);
     bool get_has_new_pkmn();
@@ -20,6 +21,10 @@ public:
     int get_lang();
     bool load_payload();
     PAYLOAD curr_payload;
+    void show_sprites();
+    Simplified_Pokemon simple_pkmn_array[30];
+    Simplified_Pokemon get_simple_pkmn(int index);
+    void fill_simple_pkmn_array();
 
 private:
     byte box_data_array[0x462];

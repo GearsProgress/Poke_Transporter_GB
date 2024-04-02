@@ -1,5 +1,3 @@
-// This file is a MESS and needs to be made way more clean.
-
 #include <tonc.h>
 #include <cstring>
 #include "sprite_data.h"
@@ -8,6 +6,28 @@
 
 OBJ_ATTR obj_buffer[128];
 OBJ_AFFINE *obj_aff_buffer = (OBJ_AFFINE *)obj_buffer;
+
+
+// These are the two pallets used by the menu sprites, 
+// it's easier to set them up this way instead of through grit
+// (R + G*32 + B*1024)
+#define WHITE   (31 + 31*32 + 31*1024)
+#define YELLOW  (31 + 19*32 + 10*1024)
+#define RED     (31 + 07*32 + 04*1024)
+#define BLACK   (00 + 00*32 + 00*1024)
+const unsigned short frame_one_pal[16] = {
+    WHITE,  WHITE,  WHITE,  WHITE,
+    YELLOW, YELLOW, YELLOW, YELLOW,
+    RED,    RED,    RED,    RED,
+    BLACK,  BLACK,  BLACK,  BLACK
+};
+const unsigned short frame_two_pal[16] = {
+    WHITE, YELLOW, RED, BLACK,
+    WHITE, YELLOW, RED, BLACK,
+    WHITE, YELLOW, RED, BLACK,
+    WHITE, YELLOW, RED, BLACK,
+};
+
 
 // BACKGROUNDS
 
@@ -101,6 +121,17 @@ OBJ_ATTR *button_gold_silver_right = &obj_buffer[num_sprites++];
 OBJ_ATTR *button_crystal_left = &obj_buffer[num_sprites++];
 OBJ_ATTR *button_crystal_right = &obj_buffer[num_sprites++];
 
+OBJ_ATTR *box_select = &obj_buffer[num_sprites++];
+
+OBJ_ATTR *party_sprites[30] = {
+    &obj_buffer[num_sprites++], &obj_buffer[num_sprites++], &obj_buffer[num_sprites++], &obj_buffer[num_sprites++], &obj_buffer[num_sprites++], 
+    &obj_buffer[num_sprites++], &obj_buffer[num_sprites++], &obj_buffer[num_sprites++], &obj_buffer[num_sprites++], &obj_buffer[num_sprites++], 
+    &obj_buffer[num_sprites++], &obj_buffer[num_sprites++], &obj_buffer[num_sprites++], &obj_buffer[num_sprites++], &obj_buffer[num_sprites++], 
+    &obj_buffer[num_sprites++], &obj_buffer[num_sprites++], &obj_buffer[num_sprites++], &obj_buffer[num_sprites++], &obj_buffer[num_sprites++], 
+    &obj_buffer[num_sprites++], &obj_buffer[num_sprites++], &obj_buffer[num_sprites++], &obj_buffer[num_sprites++], &obj_buffer[num_sprites++], 
+    &obj_buffer[num_sprites++], &obj_buffer[num_sprites++], &obj_buffer[num_sprites++], &obj_buffer[num_sprites++], &obj_buffer[num_sprites++],
+    };
+
 u32 global_tile_id_end = 0;
 
 void load_eternal_sprites()
@@ -138,7 +169,6 @@ void load_temp_sprites(int sprite_batch_id)
         }
         break;
     case SPRITE_BATCH_LANG:
-
         load_sprite(btn_lang_jpn, btn_lang_jpnTiles, btn_lang_jpnTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
         load_sprite(btn_lang_eng, btn_lang_engTiles, btn_lang_engTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
         load_sprite(btn_lang_fre, btn_lang_freTiles, btn_lang_freTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
@@ -149,7 +179,6 @@ void load_temp_sprites(int sprite_batch_id)
         break;
 
     case SPRITE_BATCH_GAMES:
-
         load_sprite(button_red_green_left, button_red_green_leftTiles, button_red_green_leftTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
         load_sprite(button_red_green_right, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
         load_sprite(button_blue_left, button_blue_leftTiles, button_blue_leftTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
@@ -164,6 +193,19 @@ void load_temp_sprites(int sprite_batch_id)
         load_sprite(button_crystal_right, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
         break;
     }
+}
+
+void load_temp_box_sprites(Pokemon_Party party_data){
+    u32 curr_tile_id = global_tile_id_end;
+    for (int i = 0; i < 30; i++){
+        if (party_data.get_simple_pkmn(i).is_valid){
+            load_sprite(party_sprites[i], &duel_frame_menu_spritesTiles[(MENU_SPRITES[party_data.get_simple_pkmn(i).dex_number] - 1) * 32], 256, curr_tile_id, MENU_SPRITE_PAL, ATTR0_SQUARE, ATTR1_SIZE_16x16, 2);
+            obj_set_pos(party_sprites[i], (16 * (i % 10)) + 40, (16 * (i / 10)) + 24);
+            obj_unhide(party_sprites[i], 0);
+        }
+        curr_tile_id += 4;
+    }
+    load_sprite(box_select, box_selectTiles, box_selectTilesLen, curr_tile_id, BTN_PAL, ATTR0_SQUARE, ATTR1_SIZE_16x16, 1);
 }
 
 void load_sprite(OBJ_ATTR *sprite, const unsigned int objTiles[], int objTilesLen,

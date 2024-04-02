@@ -45,4 +45,5 @@ private:
     int bottom_offset;
     bool cancel_enabled;
 };
+
 #endif

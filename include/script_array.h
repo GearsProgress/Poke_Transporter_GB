@@ -34,8 +34,9 @@
 #define DIA_WHAT_LANG               25
 #define DIA_ASK_QUEST               26
 #define DIA_NO_PAYLOAD              27
+#define DIA_IN_BOX                  28
 
-#define                    DIA_SIZE 28
+#define                    DIA_SIZE 29
 #define DIA_END DIA_SIZE
 
 // Commands
@@ -51,8 +52,12 @@
 #define CMD_LANG_MENU           DIA_END + 9
 #define CMD_SLIDE_PROF_LEFT     DIA_END + 10
 #define CMD_SLIDE_PROF_RIGHT    DIA_END + 11
+#define CMD_SHOW_LARGE_TEXTBOX  DIA_END + 12
+#define CMD_HIDE_LARGE_TEXTBOX  DIA_END + 13
+#define CMD_CONTINUE_LINK       DIA_END + 14
+#define CMD_BOX_MENU            DIA_END + 15
 
-#define                     CMD_SIZE  12
+#define                         CMD_SIZE  16
 #define CMDS_END DIA_END + CMD_SIZE
 
 // Conditionals

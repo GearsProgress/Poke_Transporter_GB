@@ -3,6 +3,7 @@
 
 #include <tonc.h>
 #include "random.h"
+#include "global_frame_controller.h"
 
 #define POKEMON_SIZE 80
 
@@ -12,6 +13,13 @@
 #define GEN1_INT_SIZE 418
 #define GEN2_JPN_SIZE 383
 #define GEN2_INT_SIZE 444
+
+struct Simplified_Pokemon{
+    byte dex_number;
+    byte met_level;
+    byte nickname[10];
+    bool is_valid;
+};
 
 class Pokemon
 {
@@ -36,6 +44,7 @@ public:
     byte get_dex_number();
     bool get_validity();
     bool get_is_new();
+    Simplified_Pokemon get_simple_pkmn();
 
 
 private:

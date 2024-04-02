@@ -5,6 +5,7 @@
 #include "background_engine.h"
 #include "text_engine.h"
 #include "sprite_data.h"
+#include "string.h"
 
 int global_frame_count = 0;
 
@@ -18,6 +19,14 @@ void global_next_frame()
     oam_copy(oam_mem, obj_buffer, num_sprites);
     VBlankIntrWait();
     // mmFrame(); //Music
+    if (global_frame_count % 60 == 0)
+    {
+        memcpy(pal_obj_mem + (MENU_SPRITE_PAL * 16), frame_one_pal, 32);
+    }
+    else if (global_frame_count % 60 == 30)
+    {
+        memcpy(pal_obj_mem + (MENU_SPRITE_PAL * 16), frame_two_pal, 32);
+    }
     global_frame_count++;
 };
 

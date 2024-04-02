@@ -20,6 +20,8 @@ Button_Menu::Button_Menu(int nRows, int nColumns, int nButton_width, int nButton
     cancel_enabled = enable_cancel;
 }
 
+
+
 void Button_Menu::set_xy_min_max(int nX_min, int nX_max, int nY_min, int nY_max)
 {
     x_min = nX_min;

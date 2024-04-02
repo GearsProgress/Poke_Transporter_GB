@@ -14,9 +14,6 @@ static u8 lanette_wonder_card[0x14E] = {
 
 bool inject_mystery(Pokemon_Party &incoming_box_data)
 {
-    int validity_array[MAX_PKMN_IN_BOX];
-    int dex_array[MAX_PKMN_IN_BOX];
-
     mystery_gift_script script;
     script.build_script(incoming_box_data);
     u32 checksum = 0;
@@ -73,13 +70,11 @@ bool inject_mystery(Pokemon_Party &incoming_box_data)
             global_memory_buffer[curr_index] = curr_pkmn.get_gen_3_data(curr_byte);
             curr_index++;
         }
-        validity_array[i] = curr_pkmn.get_validity();
-        dex_array[i] = curr_pkmn.get_dex_number();
     }
 
     for (int i = 0; i < MAX_PKMN_IN_BOX; i++) // Add in the dex numbers
     {
-        global_memory_buffer[curr_index] = dex_array[i];
+        global_memory_buffer[curr_index] = incoming_box_data.get_simple_pkmn(curr_index).dex_number;
         curr_index++;
     }
 
@@ -97,7 +92,7 @@ bool inject_mystery(Pokemon_Party &incoming_box_data)
         int curr_flag;
         curr_flag = curr_rom.pkmn_collected_flag_start + i;
         global_memory_buffer[(curr_rom.offset_flags + (curr_flag / 8)) % 0xF80] &= ~(1 << (curr_flag % 8)); // Reset the flag
-        if (validity_array[i])
+        if (incoming_box_data.get_simple_pkmn(i).is_valid)
         {
             global_memory_buffer[(curr_rom.offset_flags + (curr_flag / 8)) % 0xF80] |= (1 << (curr_flag % 8)); // Set flag accordingly
         }

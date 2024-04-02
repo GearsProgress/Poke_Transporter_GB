@@ -2,6 +2,9 @@
 #define SPRITE_DATA_H
 
 #include <tonc.h>
+#include "pokemon.h"
+#include "pokemon_data.h"
+#include "pokemon_party.h"
 
 extern OBJ_ATTR obj_buffer[128];
 extern OBJ_AFFINE *obj_aff_buffer;
@@ -74,10 +77,21 @@ extern OBJ_ATTR *button_crystal_left;
 extern OBJ_ATTR *button_crystal_right;
 #include "button_game_select_edge.h"
 
+#include "duel_frame_menu_sprites.h"
+extern OBJ_ATTR *party_sprites[30];
+extern const unsigned short frame_one_pal[16];
+extern const unsigned short frame_two_pal[16];
+#include "box_select.h"
+extern OBJ_ATTR *box_select;
+
+#define BG2VOF_SMALL_TEXTBOX 96
+#define BG2VOF_LARGE_TEXTBOX 0
+
 #define METR_PAL 0
 #define PROF_PAL 1
 #define BTN_PAL 2
 #define BTN_LIT_PAL 3
+#define MENU_SPRITE_PAL 4
 
 void load_sprite(OBJ_ATTR *sprite, const unsigned int objTiles[], int objTilesLen,
                  u32 &tile_id, u32 pal_bank, int attr0, int attr1, u32 priority);
@@ -86,12 +100,6 @@ void load_textbox_background();
 void load_opening_background();
 void load_eternal_sprites();
 void load_temp_sprites(int sprite_batch_id);
-void load_btn_lang_eng();
-void load_btn_lang_fre();
-void load_btn_lang_ita();
-void load_btn_lang_ger();
-void load_btn_lang_spa();
-void load_btn_lang_kor();
-void load_lang_arrow();
+void load_temp_box_sprites(Pokemon_Party party_data);
 
 #endif

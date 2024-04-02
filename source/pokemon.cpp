@@ -85,8 +85,8 @@ void Pokemon::load_data(int index, byte *party_data, int game, int lang)
         switch (gen)
         {
         case 1:
-            //tte_write(std::to_string(party_data[1121]).c_str());
-            //while (true){};
+            // tte_write(std::to_string(party_data[1121]).c_str());
+            // while (true){};
             species_index_party = party_data[party_species_offset];
             species_index_struct = party_data[box_struct_offset + 0x00];
             met_level = party_data[box_struct_offset + 0x03];
@@ -388,6 +388,7 @@ void Pokemon::convert_to_gen_three()
 
     // Puts the four data chunks into their correct locations based on the PID
     alocate_data_chunks(data_section_G, data_section_A, data_section_E, data_section_M);
+    global_next_frame();
 }
 
 void Pokemon::copy_from_to(byte *source, byte *destination, int size, bool reverse_endian)
@@ -650,4 +651,18 @@ bool Pokemon::get_validity()
 bool Pokemon::get_is_new()
 {
     return (is_valid ? is_new : false);
+}
+
+Simplified_Pokemon Pokemon::get_simple_pkmn()
+{
+    //
+    Simplified_Pokemon curr_pkmn;
+    curr_pkmn.dex_number = get_dex_number();
+    curr_pkmn.met_level = met_level;
+    for (int i = 0; i < 10; i++)
+    {
+        curr_pkmn.nickname[i] = nickname[i];
+    }
+    curr_pkmn.is_valid = get_validity();
+    return curr_pkmn;
 }

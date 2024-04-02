@@ -7,6 +7,7 @@
 #include "pokemon_data.h"
 #include "mystery_gift_builder.h"
 #include "global_frame_controller.h"
+#include "box_menu.h"
 #include <tonc.h>
 
 int last_error;
@@ -16,6 +17,7 @@ Button_Menu lang_select(2, 4, 40, 24, false);
 Button_Menu game_select_def(2, 2, 72, 32, true);
 Button_Menu game_select_jpn(3, 2, 72, 32, true);
 Button_Menu game_select_kor(1, 1, 72, 32, true);
+Box_Menu box_viewer;
 
 script_obj script[SCRIPT_SIZE];
 std::string_view dialogue[DIA_SIZE];
@@ -42,6 +44,7 @@ void populate_dialogue()
     dialogue[DIA_WHAT_GAME] = "And which Game Boy Pok@mon\ngame are you transferring\nfrom?";
     dialogue[DIA_WHAT_LANG] = "What language is the Game\nBoy Pok@mon game that you're\ntransferring from?";
     dialogue[DIA_NO_PAYLOAD] = "I'm sorry, but that version\nin that language is not\ncurrently supported.";
+    dialogue[DIA_IN_BOX] = "Great! Let's take a look at\nthe Pok@mon that will be\ntransfered.|Please remember, once a\nPok@mon is transfered, it\nCANNOT be returned to the\nGame Boy Game Pak.|Select transfer once you're\nready, or select cancel if\nyou want to keep the Pok@mon\non your Game Boy Game Pak.";
 
     dialogue[DIA_ERROR_COLOSSEUM] = "It looks like you went to\nthe colosseum instead of the\ntrading room!|Let's try that again!";
     dialogue[DIA_ERROR_COM_ENDED] = "Communication with the other\ndevice was terminated.|Let's try that again!";
@@ -69,9 +72,6 @@ void populate_script()
     script[DIA_PKMN_TO_COLLECT] = script_obj(dialogue[DIA_PKMN_TO_COLLECT], DIA_ASK_QUEST);
 
     // Ask the user what game and language they're using
-    script[DIA_LETS_START] = script_obj(dialogue[DIA_LETS_START], DIA_START);
-    script[DIA_START] = script_obj(dialogue[DIA_START], CMD_START_LINK);
-    script[CMD_START_LINK] = script_obj(CMD_START_LINK, COND_ERROR_TIMEOUT_ONE);
     script[DIA_WHAT_GAME] = script_obj(dialogue[DIA_WHAT_GAME], CMD_GAME_MENU);
     script[CMD_GAME_MENU] = script_obj(CMD_GAME_MENU, COND_PAYLOAD_EXISTS, DIA_WHAT_LANG);
     script[DIA_WHAT_LANG] = script_obj(dialogue[DIA_WHAT_LANG], CMD_LANG_MENU);
@@ -83,6 +83,9 @@ void populate_script()
     script[DIA_NO_PAYLOAD] = script_obj(dialogue[DIA_NO_PAYLOAD], DIA_WHAT_LANG);
 
     // Initiate the transfer and check for errors
+    script[DIA_LETS_START] = script_obj(dialogue[DIA_LETS_START], DIA_START);
+    script[DIA_START] = script_obj(dialogue[DIA_START], CMD_START_LINK);
+    script[CMD_START_LINK] = script_obj(CMD_START_LINK, COND_ERROR_TIMEOUT_ONE);
     script[COND_ERROR_TIMEOUT_ONE] = script_obj(COND_ERROR_TIMEOUT_ONE, COND_ERROR_TIMEOUT_TWO, DIA_ERROR_TIME_ONE);
     script[DIA_ERROR_TIME_ONE] = script_obj(dialogue[DIA_ERROR_TIME_ONE], DIA_START);
     script[COND_ERROR_TIMEOUT_TWO] = script_obj(COND_ERROR_TIMEOUT_TWO, COND_ERROR_COM_ENDED, DIA_ERROR_TIME_TWO);
@@ -91,8 +94,14 @@ void populate_script()
     script[DIA_ERROR_COM_ENDED] = script_obj(dialogue[DIA_ERROR_COM_ENDED], DIA_START);
     script[COND_ERROR_COLOSSEUM] = script_obj(COND_ERROR_COLOSSEUM, COND_ERROR_DISCONNECT, DIA_ERROR_COLOSSEUM);
     script[DIA_ERROR_COLOSSEUM] = script_obj(dialogue[DIA_ERROR_COLOSSEUM], DIA_START);
-    script[COND_ERROR_DISCONNECT] = script_obj(COND_ERROR_DISCONNECT, CMD_IMPORT_POKEMON, DIA_ERROR_DISCONNECT);
+    script[COND_ERROR_DISCONNECT] = script_obj(COND_ERROR_DISCONNECT, DIA_IN_BOX, DIA_ERROR_DISCONNECT);
     script[DIA_ERROR_DISCONNECT] = script_obj(dialogue[DIA_ERROR_DISCONNECT], DIA_START);
+
+    // Pause the transfer and show the user their box data
+    script[DIA_IN_BOX] = script_obj(dialogue[DIA_IN_BOX], CMD_SHOW_LARGE_TEXTBOX);
+    script[CMD_SHOW_LARGE_TEXTBOX] = script_obj(CMD_SHOW_LARGE_TEXTBOX, CMD_BOX_MENU);
+    script[CMD_BOX_MENU] = script_obj(CMD_BOX_MENU, CMD_HIDE_LARGE_TEXTBOX);
+    script[CMD_HIDE_LARGE_TEXTBOX] = script_obj(CMD_HIDE_LARGE_TEXTBOX, DIA_LETS_START);
 
     // Complete the transfer and give messages based on the transfered Pokemon
     script[CMD_IMPORT_POKEMON] = script_obj(CMD_IMPORT_POKEMON, DIA_TRANS_GOOD, DIA_NO_VALID_PKMN);
@@ -193,6 +202,9 @@ bool run_conditional(int index)
     case COND_PKMN_TO_COLLECT:
         return compare_map_and_npc_data(curr_rom.map_bank, curr_rom.map_id, curr_rom.npc_id) && !read_flag(curr_rom.all_collected_flag) && !IGNORE_MG_E4_FLAGS;
 
+    case COND_PAYLOAD_EXISTS:
+        return party_data.load_payload();
+
     case CMD_START_LINK:
         party_data.start_link();
         return true;
@@ -268,8 +280,26 @@ bool run_conditional(int index)
         }
         return true;
 
-    case COND_PAYLOAD_EXISTS:
-        return party_data.load_payload();
+    case CMD_SHOW_LARGE_TEXTBOX:
+        tte_erase_screen();
+        obj_hide(prof);
+        REG_BG2VOFS = BG2VOF_LARGE_TEXTBOX;
+        return true;
+
+    case CMD_HIDE_LARGE_TEXTBOX:
+        tte_erase_screen();
+        obj_unhide(prof, 0);
+        REG_BG2VOFS = BG2VOF_SMALL_TEXTBOX;
+        return true;
+
+    case CMD_CONTINUE_LINK:
+        party_data.continue_link();
+        return true;
+
+    case CMD_BOX_MENU:
+        party_data.fill_simple_pkmn_array();
+        box_viewer.box_main(party_data);
+        return true;
 
     default:
         tte_set_pos(0, 0);
