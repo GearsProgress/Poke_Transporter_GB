@@ -52,12 +52,10 @@
 #define CMD_LANG_MENU           DIA_END + 9
 #define CMD_SLIDE_PROF_LEFT     DIA_END + 10
 #define CMD_SLIDE_PROF_RIGHT    DIA_END + 11
-#define CMD_SHOW_LARGE_TEXTBOX  DIA_END + 12
-#define CMD_HIDE_LARGE_TEXTBOX  DIA_END + 13
-#define CMD_CONTINUE_LINK       DIA_END + 14
-#define CMD_BOX_MENU            DIA_END + 15
+#define CMD_CONTINUE_LINK       DIA_END + 12
+#define CMD_BOX_MENU            DIA_END + 13
 
-#define                         CMD_SIZE  16
+#define                         CMD_SIZE  14
 #define CMDS_END DIA_END + CMD_SIZE
 
 // Conditionals

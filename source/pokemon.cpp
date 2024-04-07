@@ -655,7 +655,6 @@ bool Pokemon::get_is_new()
 
 Simplified_Pokemon Pokemon::get_simple_pkmn()
 {
-    //
     Simplified_Pokemon curr_pkmn;
     curr_pkmn.dex_number = get_dex_number();
     curr_pkmn.met_level = met_level;
@@ -664,5 +663,6 @@ Simplified_Pokemon Pokemon::get_simple_pkmn()
         curr_pkmn.nickname[i] = nickname[i];
     }
     curr_pkmn.is_valid = get_validity();
+    curr_pkmn.is_transferred = false;
     return curr_pkmn;
 }

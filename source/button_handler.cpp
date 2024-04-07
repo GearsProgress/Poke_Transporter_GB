@@ -1,7 +1,5 @@
 #include "button_handler.h"
 
-Button::Button() {}
-
 Button::Button(OBJ_ATTR *L, OBJ_ATTR *R, int nLeft_button_width)
 {
     button_L = L;

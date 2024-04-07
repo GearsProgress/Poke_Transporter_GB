@@ -83,6 +83,12 @@ extern const unsigned short frame_one_pal[16];
 extern const unsigned short frame_two_pal[16];
 #include "box_select.h"
 extern OBJ_ATTR *box_select;
+#include "button_cancel_left.h"
+extern OBJ_ATTR *button_cancel_left;
+extern OBJ_ATTR *button_cancel_right;
+#include "button_confirm_left.h"
+extern OBJ_ATTR *button_confirm_left;
+extern OBJ_ATTR *button_confirm_right;
 
 #define BG2VOF_SMALL_TEXTBOX 96
 #define BG2VOF_LARGE_TEXTBOX 0

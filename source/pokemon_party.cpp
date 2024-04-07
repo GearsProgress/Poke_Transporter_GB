@@ -97,12 +97,12 @@ void Pokemon_Party::start_link()
 	else
 	{
 		setup();
-		last_error = loop(&box_data_array[0], &curr_payload);
+		last_error = loop(&box_data_array[0], &curr_payload, simple_pkmn_array);
 	}
 }
 
 void Pokemon_Party::continue_link(){
-	last_error = loop(&box_data_array[0], &curr_payload);
+	last_error = loop(&box_data_array[0], &curr_payload, simple_pkmn_array);
 }
 
 int Pokemon_Party::get_last_error()

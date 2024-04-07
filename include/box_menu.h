@@ -8,6 +8,7 @@
 #include "pokemon.h"
 #include "string_view"
 #include "pokemon_party.h"
+#include "button_handler.h"
 
 class Box_Menu
 {

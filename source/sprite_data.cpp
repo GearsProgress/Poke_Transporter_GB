@@ -132,6 +132,11 @@ OBJ_ATTR *party_sprites[30] = {
     &obj_buffer[num_sprites++], &obj_buffer[num_sprites++], &obj_buffer[num_sprites++], &obj_buffer[num_sprites++], &obj_buffer[num_sprites++],
     };
 
+OBJ_ATTR *button_cancel_left = &obj_buffer[num_sprites++];
+OBJ_ATTR *button_cancel_right = &obj_buffer[num_sprites++];
+OBJ_ATTR *button_confirm_left = &obj_buffer[num_sprites++];
+OBJ_ATTR *button_confirm_right = &obj_buffer[num_sprites++];
+
 u32 global_tile_id_end = 0;
 
 void load_eternal_sprites()
@@ -199,13 +204,16 @@ void load_temp_box_sprites(Pokemon_Party party_data){
     u32 curr_tile_id = global_tile_id_end;
     for (int i = 0; i < 30; i++){
         if (party_data.get_simple_pkmn(i).is_valid){
-            load_sprite(party_sprites[i], &duel_frame_menu_spritesTiles[(MENU_SPRITES[party_data.get_simple_pkmn(i).dex_number] - 1) * 32], 256, curr_tile_id, MENU_SPRITE_PAL, ATTR0_SQUARE, ATTR1_SIZE_16x16, 2);
+            load_sprite(party_sprites[i], &duel_frame_menu_spritesTiles[(MENU_SPRITES[party_data.get_simple_pkmn(i).dex_number] - 1) * 32], 256, curr_tile_id, MENU_SPRITE_PAL, ATTR0_SQUARE, ATTR1_SIZE_16x16, 1);
             obj_set_pos(party_sprites[i], (16 * (i % 10)) + 40, (16 * (i / 10)) + 24);
-            obj_unhide(party_sprites[i], 0);
         }
         curr_tile_id += 4;
     }
-    load_sprite(box_select, box_selectTiles, box_selectTilesLen, curr_tile_id, BTN_PAL, ATTR0_SQUARE, ATTR1_SIZE_16x16, 1);
+    load_sprite(box_select, box_selectTiles, box_selectTilesLen, curr_tile_id, BTN_PAL, ATTR0_SQUARE, ATTR1_SIZE_16x16, 0);
+    load_sprite(button_cancel_left, button_cancel_leftTiles, button_cancel_leftTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
+    load_sprite(button_cancel_right, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
+    load_sprite(button_confirm_left, button_confirm_leftTiles, button_confirm_leftTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
+    load_sprite(button_confirm_right, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
 }
 
 void load_sprite(OBJ_ATTR *sprite, const unsigned int objTiles[], int objTilesLen,

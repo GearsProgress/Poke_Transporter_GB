@@ -27,7 +27,11 @@
 #define trade_data 7
 #define box_preamble 8
 #define box_data 9
-#define end 10
+#define end1 10
+#define reboot 11
+#define remove_array_preamble 12
+#define send_remove_array 13
+#define end2 14
 
 const int MODE = 1; // mode=0 will transfer pokemon data from pokemon.h
                     // mode=1 will copy pokemon party data being received
@@ -104,8 +108,9 @@ void setup()
   }
 }
 
-byte handleIncomingByte(byte in, byte *box_data_storage, PAYLOAD *curr_payload)
+byte handleIncomingByte(byte in, byte *box_data_storage, PAYLOAD *curr_payload, Simplified_Pokemon *curr_simple_array)
 {
+  // TODO: Change to a switch statement
   if (state == hs)
   {
     if (in == 0x00)
@@ -141,6 +146,7 @@ byte handleIncomingByte(byte in, byte *box_data_storage, PAYLOAD *curr_payload)
   {
     if (in == 0xfd)
     {
+      mosi_delay = 1;
       state = party_preamble;
     }
     return in;
@@ -171,7 +177,6 @@ byte handleIncomingByte(byte in, byte *box_data_storage, PAYLOAD *curr_payload)
     {
       state = box_data;
       data_counter = 0;
-      mosi_delay = 1;
       return exchange_boxes(in, box_data_storage);
     }
     return in;
@@ -181,15 +186,43 @@ byte handleIncomingByte(byte in, byte *box_data_storage, PAYLOAD *curr_payload)
   {
     if (data_counter >= BOX_DATA_ARRAY_SIZE)
     {
-      state = end;
+      state = end1;
     }
     return exchange_boxes(in, box_data_storage);
+  }
+
+  else if (state == reboot)
+  {
+    data_counter = 0;
+    mosi_delay = 16;
+    state = remove_array_preamble;
+    return 0xFD;
+  }
+
+  else if (state == remove_array_preamble)
+  {
+    if (in != 0xFD)
+    {
+      state = send_remove_array;
+      return exchange_remove_array(in, curr_simple_array);
+    }
+    return in;
+  }
+
+  else if (state == send_remove_array)
+  {
+    if (data_counter >= 39)
+    {
+      state = end2;
+    }
+    data_counter++;
+    return exchange_remove_array(in, curr_simple_array);
   }
 
   return in;
 }
 
-int loop(byte *box_data_storage, PAYLOAD *curr_payload)
+int loop(byte *box_data_storage, PAYLOAD *curr_payload, Simplified_Pokemon *curr_simple_array)
 {
   int counter = 0;
   while (true)
@@ -206,7 +239,7 @@ int loop(byte *box_data_storage, PAYLOAD *curr_payload)
           std::to_string(in_data) + "][" +
           std::to_string(out_data) + "]\n");
     }
-    out_data = handleIncomingByte(in_data, box_data_storage, curr_payload);
+    out_data = handleIncomingByte(in_data, box_data_storage, curr_payload, curr_simple_array);
 
     if (FF_count > 25)
     {
@@ -221,12 +254,19 @@ int loop(byte *box_data_storage, PAYLOAD *curr_payload)
       return COND_ERROR_COLOSSEUM;
     }
 
-    if (state == end)
+    if (state == end1)
+    {
+      state = reboot;
+      return 0;
+    }
+
+    if (state == end2)
     {
       return 0;
     }
 
-    if (DEBUG_MODE && key_hit(KEY_SELECT)){
+    if (DEBUG_MODE && key_hit(KEY_SELECT))
+    {
       return COND_ERROR_DISCONNECT;
     }
 
@@ -256,3 +296,16 @@ byte exchange_boxes(byte curr_in, byte *box_data_storage)
   data_counter += 1;
   return curr_in;
 };
+
+byte exchange_remove_array(byte curr_in, Simplified_Pokemon *curr_simple_array)
+{
+  for (int i = 29; i >= 0; i--)
+  {
+    if (curr_simple_array[i].is_valid && !curr_simple_array[i].is_transferred)
+    {
+      curr_simple_array[i].is_transferred = true;
+      return i;
+    }
+  }
+  return 0xFF;
+}

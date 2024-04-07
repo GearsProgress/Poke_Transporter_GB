@@ -19,6 +19,7 @@ struct Simplified_Pokemon{
     byte met_level;
     byte nickname[10];
     bool is_valid;
+    bool is_transferred;
 };
 
 class Pokemon

@@ -44,7 +44,7 @@ void populate_dialogue()
     dialogue[DIA_WHAT_GAME] = "And which Game Boy Pok@mon\ngame are you transferring\nfrom?";
     dialogue[DIA_WHAT_LANG] = "What language is the Game\nBoy Pok@mon game that you're\ntransferring from?";
     dialogue[DIA_NO_PAYLOAD] = "I'm sorry, but that version\nin that language is not\ncurrently supported.";
-    dialogue[DIA_IN_BOX] = "Great! Let's take a look at\nthe Pok@mon that will be\ntransfered.|Please remember, once a\nPok@mon is transfered, it\nCANNOT be returned to the\nGame Boy Game Pak.|Select transfer once you're\nready, or select cancel if\nyou want to keep the Pok@mon\non your Game Boy Game Pak.";
+    dialogue[DIA_IN_BOX] = "Great! Let's take a look at\nthe Pok@mon that will be\ntransfered.|Please remember, once a\nPok@mon is transfered, it\nCANNOT be returned to the\nGame Boy Game Pak.|Select confirm once you're\nready, or select cancel if\nyou want to keep the Pok@mon\non your Game Boy Game Pak.";
 
     dialogue[DIA_ERROR_COLOSSEUM] = "It looks like you went to\nthe colosseum instead of the\ntrading room!|Let's try that again!";
     dialogue[DIA_ERROR_COM_ENDED] = "Communication with the other\ndevice was terminated.|Let's try that again!";
@@ -98,10 +98,9 @@ void populate_script()
     script[DIA_ERROR_DISCONNECT] = script_obj(dialogue[DIA_ERROR_DISCONNECT], DIA_START);
 
     // Pause the transfer and show the user their box data
-    script[DIA_IN_BOX] = script_obj(dialogue[DIA_IN_BOX], CMD_SHOW_LARGE_TEXTBOX);
-    script[CMD_SHOW_LARGE_TEXTBOX] = script_obj(CMD_SHOW_LARGE_TEXTBOX, CMD_BOX_MENU);
-    script[CMD_BOX_MENU] = script_obj(CMD_BOX_MENU, CMD_HIDE_LARGE_TEXTBOX);
-    script[CMD_HIDE_LARGE_TEXTBOX] = script_obj(CMD_HIDE_LARGE_TEXTBOX, DIA_LETS_START);
+    script[DIA_IN_BOX] = script_obj(dialogue[DIA_IN_BOX], CMD_BOX_MENU);
+    script[CMD_BOX_MENU] = script_obj(CMD_BOX_MENU, CMD_CONTINUE_LINK);
+    script[CMD_CONTINUE_LINK] = script_obj(CMD_CONTINUE_LINK, CMD_IMPORT_POKEMON);
 
     // Complete the transfer and give messages based on the transfered Pokemon
     script[CMD_IMPORT_POKEMON] = script_obj(CMD_IMPORT_POKEMON, DIA_TRANS_GOOD, DIA_NO_VALID_PKMN);
@@ -210,9 +209,6 @@ bool run_conditional(int index)
         return true;
 
     case CMD_IMPORT_POKEMON:
-        // party_data.set_lang(ENG_ID);
-        // party_data.set_game(RED_ID);
-        //  REMOVE ME ^
         return inject_mystery(party_data);
 
     case CMD_BACK_TO_MENU:
@@ -268,7 +264,10 @@ bool run_conditional(int index)
         for (int i = 0; i < 48; i++)
         {
             obj_set_pos(prof, (prof->attr1 & ATTR1_X_MASK) - 2, prof->attr0 & ATTR0_Y_MASK);
-            global_next_frame();
+            if (!DEBUG_MODE)
+            {
+                global_next_frame();
+            }
         }
         return true;
 
@@ -276,20 +275,11 @@ bool run_conditional(int index)
         for (int i = 0; i < 48; i++)
         {
             obj_set_pos(prof, (prof->attr1 & ATTR1_X_MASK) + 2, prof->attr0 & ATTR0_Y_MASK);
-            global_next_frame();
+            if (!DEBUG_MODE)
+            {
+                global_next_frame();
+            }
         }
-        return true;
-
-    case CMD_SHOW_LARGE_TEXTBOX:
-        tte_erase_screen();
-        obj_hide(prof);
-        REG_BG2VOFS = BG2VOF_LARGE_TEXTBOX;
-        return true;
-
-    case CMD_HIDE_LARGE_TEXTBOX:
-        tte_erase_screen();
-        obj_unhide(prof, 0);
-        REG_BG2VOFS = BG2VOF_SMALL_TEXTBOX;
         return true;
 
     case CMD_CONTINUE_LINK:
