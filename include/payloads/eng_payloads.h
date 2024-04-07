@@ -28,9 +28,9 @@ const struct PAYLOAD ENG_RED_BLUE = {
         253, 253, 253, 253, 253, 255, 255,
 
         // Patchlist (code storage)
-        // Test string: 62, 99, 245, 33, 160, 195, 1, 136, 1, 205, 224, 54, 17, 255, 197, 33, 87, 196, 205, 85, 25, 118, 118, 118, 118, 118, 118, 118, 241, 60, 14, 108, 185, 194, 216, 197, 62, 99, 195, 216, 197, 127, 0x8E, 0x8C, 0x86, 127, 0x92, 0x8E, 0x91, 0x80, 0xE6, 0xE7, 0xE6, 0xE7, 127, 80, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
+        // Empty spacing
         0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-        0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00,
 
         // Write transferring message to screen
         // call ClearScreen
@@ -73,13 +73,12 @@ const struct PAYLOAD ENG_RED_BLUE = {
         0x36, 0x01,
         // ld hl, 0xC613 [data to send, garbage data]
         0x21, 0x16, 0x03,
-        // ld de, 0xC652 [data to recieve]
-        0x11, 0x52, 0xC6,
+        // ld de, 0xC651 [data to recieve]
+        0x11, 0x51, 0xC6,
         // ld bc, 0x001E [size of data]
         0x01, 0x27, 0x00,
         // call Serial_ExchangeBytes [Recieve the removal array]
         0xCD, 0x6F, 0x21,
-        //0x00, 0x00, 0x00,
 
         // Remove the transfered Pokemon
         // ld hl, wRemoveMonFromBox
@@ -87,19 +86,19 @@ const struct PAYLOAD ENG_RED_BLUE = {
         // ld [hl], [!= 0x00 specifies the current box]
         0x36, 0x01,
         // ld a, [arrayCounter]
-        0xFA, 0x51, 0xC6,
+        0xFA, 0x50, 0xC6,
         // ld e, a
         0x5F,
         // ld d, 0x00
         0x16, 0x00,
         // ld hl, [removalArray]
-        0x21, 0x52, 0xC6,
+        0x21, 0x51, 0xC6,
         // add hl, de
         0x19,
         // inc a
         0x3C,
         // ld [arrayCounter], a
-        0xEA, 0x51, 0xC6,
+        0xEA, 0x50, 0xC6,
         // ld a, [wBoxCount]
         0xFA, 0x80, 0xDA,
         // ld b, a
@@ -134,15 +133,19 @@ const struct PAYLOAD ENG_RED_BLUE = {
         0xC3, 0x49, 0x1F,
 
         // 1 byte to store the current array counter
-        // $C651
+        // $C650
         0x00,
 
         // 40 byte storage for list of Pokemon to remove
-        // $C652
+        // $C651
         0xFD, 0xFD, 0xFD, 0xFD, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0, 0xF0,
         0x13, 0x12, 0x11, 0x10, 0x0F, 0x0E, 0x0D, 0x0C, 0x0B, 0x0A,
         0x09, 0x08, 0x07, 0x06, 0x05, 0x04, 0x03, 0x02, 0x01, 0x00,
         0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
+        
+        // permanent array terminator, just in case
+        // $C679
+        0xFF,
 
         // TransferWaitString
         // $C67A
