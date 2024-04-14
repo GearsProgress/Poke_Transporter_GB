@@ -20,18 +20,19 @@
 #define hs 0
 #define ack 1
 #define menu 2
-#define trade 3
-#define party_preamble 4
-#define colosseum 5
-#define cancel 6
-#define trade_data 7
-#define box_preamble 8
-#define box_data 9
-#define end1 10
-#define reboot 11
-#define remove_array_preamble 12
-#define send_remove_array 13
-#define end2 14
+#define pretrade 3
+#define trade 4
+#define party_preamble 5
+#define colosseum 6
+#define cancel 7
+#define trade_data 8
+#define box_preamble 9
+#define box_data 10
+#define end1 11
+#define reboot 12
+#define remove_array_preamble 13
+#define send_remove_array 14
+#define end2 15
 
 const int MODE = 1; // mode=0 will transfer pokemon data from pokemon.h
                     // mode=1 will copy pokemon party data being received
@@ -54,7 +55,7 @@ int FF_count;
 int zero_count;
 
 int state;
-int mosi_delay = 4; // inital delay, speeds up once sending PKMN
+int mosi_delay = 16; // inital delay, speeds up once sending PKMN
 
 std::string out_array[10];
 
@@ -127,19 +128,41 @@ byte handleIncomingByte(byte in, byte *box_data_storage, PAYLOAD *curr_payload, 
       state = menu;
       return 0x00;
     }
+    else if (in == 0x02)
+    {
+      state = hs;
+      return 0x02;
+    }
   }
 
   else if (state == menu)
   {
-    if (in == 0xd4)
+    if (in == 0x60)
     {
-      state = trade;
-      return in;
+      tte_erase_screen();
+      tte_write("Connected to Game Boy.");
+      state = pretrade;
+      return 0x60;
+    }
+    else if (in == 0x02)
+    {
+      state = hs;
+      return 0x02;
     }
     else
     {
       return in;
     }
+  }
+
+  else if (state == pretrade)
+  {
+    if (in == 0xd0)
+    {
+      state = trade;
+      return 0xd4;
+    }
+    return in;
   }
 
   else if (state == trade)
