@@ -34,7 +34,8 @@ Due to limitations of the transfer process, some Pokémon will not be considered
 |Stabilized Mew|Yes|Yes|Yes|Yes|Yes|Yes|Yes|
 |Stabilized Celebi|Yes|Yes|Yes|Yes|Yes|Yes|Yes|
 
-Due to Mew and Celebi being illegal, an option is given to the player to "stabilize" them. This will convert the Pokémon into a legal event version of the mythical Pokémon. This event will be randomly generated and will not copy any of the data from generation 1/2 **including shininess**. The mythical Pokémon will still be removed from the generation 1/2 game.
+Due to Mew and Celebi being illegal, an option is given to the player to "stabilize" them. This will convert the Pokémon into a legal event version of the mythical Pokémon. This event will be randomly generated and will not copy any of the data from generation 1/2- ***including shininess***. The mythical Pokémon will still be removed from the generation 1/2 game.
+
 A full list of modifications made to transfered Pokémon can be found [here](https://github.com/Starport75/Pokemon_Mirror/blob/master/modifications.md)!
 
 ## Screenshots and Video
