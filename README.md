@@ -23,18 +23,18 @@ Please note that transfering Pokémon will only work with a Game Boy Color Link 
 
 ## Modifications to Transfered Pokémon
 
-Due to limitations of the transfer process, some Pok@mon will not be considered legal until they reach certain generations:
+Due to limitations of the transfer process, some Pokémon will not be considered legal until they reach certain generations:
 
-| Pokémon | Generation III | Generation IV | Generation V | Passes through Pokémon Bank | Generation VI | Generation VII+ |
+|Pokémon|Generation III|Generation IV|Generation V|Passes through Pokémon Bank|Generation VI|Generation VII+|Passes through Pokémon HOME|
 |---|:---:|:---:|:---:|:---:|:---:|:---:|
-| Standard Pokémon from Generation I | No<br>(Illegal Met Location)| Yes | Yes | Yes | Yes | Yes |
-| Standard Pokémon from Generation II | No<br>(Illegal Met Location, Illegal Game of Origin)| No<br>(Illegal Encounter type) | No<br>(Illegal Encounter type) | Yes | No<br>(Illegal Encounter type) | Yes |
-| Legendary Pokémon from Generation I | No<br>(Illegal Met Location)| Yes | Yes | Yes | Yes | Yes |
-| Legendary Pokémon from Generation II | No<br>(Illegal Met Location, Illegal Game of Origin)| No<br>(Illegal Encounter type) | No<br>(Illegal Encounter type) | Yes | No<br>(Illegal Encounter type) | Yes |
-| Mew from Generation I/II | No<br>(Does not match event)| No<br>(Does not match event) | No<br>(Does not match event) | Yes<br>(No if Shiny) |No<br>(Does not match event) | No<br>(Does not match event) |
-| Celebi from Generation II | No<br>(Does not match event)| No<br>(Does not match event) | No<br>(Does not match event) | Yes<br>(No if Shiny) |No<br>(Does not match event) | No<br>(Does not match event) |
-| Stabilized Mew | Yes | Yes | Yes | Yes | Yes | Yes |
-| Stabilized Celebi | Yes | Yes | Yes | Yes | Yes | Yes |
+|Standard Pokémon from Generation I|No<br>(Illegal Met Location)|Yes|Yes|Yes|Yes|Yes|Yes|
+|Standard Pokémon from Generation II|No<br>(Illegal Met Location, Illegal Game of Origin)|No<br>(Illegal Encounter type)|No<br>(Illegal Encounter type)|Yes|No<br>(Illegal Encounter type)|Yes|Yes|
+|Legendary Pokémon from Generation I|No<br>(Illegal Met Location)|Yes|Yes|Yes|Yes|Yes|Yes|
+|Legendary Pokémon from Generation II|No<br>(Illegal Met Location, Illegal Game of Origin)|No<br>(Illegal Encounter type)|No<br>(Illegal Encounter type)|Yes|No<br>(Illegal Encounter type)|Yes|Yes|
+|Mew from Generation I/II|No<br>(Does not match event)|No<br>(Does not match event)|No<br>(Does not match event)|?<br>(? if Shiny)|No<br>(Does not match event)|No<br>(Does not match event)|?|
+|Celebi from Generation II|No<br>(Does not match event)|No<br>(Does not match event)|No<br>(Does not match event)|?<br>(? if Shiny)|No<br>(Does not match event)|No<br>(Does not match event)|?|
+|Stabilized Mew|Yes|Yes|Yes|Yes|Yes|Yes|Yes|
+|Stabilized Celebi|Yes|Yes|Yes|Yes|Yes|Yes|Yes|
 
 
 
