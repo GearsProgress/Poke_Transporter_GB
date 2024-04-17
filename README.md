@@ -22,6 +22,15 @@ Poké Transporter GB is a Multiboot program for the Game Boy Advance. There are 
 Please note that transfering Pokémon will only work with a Game Boy Color Link Cable. Game Boy Advance Link Cables will not work.
 
 ## Modifications to Transfered Pokémon
+
+Due to limitations of the transfer process, some Pok@mon will not be considered legal until they reach certain generations:
+
+| Pok@mon | Generation III | Generation IV | Generation V | Passes through Pok@mon Bank | Generation VI | Generation VII+ |
+|---|---|---|---|---|---|---|
+| Standard Pok@mon from Generation I | No\n(Illegal Met Location)| Yes | Yes | Yes | Yes | Yes |
+
+
+
 A list of modifications made to transfered Pokémon can be found [here](https://github.com/Starport75/Pokemon_Mirror/blob/master/modifications.md)!
 
 ## Screenshots and Video
