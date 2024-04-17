@@ -25,11 +25,16 @@ public:
     Simplified_Pokemon simple_pkmn_array[30];
     Simplified_Pokemon get_simple_pkmn(int index);
     void fill_simple_pkmn_array();
+    bool get_contains_mythical();
+    void set_mythic_stabilization(bool stabilize);
+
 
 private:
     byte box_data_array[0x462];
     int last_error;
-    bool has_new_pkmn;
+    bool has_new_pkmn = false;
+    bool contains_mythical = false;
+    bool stabilize_mythic = false;
     int game;
     char lang;
 };

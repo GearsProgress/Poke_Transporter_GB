@@ -25,9 +25,16 @@ Please note that transfering Pokémon will only work with a Game Boy Color Link 
 
 Due to limitations of the transfer process, some Pok@mon will not be considered legal until they reach certain generations:
 
-| Pok@mon | Generation III | Generation IV | Generation V | Passes through Pok@mon Bank | Generation VI | Generation VII+ |
+| Pokémon | Generation III | Generation IV | Generation V | Passes through Pokémon Bank | Generation VI | Generation VII+ |
 |---|---|---|---|---|---|---|
-| Standard Pok@mon from Generation I | No\n(Illegal Met Location)| Yes | Yes | Yes | Yes | Yes |
+| Standard Pokémon from Generation I | No\n(Illegal Met Location)| Yes | Yes | Yes | Yes | Yes |
+| Standard Pokémon from Generation II | No\n(Illegal Met Location, Illegal Game of Origin)| No\n(Illegal Encounter type) | No\n(Illegal Encounter type) | Yes | No\n(Illegal Encounter type) | Yes |
+| Legendary Pokémon from Generation I | No\n(Illegal Met Location)| Yes | Yes | Yes | Yes | Yes |
+| Legendary Pokémon from Generation II | No\n(Illegal Met Location, Illegal Game of Origin)| No\n(Illegal Encounter type) | No\n(Illegal Encounter type) | Yes | No\n(Illegal Encounter type) | Yes |
+| Mew from Generation I/II | No\n(Does not match event)| No\n(Does not match event) | No\n(Does not match event) | Yes\n(No if Shiny) |No\n(Does not match event) | No\n(Does not match event) |
+| Celebi from Generation II | No\n(Does not match event)| No\n(Does not match event) | No\n(Does not match event) | Yes\n(No if Shiny) |No\n(Does not match event) | No\n(Does not match event) |
+| Stabilized Mew | Yes | Yes | Yes | Yes | Yes | Yes |
+| Stabilized Celebi | Yes | Yes | Yes | Yes | Yes | Yes |
 
 
 

@@ -46,4 +46,6 @@ private:
     bool cancel_enabled;
 };
 
+extern Button_Menu yes_no_menu;
+
 #endif

@@ -30,6 +30,10 @@ extern OBJ_ATTR *btn_c_r;
 extern OBJ_ATTR *btn_d_l;
 #include "btn_d_r.h"
 extern OBJ_ATTR *btn_d_r;
+#include "button_yes.h"
+extern OBJ_ATTR *button_yes;
+#include "button_no.h"
+extern OBJ_ATTR *button_no;
 
 #define SPRITE_BATCH_DEX 0
 #include "dex_l.h"

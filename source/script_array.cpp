@@ -45,6 +45,7 @@ void populate_dialogue()
     dialogue[DIA_WHAT_LANG] = "What language is the Game\nBoy Pok@mon game that you're\ntransferring from?";
     dialogue[DIA_NO_PAYLOAD] = "I'm sorry, but that version\nin that language is not\ncurrently supported.";
     dialogue[DIA_IN_BOX] = "Great! Let's take a look at\nthe Pok@mon that will be\ntransfered.|Please remember, once a\nPok@mon is transfered, it\nCANNOT be returned to the\nGame Boy Game Pak.|Select confirm once you're\nready, or select cancel if\nyou want to keep the Pok@mon\non your Game Boy Game Pak.";
+    dialogue[DIA_MYTHIC_CONVERT] = "It looks like you have a really rare Mythical Pok@mon!|Due to their strength, it seems they've corrupted the machine.|I can stablize them if you'd like, but it'll modify some things like nickname, Original Trainer, and Shininess.|Otherwise I can leave them as is, but there's no guarentee that they'll be transferrable in the future.|Do you want me to stablize them?";
 
     dialogue[DIA_ERROR_COLOSSEUM] = "It looks like you went to\nthe colosseum instead of the\ntrading room!|Let's try that again!";
     dialogue[DIA_ERROR_COM_ENDED] = "Communication with the other\ndevice was terminated.|Let's try that again!";
@@ -94,10 +95,13 @@ void populate_script()
     script[DIA_ERROR_COM_ENDED] = script_obj(dialogue[DIA_ERROR_COM_ENDED], DIA_START);
     script[COND_ERROR_COLOSSEUM] = script_obj(COND_ERROR_COLOSSEUM, COND_ERROR_DISCONNECT, DIA_ERROR_COLOSSEUM);
     script[DIA_ERROR_COLOSSEUM] = script_obj(dialogue[DIA_ERROR_COLOSSEUM], DIA_START);
-    script[COND_ERROR_DISCONNECT] = script_obj(COND_ERROR_DISCONNECT, DIA_IN_BOX, DIA_ERROR_DISCONNECT);
+    script[COND_ERROR_DISCONNECT] = script_obj(COND_ERROR_DISCONNECT, COND_CHECK_MYTHIC, DIA_ERROR_DISCONNECT);
     script[DIA_ERROR_DISCONNECT] = script_obj(dialogue[DIA_ERROR_DISCONNECT], DIA_START);
 
     // Pause the transfer and show the user their box data
+    script[COND_CHECK_MYTHIC] = script_obj(COND_CHECK_MYTHIC, DIA_MYTHIC_CONVERT, DIA_IN_BOX);
+    script[DIA_MYTHIC_CONVERT] = script_obj(dialogue[DIA_MYTHIC_CONVERT], CMD_MYTHIC_MENU);
+    script[CMD_MYTHIC_MENU] = script_obj(CMD_MYTHIC_MENU, DIA_IN_BOX);
     script[DIA_IN_BOX] = script_obj(dialogue[DIA_IN_BOX], CMD_BOX_MENU);
     script[CMD_BOX_MENU] = script_obj(CMD_BOX_MENU, CMD_CONTINUE_LINK);
     script[CMD_CONTINUE_LINK] = script_obj(CMD_CONTINUE_LINK, CMD_IMPORT_POKEMON);
@@ -204,6 +208,9 @@ bool run_conditional(int index)
     case COND_PAYLOAD_EXISTS:
         return party_data.load_payload();
 
+    case COND_CHECK_MYTHIC:
+        return party_data.get_contains_mythical();
+
     case CMD_START_LINK:
         party_data.start_link();
         return true;
@@ -289,6 +296,10 @@ bool run_conditional(int index)
     case CMD_BOX_MENU:
         party_data.fill_simple_pkmn_array();
         box_viewer.box_main(party_data);
+        return true;
+
+    case CMD_MYTHIC_MENU:
+        party_data.set_mythic_stabilization(yes_no_menu.button_main());
         return true;
 
     default:

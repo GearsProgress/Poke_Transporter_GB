@@ -35,8 +35,9 @@
 #define DIA_ASK_QUEST               26
 #define DIA_NO_PAYLOAD              27
 #define DIA_IN_BOX                  28
+#define DIA_MYTHIC_CONVERT          29
 
-#define                    DIA_SIZE 29
+#define                    DIA_SIZE 30
 #define DIA_END DIA_SIZE
 
 // Commands
@@ -54,8 +55,9 @@
 #define CMD_SLIDE_PROF_RIGHT    DIA_END + 11
 #define CMD_CONTINUE_LINK       DIA_END + 12
 #define CMD_BOX_MENU            DIA_END + 13
+#define CMD_MYTHIC_MENU         DIA_END + 14
 
-#define                         CMD_SIZE  14
+#define                         CMD_SIZE  15
 #define CMDS_END DIA_END + CMD_SIZE
 
 // Conditionals
@@ -73,8 +75,9 @@
 #define COND_MG_OTHER_EVENT         CMDS_END + 11
 #define COND_PKMN_TO_COLLECT        CMDS_END + 12
 #define COND_PAYLOAD_EXISTS         CMDS_END + 13
+#define COND_CHECK_MYTHIC           CMDS_END + 14
 
-#define                             COND_SIZE  14
+#define                             COND_SIZE  15
 #define COND_END CMDS_END + COND_SIZE
 
 // Ends

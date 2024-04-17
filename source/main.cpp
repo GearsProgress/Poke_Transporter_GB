@@ -58,6 +58,7 @@ int delay_counter = 0;
 bool skip = true;
 rom_data curr_rom;
 Button_Menu main_menu(3, 1, 96, 32, false);
+Button_Menu yes_no_menu(1, 2, 40, 24, false);
 
 /*
 int test_main(void) Music
@@ -103,6 +104,11 @@ void load_graphics()
 	main_menu.add_button(Button(btn_p_l, btn_p_r, 48), BTN_POKEDEX);
 	//main_menu.add_button(Button(btn_d_l, btn_d_r), BTN_LANGUAGE);
 	main_menu.add_button(Button(btn_c_l, btn_c_r, 48), BTN_CREDITS);
+
+	// Set up global yes no button
+	yes_no_menu.clear_vector();
+	yes_no_menu.add_button(Button(button_yes), true);
+	yes_no_menu.add_button(Button(button_no), false);
 }
 
 void initalization_script(void)

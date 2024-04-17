@@ -3,11 +3,14 @@
 #include "pokemon_data.h"
 #include "random.h"
 #include "save_data_manager.h"
+#include "debug_mode.h"
 
 Pokemon::Pokemon(){};
 
 // TODO: Rewrite this with two different classes/structs that have arrays as input/output
 // GBpkmn and GBApkmn
+// A lot of the event Pokemon script is reused. Really should be split into many different functions
+// Endian-ness too is all over the place... :/
 
 void Pokemon::load_data(int index, byte *party_data, int game, int lang)
 {
@@ -120,7 +123,7 @@ void Pokemon::load_data(int index, byte *party_data, int game, int lang)
         }
     }
 }
-void Pokemon::convert_to_gen_three()
+void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
 {
     // Convert the species indexes
     if (gen == 1)
@@ -137,12 +140,119 @@ void Pokemon::convert_to_gen_three()
         return;
     }
     is_valid = true;
+
+    // Update dex
+    if (!is_caught(species_index_struct))
+    {
+        is_new = true;
+        set_caught(species_index_struct);
+    }
+
+    // Set nickname
+    if (language == KOR_ID)
+    {
+
+        gen_3_pkmn[18] = JPN_ID; // Set to JPN
+        byte new_nickname[10];
+        byte new_ot[7];
+        for (int i = 0; i < 6; i++)
+        { // Read the JPN name and convert it
+            new_nickname[i] = get_gen_3_char(JPN_NAMES[species_index_struct][i], true);
+        }
+
+        if (gen == 1)
+        {
+            // レッド (Red)
+            new_ot[0] = 0x7A; // レ
+            new_ot[1] = 0xA0; // ッ
+            new_ot[2] = 0x95; // ド
+            new_ot[3] = 0xFF;
+        }
+        else
+        {
+            if (((caught_data[1] & 0b10000000) >> 7) == 1) // Checks if the Gen 2 player is male or female
+            {
+                // クリス (Kurisu)
+                new_ot[0] = 0x58; // ク
+                new_ot[1] = 0x78; // リ
+                new_ot[2] = 0x5D; // ス
+                new_ot[3] = 0xFF;
+            }
+            else
+            {
+                // ヒビキ (Hibiki)
+                new_ot[0] = 0x6B; // ヒ
+                new_ot[1] = 0x97; // ビ
+                new_ot[2] = 0x57; // キ
+                new_ot[3] = 0xFF;
+            }
+        }
+        copy_from_to(&new_nickname[0], &gen_3_pkmn[8], 10, false); // Nickname
+        copy_from_to(&new_ot[0], &gen_3_pkmn[20], 7, false);       // OT Name
+    }
+    else
+    {
+        gen_3_pkmn[18] = language;                                                                 // Language
+        copy_from_to(convert_text(&nickname[0], 10, gen, language), &gen_3_pkmn[8], 10, false);    // Nickname
+        copy_from_to(convert_text(&trainer_name[0], 7, gen, language), &gen_3_pkmn[20], 7, false); // OT Name
+    }
+
+    if (simplified)
+    {
+        return;
+    }
+    else if (stabilize_mythical && (species_index_struct == 151 || species_index_struct == 251))
+    {
+        set_to_event();
+        return;
+    }
+
     // Generate PID
-    u32 n_pid = generate_pid(species_index_struct, *(vu32 *)exp % 25, &dvs[0]);
+    disable_auto_random();
+    u32 n_pid;
+    if (ENABLE_MATCH_PID)
+    {
+        n_pid = generate_pid_iv_match(species_index_struct, *(vu32 *)exp % 25, &dvs[0]);
+
+        u16 curr_rand = get_rand_u16();
+        ivs[0] = (curr_rand >> 0) & 0b11111;
+        ivs[1] = (curr_rand >> 5) & 0b11111;
+        ivs[2] = (curr_rand >> 10) & 0b11111;
+        curr_rand = get_rand_u16();
+        ivs[3] = (curr_rand >> 0) & 0b11111;
+        ivs[4] = (curr_rand >> 5) & 0b11111;
+        ivs[5] = (curr_rand >> 10) & 0b11111;
+        iv_egg_ability = 0;
+        for (int i = 0; i < 6; i++)
+        {
+            iv_egg_ability |= ((ivs[i] & 0b11111) << (i * 5));
+        }
+    }
+    else
+    {
+        n_pid = generate_pid_save_iv(species_index_struct, *(vu32 *)exp % 25, &dvs[0]);
+
+        // Convert and set IVs
+        int hp_iv = 0;
+        for (int i = 0; i < 4; i++)
+        {
+            ivs[i + 1] = (dvs[i / 2] >> (((i + 1) % 2) * 4)) & 0b1111;
+            hp_iv |= ((ivs[i + 1] & 0x1) << i);
+        };
+        ivs[0] = hp_iv;
+        ivs[5] = ivs[4];
+
+        for (int i = 0; i < 6; i++)
+        {
+            ivs[i] = (ivs[i] * 2) + 1;
+            iv_egg_ability |= ((ivs[i] & 0b11111) << (i * 5));
+        }
+    }
     for (int i = 0; i < 4; i++)
     {
         pid[i] = (n_pid >> (i * 8)) & 0xFF;
     }
+    enable_auto_random();
 
     // Make sure Level is not over 100 based on EXP
     if (*(vu32 *)exp > get_max_exp(species_index_struct))
@@ -207,22 +317,6 @@ void Pokemon::convert_to_gen_three()
         pure_pp_values[i] = POWER_POINTS[moves[i]] + ((POWER_POINTS[moves[i]] / 5) * pp_bonus[i]);
     }
 
-    // Convert and set IVs
-    int hp_iv = 0;
-    for (int i = 0; i < 4; i++)
-    {
-        ivs[i + 1] = (dvs[i / 2] >> (((i + 1) % 2) * 4)) & 0b1111;
-        hp_iv |= ((ivs[i + 1] & 0x1) << i);
-    };
-    ivs[0] = hp_iv;
-    ivs[5] = ivs[4];
-
-    for (int i = 0; i < 6; i++)
-    {
-        ivs[i] = (ivs[i] * 2) + 1;
-        iv_egg_ability |= ((ivs[i] & 0b11111) << (i * 5));
-    }
-
     // Determine and set Ability
     iv_egg_ability |= ((pid[0] & 0x1) ? get_num_abilities(species_index_struct) : 0) << 31;
 
@@ -234,7 +328,10 @@ void Pokemon::convert_to_gen_three()
 
     // Ribbons and Obedience
     // ribbons[2] |= 0b00000100; // Artist Ribbon
-    ribbons[3] |= 0b10000000; // Fateful Encounter flag
+    if (species_index_struct == 151 || species_index_struct == 251) // Pokemon is Mew or Celebi
+    {
+        ribbons[3] |= 0b10000000; // Fateful Encounter flag
+    }
     // Personality Value
     copy_from_to(&pid[0], &gen_3_pkmn[0], 4, false);
     // Trainer ID
@@ -253,7 +350,7 @@ void Pokemon::convert_to_gen_three()
     else // Not shiny, make sure it isn't
     {
         if (((trainer_id[0] ^ secret_id[0] ^ pid[0] ^ pid[2]) == 0) &&
-            ((trainer_id[1] ^ secret_id[1] ^ pid[1] ^ pid[3]) > 7))
+            ((trainer_id[1] ^ secret_id[1] ^ pid[1] ^ pid[3]) < 8))
         {
             secret_id[0] = 0xFF;
             secret_id[1] = 0xFF;
@@ -261,53 +358,6 @@ void Pokemon::convert_to_gen_three()
     }
     copy_from_to(&secret_id[0], &gen_3_pkmn[6], 2, false); // Set SID
 
-    if (language == KOR_ID)
-    {
-
-        gen_3_pkmn[18] = JPN_ID; // Set to JPN
-        byte new_nickname[10];
-        byte new_ot[7];
-        for (int i = 0; i < 6; i++)
-        { // Read the JPN name and convert it
-            new_nickname[i] = get_gen_3_char(JPN_NAMES[species_index_struct][i], true);
-        }
-
-        if (gen == 1)
-        {
-            // レッド (Red)
-            new_ot[0] = 0x7A; // レ
-            new_ot[1] = 0xA0; // ッ
-            new_ot[2] = 0x95; // ド
-            new_ot[3] = 0xFF;
-        }
-        else
-        {
-            if (((caught_data[1] & 0b10000000) >> 7) == 1) // Checks if the Gen 2 player is male or female
-            {
-                // クリス (Kurisu)
-                new_ot[0] = 0x58; // ク
-                new_ot[1] = 0x78; // リ
-                new_ot[2] = 0x5D; // ス
-                new_ot[3] = 0xFF;
-            }
-            else
-            {
-                // ヒビキ (Hibiki)
-                new_ot[0] = 0x6B; // ヒ
-                new_ot[1] = 0x97; // ビ
-                new_ot[2] = 0x57; // キ
-                new_ot[3] = 0xFF;
-            }
-        }
-        copy_from_to(&new_nickname[0], &gen_3_pkmn[8], 10, false); // Nickname
-        copy_from_to(&new_ot[0], &gen_3_pkmn[20], 7, false);       // OT Name
-    }
-    else
-    {
-        gen_3_pkmn[18] = language;                                                                 // Language
-        copy_from_to(convert_text(&nickname[0], 10, gen, language), &gen_3_pkmn[8], 10, false);    // Nickname
-        copy_from_to(convert_text(&trainer_name[0], 7, gen, language), &gen_3_pkmn[20], 7, false); // OT Name
-    }
     gen_3_pkmn[19] = 0b00000010; // Egg Name (has species sanity flag)
     gen_3_pkmn[27] = 0b00000000; // Markings
 
@@ -324,16 +374,7 @@ void Pokemon::convert_to_gen_three()
 
     data_section_G[0] = species_index_struct;
     data_section_G[1] = 0x00; // Species Index, check for glitch Pokemon
-    if (!is_caught(species_index_struct))
-    {
-        data_section_G[2] = 0x44; // Rare Candy
-        is_new = true;
-        set_caught(species_index_struct);
-    }
-    else
-    {
-        data_section_G[2] = 0x00; // No item
-    }
+    data_section_G[2] = (is_new ? 0x44 : 0x00); // Rare Candy if new
     data_section_G[3] = 0x00;
     copy_from_to(&exp[0], &data_section_G[4], 3, false);
     data_section_G[8] = (pp_bonus[0] << 0 | pp_bonus[1] << 2 | pp_bonus[2] << 4 | pp_bonus[3] << 6);
@@ -347,7 +388,7 @@ void Pokemon::convert_to_gen_three()
     // Data section E is all zero (EVs and Contest Stats)
 
     data_section_M[0] = pokerus;
-    data_section_M[1] = 0xFF;                      // Met location - set to Fateful Encounter (separate from flag), cannot be seen by player and is replaced by Pal Park in gen 4
+    data_section_M[1] = 0xFF;                      // Met location - set to Fateful Encounter (separate from flag), is replaced by Pal Park in gen 4
     data_section_M[2] = origin_info & 0x00FF;      // Lower origins info
     data_section_M[3] = (origin_info >> 8) & 0xFF; // Upper origins info
     for (int i = 0; i < 4; i++)
@@ -567,7 +608,53 @@ byte *Pokemon::convert_text(byte *text_array, int size, int gen, int lang)
     return text_array;
 }
 
-u32 Pokemon::generate_pid(byte pid_species_index, byte nature, byte *pid_dvs)
+u32 Pokemon::generate_pid_iv_match(byte pid_species_index, byte nature, byte *pid_dvs)
+{
+    u32 new_pid = 0;
+    int letter = -1;
+    int gen2_gender_threshold = get_gender_threshold(pid_species_index, false);
+    int gen3_gender_threshold = get_gender_threshold(pid_species_index, true);
+    bool gender = (((pid_dvs[0] >> 4) & 0b1111) < gen2_gender_threshold);
+    if (pid_species_index == 0xC9) // Checks if the Pokemon is Unown
+    {
+        letter |= ((pid_dvs[0] >> 5) & 0b11) << 6;
+        letter |= ((pid_dvs[0] >> 1) & 0b11) << 4;
+        letter |= ((pid_dvs[1] >> 5) & 0b11) << 2;
+        letter |= ((pid_dvs[1] >> 1) & 0b11);
+        letter = letter / 10;
+    }
+
+    do
+    {
+        new_pid = get_rand_u16() | (get_rand_u16() << 16);
+    } while (!(
+        (letter != -1 ? get_letter_from_pid(new_pid) == letter : true) &&
+        get_nature_from_pid(new_pid) == nature &&
+        (gen2_gender_threshold != -1
+             ? ((get_gender_from_pid(new_pid) < gen3_gender_threshold) == gender)
+             : true)));
+
+    return new_pid;
+}
+
+u8 Pokemon::get_letter_from_pid(u32 pid)
+{
+    return (((pid & 0x3000) >> 18) |
+            ((pid & 0x0300) >> 12) |
+            ((pid & 0x0030) >> 6) |
+            ((pid & 0x0003) >> 0)) %
+           28;
+};
+u8 Pokemon::get_nature_from_pid(u32 pid)
+{
+    return (pid % 25);
+};
+u8 Pokemon::get_gender_from_pid(u32 pid)
+{
+    return (pid & 0xFF);
+};
+
+u32 Pokemon::generate_pid_save_iv(byte pid_species_index, byte nature, byte *pid_dvs)
 {
     // Set Unown Letter
     u32 new_pid = 0;
@@ -665,4 +752,150 @@ Simplified_Pokemon Pokemon::get_simple_pkmn()
     curr_pkmn.is_valid = get_validity();
     curr_pkmn.is_transferred = false;
     return curr_pkmn;
+}
+
+void Pokemon::set_to_event()
+{
+    // Things that need to be modified: PID, IV_egg_ability, checksum, OT gender, and the encryption
+
+    int event_id = 0;
+    if (species_index_struct == 151)
+    {
+        switch (language)
+        {
+        case JPN_ID:
+        case KOR_ID:
+            event_id = 0;
+            break;
+        case ENG_ID:
+            event_id = 1;
+            break;
+        case FRE_ID:
+            event_id = 2;
+            break;
+        case ITA_ID:
+            event_id = 3;
+            break;
+        case GER_ID:
+            event_id = 4;
+            break;
+        case SPA_ID:
+            event_id = 5;
+            break;
+        }
+    }
+    else
+    {
+        switch (language)
+        {
+        case JPN_ID:
+        case KOR_ID:
+            event_id = 6;
+            break;
+        case ENG_ID:
+        case FRE_ID:
+        case ITA_ID:
+        case GER_ID:
+        case SPA_ID:
+            event_id = 7;
+            break;
+        }
+    }
+
+    // Load the event into the Pokemon array and unencrypted data array
+    for (int i = 0; i < 0x20; i++)
+    {
+        gen_3_pkmn[i] = EVENT_PKMN[event_id][i];
+    }
+
+    for (int i = 0; i < 12; i++)
+    {
+        data_section_G[i] = EVENT_PKMN[event_id][i + 0x20 + 0];
+        data_section_A[i] = EVENT_PKMN[event_id][i + 0x20 + 12];
+        data_section_E[i] = EVENT_PKMN[event_id][i + 0x20 + 24];
+        data_section_M[i] = EVENT_PKMN[event_id][i + 0x20 + 36];
+    }
+
+    // Set garbage data at end of nickname to PTGB for true event preservation efforts
+    gen_3_pkmn[0x10] = 0xCA;
+    gen_3_pkmn[0x11] = 0xCE;
+
+    // get a new PID in the BACD_R format, and make sure it isn't shiny
+    u32 n_pid;
+    do
+    {
+        // Make the seed 16 bits long, per the BACD_R format
+        rand_set_seed(rand_get_seed() & 0xFFFF);
+        n_pid = (get_rand_u16() << 16) | get_rand_u16();
+        for (int i = 0; i < 4; i++)
+        {
+            gen_3_pkmn[i] = (n_pid >> (i * 8)) & 0xFF;
+            pid[i] = (n_pid >> (i * 8)) & 0xFF;
+        };
+    } while (((pid[0] ^ pid[2] ^ gen_3_pkmn[4] ^ gen_3_pkmn[6]) < 8) &&
+             ((pid[1] ^ pid[3] ^ gen_3_pkmn[5] ^ gen_3_pkmn[7]) == 0));
+
+    // Set and fill the IVs
+    u16 curr_rand = get_rand_u16();
+    ivs[0] = (curr_rand >> 0) & 0b11111;
+    ivs[1] = (curr_rand >> 5) & 0b11111;
+    ivs[2] = (curr_rand >> 10) & 0b11111;
+    curr_rand = get_rand_u16();
+    ivs[3] = (curr_rand >> 0) & 0b11111;
+    ivs[4] = (curr_rand >> 5) & 0b11111;
+    ivs[5] = (curr_rand >> 10) & 0b11111;
+
+    iv_egg_ability = 0;
+    for (int i = 0; i < 6; i++)
+    {
+        iv_egg_ability |= ((ivs[i] & 0b11111) << (i * 5));
+    }
+
+    // Determine and set Ability
+    iv_egg_ability |= ((pid[0] & 0x1) ? get_num_abilities(species_index_struct) : 0) << 31;
+
+    // Set IVs, Egg, and Ability
+    for (int i = 0; i < 4; i++)
+    {
+        data_section_M[i + 4] = (iv_egg_ability >> (i * 8) & 0xFF);
+    }
+
+    // Determine and set OT gender
+    data_section_M[3] |= (caught_data[1] & 0b10000000);
+
+    // Update and set the checksum
+    checksum = 0x0000;
+    for (int i = 0; i < 12; i = i + 2)
+    {
+        checksum = checksum + ((data_section_G[i + 1] << 8) | data_section_G[i]);
+        checksum = checksum + ((data_section_A[i + 1] << 8) | data_section_A[i]);
+        checksum = checksum + ((data_section_E[i + 1] << 8) | data_section_E[i]);
+        checksum = checksum + ((data_section_M[i + 1] << 8) | data_section_M[i]);
+    }
+
+    gen_3_pkmn[28] = checksum & 0xFF;
+    gen_3_pkmn[29] = (checksum & 0xFF00) >> 8;
+
+    // Determine the encryption key
+    for (int i = 0; i < 4; i++)
+    {
+        encryption_key[i] = gen_3_pkmn[4 + i] ^ pid[i]; // XOR SID and TID with PID
+    }
+
+    // Encrypt the data
+    for (int i = 0; i < 12; i++)
+    {
+        unencrypted_data[i] = data_section_G[i];
+        data_section_G[i] ^= encryption_key[i % 4];
+        unencrypted_data[12 + i] = data_section_A[i];
+        data_section_A[i] ^= encryption_key[i % 4];
+        unencrypted_data[24 + i] = data_section_E[i];
+        data_section_E[i] ^= encryption_key[i % 4];
+        unencrypted_data[36 + i] = data_section_M[i];
+        data_section_M[i] ^= encryption_key[i % 4];
+    }
+
+    // Puts the four data chunks into their correct locations based on the PID
+    alocate_data_chunks(data_section_G, data_section_A, data_section_E, data_section_M);
+    return;
 }

@@ -14,7 +14,8 @@
 #define GEN2_JPN_SIZE 383
 #define GEN2_INT_SIZE 444
 
-struct Simplified_Pokemon{
+struct Simplified_Pokemon
+{
     byte dex_number;
     byte met_level;
     byte nickname[10];
@@ -31,7 +32,7 @@ public:
     int nickname_size = 0;
     Pokemon();
     void load_data(int index, byte *party_data, int game, int lang);
-    void convert_to_gen_three();
+    void convert_to_gen_three(bool simplified, bool stabilize_mythical);
     void copy_from_to(byte *source, byte *destination, int size, bool reverse_endian);
     void alocate_data_chunks(byte *G, byte *A, byte *E, byte *M);
     void insert_data(byte *first, byte *second, byte *third, byte *fourth);
@@ -39,14 +40,18 @@ public:
     byte *get_full_gen_3_array();
     byte get_unencrypted_data(int index);
     byte *convert_text(byte *text_array, int size, int gen, int lang);
-    u32 generate_pid(byte pid_species_index, byte nature, byte *pid_ivs);
+    u32 generate_pid_save_iv(byte pid_species_index, byte nature, byte *pid_dvs);
+    u32 generate_pid_iv_match(byte pid_species_index, byte nature, byte *pid_dvs);
     byte rand_reverse_mod(byte modulo_divisor, byte target_mod);
     byte get_rand_gender_byte(byte index_num, byte attack_DVs);
     byte get_dex_number();
     bool get_validity();
     bool get_is_new();
     Simplified_Pokemon get_simple_pkmn();
-
+    u8 get_letter_from_pid(u32 pid);
+    u8 get_nature_from_pid(u32 pid);
+    u8 get_gender_from_pid(u32 pid);
+    void set_to_event();
 
 private:
     byte gen = 2;
@@ -63,8 +68,8 @@ private:
     byte caught_data[2];
     byte met_level;
     byte gen_3_pkmn[80];
-    byte unencrypted_data[49];                                      // Contains the 48 GAEM bytes, along with the modulo int
-    byte pid[4] = {0b00000001, 0b10101010, 0b11111111, 0b10011001}; // Little Endian, reverse of Bulbapedia
+    byte unencrypted_data[49];  // Contains the 48 GAEM bytes, along with the modulo int
+    byte pid[4] = {0, 0, 0, 0}; // Little Endian, reverse of Bulbapedia
     byte blank_word[4] = {0};
     byte data_section_G[12];
     byte data_section_A[12];
@@ -79,7 +84,7 @@ private:
     byte pure_pp_values[4];
     byte dvs[2];
     byte ivs[6];
-    byte ribbons[4];
+    byte ribbons[4] = {0, 0, 0, 0};
     u32 iv_egg_ability;
     bool is_valid;
     bool is_new = false;

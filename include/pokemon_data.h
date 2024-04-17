@@ -11,7 +11,6 @@
 #define slow_max 1250000
 #define flux_max 1640000
 
-#define INTERNATIONAL 0
 #define JPN_ID 1
 #define ENG_ID 2
 #define FRE_ID 3
@@ -26,6 +25,15 @@
 #define YELLOW_ID 3
 #define GOLD_SILVER_ID 4
 #define CRYSTAL_ID 5
+
+#define EVENT_MEW_JPN 0
+#define EVENT_MEW_ENG 1
+#define EVENT_MEW_FRE 2
+#define EVENT_MEW_ITA 3
+#define EVENT_MEW_GER 4
+#define EVENT_MEW_SPA 5
+#define EVENT_CELEBI 6
+
 
 #define MAX_PKMN_IN_BOX 30
 
@@ -52,6 +60,7 @@ extern const u16 gen_2_FreGer_char_array[256];
 extern const u16 gen_2_ItaSpa_char_array[256];
 extern const u16 gen_3_Jpn_char_array[256];
 extern const u16 gen_3_Intern_char_array[256];
+extern const byte EVENT_PKMN[8][80];
 
 u32 get_max_exp(int index_num);
 u8 get_gender_threshold(int index_num, bool is_gen_3);

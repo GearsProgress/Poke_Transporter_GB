@@ -8,6 +8,7 @@
 #include "string.h"
 
 int global_frame_count = 0;
+bool rand_enabled = true;
 
 void global_next_frame()
 {
@@ -33,4 +34,12 @@ void global_next_frame()
 int get_frame_count()
 {
     return global_frame_count;
+}
+
+void enable_auto_random(){
+    rand_enabled = true;
+}
+
+void disable_auto_random(){
+    rand_enabled = false;
 }
