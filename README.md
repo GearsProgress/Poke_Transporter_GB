@@ -27,12 +27,12 @@ Due to limitations of the transfer process, some Pok@mon will not be considered 
 
 | Pokémon | Generation III | Generation IV | Generation V | Passes through Pokémon Bank | Generation VI | Generation VII+ |
 |---|---|---|---|---|---|---|
-| Standard Pokémon from Generation I | No \n (Illegal Met Location)| Yes | Yes | Yes | Yes | Yes |
-| Standard Pokémon from Generation II | No \n (Illegal Met Location, Illegal Game of Origin)| No \n (Illegal Encounter type) | No \n (Illegal Encounter type) | Yes | No \n (Illegal Encounter type) | Yes |
-| Legendary Pokémon from Generation I | No \n (Illegal Met Location)| Yes | Yes | Yes | Yes | Yes |
-| Legendary Pokémon from Generation II | No \n (Illegal Met Location, Illegal Game of Origin)| No \n (Illegal Encounter type) | No \n (Illegal Encounter type) | Yes | No \n (Illegal Encounter type) | Yes |
-| Mew from Generation I/II | No \n (Does not match event)| No \n (Does not match event) | No \n (Does not match event) | Yes \n (No if Shiny) |No \n (Does not match event) | No \n (Does not match event) |
-| Celebi from Generation II | No \n (Does not match event)| No \n (Does not match event) | No \n (Does not match event) | Yes \n (No if Shiny) |No \n (Does not match event) | No \n (Does not match event) |
+| Standard Pokémon from Generation I | No\r\n(Illegal Met Location)| Yes | Yes | Yes | Yes | Yes |
+| Standard Pokémon from Generation II | No\r\n(Illegal Met Location, Illegal Game of Origin)| No\r\n(Illegal Encounter type) | No\r\n(Illegal Encounter type) | Yes | No\r\n(Illegal Encounter type) | Yes |
+| Legendary Pokémon from Generation I | No\r\n(Illegal Met Location)| Yes | Yes | Yes | Yes | Yes |
+| Legendary Pokémon from Generation II | No\r\n(Illegal Met Location, Illegal Game of Origin)| No\r\n(Illegal Encounter type) | No\r\n(Illegal Encounter type) | Yes | No\r\n(Illegal Encounter type) | Yes |
+| Mew from Generation I/II | No\r\n(Does not match event)| No\r\n(Does not match event) | No\r\n(Does not match event) | Yes\r\n(No if Shiny) |No\r\n(Does not match event) | No\r\n(Does not match event) |
+| Celebi from Generation II | No\r\n(Does not match event)| No\r\n(Does not match event) | No\r\n(Does not match event) | Yes\r\n(No if Shiny) |No\r\n(Does not match event) | No\r\n(Does not match event) |
 | Stabilized Mew | Yes | Yes | Yes | Yes | Yes | Yes |
 | Stabilized Celebi | Yes | Yes | Yes | Yes | Yes | Yes |
 
