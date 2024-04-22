@@ -1,7 +1,7 @@
 #ifndef ROM_VALUES_ENG_H
 #define ROM_VALUES_ENG_H
 
-#include "rom_values/base_rom_struct.h"
+#include "gba_rom_values/base_gba_rom_struct.h"
 
 const struct ROM_DATA ENG_RUBY_v0 = {
     .is_valid = true,

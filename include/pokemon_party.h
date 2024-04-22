@@ -3,7 +3,7 @@
 
 #include <tonc.h>
 #include "pokemon.h"
-#include "payloads/eng_payloads.h"
+#include "gb_rom_values/eng_gb_rom_values.h"
 
 #define BOX_DATA_ARRAY_SIZE 0x462
 
@@ -20,7 +20,7 @@ public:
     void set_lang(int nLang);
     int get_lang();
     bool load_payload();
-    PAYLOAD curr_payload;
+    GB_ROM curr_rom;
     void show_sprites();
     Simplified_Pokemon simple_pkmn_array[30];
     Simplified_Pokemon get_simple_pkmn(int index);

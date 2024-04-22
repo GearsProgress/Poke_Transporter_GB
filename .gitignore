@@ -6,3 +6,4 @@ build/
 *.elf
 *.zip
 .vscode/
+source/payload_builder.exe

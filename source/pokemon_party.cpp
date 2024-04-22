@@ -4,11 +4,12 @@
 #include "flash_mem.h"
 #include "debug_mode.h"
 #include "mystery_gift_injector.h"
-#include "payloads/base_payload_struct.h"
+#include "gb_rom_values/base_gb_rom_struct.h"
 #include "sprite_data.h"
 #include "box_menu.h"
+#include "payload_builder.h"
 
-const PAYLOAD *list_of_payloads[NUM_PAYLOADS] = {
+const GB_ROM *list_of_gb_roms[NUM_PAYLOADS] = {
         &ENG_RED_BLUE
     };
 
@@ -98,13 +99,13 @@ void Pokemon_Party::start_link()
 	else
 	{
 		setup();
-		last_error = loop(&box_data_array[0], &curr_payload, simple_pkmn_array);
+		last_error = loop(&box_data_array[0], generate_payload(curr_rom, false), simple_pkmn_array);
 	}
 }
 
 void Pokemon_Party::continue_link(){
 	if (!IGNORE_LINK_CABLE){
-		last_error = loop(&box_data_array[0], &curr_payload, simple_pkmn_array);
+		last_error = loop(&box_data_array[0], generate_payload(curr_rom, false), simple_pkmn_array);
 	}
 }
 
@@ -154,10 +155,10 @@ int Pokemon_Party::get_lang(){
 bool Pokemon_Party::load_payload(){
 	for (int i = 0; i < NUM_PAYLOADS; i++)
 	{
-		if (lang == list_of_payloads[i]->language &&
-			game == list_of_payloads[i]->version)
+		if (lang == list_of_gb_roms[i]->language &&
+			game == list_of_gb_roms[i]->version)
 		{
-			curr_payload = *list_of_payloads[i];
+			curr_rom = *list_of_gb_roms[i];
 			return true;
 		}
 	}  

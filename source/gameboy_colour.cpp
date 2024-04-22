@@ -5,13 +5,12 @@
 #include <string>
 #include "gameboy_colour.h"
 #include "pokemon_trade.h"
-#include "output.h"
 #include "script_array.h"
 #include "debug_mode.h"
 #include "interrupt.h"
 #include "text_engine.h"
 #include "global_frame_controller.h"
-#include "payloads/base_payload_struct.h"
+#include "gb_rom_values/eng_gb_rom_values.h"
 
 #define TIMEOUT 2
 #define TIMEOUT_ONE_LENGTH 1000000 // Maybe keep a 10:1 ratio between ONE and TWO?
@@ -109,7 +108,7 @@ void setup()
   }
 }
 
-byte handleIncomingByte(byte in, byte *box_data_storage, PAYLOAD *curr_payload, Simplified_Pokemon *curr_simple_array)
+byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, Simplified_Pokemon *curr_simple_array)
 {
   // TODO: Change to a switch statement
   if (state == hs)
@@ -234,7 +233,7 @@ byte handleIncomingByte(byte in, byte *box_data_storage, PAYLOAD *curr_payload, 
 
   else if (state == send_remove_array)
   {
-    if (data_counter >= 39)
+    if (data_counter >= 29) // This assumes the preamble does not count towards the number of bytes sent over the cable
     {
       state = end2;
     }
@@ -245,7 +244,7 @@ byte handleIncomingByte(byte in, byte *box_data_storage, PAYLOAD *curr_payload, 
   return in;
 }
 
-int loop(byte *box_data_storage, PAYLOAD *curr_payload, Simplified_Pokemon *curr_simple_array)
+int loop(byte *box_data_storage, byte *curr_payload, Simplified_Pokemon *curr_simple_array)
 {
   int counter = 0;
   while (true)
@@ -306,9 +305,9 @@ int loop(byte *box_data_storage, PAYLOAD *curr_payload, Simplified_Pokemon *curr
   }
 };
 
-byte exchange_parties(byte curr_in, PAYLOAD *curr_payload)
+byte exchange_parties(byte curr_in, byte *curr_payload)
 {
-  int ret = curr_payload->payload_array[data_counter];
+  int ret = curr_payload[data_counter];
   data_counter += 1;
   return ret;
 };

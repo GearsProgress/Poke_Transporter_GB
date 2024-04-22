@@ -1,5 +1,5 @@
-#ifndef BASE_ROM_STRUCT_H
-#define BASE_ROM_STRUCT_H
+#ifndef BASE_GBA_ROM_STRUCT_H
+#define BASE_GBA_ROM_STRUCT_H
 
 #include <tonc.h>
 

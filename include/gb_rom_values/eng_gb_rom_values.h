@@ -1,9 +1,25 @@
-#include <tonc.h>
+#ifndef ENG_GB_ROM_VALUES_H
+#define ENG_GB_ROM_VALUES_H
 
-#include "payloads/base_payload_struct.h"
-#include "pokemon_data.h"
+// These are redefined because C++ doesn't like compiling TONC
+#define JPN_ID 1
+#define ENG_ID 2
+#define FRE_ID 3
+#define ITA_ID 4
+#define GER_ID 5
+#define SPA_ID 7
+#define KOR_ID 8
 
-const struct PAYLOAD ENG_RED_BLUE = {
+#define RED_GREEN_ID 0
+#define RED_BLUE_ID 1
+#define BLUE_ID 2
+#define YELLOW_ID 3
+#define GOLD_SILVER_ID 4
+#define CRYSTAL_ID 5
+
+#include "gb_rom_values/base_gb_rom_struct.h"
+
+const struct GB_ROM ENG_RED_BLUE = {
     .language = ENG_ID,
     .version = RED_BLUE_ID,
     .payload_array = {
@@ -158,4 +174,42 @@ const struct PAYLOAD ENG_RED_BLUE = {
         // which is part of the RNG seed. From there we can jump anywhere- and we choose to jump to D887,
         // which is the rival's name. This code fixes the stack and jumps to the patchlist, which is where
         // our final code is.
-    }};
+    
+    },
+    .print_string_start = 0xC456,
+    .stack_overwrite_location = 0xDFDD,
+    .short_pkmn_name = 0xE3,
+    .pointer_pkmn_name = 0xFC,
+    .custom_name = {0x85, 0x84, 0x8D, 0x8D, 0x84, 0x8B, 0x50, 0x50, 0x50, 0x50, 0x50},
+    .enter_vector_destination = 0x05,
+    .enter_vector_location = 0xC5D6,
+    .clearScreen = 0x190F,
+    .textBoarderUppLeft = 0xC42E,
+    .textBoarderWidth = 3,
+    .textBoarderHeight = 14,
+    .CableClub_TextBoxBoarder = 0x5AB3,
+    .transferWaitString = 0xC67A,
+    .transferStringLocation = 0xC443,
+    .placeString = 0x1955,
+    .hSerialConnectionStatus = 0xFFAA,
+    .wBoxDataStart = 0xDA80,
+    .wBoxDataEnd = 0xDEE2,
+    .Serial_ExchangeBytes = 0x216F,
+    .garbageDataLocation = 0x0316, // Starts with 0xFD
+    .pkmnTransferArray = 0xC651,
+    .wRemoveMonFromBox = 0xCF95,
+    .arrayCounter = 0xC650,
+    .wBoxCount = 0xDA80,
+    .wWhichPokemon = 0xCF92,
+    ._RemovePokemon = 0x7B68,
+    .SaveSAVtoSRAM1 = 0x77E2,
+    .SaveSAVtoSRAM1_memBank = 0x1C,
+    .Bankswitch = 0x35D6,
+    .SoftReset = 0x1F49,
+    .transferString = {     // TRANSFERRING..\n
+                            //  PLEASE WAIT!
+        0x93, 0x91, 0x80, 0x8D, 0x92, 0x85, 0x84, 0x91, 0x91, 0x88, 0x8D, 0x86, 0xF2, 0xF2, 0x4E,
+        0x7F, 0x8F, 0x8B, 0x84, 0x80, 0x92, 0x84, 0x7F, 0x96, 0x80, 0x88, 0x93, 0xE7, 0x7F, 0x50}
+    };
+
+#endif

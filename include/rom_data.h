@@ -2,7 +2,7 @@
 #define ROM_POINTERS_H
 
 #include <tonc.h>
-#include "rom_values/base_rom_struct.h"
+#include "gba_rom_values/base_gba_rom_struct.h"
 
 #define RUBY_ID 0x415856      // AXV
 #define SAPPHIRE_ID 0x415850  // AXP
