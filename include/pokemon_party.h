@@ -5,8 +5,6 @@
 #include "pokemon.h"
 #include "gb_rom_values/eng_gb_rom_values.h"
 
-#define BOX_DATA_ARRAY_SIZE 0x462
-
 class Pokemon_Party
 {
 public:
@@ -20,7 +18,7 @@ public:
     void set_lang(int nLang);
     int get_lang();
     bool load_payload();
-    GB_ROM curr_rom;
+    GB_ROM curr_gb_rom;
     void show_sprites();
     Simplified_Pokemon simple_pkmn_array[30];
     Simplified_Pokemon get_simple_pkmn(int index);

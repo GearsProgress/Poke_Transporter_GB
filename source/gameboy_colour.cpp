@@ -32,6 +32,8 @@
 #define remove_array_preamble 13
 #define send_remove_array 14
 #define end2 15
+#define wait_to_resend 16
+#define resend_payload 17
 
 const int MODE = 1; // mode=0 will transfer pokemon data from pokemon.h
                     // mode=1 will copy pokemon party data being received
@@ -54,7 +56,7 @@ int FF_count;
 int zero_count;
 
 int state;
-int mosi_delay = 16; // inital delay, speeds up once sending PKMN
+int mosi_delay = 4; // inital delay, speeds up once sending PKMN
 
 std::string out_array[10];
 
@@ -108,11 +110,17 @@ void setup()
   }
 }
 
-byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, Simplified_Pokemon *curr_simple_array)
+byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, Simplified_Pokemon *curr_simple_array)
 {
   // TODO: Change to a switch statement
   if (state == hs)
   {
+    if (curr_gb_rom->generation == 2)
+    {
+      state = ack;
+      // mosi_delay = 1;
+      return 0x00;
+    }
     if (in == 0x00)
     {
       state = ack;
@@ -122,26 +130,38 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, Sim
 
   else if (state == ack)
   {
-    if (in == 0x00)
+    if (curr_gb_rom->generation == 2)
     {
-      state = menu;
-      return 0x00;
+      if (in == 0x61)
+      {
+        state = menu;
+        return 0x61;
+      }
+      return 0x01;
     }
-    else if (in == 0x02)
+    else
     {
-      state = hs;
-      return 0x02;
+      if (in == 0x00)
+      {
+        state = menu;
+        return 0x00;
+      }
+      else if (in == 0x02)
+      {
+        state = hs;
+        return 0x02;
+      }
     }
   }
 
   else if (state == menu)
   {
-    if (in == 0x60)
+    if (in == 0x60 || in == 0x61)
     {
       tte_erase_screen();
       tte_write("Connected to Game Boy.");
       state = pretrade;
-      return 0x60;
+      return in;
     }
     else if (in == 0x02)
     {
@@ -156,10 +176,15 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, Sim
 
   else if (state == pretrade)
   {
-    if (in == 0xd0)
+    if (in == 0xD0)
     {
       state = trade;
-      return 0xd4;
+      return 0xD4;
+    }
+    else if (in == 0xD1)
+    {
+      state = trade;
+      return 0xD1;
     }
     return in;
   }
@@ -186,9 +211,20 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, Sim
 
   else if (state == trade_data)
   {
-    if (data_counter >= PAYLOAD_SIZE && in == 0xFD)
+    if (data_counter >= curr_gb_rom->payload_size)
     {
-      state = box_preamble;
+      if (in == 0xFD)
+      {
+        state = box_preamble;
+      }
+      else if ((curr_gb_rom->method == METHOD_MEW) && (in == 0xFE))
+      {
+        state = wait_to_resend;
+      }
+      else
+      {
+        return 0x00;
+      }
     }
     return exchange_parties(in, curr_payload);
   }
@@ -206,11 +242,32 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, Sim
 
   else if (state == box_data)
   {
-    if (data_counter >= BOX_DATA_ARRAY_SIZE)
+    if (data_counter >= curr_gb_rom->box_data_size)
     {
       state = end1;
     }
     return exchange_boxes(in, box_data_storage);
+  }
+
+  else if (state == wait_to_resend)
+  {
+    if (in != 0xFE)
+    {
+      state = resend_payload;
+      data_counter = 0x1B4;
+    }
+    return 0x00;
+  }
+
+  else if (state == resend_payload)
+  {
+    if (data_counter >= (0x1B4 + 0xC2 + 0x07)) // Offset + size + preamble
+    {
+      state = box_preamble;
+      data_counter = curr_gb_rom->payload_size;
+      mosi_delay = 1;
+    }
+    return exchange_parties(in, curr_payload);
   }
 
   else if (state == reboot)
@@ -244,7 +301,7 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, Sim
   return in;
 }
 
-int loop(byte *box_data_storage, byte *curr_payload, Simplified_Pokemon *curr_simple_array)
+int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, Simplified_Pokemon *curr_simple_array)
 {
   int counter = 0;
   while (true)
@@ -261,7 +318,7 @@ int loop(byte *box_data_storage, byte *curr_payload, Simplified_Pokemon *curr_si
           std::to_string(in_data) + "][" +
           std::to_string(out_data) + "]\n");
     }
-    out_data = handleIncomingByte(in_data, box_data_storage, curr_payload, curr_simple_array);
+    out_data = handleIncomingByte(in_data, box_data_storage, curr_payload, curr_gb_rom, curr_simple_array);
 
     if (FF_count > 25)
     {

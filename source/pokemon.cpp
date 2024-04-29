@@ -32,7 +32,7 @@ void Pokemon::load_data(int index, byte *party_data, int game, int lang)
         case GOLD_SILVER_ID:
         case CRYSTAL_ID:
             gen = 2;
-            pkmn_size = 48;
+            pkmn_size = 32;
             ot_size = 6;
             nickname_size = 6;
             box_size = 30;
@@ -56,7 +56,7 @@ void Pokemon::load_data(int index, byte *party_data, int game, int lang)
         case GOLD_SILVER_ID:
         case CRYSTAL_ID:
             gen = 2;
-            pkmn_size = 48;
+            pkmn_size = 32;
             ot_size = 11;
             nickname_size = 11;
             box_size = 20;

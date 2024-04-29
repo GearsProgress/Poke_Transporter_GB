@@ -7,3 +7,4 @@ build/
 *.zip
 .vscode/
 source/payload_builder.exe
+source/test_payload.txt
