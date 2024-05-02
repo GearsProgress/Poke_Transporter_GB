@@ -61,21 +61,24 @@ extern OBJ_ATTR *btn_lang_spa;
 extern OBJ_ATTR *btn_lang_kor;
 
 #define SPRITE_BATCH_GAMES 2
-#include "button_red_green_left.h"
-extern OBJ_ATTR *button_red_green_left;
-extern OBJ_ATTR *button_red_green_right;
+#include "button_green_left.h"
+extern OBJ_ATTR *button_green_left;
+extern OBJ_ATTR *button_green_right;
 #include "button_blue_left.h"
 extern OBJ_ATTR *button_blue_left;
 extern OBJ_ATTR *button_blue_right;
-#include "button_red_blue_left.h"
-extern OBJ_ATTR *button_red_blue_left;
-extern OBJ_ATTR *button_red_blue_right;
+#include "button_red_left.h"
+extern OBJ_ATTR *button_red_left;
+extern OBJ_ATTR *button_red_right;
 #include "button_yellow_left.h"
 extern OBJ_ATTR *button_yellow_left;
 extern OBJ_ATTR *button_yellow_right;
-#include "button_gold_silver_left.h"
-extern OBJ_ATTR *button_gold_silver_left;
-extern OBJ_ATTR *button_gold_silver_right;
+#include "button_gold_left.h"
+extern OBJ_ATTR *button_gold_left;
+extern OBJ_ATTR *button_gold_right;
+#include "button_silver_left.h"
+extern OBJ_ATTR *button_silver_left;
+extern OBJ_ATTR *button_silver_right;
 #include "button_crystal_left.h"
 extern OBJ_ATTR *button_crystal_left;
 extern OBJ_ATTR *button_crystal_right;

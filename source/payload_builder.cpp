@@ -74,9 +74,9 @@ byte *generate_payload(GB_ROM curr_rom, bool debug)
         }
 
         // Set the entrance vector
-        payload_storage[curr_rom.enter_vector_destination] = 0xC3;
-        payload_storage[curr_rom.enter_vector_destination + 1] = curr_rom.enter_vector_location & 0xFF;
-        payload_storage[curr_rom.enter_vector_destination + 2] = (curr_rom.enter_vector_location >> 8) & 0xFF;
+        payload_storage[5] = 0xC3;
+        payload_storage[6] = curr_rom.enter_vector_location & 0xFF;
+        payload_storage[7] = (curr_rom.enter_vector_location >> 8) & 0xFF;
 
         // Patchlist
         // At 0x1BB / 0x1DE, 0xC2 in length (0xC4, but the last 2 are unused)
@@ -92,21 +92,21 @@ byte *generate_payload(GB_ROM curr_rom, bool debug)
 
         // ld hl, [upper left textbox corner in VRAM]
         payload_storage[offset++] = 0x21;
-        payload_storage[offset++] = (curr_rom.textBoarderUppLeft >> 0) & 0xFF;
-        payload_storage[offset++] = (curr_rom.textBoarderUppLeft >> 8) & 0xFF;
+        payload_storage[offset++] = (curr_rom.textBorderUppLeft >> 0) & 0xFF;
+        payload_storage[offset++] = (curr_rom.textBorderUppLeft >> 8) & 0xFF;
 
         // ld b, 3 [height]
         payload_storage[offset++] = 0x06;
-        payload_storage[offset++] = (curr_rom.textBoarderWidth >> 0) & 0xFF;
+        payload_storage[offset++] = (curr_rom.textBorderWidth >> 0) & 0xFF;
 
         // ld c, 14 [width]
         payload_storage[offset++] = 0x0E;
-        payload_storage[offset++] = (curr_rom.textBoarderHeight >> 0) & 0xFF;
+        payload_storage[offset++] = (curr_rom.textBorderHeight >> 0) & 0xFF;
 
-        // call CableClub_TextBoxBoarder
+        // call CableClub_TextBoxBorder
         payload_storage[offset++] = 0xCD;
-        payload_storage[offset++] = (curr_rom.CableClub_TextBoxBoarder >> 0) & 0xFF;
-        payload_storage[offset++] = (curr_rom.CableClub_TextBoxBoarder >> 8) & 0xFF;
+        payload_storage[offset++] = (curr_rom.CableClub_TextBoxBorder >> 0) & 0xFF;
+        payload_storage[offset++] = (curr_rom.CableClub_TextBoxBorder >> 8) & 0xFF;
 
         // ld hl, [transfer string location]
         payload_storage[offset++] = 0x21;
@@ -282,14 +282,24 @@ byte *generate_payload(GB_ROM curr_rom, bool debug)
         payload_storage[offset++] = 0xDD;
 
         /* Save the current box */
+        // ld b, 0x1C [memory bank of SaveSAVtoSRAM1]
+        payload_storage[offset++] = 0x06;
+        payload_storage[offset++] = (curr_rom.SaveSAVtoSRAM1 >> 16) & 0xFF;
+
         // ld hl, SaveSAVtoSRAM1
         payload_storage[offset++] = 0x21;
         payload_storage[offset++] = (curr_rom.SaveSAVtoSRAM1 >> 0) & 0xFF;
         payload_storage[offset++] = (curr_rom.SaveSAVtoSRAM1 >> 8) & 0xFF;
 
-        // ld b, 0x1C [memory bank of SaveSAVtoSRAM1]
-        payload_storage[offset++] = 0x06;
-        payload_storage[offset++] = (curr_rom.SaveSAVtoSRAM1_memBank >> 0) & 0xFF;
+        // call Bankswitch [which will jump to what's loaded in HL]
+        payload_storage[offset++] = 0xCD;
+        payload_storage[offset++] = (curr_rom.Bankswitch >> 0) & 0xFF;
+        payload_storage[offset++] = (curr_rom.Bankswitch >> 8) & 0xFF;
+
+         // ld hl, SaveSAVtoSRAM2
+        payload_storage[offset++] = 0x21;
+        payload_storage[offset++] = (curr_rom.SaveSAVtoSRAM2 >> 0) & 0xFF;
+        payload_storage[offset++] = (curr_rom.SaveSAVtoSRAM2 >> 8) & 0xFF;
 
         // call Bankswitch [which will jump to what's loaded in HL]
         payload_storage[offset++] = 0xCD;
@@ -426,7 +436,7 @@ byte *generate_payload(GB_ROM curr_rom, bool debug)
 
         // ld a, 0x1C
         payload_storage[offset++] = 0x3E;
-        payload_storage[offset++] = (curr_rom.SaveSAVtoSRAM1_memBank >> 0) & 0xFF;
+        payload_storage[offset++] = (curr_rom.SaveSAVtoSRAM1 >> 16) & 0xFF;
 
         // call BankswitchCommon
         payload_storage[offset++] = 0xCD;
@@ -481,21 +491,21 @@ byte *generate_payload(GB_ROM curr_rom, bool debug)
 
         // ld hl, [upper left textbox corner in VRAM]
         payload_storage[offset++] = 0x21;
-        payload_storage[offset++] = (curr_rom.textBoarderUppLeft >> 0) & 0xFF;
-        payload_storage[offset++] = (curr_rom.textBoarderUppLeft >> 8) & 0xFF;
+        payload_storage[offset++] = (curr_rom.textBorderUppLeft >> 0) & 0xFF;
+        payload_storage[offset++] = (curr_rom.textBorderUppLeft >> 8) & 0xFF;
 
         // ld b, 3 [height]
         payload_storage[offset++] = 0x06;
-        payload_storage[offset++] = (curr_rom.textBoarderWidth >> 0) & 0xFF;
+        payload_storage[offset++] = (curr_rom.textBorderWidth >> 0) & 0xFF;
 
         // ld c, 14 [width]
         payload_storage[offset++] = 0x0E;
-        payload_storage[offset++] = (curr_rom.textBoarderHeight >> 0) & 0xFF;
+        payload_storage[offset++] = (curr_rom.textBorderHeight >> 0) & 0xFF;
 
-        // call CableClub_TextBoxBoarder
+        // call CableClub_TextBoxBorder
         payload_storage[offset++] = 0xCD;
-        payload_storage[offset++] = (curr_rom.CableClub_TextBoxBoarder >> 0) & 0xFF;
-        payload_storage[offset++] = (curr_rom.CableClub_TextBoxBoarder >> 8) & 0xFF;
+        payload_storage[offset++] = (curr_rom.CableClub_TextBoxBorder >> 0) & 0xFF;
+        payload_storage[offset++] = (curr_rom.CableClub_TextBoxBorder >> 8) & 0xFF;
 
         // ld hl, [transfer string location]
         payload_storage[offset++] = 0x21;
@@ -682,7 +692,7 @@ byte *generate_payload(GB_ROM curr_rom, bool debug)
         /* Save the current box */
         // ld a, 0x1C
         payload_storage[offset++] = 0x3E;
-        payload_storage[offset++] = (curr_rom.SaveSAVtoSRAM1_memBank >> 0) & 0xFF;
+        payload_storage[offset++] = (curr_rom.SaveSAVtoSRAM1 >> 16) & 0xFF;
 
         // call BankswitchCommon
         payload_storage[offset++] = 0xCD;
@@ -784,7 +794,7 @@ byte *generate_payload(GB_ROM curr_rom, bool debug)
         // write_call(curr_rom.generation, payload_storage, offset, 0x0363D8);
 
         // Saving the box overwrites our code, so we need to move it here.
-        write_call(curr_rom.generation, payload_storage, offset, 0x054DF6);
+        write_call(curr_rom.generation, payload_storage, offset, curr_rom.SaveBox);
 
         // jp SoftReset
         payload_storage[offset++] = 0xC3;
@@ -812,19 +822,19 @@ byte *generate_payload(GB_ROM curr_rom, bool debug)
 
         // ld hl, [upper left textbox corner in VRAM]
         payload_storage[offset++] = 0x21;
-        payload_storage[offset++] = (curr_rom.textBoarderUppLeft >> 0) & 0xFF;
-        payload_storage[offset++] = (curr_rom.textBoarderUppLeft >> 8) & 0xFF;
+        payload_storage[offset++] = (curr_rom.textBorderUppLeft >> 0) & 0xFF;
+        payload_storage[offset++] = (curr_rom.textBorderUppLeft >> 8) & 0xFF;
 
         // ld b, 3 [height]
         payload_storage[offset++] = 0x06;
-        payload_storage[offset++] = (curr_rom.textBoarderWidth >> 0) & 0xFF;
+        payload_storage[offset++] = (curr_rom.textBorderWidth >> 0) & 0xFF;
 
         // ld c, 14 [width]
         payload_storage[offset++] = 0x0E;
-        payload_storage[offset++] = (curr_rom.textBoarderHeight >> 0) & 0xFF;
+        payload_storage[offset++] = (curr_rom.textBorderHeight >> 0) & 0xFF;
 
-        // call CableClub_TextBoxBoarder
-        write_call(curr_rom.generation, payload_storage, offset, curr_rom.CableClub_TextBoxBoarder);
+        // call CableClub_TextBoxBorder
+        write_call(curr_rom.generation, payload_storage, offset, curr_rom.CableClub_TextBoxBorder);
 
         // ld hl, [transfer string location]
         payload_storage[offset++] = 0x21;
@@ -852,7 +862,7 @@ byte *generate_payload(GB_ROM curr_rom, bool debug)
         // call OpenSRAM
         payload_storage[offset++] = 0x3E;
         payload_storage[offset++] = 0x01;
-        write_call(curr_rom.generation, payload_storage, offset, 0x0030E1);
+        write_call(curr_rom.generation, payload_storage, offset, curr_rom.OpenSRAM);
 
         // ld hl, (wBoxDataStart - 1) [data to send]
         payload_storage[offset++] = 0x21;
@@ -1003,8 +1013,8 @@ byte *generate_payload(GB_ROM curr_rom, bool debug)
 
         // jp pkmn list (because saving the box overwrites the data)
         payload_storage[offset++] = 0xC3;
-        payload_storage[offset++] = 0xB4;
-        payload_storage[offset++] = 0xC7;
+        payload_storage[offset++] = (curr_rom.enter_vector_location >> 0) & 0xFF;
+        payload_storage[offset++] = (curr_rom.enter_vector_location >> 8) & 0xFF;
 
         // 72 total bytes of string/array stuff
 
@@ -1061,7 +1071,6 @@ void write_call(int generation, byte array_data[], int &offset, word call_locati
     }
     else
     {
-        // Farcall: Load bank into a, adr in hl, rst 08 (0xCF)
         // Swap banks: Load bank into a, call rst 10 (0xD7)
         if (((call_location >> 16) & 0xFF) != 0x00)
         {
@@ -1075,11 +1084,11 @@ void write_call(int generation, byte array_data[], int &offset, word call_locati
     }
 };
 
-int test_main()
+int main()
 {
     freopen("test_payload.txt", "w", stdout);
     std::cout << std::endl;
-    byte *payload = generate_payload(ENG_GOLD_SILVER, true);
+    byte *payload = generate_payload(ENG_CRYSTAL, true);
     for (int i = 0; i < PAYLOAD_SIZE; i++)
     {
         std::cout << "0x" << std::setfill('0') << std::setw(2) << std::hex << std::uppercase << (unsigned int)payload[i] << ", ";

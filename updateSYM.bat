@@ -1,0 +1,1 @@
+nm --size-sort Pokemon_Mirror_mb.elf > Pokemon_Mirror_mb.sym

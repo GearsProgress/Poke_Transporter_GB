@@ -12,7 +12,9 @@
 const GB_ROM *list_of_gb_roms[NUM_PAYLOADS] = {
         &ENG_RED_BLUE,
 		&ENG_YELLOW,
-		&ENG_GOLD_SILVER,
+		&ENG_GOLD,
+		&ENG_SILVER,
+		&ENG_CRYSTAL,
     };
 
 byte gen1_debug_box_data[0x462] = {

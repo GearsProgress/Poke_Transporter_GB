@@ -42,6 +42,7 @@ private:
     int x_max;
     int y_min;
     int y_max;
+    int offset_value;
     int bottom_offset;
     bool cancel_enabled;
 };

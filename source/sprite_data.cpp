@@ -119,16 +119,18 @@ OBJ_ATTR *btn_lang_ger = &obj_buffer[num_sprites++];
 OBJ_ATTR *btn_lang_spa = &obj_buffer[num_sprites++];
 OBJ_ATTR *btn_lang_kor = &obj_buffer[num_sprites++];
 
-OBJ_ATTR *button_red_green_left = &obj_buffer[num_sprites++];
-OBJ_ATTR *button_red_green_right = &obj_buffer[num_sprites++];
+OBJ_ATTR *button_green_left = &obj_buffer[num_sprites++];
+OBJ_ATTR *button_green_right = &obj_buffer[num_sprites++];
 OBJ_ATTR *button_blue_left = &obj_buffer[num_sprites++];
 OBJ_ATTR *button_blue_right = &obj_buffer[num_sprites++];
-OBJ_ATTR *button_red_blue_left = &obj_buffer[num_sprites++];
-OBJ_ATTR *button_red_blue_right = &obj_buffer[num_sprites++];
+OBJ_ATTR *button_red_left = &obj_buffer[num_sprites++];
+OBJ_ATTR *button_red_right = &obj_buffer[num_sprites++];
 OBJ_ATTR *button_yellow_left = &obj_buffer[num_sprites++];
 OBJ_ATTR *button_yellow_right = &obj_buffer[num_sprites++];
-OBJ_ATTR *button_gold_silver_left = &obj_buffer[num_sprites++];
-OBJ_ATTR *button_gold_silver_right = &obj_buffer[num_sprites++];
+OBJ_ATTR *button_gold_left = &obj_buffer[num_sprites++];
+OBJ_ATTR *button_gold_right = &obj_buffer[num_sprites++];
+OBJ_ATTR *button_silver_left = &obj_buffer[num_sprites++];
+OBJ_ATTR *button_silver_right = &obj_buffer[num_sprites++];
 OBJ_ATTR *button_crystal_left = &obj_buffer[num_sprites++];
 OBJ_ATTR *button_crystal_right = &obj_buffer[num_sprites++];
 
@@ -221,16 +223,18 @@ void load_temp_sprites(int sprite_batch_id)
         break;
 
     case SPRITE_BATCH_GAMES:
-        load_sprite(button_red_green_left, button_red_green_leftTiles, button_red_green_leftTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-        load_sprite(button_red_green_right, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
+        load_sprite(button_green_left, button_green_leftTiles, button_green_leftTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
+        load_sprite(button_green_right, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
         load_sprite(button_blue_left, button_blue_leftTiles, button_blue_leftTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
         load_sprite(button_blue_right, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
-        load_sprite(button_red_blue_left, button_red_blue_leftTiles, button_red_blue_leftTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-        load_sprite(button_red_blue_right, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
+        load_sprite(button_red_left, button_red_leftTiles, button_red_leftTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
+        load_sprite(button_red_right, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
         load_sprite(button_yellow_left, button_yellow_leftTiles, button_yellow_leftTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
         load_sprite(button_yellow_right, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
-        load_sprite(button_gold_silver_left, button_gold_silver_leftTiles, button_gold_silver_leftTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-        load_sprite(button_gold_silver_right, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
+        load_sprite(button_gold_left, button_gold_leftTiles, button_gold_leftTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
+        load_sprite(button_gold_right, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
+        load_sprite(button_silver_left, button_silver_leftTiles, button_silver_leftTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
+        load_sprite(button_silver_right, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
         load_sprite(button_crystal_left, button_crystal_leftTiles, button_crystal_leftTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
         load_sprite(button_crystal_right, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
         break;

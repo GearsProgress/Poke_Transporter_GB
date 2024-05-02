@@ -139,22 +139,29 @@ void populate_lang_buttons()
 void populate_game_buttons()
 {
     game_select_jpn.clear_vector();
-    game_select_jpn.add_button(Button(button_red_green_left, button_red_green_right, 64), RED_GREEN_ID);
+    game_select_jpn.set_rows_and_columns(3, 3);
+    game_select_jpn.add_button(Button(button_green_left, button_green_right, 64), GREEN_ID);
+    game_select_jpn.add_button(Button(button_red_left, button_red_right, 64), RED_ID);
     game_select_jpn.add_button(Button(button_blue_left, button_blue_right, 64), BLUE_ID);
     game_select_jpn.add_button(Button(button_yellow_left, button_yellow_right, 64), YELLOW_ID);
-    game_select_jpn.add_button(Button(button_gold_silver_left, button_gold_silver_right, 64), GOLD_SILVER_ID);
+    game_select_jpn.add_button(Button(button_gold_left, button_gold_right, 64), GOLD_ID);
+    game_select_jpn.add_button(Button(button_silver_left, button_silver_right, 64), SILVER_ID);
     game_select_jpn.add_button(Button(button_crystal_left, button_crystal_right, 64), CRYSTAL_ID);
-    game_select_jpn.set_xy_min_max(48, 240, 0, 120);
+    game_select_jpn.set_xy_min_max(32, 240, 0, 120);
 
     game_select_kor.clear_vector();
-    game_select_kor.add_button(Button(button_gold_silver_left, button_gold_silver_right, 64), GOLD_SILVER_ID);
+    game_select_kor.set_rows_and_columns(1, 2);
+    game_select_kor.add_button(Button(button_gold_left, button_gold_right, 64), GOLD_ID);
+    game_select_kor.add_button(Button(button_silver_left, button_silver_right, 64), SILVER_ID);
     game_select_kor.set_xy_min_max(48, 240, 0, 120);
 
     game_select_def.clear_vector();
-    game_select_def.set_rows_and_columns(2, 2);
-    game_select_def.add_button(Button(button_red_blue_left, button_red_blue_right, 64), RED_BLUE_ID);
+    game_select_def.set_rows_and_columns(3, 2);
+    game_select_def.add_button(Button(button_red_left, button_red_right, 64), RED_ID);
+    game_select_def.add_button(Button(button_blue_left, button_blue_right, 64), RED_ID); // red and blue are identical, so we just say red
     game_select_def.add_button(Button(button_yellow_left, button_yellow_right, 64), YELLOW_ID);
-    game_select_def.add_button(Button(button_gold_silver_left, button_gold_silver_right, 64), GOLD_SILVER_ID);
+    game_select_def.add_button(Button(button_gold_left, button_gold_right, 64), GOLD_ID);
+    game_select_def.add_button(Button(button_silver_left, button_silver_right, 64), SILVER_ID);
     game_select_def.add_button(Button(button_crystal_left, button_crystal_right, 64), CRYSTAL_ID);
     game_select_def.set_xy_min_max(48, 240, 0, 120);
 }
