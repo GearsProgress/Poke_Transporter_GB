@@ -36,8 +36,9 @@
 #define DIA_NO_PAYLOAD              27
 #define DIA_IN_BOX                  28
 #define DIA_MYTHIC_CONVERT          29
+#define DIA_CANCEL                  30
 
-#define                    DIA_SIZE 30
+#define                    DIA_SIZE 31
 #define DIA_END DIA_SIZE
 
 // Commands
@@ -56,8 +57,9 @@
 #define CMD_CONTINUE_LINK       DIA_END + 12
 #define CMD_BOX_MENU            DIA_END + 13
 #define CMD_MYTHIC_MENU         DIA_END + 14
+#define CMD_LOAD_SIMP           DIA_END + 15
 
-#define                         CMD_SIZE  15
+#define                         CMD_SIZE  16
 #define CMDS_END DIA_END + CMD_SIZE
 
 // Conditionals

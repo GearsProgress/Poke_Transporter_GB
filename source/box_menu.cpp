@@ -8,9 +8,6 @@
 #include "box_menu.h"
 #include "pokemon_data.h"
 
-#define CANCEL_BUTTON 1
-#define CONFIRM_BUTTON 2
-
 Box_Menu::Box_Menu(){};
 
 int Box_Menu::box_main(Pokemon_Party party_data)
@@ -30,9 +27,9 @@ int Box_Menu::box_main(Pokemon_Party party_data)
     confirm_button.set_location(136, 112);
     cancel_button.show();
     confirm_button.show();
-    int curr_button = 0;
-    int x = 0;
-    int y = 0;
+    curr_button = 0;
+    x = 0;
+    y = 0;
     bool update_pos = true;
     obj_unhide(box_select, 0);
     while (true)
@@ -109,6 +106,7 @@ int Box_Menu::box_main(Pokemon_Party party_data)
                 tte_erase_screen();
                 obj_unhide(prof, 0);
                 REG_BG2VOFS = BG2VOF_SMALL_TEXTBOX;
+                global_next_frame();
                 return curr_button;
             }
         }

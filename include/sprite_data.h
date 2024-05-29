@@ -97,6 +97,11 @@ extern OBJ_ATTR *button_cancel_right;
 extern OBJ_ATTR *button_confirm_left;
 extern OBJ_ATTR *button_confirm_right;
 
+#include "ptgb_logo_l.h"
+extern OBJ_ATTR *ptgb_logo_l;
+#include "ptgb_logo_r.h"
+extern OBJ_ATTR *ptgb_logo_r;
+
 #define BG2VOF_SMALL_TEXTBOX 96
 #define BG2VOF_LARGE_TEXTBOX 0
 
@@ -105,6 +110,7 @@ extern OBJ_ATTR *button_confirm_right;
 #define BTN_PAL 2
 #define BTN_LIT_PAL 3
 #define MENU_SPRITE_PAL 4
+#define LOGO_PAL 5
 
 void load_sprite(OBJ_ATTR *sprite, const unsigned int objTiles[], int objTilesLen,
                  u32 &tile_id, u32 pal_bank, int attr0, int attr1, u32 priority);

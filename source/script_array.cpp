@@ -24,7 +24,7 @@ std::string_view dialogue[DIA_SIZE];
 
 void populate_dialogue()
 {
-    dialogue[DIA_OPEN] = "Hey there! I'm Professor\nFennel. As you can see, I'm\na scientist.|In fact, the subject I'm \nresearching is Trainers!|My dream is to collect save files of various trainers, \nbut I haven't had any \nbreakthroughs yet...|So in the meantime, I have a\ndifferent project!|In my home region, there's a\nlocation that can make a\nPok@mon's dreams into\nreality.|This means that any other\nPok@mon they meet in their\ndreams become real!|That's fantastic, but my\ngoal is to do the same-\njust with a trainer's dream\ninstead!|I've successfully been able\nto send a Pok@mon into\nand out of a trainer's\ndream...|but I've been unsuccessful\nin pulling out a new Pok@mon\nwithout...\ncatastrophic results.|That's when I had a\nbreakthrough- I realized if \nI sent in a DITTO,|it could transform into the\nPok@mon found within that\ntrainer's dream!|That's why I need your help!\nI want to bring as many\nPok@mon out of your dreams\nas possible!|There's just over 250\nPok@mon I want to catalogue\nin my Dream Pok@Dex-\nor Dream Dex for short.|But I'll let you keep any\nPok@mon- they're from your\ndreams after all!|I think that's everything...\nwhenever you're ready to\nstart, just let me know!";
+    dialogue[DIA_OPEN] = "Hey there! I'm Professor\nFennel. As you can see, I'm\na scientist.|In fact, the subject I'm \nresearching is Trainers!|My dream is to collect save files of various trainers, \nbut I haven't had any \nbreakthroughs yet...|So in the meantime, I've\nbeen working on a different\nproject with one of my old\nfriends!|In my home region, there's a\nlocation that can make a\nPok@mon's dreams into\nreality.|This means that any other\nPok@mon they meet in their\ndreams become real!|That's fantastic, but my\ngoal is to do the same-\njust with a trainer's dream\ninstead!|That's why I need your help!\nI want to bring as many\nPok@mon out of your dreams\nas possible!|There's just over 250\nPok@mon I want to catalogue\nin my Dream Pok@Dex-\nor Dream Dex for short.|But I'll let you keep any\nPok@mon- they're from your\ndreams after all!|I think that's everything...\nwhenever you're ready to\nstart, just let me know!";
     dialogue[DIA_E4] = "Hi trainer! I'm thrilled\nyou've decided to help with our research, but we need\nthe best of the best!|Come back after you've\nbeaten the Elite Four and\nbecome the Champion!";
     dialogue[DIA_MG_FRLGE] = "Sorry trainer, one more\nthing to take care of before\nwe can begin- you need to\nenable MYSTERY GIFT!|Head to the nearest Pok@\nMart and fill out the\nquestionnaire as follows:\nLINK TOGETHER WITH ALL|After that, you should be\nall set to go!|See you soon!";
     dialogue[DIA_MG_RS] = "Sorry trainer, one more\nthing to take care of before\nwe can begin- you need to\nenable MYSTERY EVENT!|Head to the PETALBURG\nPok@mon Center and tell the\nman next to the PC:\nMYSTERY EVENT IS EXCITING|After that, you should be\nall set to go!|See you soon!";
@@ -45,7 +45,8 @@ void populate_dialogue()
     dialogue[DIA_WHAT_LANG] = "What language is the Game\nBoy Pok@mon game that you're\ntransferring from?";
     dialogue[DIA_NO_PAYLOAD] = "I'm sorry, but that version\nin that language is not\ncurrently supported.";
     dialogue[DIA_IN_BOX] = "Great! Let's take a look at\nthe Pok@mon that will be\ntransfered.|Please remember, once a\nPok@mon is transfered, it\nCANNOT be returned to the\nGame Boy Game Pak.|Select confirm once you're\nready, or select cancel if\nyou want to keep the Pok@mon\non your Game Boy Game Pak.";
-    dialogue[DIA_MYTHIC_CONVERT] = "It looks like you have a really rare Mythical Pok@mon!|Due to their strength, it seems they've corrupted the machine.|I can stablize them if you'd like, but it'll modify some things like nickname, Original Trainer, and Shininess.|Otherwise I can leave them as is, but there's no guarentee that they'll be transferrable in the future.|Do you want me to stablize them?";
+    dialogue[DIA_MYTHIC_CONVERT] = "It looks like you have a\nrare Mythical Pok@mon!|Due to their rarity, it\nseems they've corrupted the\nmachine.|I can stablize them if you'd\nlike, but it'll change some\nthings like name, Original\nTrainer, and Shininess.|Otherwise I can leave them\nas is, but there's no\nguarentee that they'll be\ntransferrable in the future.|Do you want me to stablize\nthem?";
+    dialogue[DIA_CANCEL] = "No worries! Feel free to\ncome back if you change your\nmind!|See you around!";
 
     dialogue[DIA_ERROR_COLOSSEUM] = "It looks like you went to\nthe colosseum instead of the\ntrading room!|Let's try that again!";
     dialogue[DIA_ERROR_COM_ENDED] = "Communication with the other\ndevice was terminated.|Let's try that again!";
@@ -95,15 +96,17 @@ void populate_script()
     script[DIA_ERROR_COM_ENDED] = script_obj(dialogue[DIA_ERROR_COM_ENDED], DIA_START);
     script[COND_ERROR_COLOSSEUM] = script_obj(COND_ERROR_COLOSSEUM, COND_ERROR_DISCONNECT, DIA_ERROR_COLOSSEUM);
     script[DIA_ERROR_COLOSSEUM] = script_obj(dialogue[DIA_ERROR_COLOSSEUM], DIA_START);
-    script[COND_ERROR_DISCONNECT] = script_obj(COND_ERROR_DISCONNECT, COND_CHECK_MYTHIC, DIA_ERROR_DISCONNECT);
+    script[COND_ERROR_DISCONNECT] = script_obj(COND_ERROR_DISCONNECT, CMD_LOAD_SIMP, DIA_ERROR_DISCONNECT);
     script[DIA_ERROR_DISCONNECT] = script_obj(dialogue[DIA_ERROR_DISCONNECT], DIA_START);
 
     // Pause the transfer and show the user their box data
+    script[CMD_LOAD_SIMP] = script_obj(CMD_LOAD_SIMP, COND_CHECK_MYTHIC);
     script[COND_CHECK_MYTHIC] = script_obj(COND_CHECK_MYTHIC, DIA_MYTHIC_CONVERT, DIA_IN_BOX);
     script[DIA_MYTHIC_CONVERT] = script_obj(dialogue[DIA_MYTHIC_CONVERT], CMD_MYTHIC_MENU);
     script[CMD_MYTHIC_MENU] = script_obj(CMD_MYTHIC_MENU, DIA_IN_BOX);
     script[DIA_IN_BOX] = script_obj(dialogue[DIA_IN_BOX], CMD_BOX_MENU);
-    script[CMD_BOX_MENU] = script_obj(CMD_BOX_MENU, CMD_CONTINUE_LINK);
+    script[CMD_BOX_MENU] = script_obj(CMD_BOX_MENU, CMD_CONTINUE_LINK, DIA_CANCEL);
+    script[DIA_CANCEL] = script_obj(dialogue[DIA_CANCEL], CMD_END_SCRIPT);
     script[CMD_CONTINUE_LINK] = script_obj(CMD_CONTINUE_LINK, CMD_IMPORT_POKEMON);
 
     // Complete the transfer and give messages based on the transfered Pokemon
@@ -195,7 +198,7 @@ bool run_conditional(int index)
         return read_flag(curr_rom.mg_flag) || IGNORE_MG_E4_FLAGS;
 
     case COND_TUTORIAL_COMPLETE:
-        return get_tutorial_flag() || IGNORE_MG_E4_FLAGS;
+        return (get_tutorial_flag() || IGNORE_MG_E4_FLAGS) && !FORCE_TUTORIAL;
 
     case COND_NEW_POKEMON:
         return party_data.get_has_new_pkmn();
@@ -301,12 +304,14 @@ bool run_conditional(int index)
         return true;
 
     case CMD_BOX_MENU:
-        party_data.fill_simple_pkmn_array();
-        box_viewer.box_main(party_data);
-        return true;
+        return (box_viewer.box_main(party_data) == CONFIRM_BUTTON);
 
     case CMD_MYTHIC_MENU:
         party_data.set_mythic_stabilization(yes_no_menu.button_main());
+        return true;
+
+    case CMD_LOAD_SIMP:
+        party_data.fill_simple_pkmn_array();
         return true;
 
     default:

@@ -1,6 +1,7 @@
 #include <tonc.h>
 #include <cstring>
 #include "sprite_data.h"
+#include "debug_mode.h"
 
 #define SPRITE_CHAR_BLOCK 4
 
@@ -92,6 +93,9 @@ void load_textbox_background()
 int num_sprites = 0;
 OBJ_ATTR *testroid = &obj_buffer[num_sprites++];
 OBJ_ATTR *prof = &obj_buffer[num_sprites++];
+OBJ_ATTR *ptgb_logo_l = &obj_buffer[num_sprites++];
+OBJ_ATTR *ptgb_logo_r = &obj_buffer[num_sprites++];
+
 OBJ_ATTR *btn_t_l = &obj_buffer[num_sprites++];
 OBJ_ATTR *btn_t_r = &obj_buffer[num_sprites++];
 OBJ_ATTR *btn_p_l = &obj_buffer[num_sprites++];
@@ -182,10 +186,13 @@ void load_eternal_sprites()
     memcpy(pal_obj_mem + (PROF_PAL * 16), profPal, profPalLen);
     memcpy(pal_obj_mem + (BTN_PAL * 16), btn_t_lPal, btn_t_lPalLen);
     memcpy(pal_obj_mem + (BTN_LIT_PAL * 16), btn_t_rPal, btn_t_rPalLen);
+    memcpy(pal_obj_mem + (LOGO_PAL * 16), ptgb_logo_lPal, ptgb_logo_lPalLen);
 
     u32 curr_tile_id = 0;
     load_sprite(testroid, metrTiles, metrTilesLen, curr_tile_id, METR_PAL, ATTR0_SQUARE, ATTR1_SIZE_64x64, 0);
     load_sprite(prof, profTiles, profTilesLen, curr_tile_id, PROF_PAL, ATTR0_SQUARE, ATTR1_SIZE_64x64, 2);
+    load_sprite(ptgb_logo_l, ptgb_logo_lTiles, ptgb_logo_lTilesLen, curr_tile_id, LOGO_PAL, ATTR0_SQUARE, ATTR1_SIZE_64x64, 1);
+    load_sprite(ptgb_logo_r, ptgb_logo_rTiles, ptgb_logo_rTilesLen, curr_tile_id, LOGO_PAL, ATTR0_SQUARE, ATTR1_SIZE_64x64, 1);
     load_sprite(btn_t_l, btn_t_lTiles, btn_t_lTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
     load_sprite(btn_t_r, btn_t_rTiles, btn_t_rTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
     load_sprite(btn_p_l, btn_p_lTiles, btn_p_lTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
@@ -246,7 +253,7 @@ void load_temp_box_sprites(Pokemon_Party party_data)
     u32 curr_tile_id = global_tile_id_end;
     for (int i = 0; i < 30; i++)
     {
-        if (party_data.get_simple_pkmn(i).is_valid)
+        if (party_data.get_simple_pkmn(i).is_valid || SHOW_INVALID_PKMN)
         {
             load_sprite(party_sprites[i], &duel_frame_menu_spritesTiles[(MENU_SPRITES[party_data.get_simple_pkmn(i).dex_number] - 1) * 32], 256, curr_tile_id, MENU_SPRITE_PAL, ATTR0_SQUARE, ATTR1_SIZE_16x16, 1);
             obj_set_pos(party_sprites[i], (16 * (i % 10)) + 40, (16 * (i / 10)) + 24);

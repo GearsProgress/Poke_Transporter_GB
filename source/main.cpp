@@ -56,7 +56,7 @@ TODO:
 int delay_counter = 0;
 bool skip = true;
 rom_data curr_rom;
-Button_Menu main_menu(3, 1, 96, 32, false);
+Button_Menu main_menu(2, 2, 96, 32, false);
 Button_Menu yes_no_menu(1, 2, 40, 24, false);
 
 /*
@@ -91,6 +91,7 @@ int test_main(void) Music
 
 void load_graphics()
 {
+	tte_erase_rect(0, 0, H_MAX, V_MAX);
 	// Load opening background first so it hides everything else
 	load_opening_background();
 	load_background();
@@ -101,8 +102,9 @@ void load_graphics()
 	main_menu.clear_vector();
 	main_menu.add_button(Button(btn_t_l, btn_t_r, 48), BTN_TRANSFER);
 	main_menu.add_button(Button(btn_p_l, btn_p_r, 48), BTN_POKEDEX);
-	//main_menu.add_button(Button(btn_d_l, btn_d_r), BTN_LANGUAGE);
+	// main_menu.add_button(Button(btn_d_l, btn_d_r), BTN_LANGUAGE);
 	main_menu.add_button(Button(btn_c_l, btn_c_r, 48), BTN_CREDITS);
+	main_menu.set_xy_min_max(0, H_MAX, 48, V_MAX);
 
 	// Set up global yes no button
 	yes_no_menu.clear_vector();
@@ -170,7 +172,7 @@ void first_load_message(void)
 {
 	tte_set_pos(8, 0);
 	tte_set_ink(10);
-	tte_write("#{cx:0xE000}Hello! Thank you for using\nPok@ Transporter GB!\n\nJust as a word of caution- \nPok@ Transporter GB WILL modify\nyour generation 3 save file.\nThe program is designed to\nnot corrupt anything, but if\nyou do not wish to modify\nyour save file, please turn\noff your Game Boy Advance.\n\nPlease note that Pok@mon\nMirror is still in beta, so\nsave file backups are HIGHLY\nrecommended before using.\nWith that all out of the\nway, please enjoy!\n\n      -The Gears of Progress");
+	tte_write("#{cx:0xE000}\n\nHello! Thank you for using\nPok@ Transporter GB!\n\nJust as a word of caution- \nPok@ Transporter GB WILL\nmodify both the GameBoy and GameBoy Advance save files.\n\nPlease note that Pok@mon\nMirror is still in beta, so\nsave file backups are HIGHLY\nrecommended before using.\nWith that all out of the\nway, please enjoy!\n\n      -The Gears of Progress");
 	while (!key_hit(KEY_A))
 	{
 		global_next_frame();
@@ -180,10 +182,11 @@ void first_load_message(void)
 
 int credits()
 {
-	#define CREDITS_ARRAY_SIZE 15
+#define CREDITS_ARRAY_SIZE 15
 	int curr_credits_num = 0;
 	std::string credits_array[CREDITS_ARRAY_SIZE] = {
-		"Developed by:\n\n\nThe Gears\nof Progress",
+		"Lead developer:\n\nThe Gears of\nProgress\n\nLead graphic design:\n\nJome",
+		"Development\nassistance:\n\n-im a blisy\n-rileyk64\n-Shao",
 		"Built using:\n\n\n-DevkitPro\n-LibTonc\n-LibGBA",
 		"Inspired by the\nworks of:\n\n-Goppier\n-Lorenzooone\n-im a blisy\n-RETIRE",
 		"Programs used:\n\n\n-HexManiacAdvance\n-PKHeX\n-WC3Tool\n-Usenti\n",
@@ -192,10 +195,9 @@ int credits()
 		"ROM data obtained\nfrom decompilations created by the PRET team",
 		"Pok@mon data\nobtained from:\n\n-Bulbapedia\n-Serebii\n-PokeAPI.com",
 		"Discord community\nassistance:\n\n-Hex Maniac Advance\n Development\n-gbadev\n-pret",
-		"Sprite work:\n\n\n-lite_thespark",
 		"Writing assistance:\n\n\n-Mad",
 		"An immense thanks to\nLorenzooone for\ntheir assistance in\nreading/writing save\ndata. Without them,\nthis project would\nnot have been\npossible.",
-		"Special thanks:\n\n\nEnn, Roku, Luca,\nArctic, and everyone\nwho has listened to me talk about this\nfor months",
+		"Special thanks to\nEnn, roku, Sleepy,\nEza, sarahtonin,\nBasabi, Mad, and\neveryone who has\nlistened to me talk\nabout this for\nmonths!",
 		"All Pok@mon names,\nsprites, and names\nof related resources\nare copyright\nNintendo,\nCreatures Inc.,\nand GAME FREAK Inc.",
 		"This project is not endorsed or\nsupported by\nGameFreak/Nintendo.\n\nPlease support the\noriginal developers.",
 	};
@@ -245,7 +247,7 @@ int main(void)
 	initalize_memory_locations();
 	load_custom_save_data();
 
-	if (get_tutorial_flag() == false)
+	if (get_tutorial_flag() == false || FORCE_TUTORIAL)
 	{
 		first_load_message();
 		initalize_save_data();
@@ -280,8 +282,6 @@ int main(void)
 	}
 	REG_BG1CNT = REG_BG1CNT | BG_PRIO(3);
 
-	// Set up blend to fade to white/black
-
 	key_poll(); // Reset the keys
 	curr_rom.load_rom();
 	// MAIN LOOP
@@ -292,15 +292,22 @@ int main(void)
 			print_mem_section();
 			curr_rom.print_rom_info();
 		}
+		obj_set_pos(ptgb_logo_l, 56, 12);
+		obj_set_pos(ptgb_logo_r, 56 + 64, 12);
+		obj_unhide_multi(ptgb_logo_l, 1, 2);
 		switch (main_menu.button_main())
 		{
 		case (BTN_TRANSFER):
+			obj_hide_multi(ptgb_logo_l, 2);
 			text_loop();
 			break;
 		case (BTN_POKEDEX):
+			obj_hide_multi(ptgb_logo_l, 2);
 			pokedex_loop();
 			break;
 		case (BTN_CREDITS):
+			obj_set_pos(ptgb_logo_l, 56, 108);
+			obj_set_pos(ptgb_logo_r, 56 + 64, 108);
 			credits();
 			break;
 		default:

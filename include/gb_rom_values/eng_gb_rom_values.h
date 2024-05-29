@@ -127,7 +127,7 @@ const struct GB_ROM ENG_GOLD = {
     .stack_overwrite_location = 0xDFCB, // Found by seeing where 772C is stored in the stack, 772C is the code that calls PlaceString
     .short_pkmn_name = 0x4E,
 
-    .enter_vector_location = 0xC7B4,
+    .enter_vector_location = 0xC5D6,
 
     .clearScreen = 0x000EE2,
     .CableClub_TextBoxBorder = 0x0A4D88, // LinkTextboxAtHL
@@ -162,7 +162,7 @@ const struct GB_ROM ENG_GOLD = {
 };
 const struct GB_ROM ENG_SILVER = {
     .language = ENG_ID,
-    .version = GOLD_ID,
+    .version = SILVER_ID,
     .generation = 2,
     .method = METHOD_GEN2,
     .payload_size = 672,
@@ -172,7 +172,7 @@ const struct GB_ROM ENG_SILVER = {
     .stack_overwrite_location = 0xDFCB, // Found by seeing where 772C is stored in the stack, 772C is the code that calls PlaceString
     .short_pkmn_name = 0x4E,
 
-    .enter_vector_location = 0xC7B4,
+    .enter_vector_location = 0xC5D6,
 
     .clearScreen = 0x000EE2,
     .CableClub_TextBoxBorder = 0x0A4D88, // LinkTextboxAtHL

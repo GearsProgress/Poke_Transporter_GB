@@ -296,7 +296,11 @@ byte *generate_payload(GB_ROM curr_rom, bool debug)
         payload_storage[offset++] = (curr_rom.Bankswitch >> 0) & 0xFF;
         payload_storage[offset++] = (curr_rom.Bankswitch >> 8) & 0xFF;
 
-         // ld hl, SaveSAVtoSRAM2
+        // ld b, 0x1C [memory bank of SaveSAVtoSRAM2]
+        payload_storage[offset++] = 0x06;
+        payload_storage[offset++] = (curr_rom.SaveSAVtoSRAM1 >> 16) & 0xFF;
+
+        // ld hl, SaveSAVtoSRAM2
         payload_storage[offset++] = 0x21;
         payload_storage[offset++] = (curr_rom.SaveSAVtoSRAM2 >> 0) & 0xFF;
         payload_storage[offset++] = (curr_rom.SaveSAVtoSRAM2 >> 8) & 0xFF;
@@ -1013,8 +1017,8 @@ byte *generate_payload(GB_ROM curr_rom, bool debug)
 
         // jp pkmn list (because saving the box overwrites the data)
         payload_storage[offset++] = 0xC3;
-        payload_storage[offset++] = (curr_rom.enter_vector_location >> 0) & 0xFF;
-        payload_storage[offset++] = (curr_rom.enter_vector_location >> 8) & 0xFF;
+        payload_storage[offset++] = (0xC7B4 >> 0) & 0xFF; // This will need to not be hard coded for other languages
+        payload_storage[offset++] = (0xC7B4 >> 8) & 0xFF; // Ditto ^
 
         // 72 total bytes of string/array stuff
 
@@ -1084,11 +1088,11 @@ void write_call(int generation, byte array_data[], int &offset, word call_locati
     }
 };
 
-int main()
+int test_main()
 {
     freopen("test_payload.txt", "w", stdout);
     std::cout << std::endl;
-    byte *payload = generate_payload(ENG_CRYSTAL, true);
+    byte *payload = generate_payload(ENG_SILVER, true);
     for (int i = 0; i < PAYLOAD_SIZE; i++)
     {
         std::cout << "0x" << std::setfill('0') << std::setw(2) << std::hex << std::uppercase << (unsigned int)payload[i] << ", ";
