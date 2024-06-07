@@ -10,7 +10,7 @@ class Pokemon_Party
 public:
     Pokemon_Party();
     void start_link();
-    void continue_link();
+    void continue_link(bool cancel_connection);
     int get_last_error();
     Pokemon get_converted_pkmn(int index);
     bool get_has_new_pkmn();

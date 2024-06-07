@@ -142,8 +142,8 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
     }
     is_valid = true;
 
-    // Update dex
-    if (!is_caught(species_index_struct))
+    // Update dex if not simple
+    if (!simplified && !is_caught(species_index_struct))
     {
         is_new = true;
         set_caught(species_index_struct);

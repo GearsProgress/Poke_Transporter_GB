@@ -43,6 +43,7 @@ bool rom_data::load_rom()
             version == list_of_roms[i]->version)
         {
             fill_values(list_of_roms[i]);
+            rom_loaded = true;
             return true;
         }
     }
@@ -116,4 +117,13 @@ void rom_data::print_rom_info()
     out += char(language);
     tte_set_pos(0, 8);
     tte_write(out.c_str());
+}
+
+bool rom_data::verify_rom()
+{
+    return !rom_loaded ||
+           IGNORE_GAME_PAK ||
+           ((gamecode == ((*(vu8 *)(0x80000AC)) << 0x10 | (*(vu8 *)(0x80000AD)) << 0x08 | (*(vu8 *)(0x80000AE)) << 0x00)) &&
+            (language == (*(vu8 *)(0x80000AF))) &&
+            (version == (*(vu8 *)(0x80000BC))));
 }

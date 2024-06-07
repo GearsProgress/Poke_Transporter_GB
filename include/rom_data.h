@@ -29,6 +29,9 @@ public:
     bool is_hoenn();
     bool is_ruby_sapphire();
     void print_rom_info();
+    bool verify_rom();
+
+    bool rom_loaded = false;
 
     int gamecode;
     int version;

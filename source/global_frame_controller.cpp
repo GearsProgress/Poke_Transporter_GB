@@ -23,6 +23,21 @@ void global_next_frame()
     if (global_frame_count % 60 == 0)
     {
         memcpy(pal_obj_mem + (MENU_SPRITE_PAL * 16), frame_one_pal, 32);
+
+        if (!curr_rom.verify_rom())
+        {
+            REG_BG0CNT = (REG_BG0CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
+            REG_BG1CNT = (REG_BG1CNT & ~BG_PRIO_MASK) | BG_PRIO(2);
+            REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(1);
+            REG_BG2VOFS = 0;
+            tte_set_pos(40, 24);
+            tte_set_margins(40, 24, 206, 104);
+            set_textbox_large();
+            tte_write("\n\n#{cx:0xF000}The Pok@mon game was\nremoved. Please turn\noff the system and\nrestart the program.");
+            obj_hide_multi(testroid, 128);
+            oam_copy(oam_mem, obj_buffer, num_sprites);
+            while(true){};
+        }
     }
     else if (global_frame_count % 60 == 30)
     {
@@ -36,10 +51,12 @@ int get_frame_count()
     return global_frame_count;
 }
 
-void enable_auto_random(){
+void enable_auto_random()
+{
     rand_enabled = true;
 }
 
-void disable_auto_random(){
+void disable_auto_random()
+{
     rand_enabled = false;
 }

@@ -58,8 +58,9 @@
 #define CMD_BOX_MENU            DIA_END + 13
 #define CMD_MYTHIC_MENU         DIA_END + 14
 #define CMD_LOAD_SIMP           DIA_END + 15
+#define CMD_CANCEL_LINK         DIA_END + 16
 
-#define                         CMD_SIZE  16
+#define                         CMD_SIZE  17
 #define CMDS_END DIA_END + CMD_SIZE
 
 // Conditionals

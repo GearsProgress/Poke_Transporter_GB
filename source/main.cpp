@@ -151,6 +151,7 @@ void game_load_error(void)
 	REG_BG2VOFS = 0;
 	tte_set_pos(40, 24);
 	tte_set_margins(40, 24, 206, 104);
+	set_textbox_large();
 	tte_write("#{cx:0xF000}The Pok@mon save\nfile was not loaded successfully.\n\nPlease remove and\nreinsert the Game\nPak, and then press the A button.");
 	// tte_write(std::to_string(get_gamecode() >> 8).c_str());
 	key_poll();
@@ -172,7 +173,7 @@ void first_load_message(void)
 {
 	tte_set_pos(8, 0);
 	tte_set_ink(10);
-	tte_write("#{cx:0xE000}\n\nHello! Thank you for using\nPok@ Transporter GB!\n\nJust as a word of caution- \nPok@ Transporter GB WILL\nmodify both the GameBoy and GameBoy Advance save files.\n\nPlease note that Pok@mon\nMirror is still in beta, so\nsave file backups are HIGHLY\nrecommended before using.\nWith that all out of the\nway, please enjoy!\n\n      -The Gears of Progress");
+	tte_write("#{cx:0xE000}\n\nHello! Thank you for using\nPok@ Transporter GB!\n\nJust as a word of caution- \nPok@ Transporter GB WILL\nmodify both the GameBoy and GameBoy Advance save files.\n\nPlease note that Pok@\nTransporter GB is still in\nbeta, so save file backups\nare HIGHLY recommended\nbefore using. With that all\nbeing said, please enjoy!\n\n      -The Gears of Progress");
 	while (!key_hit(KEY_A))
 	{
 		global_next_frame();
@@ -204,19 +205,12 @@ int credits()
 
 	while (true)
 	{
-		tte_set_pos(40, 24);
-		tte_set_margins(40, 24, 206, 104);
-		tte_erase_screen();
+		set_textbox_large();
 		tte_write(credits_array[curr_credits_num].c_str());
-		REG_BG0CNT = (REG_BG0CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
-		REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(2);
-		REG_BG2VOFS = 0;
 		if (key_hit(KEY_B))
-		{
-			tte_erase_rect(0, 0, H_MAX, V_MAX);
-			REG_BG0CNT = (REG_BG0CNT & ~BG_PRIO_MASK) | BG_PRIO(2);
-			REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
-			REG_BG2VOFS = 96;
+		{			
+			hide_text_box();
+			set_textbox_small();
 			return 0;
 		}
 		if (key_hit(KEY_LEFT) && curr_credits_num > 0)
@@ -306,6 +300,8 @@ int main(void)
 			pokedex_loop();
 			break;
 		case (BTN_CREDITS):
+			set_textbox_large();
+			show_text_box();
 			obj_set_pos(ptgb_logo_l, 56, 108);
 			obj_set_pos(ptgb_logo_r, 56 + 64, 108);
 			credits();

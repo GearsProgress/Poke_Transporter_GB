@@ -5,6 +5,7 @@
 #define IGNORE_GAME_PAK false
 #define IGNORE_LINK_CABLE false
 #define IGNORE_MG_E4_FLAGS false
+#define IGNORE_UNRECEIVED_PKMN false
 #define FORCE_TUTORIAL false
 #define DONT_REMOVE_PKMN false
 #define SHOW_INVALID_PKMN false
