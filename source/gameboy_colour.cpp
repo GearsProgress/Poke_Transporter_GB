@@ -190,7 +190,7 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
       state = trade;
     }
     data_counter++;
-    return 0xD4;
+    return (curr_gb_rom->generation == 1 ? 0xD4 : 0x61);
   }
 
   else if (state == trade)
@@ -340,7 +340,7 @@ int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, Simpli
     }
     if (zero_count > (5 * 60))
     {
-      return COND_ERROR_COM_ENDED;
+      //return COND_ERROR_COM_ENDED;
     }
     if (connection_state == COLOSSEUM)
     {

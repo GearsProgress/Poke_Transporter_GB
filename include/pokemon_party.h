@@ -22,9 +22,10 @@ public:
     void show_sprites();
     Simplified_Pokemon simple_pkmn_array[30];
     Simplified_Pokemon get_simple_pkmn(int index);
-    void fill_simple_pkmn_array();
+    bool fill_simple_pkmn_array();
     bool get_contains_mythical();
     void set_mythic_stabilization(bool stabilize);
+    bool contains_valid = false;
 
 
 private:

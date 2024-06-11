@@ -52,6 +52,8 @@ public:
     u8 get_nature_from_pid(u32 pid);
     u8 get_gender_from_pid(u32 pid);
     void set_to_event();
+    int num_in_box;
+    int index_in_box;
 
 private:
     byte gen = 2;

@@ -8,7 +8,7 @@ typedef unsigned int u32, word, uint, eint;
 typedef unsigned long long u64;
 
 #define PAYLOAD_SIZE 672
-#define NUM_PAYLOADS 2
+#define NUM_PAYLOADS 5
 
 #define GB_TILE_WIDTH 20
 
@@ -26,6 +26,7 @@ public:
     hword stack_overwrite_location; // The part of the stack that we're overwriting
     byte short_pkmn_name;           // The name of the Pokemon that moves us through RAM
     byte pointer_pkmn_name;         // The name of the Pokemon that overwrites the stack
+    hword jump_vector_location;     // Where we should jump to in gen 2 to save the box and reset the game
     hword enter_vector_location;    // Where we should jump to from the enter vector
                                     // This can be a few different places:
                                     // wSerialOtherGameboyRandomNumberListBlock:

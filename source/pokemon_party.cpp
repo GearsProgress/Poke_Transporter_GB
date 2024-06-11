@@ -12,9 +12,9 @@
 const GB_ROM *list_of_gb_roms[NUM_PAYLOADS] = {
         &ENG_RED_BLUE,
 		&ENG_YELLOW,
-		//&ENG_GOLD,
-		//&ENG_SILVER,
-		//&ENG_CRYSTAL,
+		&ENG_GOLD,
+		&ENG_SILVER,
+		&ENG_CRYSTAL,
     };
 
 byte gen1_debug_box_data[0x462] = {
@@ -241,7 +241,7 @@ Simplified_Pokemon Pokemon_Party::get_simple_pkmn(int index){
 	return simple_pkmn_array[index];
 }
 
-void Pokemon_Party::fill_simple_pkmn_array(){
+bool Pokemon_Party::fill_simple_pkmn_array(){
 	for (int index = 0; index < 30; index++){
 		Pokemon converted_mon;
 		converted_mon.load_data(index, box_data_array, game, lang);
@@ -250,5 +250,7 @@ void Pokemon_Party::fill_simple_pkmn_array(){
 		contains_mythical = contains_mythical || 
 			converted_mon.get_dex_number() == 151 || converted_mon.get_dex_number() == 251;
 		simple_pkmn_array[index] = converted_mon.get_simple_pkmn();
+		contains_valid |= converted_mon.get_validity();
 	}
+	return contains_valid;
 }

@@ -127,6 +127,7 @@ const struct GB_ROM ENG_GOLD = {
     .stack_overwrite_location = 0xDFCB, // Found by seeing where 772C is stored in the stack, 772C is the code that calls PlaceString
     .short_pkmn_name = 0x4E,
 
+    .jump_vector_location = 0xC7B4,
     .enter_vector_location = 0xC5D6,
 
     .clearScreen = 0x000EE2,
@@ -172,6 +173,7 @@ const struct GB_ROM ENG_SILVER = {
     .stack_overwrite_location = 0xDFCB, // Found by seeing where 772C is stored in the stack, 772C is the code that calls PlaceString
     .short_pkmn_name = 0x4E,
 
+    .jump_vector_location = 0xC7B4,
     .enter_vector_location = 0xC5D6,
 
     .clearScreen = 0x000EE2,
@@ -213,17 +215,19 @@ const struct GB_ROM ENG_CRYSTAL = {
     .payload_size = 672,
     .box_data_size = 0x44E,
 
-    .print_string_start = 0xC4AA,
-    .stack_overwrite_location = 0xC0BB, // Found by seeing where 772C is stored in the stack, 772C is the code that calls PlaceString
+    .print_string_start = 0xC544,
+    .stack_overwrite_location = 0xE0BB, // Found by seeing where 7622 is stored in the stack, 7622 is the code that calls PlaceString (PlaceTradePartnerNamesAndParty)
     .short_pkmn_name = 0x4E,
-    .enter_vector_location = 0xC7B4,
+
+    .jump_vector_location = 0xD33C,
+    .enter_vector_location = 0xC6D6, // wOTPatchLists, plus preamble
 
     .clearScreen = 0x000FDB,
     .CableClub_TextBoxBorder = 0x0A4EEF, // LinkTextboxAtHL
     .placeString = 0x001078,
     .Serial_ExchangeBytes = 0x075F,
     ._RemovePokemon = 0x036039, // RemoveMonFromPartyOrBox
-    .OpenSRAM = 0x0030E1,
+    .OpenSRAM = 0x002FCB,
     .SaveBox = 0x054E0C,
     .SoftReset = 0x0150, // Reset
     .garbageDataLocation = 0x0770,
@@ -235,17 +239,17 @@ const struct GB_ROM ENG_CRYSTAL = {
     .wBoxDataStart = 0x01AD10, // sBox
     .wBoxDataEnd = 0x01B15E,   // sBoxEnd
 
-    .transferWaitString = 0xC67A,
-    .pkmnTransferArray = 0xC651,
-    .arrayCounter = 0xC650,
+    .transferWaitString = 0xC77A,
+    .pkmnTransferArray = 0xC751,
+    .arrayCounter = 0xC750,
     .transferString = {// TRANSFERRING..\n
                        //  PLEASE WAIT!
                        0x93, 0x91, 0x80, 0x8D, 0x92, 0x85, 0x84, 0x91, 0x91, 0x88, 0x8D, 0x86, 0xF2, 0xF2, 0x4E,
                        0x7F, 0x8F, 0x8B, 0x84, 0x80, 0x92, 0x84, 0x7F, 0x96, 0x80, 0x88, 0x93, 0xE7, 0x7F, 0x50},
     .custom_name = {0x85, 0x84, 0x8D, 0x8D, 0x84, 0x8B, 0x50, 0x50, 0x50, 0x50, 0x50},
 
-    .transferStringLocation = 0xC443,
-    .textBorderUppLeft = 0xC42E,
+    .transferStringLocation = 0xC543,
+    .textBorderUppLeft = 0xC52E,
     .textBorderWidth = 3,
     .textBorderHeight = 14,
 };

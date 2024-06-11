@@ -86,6 +86,9 @@ void Pokemon::load_data(int index, byte *party_data, int game, int lang)
             (ot_size * box_size) +   // the ots
             (nickname_size * index); // the nickname we're looking for
 
+        num_in_box = party_data[0];
+        index_in_box = index;
+
         switch (gen)
         {
         case 1:
@@ -133,9 +136,10 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
         species_index_struct = gen_1_index_array[species_index_struct];
     }
 
-    if (species_index_struct > 251 ||                // Checks if the Pokemon is beyond Celebi
-        species_index_struct == 0 ||                 // Checks that the Pokemon isn't a blank party space
-        species_index_struct != species_index_party) // Checks that the Pokemon isn't a hybrid or an egg
+    if (species_index_struct > 251 ||                  // Checks if the Pokemon is beyond Celebi
+        species_index_struct == 0 ||                   // Checks that the Pokemon isn't a blank party space
+        species_index_struct != species_index_party || // Checks that the Pokemon isn't a hybrid or an egg
+        index_in_box >= num_in_box)                     // Checks that we're not reading beyond the Pokemon in the box
     {
         is_valid = false;
         return;
@@ -374,7 +378,7 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
     }
 
     data_section_G[0] = species_index_struct;
-    data_section_G[1] = 0x00; // Species Index, check for glitch Pokemon
+    data_section_G[1] = 0x00;                   // Species Index, check for glitch Pokemon
     data_section_G[2] = (is_new ? 0x44 : 0x00); // Rare Candy if new
     data_section_G[3] = 0x00;
     copy_from_to(&exp[0], &data_section_G[4], 3, false);

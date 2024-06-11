@@ -792,7 +792,7 @@ byte *generate_payload(GB_ROM curr_rom, bool debug)
         }
         payload_storage[offset++] = curr_rom.enter_vector_location & 0xFF;
         payload_storage[offset++] = (curr_rom.enter_vector_location >> 8) & 0xFF;
-        payload_storage[offset++] = 0xFF;
+        payload_storage[offset++] = 0x50;
 
         // Opens the PC box and then crashes- only used for debugging
         // write_call(curr_rom.generation, payload_storage, offset, 0x0363D8);
@@ -1017,8 +1017,8 @@ byte *generate_payload(GB_ROM curr_rom, bool debug)
 
         // jp pkmn list (because saving the box overwrites the data)
         payload_storage[offset++] = 0xC3;
-        payload_storage[offset++] = (0xC7B4 >> 0) & 0xFF; // This will need to not be hard coded for other languages
-        payload_storage[offset++] = (0xC7B4 >> 8) & 0xFF; // Ditto ^
+        payload_storage[offset++] = (curr_rom.jump_vector_location >> 0) & 0xFF;
+        payload_storage[offset++] = (curr_rom.jump_vector_location >> 8) & 0xFF;
 
         // 72 total bytes of string/array stuff
 
@@ -1092,7 +1092,7 @@ int test_main()
 {
     freopen("test_payload.txt", "w", stdout);
     std::cout << std::endl;
-    byte *payload = generate_payload(ENG_SILVER, true);
+    byte *payload = generate_payload(ENG_CRYSTAL, true);
     for (int i = 0; i < PAYLOAD_SIZE; i++)
     {
         std::cout << "0x" << std::setfill('0') << std::setw(2) << std::hex << std::uppercase << (unsigned int)payload[i] << ", ";
