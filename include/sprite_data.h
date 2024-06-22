@@ -102,6 +102,8 @@ extern OBJ_ATTR *ptgb_logo_l;
 #include "ptgb_logo_r.h"
 extern OBJ_ATTR *ptgb_logo_r;
 
+#include "mario.h"
+
 #define BG2VOF_SMALL_TEXTBOX 96
 #define BG2VOF_LARGE_TEXTBOX 0
 

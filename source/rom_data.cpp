@@ -4,6 +4,8 @@
 #include "pokemon_data.h"
 #include "gba_rom_values/eng_gba_rom_values.h"
 
+extern rom_data curr_rom;
+
 rom_data::rom_data() {}
 bool rom_data::load_rom()
 {
@@ -59,6 +61,7 @@ void rom_data::fill_values(const ROM_DATA *rom_values)
     loc_setPokedexFlag = rom_values->loc_getSetPokedexFlag;
     loc_gSaveDataBuffer = rom_values->loc_gSaveDataBuffer;
     loc_readFlashSector = rom_values->loc_readFlashSector;
+    loc_loadSaveSection30 = rom_values->loc_loadSaveSection30;
     offset_ramscript = rom_values->offset_ramscript;
     offset_flags = rom_values->offset_flags;
     offset_wondercard = rom_values->offset_wondercard;

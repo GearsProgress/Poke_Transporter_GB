@@ -44,6 +44,7 @@ public:
     int loc_setPokedexFlag;
     int loc_gSaveDataBuffer; // The location of the saveDataBuffer
     int loc_readFlashSector;
+    int loc_loadSaveSection30;// The location of the function that loads save section 30: CEReaderTool_LoadTrainerTower_r in FRLG, TryReadTrainerHill_Internal in Emerald
     int offset_ramscript; // Ramscript offset as found within the SaveBlock1 struct in global.h
     int offset_flags;     // Flag offset as found within the SaveBlock1 struct in global.h
     int offset_wondercard;

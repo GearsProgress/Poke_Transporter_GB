@@ -1,6 +1,7 @@
 #include <tonc.h>
 #include <vector>
 #include <string>
+#include "rom_data.h"
 
 class script_var
 {
@@ -23,6 +24,7 @@ public:
     void set_start();                       // Add a pointer to where the start is
     u8 add_reference();                     // Add a location for the variable to be refrenced in the script
     void fill_refrences(u8 mg_array_ptr[]); // goes through all the script locations and updates them to point to the start
+    u32 get_loc_in_sec30();
 };
 
 class xse_var : public script_var
@@ -36,13 +38,34 @@ public:
     u8 add_reference(int nCommand_offset); // Add a location for the variable to be refrenced in the script
     u8 add_reference(int nCommand_offset, xse_var *offset_from);
     void fill_refrences(u8 mg_array_ptr[]); // goes through all the script locations and updates them to point to the start
+    u32 get_loc_in_sec30();
 };
 
 class textbox_var : public xse_var
 {
 public:
-using xse_var::xse_var;
-    void set_text(std::u16string_view text);
+    using xse_var::xse_var;
+    void set_text(std::u16string_view nText);
     void insert_text(u8 mg_array[]);
+    void set_start();
     std::u16string_view text;
 };
+
+class movement_var : public xse_var
+{
+public:
+    using xse_var::xse_var;
+    void set_movement(const int movement[], unsigned int nSize);
+    void insert_movement(u8 mg_array[]);
+    void set_start();
+    const int *movement;
+    unsigned int size;
+};
+
+class sprite_var : public xse_var
+{
+public:
+    using xse_var::xse_var;
+    void insert_sprite_data(u8 mg_array[], const unsigned int sprite_array[], unsigned int size);
+    void set_start();
+    };

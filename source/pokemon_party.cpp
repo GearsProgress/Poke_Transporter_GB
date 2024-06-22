@@ -163,9 +163,17 @@ void Pokemon_Party::start_link()
 {
 	if (IGNORE_LINK_CABLE)
 	{
-		for (int i = 0; i < 0x44E; i++)
+		if (curr_gb_rom.generation == 1)
 		{
-			box_data_array[i] = gen2_debug_box_data[i];
+			for (int i = 0; i < 0x44E; i++)
+			{
+				box_data_array[i] = gen1_debug_box_data[i];
+			}
+		} else {
+			for (int i = 0; i < 0x44E; i++)
+			{
+				box_data_array[i] = gen2_debug_box_data[i];
+			}
 		}
 	}
 	else

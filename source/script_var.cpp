@@ -3,6 +3,8 @@
 #include "script_var.h"
 #include "pokemon_data.h"
 
+extern rom_data curr_rom;
+
 script_var::script_var(u32 nValue, std::vector<script_var *> &var_list_ref, int *nCurr_loc_ptr)
 {
     var_list_ref.push_back(this); // Place the new object in the var_list
@@ -61,6 +63,11 @@ void asm_var::fill_refrences(u8 mg_array[])
     }
 }
 
+u32 asm_var::get_loc_in_sec30()
+{
+    return start_location_in_script + curr_rom.loc_gSaveDataBuffer + 3; // plus 3 to offset the -2 in set_start, and one for reading as thumb
+}
+
 // XSE VAR ----------------
 
 void xse_var::set_start()
@@ -99,6 +106,11 @@ void xse_var::fill_refrences(u8 mg_array[])
     }
 }
 
+u32 xse_var::get_loc_in_sec30()
+{
+    return start_location_in_script + curr_rom.loc_gSaveDataBuffer;
+}
+
 // TEXTBOX VAR
 
 void textbox_var::set_text(std::u16string_view nText)
@@ -106,13 +118,72 @@ void textbox_var::set_text(std::u16string_view nText)
     text = nText;
 }
 
-void textbox_var::insert_text(u8 mg_array[]){
+void textbox_var::set_start()
+{
+    start_location_in_script = *curr_loc_ptr;
+}
+
+void textbox_var::insert_text(u8 mg_array[])
+{
     set_start();
     for (unsigned int parser = 0; parser < text.length(); parser++)
-        {
-            mg_array[*curr_loc_ptr] = get_gen_3_char((char16_t)(text.at(parser)), false);
-            (*curr_loc_ptr)++;
-        }
-        mg_array[*curr_loc_ptr] = 0xFF; // End string
+    {
+        mg_array[*curr_loc_ptr] = get_gen_3_char((char16_t)(text.at(parser)), false);
         (*curr_loc_ptr)++;
+    }
+    mg_array[*curr_loc_ptr] = 0xFF; // End string
+    (*curr_loc_ptr)++;
+}
+
+// MOVEMENT VAR
+
+void movement_var::set_movement(const int nMovement[], unsigned int nSize)
+{
+    movement = nMovement;
+    size = nSize;
+}
+
+void movement_var::set_start()
+{
+    start_location_in_script = *curr_loc_ptr;
+}
+
+void movement_var::insert_movement(u8 mg_array[])
+{
+    set_start();
+    for (unsigned int parser = 0; parser < size; parser++)
+    {
+        mg_array[*curr_loc_ptr] = movement[parser];
+        (*curr_loc_ptr)++;
+    }
+    mg_array[*curr_loc_ptr] = 0xFE; // End list
+    (*curr_loc_ptr)++;
+}
+
+// SPRITE VAR
+
+void sprite_var::set_start()
+{
+    start_location_in_script = *curr_loc_ptr;
+}
+
+void sprite_var::insert_sprite_data(u8 mg_array[], const unsigned int sprite_array[], unsigned int size)
+{
+    set_start();
+    u32 pointer = curr_rom.loc_gSaveDataBuffer + *curr_loc_ptr + 8;
+    for (int i = 0; i < 4; i++)
+    {
+        mg_array[*curr_loc_ptr] = pointer >> (8 * i);
+        (*curr_loc_ptr)++;
+    }
+    for (int i = 0; i < 4; i++)
+    {
+        mg_array[*curr_loc_ptr] = size >> (8 * i);
+        (*curr_loc_ptr)++;
+    }
+    for (unsigned int parser = 0; parser < size; parser++)
+    {
+        mg_array[*curr_loc_ptr] = sprite_array[parser / 4] >> (8 * (parser % 4));
+        (*curr_loc_ptr)++;
+    }
 }

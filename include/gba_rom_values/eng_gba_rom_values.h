@@ -3,6 +3,8 @@
 
 #include "gba_rom_values/base_gba_rom_struct.h"
 
+const struct ROM_DATA test = {.is_valid = true};
+
 const struct ROM_DATA ENG_RUBY_v0 = {
     .is_valid = true,
 
@@ -238,6 +240,7 @@ const struct ROM_DATA ENG_FIRERED_v0 = {
     .loc_getSetPokedexFlag = 0x08088E8C,
     .loc_gSaveDataBuffer = 0x02039A38, // The location of the saveDataBuffer
     .loc_readFlashSector = 0x080DA190,
+    .loc_loadSaveSection30 = 0x0815D7BC,// The location of the function that loads save section 30: CEReaderTool_LoadTrainerTower_r in FRLG, TryReadTrainerHill_Internal in Emerald
 
     // The following should be consistant across languages and revisions.
     .offset_ramscript = 0x361C, // Ramscript offset as found within the SaveBlock1 struct in global.h
@@ -276,6 +279,7 @@ const struct ROM_DATA ENG_LEAFGREEN_v0 = {
     .loc_getSetPokedexFlag = 0x08088E48,
     .loc_gSaveDataBuffer = 0x02039A38, // The location of the saveDataBuffer
     .loc_readFlashSector = 0x080DA164,
+    .loc_loadSaveSection30 = 0x0815D798,// The location of the function that loads save section 30: CEReaderTool_LoadTrainerTower_r in FRLG, TryReadTrainerHill_Internal in Emerald
 
     // The following should be consistant across languages and revisions.
     .offset_ramscript = 0x361C, // Ramscript offset as found within the SaveBlock1 struct in global.h
@@ -314,6 +318,7 @@ const struct ROM_DATA ENG_FIRERED_v1 = {
     .loc_getSetPokedexFlag = 0x08088E88,
     .loc_gSaveDataBuffer = 0x02039A38, // The location of the saveDataBuffer
     .loc_readFlashSector = 0x080DA1A4,
+    .loc_loadSaveSection30 = 0x0815D834,// The location of the function that loads save section 30: CEReaderTool_LoadTrainerTower_r in FRLG, TryReadTrainerHill_Internal in Emerald
 
     // The following should be consistant across languages and revisions.
     .offset_ramscript = 0x361C, // Ramscript offset as found within the SaveBlock1 struct in global.h
@@ -349,10 +354,11 @@ const struct ROM_DATA ENG_LEAFGREEN_v1 = {
     .loc_copyMonToPC = 0x08040BA4,
     .loc_gSpecialVar_0x8000 = 0x020370B8,
     .loc_gSaveBlock1PTR = 0x03005008,
-    .loc_getSetPokedexFlag = 0x08088E74,
+    .loc_getSetPokedexFlag = 0x08088E5C,
     .loc_gSaveDataBuffer = 0x02039A38, // The location of the saveDataBuffer
     .loc_readFlashSector = 0x080DA178,
-
+    .loc_loadSaveSection30 = 0x0815D810,// The location of the function that loads save section 30: CEReaderTool_LoadTrainerTower_r in FRLG, TryReadTrainerHill_Internal in Emerald
+    
     // The following should be consistant across languages and revisions.
     .offset_ramscript = 0x361C, // Ramscript offset as found within the SaveBlock1 struct in global.h
     .offset_flags = 0x0EE0,     // Flag offset as found within the SaveBlock1 struct in global.h
@@ -365,7 +371,7 @@ const struct ROM_DATA ENG_LEAFGREEN_v1 = {
     .mg_flag = 0x860 + 0x7B,   // The flag that is set when you enable Mystery Gift. Known as "EXDATA_ENABLE" in RS
     .unused_flag_start = 0x20, // The start of the unused flags and must have 31 open flags in a row
 
-    .map_bank = 30,
+    .map_bank = 31,
     .map_id = 0,
     .npc_id = 1,
 
@@ -390,6 +396,7 @@ const struct ROM_DATA ENG_EMERALD_v0 = {
     .loc_getSetPokedexFlag = 0x080C0664,
     .loc_gSaveDataBuffer = 0x0203ABBC, // The location of the saveDataBuffer
     .loc_readFlashSector = 0x0815314C,
+    .loc_loadSaveSection30 = 0x081D3AD8,// The location of the function that loads save section 30: CEReaderTool_LoadTrainerTower_r in FRLG, TryReadTrainerHill_Internal in Emerald
 
     // The following should be consistant across languages and revisions.
     .offset_ramscript = 0x3728, // Ramscript offset as found within the SaveBlock1 struct in global.h

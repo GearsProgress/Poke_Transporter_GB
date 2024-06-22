@@ -62,22 +62,12 @@ bool inject_mystery(Pokemon_Party &incoming_box_data)
     copy_save_to_ram(0x1E000, &global_memory_buffer[0], 0x1000);
     int curr_index = 0;
 
-    for (int i = 0; i < MAX_PKMN_IN_BOX; i++) // Add in the Pokemon data
+    for (int i = 0; i < 0x1000; i++) // Copy over the save data section
     {
-        Pokemon curr_pkmn = incoming_box_data.get_converted_pkmn(i);
-        for (int curr_byte = 0; curr_byte < POKEMON_SIZE; curr_byte++)
-        {
-            global_memory_buffer[curr_index] = curr_pkmn.get_gen_3_data(curr_byte);
-            curr_index++;
-        }
-    }
-
-    for (int i = 0; i < MAX_PKMN_IN_BOX; i++) // Add in the dex numbers
-    {
-        global_memory_buffer[curr_index] = incoming_box_data.get_simple_pkmn(curr_index).dex_number;
+        global_memory_buffer[curr_index] = script.get_section30_value_at(i);
         curr_index++;
     }
-
+    
     update_memory_buffer_checksum(false);
     erase_sector(0x1E000);
     copy_ram_to_save(&global_memory_buffer[0], 0x1E000, 0x1000);
