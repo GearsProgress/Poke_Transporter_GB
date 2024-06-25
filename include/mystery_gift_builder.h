@@ -334,6 +334,7 @@ private:
     void mov1(u8 rd, u8 immed_8);
     void and1(u8 rd, u8 rm);
     void ldr2(u8 rd, u8 rn, u8 rm);
+    void strh(u8 rd, u8 rn, u8 immed_5);
 };
 
 #endif

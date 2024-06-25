@@ -51,9 +51,16 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     asm_var dexStruct(curr_rom.loc_gSaveDataBuffer + (MAX_PKMN_IN_BOX * POKEMON_SIZE), sec30_variable_list, &curr_section30_index);
     asm_var flashBuffer_ptr(curr_rom.loc_gSaveDataBuffer, sec30_variable_list, &curr_section30_index);
     asm_var readFlashSector_ptr(curr_rom.loc_readFlashSector + READ_AS_THUMB, sec30_variable_list, &curr_section30_index);
+    asm_var m4aMPlayStop_ptr(0x081dd988 + READ_AS_THUMB, sec30_variable_list, &curr_section30_index);
+    asm_var gMPlayInfo_BGM_ptr(0x03007300, sec30_variable_list, &curr_section30_index);
+    asm_var gMPlayInfo_SE2_ptr(0x03007380, sec30_variable_list, &curr_section30_index);
+    asm_var MPlayStart_ptr(0x081dd8a4 + READ_AS_THUMB, sec30_variable_list, &curr_section30_index);
+    asm_var CreateFanfareTask_ptr(0x08071d00 + READ_AS_THUMB, sec30_variable_list, &curr_section30_index);
+    asm_var sFanfareCounter_ptr(0x03000fc6, sec30_variable_list, &curr_section30_index);
 
     asm_var mainAsmStart(sec30_variable_list, &curr_section30_index);
     asm_var dexAsmStart(sec30_variable_list, &curr_section30_index);
+    asm_var customSoundASM(sec30_variable_list, &curr_section30_index);
 
     xse_var jumpLoop(mg_variable_list, &curr_mg_index);
     xse_var jumpBoxFull(mg_variable_list, &curr_mg_index);
@@ -81,6 +88,8 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     movement_var movementLookDown(sec30_variable_list, &curr_section30_index);
 
     sprite_var spriteLooker(sec30_variable_list, &curr_section30_index);
+
+    music_var songLooker(sec30_variable_list, &curr_section30_index);
 
     // Ş = Wait for button and scroll text
     // ȼ = Wait for button and clear text
@@ -171,6 +180,15 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     const int movementLookDownArray[1] = {MOVEMENT_ACTION_FACE_DOWN};
     movementLookDown.set_movement(movementLookDownArray, 1);
 
+    //                                      v Instrument
+    songLooker.add_track({0xBC, 0x00, 0xBB, 0x38, 0xBD, 0x38, 0xBE, 0x64, 0xBF, 0x30, 0xD4, 0x37, 0x64, 0x86, 0x3C, 0x86, 0x40, 0x86, 0x43, 0x86, 0x48, 0x86, 0x4C, 0x86, 0xE0, 0x4F, 0x92, 0x4C, 0x92, 0xD4, 0x38, 0x86, 0x3C, 0x86, 0x3F, 0x86, 0x44, 0x86, 0x48, 0x86, 0x4B, 0x86, 0xE0, 0x50, 0x92, 0x4B, 0x92, 0xD4, 0x3A, 0x86, 0x3E, 0x86, 0x41, 0x86, 0x46, 0x86, 0x4A, 0x86, 0x4D, 0x86, 0xE0, 0x52, 0x8C, 0x86, 0xD4, 0x86, 0xD4, 0x86, 0xD4, 0x86, 0xF2, 0x54, 0xA8, 0xAF, 0x83, 0xB1});
+    songLooker.add_track({0xBC, 0x00, 0xBD, 0x3C, 0xBE, 0x5A, 0xBF, 0x50, 0x92, 0xD4, 0x24, 0x64, 0x86, 0x28, 0x86, 0x2B, 0x86, 0xE0, 0x28, 0x92, 0x24, 0x9C, 0xD4, 0x86, 0x27, 0x86, 0x2C, 0x86, 0xE0, 0x27, 0x92, 0x24, 0x9C, 0xD4, 0x26, 0x86, 0x29, 0x86, 0x2E, 0x86, 0xE0, 0x35, 0x8C, 0x86, 0xD4, 0x32, 0x86, 0xD4, 0x86, 0xD4, 0x86, 0xF0, 0x30, 0xA8, 0xAF, 0x83, 0xB1});
+    songLooker.add_track({0xBC, 0x00, 0xBD, 0x40, 0xBE, 0x5A, 0xBF, 0x61, 0xD4, 0x28, 0x64, 0x86, 0x2B, 0x86, 0x30, 0x86, 0x34, 0x86, 0x37, 0x86, 0x3C, 0x86, 0xE0, 0x40, 0x93, 0x3C, 0x58, 0x91, 0xD4, 0x27, 0x64, 0x86, 0x2C, 0x86, 0x30, 0x86, 0x33, 0x86, 0x38, 0x86, 0x3C, 0x86, 0xE0, 0x3F, 0x92, 0x3C, 0x92, 0xD4, 0x29, 0x86, 0x2E, 0x86, 0x32, 0x86, 0x35, 0x86, 0x3A, 0x86, 0x3E, 0x86, 0xDA, 0x41, 0x8C, 0x86, 0xD4, 0x86, 0xD4, 0x86, 0xD4, 0x86, 0xF2, 0x40, 0xA8, 0xAF, 0x83, 0xB1});
+    songLooker.add_track({0xBC, 0x00, 0xBD, 0x40, 0xBE, 0x5A, 0xBF, 0x20, 0x86, 0xD4, 0x28, 0x64, 0x86, 0x2B, 0x86, 0x30, 0x86, 0x34, 0x86, 0x37, 0x86, 0xE0, 0x3C, 0x92, 0x3C, 0x58, 0x98, 0xD4, 0x27, 0x64, 0x86, 0x2C, 0x86, 0x30, 0x86, 0x33, 0x86, 0x38, 0x86, 0xE0, 0x3C, 0x92, 0x38, 0x98, 0xD4, 0x29, 0x86, 0x2E, 0x86, 0x32, 0x86, 0x35, 0x86, 0x3A, 0x86, 0xE0, 0x3E, 0x8C, 0x86, 0xE0, 0x92, 0xF2, 0x3C, 0xA8, 0xAF, 0x83, 0xB1});
+    songLooker.add_track({0xBC, 0x00, 0xBD, 0x40, 0xBE, 0x5A, 0xBF, 0x40, 0xD4, 0x2B, 0x64, 0x86, 0x30, 0x86, 0x34, 0x86, 0x37, 0x86, 0x3C, 0x86, 0x40, 0x86, 0xE0, 0x43, 0x92, 0x40, 0x92, 0xD4, 0x2C, 0x86, 0x30, 0x86, 0x33, 0x86, 0x38, 0x86, 0x3C, 0x86, 0x3F, 0x86, 0xE0, 0x44, 0x92, 0x3F, 0x92, 0xD4, 0x2E, 0x86, 0x32, 0x86, 0x35, 0x86, 0x3A, 0x86, 0x3E, 0x86, 0x41, 0x86, 0xE0, 0x46, 0x8C, 0x86, 0xD4, 0x86, 0xD4, 0x86, 0xD4, 0x86, 0xF2, 0x48, 0xA8, 0xAF, 0x83, 0xB1, 0xD7, 0x6B});
+
+
+
     int dex_nums[MAX_PKMN_IN_BOX] = {};
 
     for (int i = 0; i < MAX_PKMN_IN_BOX; i++) // Add in the Pokemon data
@@ -205,9 +223,9 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     textGreet.insert_text(save_section_30);
     textIAm.insert_text(save_section_30);
     textWeHere.insert_text(save_section_30);
-    textMoveBox.insert_text(save_section_30);
-    textPCConvo.insert_text(save_section_30);
-    textPCThanks.insert_text(save_section_30);
+    //textMoveBox.insert_text(save_section_30);
+    //textPCConvo.insert_text(save_section_30);
+    //textPCThanks.insert_text(save_section_30);
     // textLookerFull.insert_text(save_section_30);
 
     movementSlowSpin.insert_movement(save_section_30);
@@ -216,6 +234,18 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     movementToBoxes.insert_movement(save_section_30);
     movementWalkBack.insert_movement(save_section_30);
     movementLookDown.insert_movement(save_section_30);
+
+    while (curr_section30_index % 4 != 0)
+    {
+        curr_section30_index++; // Align the code so that it is byte aligned
+    }
+
+    songLooker.insert_music_data(save_section_30, 0, 0, 0, 0x084950ec);
+
+    asm_var customSong(songLooker.get_loc_in_sec30(), sec30_variable_list, &curr_section30_index);
+    asm_var customSongDuration(388, sec30_variable_list, &curr_section30_index);
+
+
 
     while (curr_section30_index % 4 != 0)
     {
@@ -281,6 +311,49 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     add_word(dexSeenCaught_ptr.place_word());  // the location of the DEX_SEEN_CAUGHT variable
     add_word(setPokedexFlag_ptr.place_word()); // the location of GetSetPokedexFlag, plus one (so it is interpreted as thumb code)
 
+    customSoundASM.set_start(); // Note the location where the custom sound ASM starts
+    push(rlist_lr);             // save the load register to the stack
+
+    ldr3(r0, gMPlayInfo_BGM_ptr.add_reference()); // load the gMPlayInfo_BGM function location into r0
+    ldr3(r2, m4aMPlayStop_ptr.add_reference());   // load the m4aMPlayStop location into r2
+    mov3(r3, r15);                                // move r15 (the program counter) to r3
+    add2(r3, 5);                                  // add 5 to r3 to compensate for the four following bytes, as well as to tell it to read as THUMB code
+    mov3(r14, r3);                                // move r3 into r14 (the load register)
+    bx(r2);                                       // jump to the pointer stored in r2 (m4aMPlayStop)
+
+    ldr3(r0, sFanfareCounter_ptr.add_reference()); // load the sFanfareCounter_ptr function location into r0
+    ldr3(r1, customSongDuration.add_reference());  // load the custom song duration into r1
+    strh(r1, r0, 0);                               // Load the value into memory
+
+    ldr3(r0, gMPlayInfo_SE2_ptr.add_reference()); // load the gMPlayInfo_SE2 function location into r0
+    ldr3(r1, customSong.add_reference());         // load the custom song location into r1
+    ldr3(r2, MPlayStart_ptr.add_reference());     // load the m4aMPlayStop location into r2
+    mov3(r3, r15);                                // move r15 (the program counter) to r3
+    add2(r3, 5);                                  // add 5 to r3 to compensate for the four following bytes, as well as to tell it to read as THUMB code
+    mov3(r14, r3);                                // move r3 into r14 (the load register)
+    bx(r2);                                       // jump to the pointer stored in r2 (MPlayStart)
+
+    ldr3(r2, CreateFanfareTask_ptr.add_reference()); // load the m4aMPlayStop location into r2
+    mov3(r3, r15);                                   // move r15 (the program counter) to r3
+    add2(r3, 5);                                     // add 5 to r3 to compensate for the four following bytes, as well as to tell it to read as THUMB code
+    mov3(r14, r3);                                   // move r3 into r14 (the load register)
+    bx(r2);                                          // jump to the pointer stored in r2 (MPlayStart)
+
+    pop(rlist_r0); // remove r0 from the stack and put it into r0
+    bx(r0);        // jump to r0 (return to where the function was called)
+    while (curr_section30_index % 4 != 0)
+    {
+        curr_section30_index++; // Align the code so that it is byte aligned
+    }
+    add_word(m4aMPlayStop_ptr.place_word());   // the location of the INDEX variable
+    add_word(gMPlayInfo_BGM_ptr.place_word()); // the location of the dex struct
+    add_word(gMPlayInfo_SE2_ptr.place_word());
+    add_word(MPlayStart_ptr.place_word());
+    add_word(CreateFanfareTask_ptr.place_word());
+    add_word(sFanfareCounter_ptr.place_word());
+    add_word(customSong.place_word());
+    add_word(customSongDuration.place_word());
+
     // The start of the Mystery Gift Script
 
     // Located at 0x?8A8 in the .sav
@@ -303,6 +376,8 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     copyPaletteMacro(0xA, marioPal);
     changePaletteMacro(curr_rom.npc_id, 0xA);
     applymovement(curr_rom.npc_id, movementLookDown.get_loc_in_sec30());
+    callASM(customSoundASM.get_loc_in_sec30());
+    waitfanfare();
     msgboxMacro(textIAm.get_loc_in_sec30());
     changeSpriteMacro(1, 0x083a0b08);
     changePaletteMacro(curr_rom.npc_id, 0x3);
@@ -356,7 +431,7 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     compare(var_index, MAX_PKMN_IN_BOX);                                         // Compare the index to 30
     virtualgotoif(COND_LESSTHAN, jumpLoop.add_reference(2));                     // if index is less than six, jump to the start of the loop
     setflag(curr_rom.all_collected_flag);                                        // Set the "all collected" flag
-    fanfare(0xA4);                                                               // Play the received fanfare
+    fanfare(0x100);                                                              // Play the received fanfare
     msgboxMacro(textReceived.get_loc_in_sec30());                                // Display the recieved text
     waitfanfare();                                                               // Wait for the fanfare
 
@@ -422,7 +497,19 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     {
         tte_erase_screen();
         int val = (curr_mg_index - MG_SCRIPT_SIZE) - four_align_value;
-        tte_write("Script exceeded by ");
+        tte_write("MG Script exceeded by ");
+        tte_write(std::to_string(val).c_str());
+        tte_write(" bytes");
+        while (true)
+        {
+        }
+    }
+
+    if (curr_section30_index > 0x4096) // Throw an error if the script is too large
+    {
+        tte_erase_screen();
+        int val = (curr_section30_index - 0x4096) - four_align_value;
+        tte_write("S30 Script exceeded by ");
         tte_write(std::to_string(val).c_str());
         tte_write(" bytes");
         while (true)
@@ -823,7 +910,8 @@ void mystery_gift_script::changeSpriteMacro(u8 npcId, u32 spriteTablePtr)
 
 void mystery_gift_script::copyPaletteMacro(u8 palNum, const unsigned short palette_array[])
 {
-    for (int i = 0; i < 32; i++){
+    for (int i = 0; i < 32; i++)
+    {
         writebytetooffset(palette_array[i / 2] >> (8 * (i % 2)), 0x020375f8 + 0x200 + (32 * palNum) + i);
     }
 }
@@ -977,7 +1065,17 @@ void mystery_gift_script::ldr2(u8 rd, u8 rn, u8 rm)
 {
     add_asm(0b0101100 << 9 | rm << 6 | rm << 3 | rd);
 }
-
+/**
+ * @brief STRH (1) (Store Register Halfword) stores 16-bit data from a general-purpose register to memory. The addressing mode is useful for accessing structure (record) fields. With an offset of zero, the address produced is the unaltered value of the base register <Rn>.
+ *
+ * @param rd Is the register whose least significant halfword is stored to memory.
+ * @param rn Is the register containing the base address for the instruction.
+ * @param immed_5 Is a 5-bit immediate value that is multiplied by two and added to the value of <Rn> to form the memory address.
+ */
+void mystery_gift_script::strh(u8 rd, u8 rn, u8 immed_5)
+{
+    add_asm(0b10000 << 11 | (immed_5 & 0b11111) << 6 | rn << 3 | rd);
+}
 void mystery_gift_script::add_word(u32 word)
 {
     add_asm(word >> 0);

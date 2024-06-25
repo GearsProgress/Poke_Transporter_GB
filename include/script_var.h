@@ -69,3 +69,16 @@ public:
     void insert_sprite_data(u8 mg_array[], const unsigned int sprite_array[], unsigned int size);
     void set_start();
     };
+
+    
+class music_var : public xse_var
+{
+public:
+    using xse_var::xse_var;
+    void insert_music_data(u8 mg_array[], u8 blockCount, u8 priority, u8 reverb, u32 toneDataPointer);
+    void set_start();
+    void add_track(std::vector<byte> track);
+    int numTracks;
+    std::vector<u32> trackPointers;
+    std::vector<std::vector<byte>> trackArrays;
+    };
