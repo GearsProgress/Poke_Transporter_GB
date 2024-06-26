@@ -48,6 +48,8 @@ public:
     void set_text(std::u16string_view nText);
     void insert_text(u8 mg_array[]);
     void set_start();
+    void insert_virtual_text(u8 mg_array[]);
+    void set_virtual_start();
     std::u16string_view text;
 };
 
@@ -66,7 +68,7 @@ class sprite_var : public xse_var
 {
 public:
     using xse_var::xse_var;
-    void insert_sprite_data(u8 mg_array[], const unsigned int sprite_array[], unsigned int size);
+    void insert_sprite_data(u8 mg_array[], const unsigned int sprite_array[], unsigned int size, const unsigned short palette_array[]);
     void set_start();
     };
 

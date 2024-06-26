@@ -57,28 +57,35 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     asm_var MPlayStart_ptr(0x081dd8a4 + READ_AS_THUMB, sec30_variable_list, &curr_section30_index);
     asm_var CreateFanfareTask_ptr(0x08071d00 + READ_AS_THUMB, sec30_variable_list, &curr_section30_index);
     asm_var sFanfareCounter_ptr(0x03000fc6, sec30_variable_list, &curr_section30_index);
+    asm_var gPlttBufferFaded(0x020375f8 + (32 * 0x1A), sec30_variable_list, &curr_section30_index); //0x1A is the pallet number
+    asm_var copySizeControl(CPU_SET_32BIT | ((32)/(32/8) & 0x1FFFFF), sec30_variable_list, &curr_section30_index); // CPU_SET_32BIT | ((size)/(32/8) & 0x1FFFFF)
 
     asm_var mainAsmStart(sec30_variable_list, &curr_section30_index);
     asm_var dexAsmStart(sec30_variable_list, &curr_section30_index);
     asm_var customSoundASM(sec30_variable_list, &curr_section30_index);
+    asm_var loadPalette(sec30_variable_list, &curr_section30_index);
 
     xse_var jumpLoop(mg_variable_list, &curr_mg_index);
     xse_var jumpBoxFull(mg_variable_list, &curr_mg_index);
     xse_var jumpPkmnCollected(mg_variable_list, &curr_mg_index);
     xse_var jumpAllCollected(mg_variable_list, &curr_mg_index);
+    xse_var jumpNotInWay(mg_variable_list, &curr_mg_index);
+    xse_var jumpNotToSide(mg_variable_list, &curr_mg_index);
+    xse_var jumpNotToSideFull(mg_variable_list, &curr_mg_index);
 
-    textbox_var textGreet(sec30_variable_list, &curr_section30_index);
-    textbox_var textReceived(sec30_variable_list, &curr_section30_index);
+    textbox_var textGreet(mg_variable_list, &curr_mg_index);
+    textbox_var textReceived(mg_variable_list, &curr_mg_index);
+    textbox_var textYouMustBe(mg_variable_list, &curr_mg_index);
+    textbox_var textIAm(mg_variable_list, &curr_mg_index);
+
     textbox_var textPCFull(sec30_variable_list, &curr_section30_index);
     textbox_var textThank(sec30_variable_list, &curr_section30_index);
     textbox_var textTest(sec30_variable_list, &curr_section30_index);
-    textbox_var textYouMustBe(sec30_variable_list, &curr_section30_index);
-    textbox_var textIAm(sec30_variable_list, &curr_section30_index);
     textbox_var textWeHere(sec30_variable_list, &curr_section30_index);
-    textbox_var textMoveBox(sec30_variable_list, &curr_section30_index);
     textbox_var textPCConvo(sec30_variable_list, &curr_section30_index);
     textbox_var textPCThanks(sec30_variable_list, &curr_section30_index);
     textbox_var textLookerFull(sec30_variable_list, &curr_section30_index);
+    textbox_var textMoveBox(sec30_variable_list, &curr_section30_index);
 
     movement_var movementSlowSpin(sec30_variable_list, &curr_section30_index);
     movement_var movementFastSpin(sec30_variable_list, &curr_section30_index);
@@ -86,10 +93,22 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     movement_var movementToBoxes(sec30_variable_list, &curr_section30_index);
     movement_var movementWalkBack(sec30_variable_list, &curr_section30_index);
     movement_var movementLookDown(sec30_variable_list, &curr_section30_index);
+    movement_var movementOutOfWay(sec30_variable_list, &curr_section30_index);
+    movement_var movementInWay(sec30_variable_list, &curr_section30_index);
 
     sprite_var spriteLooker(sec30_variable_list, &curr_section30_index);
 
     music_var songLooker(sec30_variable_list, &curr_section30_index);
+
+    bool first_time = true;
+    for (int i = 1; i <= 251; i++)
+    {
+        if (is_caught(i))
+        {
+            // first_time = false;
+            break;
+        }
+    }
 
     // Ş = Wait for button and scroll text
     // ȼ = Wait for button and clear text
@@ -104,11 +123,11 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     // ƞ = string terminator
     textGreet.set_text(u"I may not look like much now,Ňbut when I was younger…");
     textReceived.set_text(u"ȆÀÁƲÀ’S POKÉMON were sent to theŇPC!");
-    textYouMustBe.set_text(u"Ah! You must be ƲÀ!ŇI was told you’d be coming.ȼOh! I still wear my disguise! Pardon!ŇOr, rather, let me introduce myself.");
-    textIAm.set_text(u"ȆÀËI am a globe-trotting elite of theŇInternational Police.ȼMy name…ŞAh, no, I shall inform you of myŇcode name only.ȼMy code name, it is LOOKER.ŇIt is how I am called!");
+    textYouMustBe.set_text(first_time ? u"Ah! You must be ƲÀ!ŇI was told you’d be coming.ȼOh! I still wear my disguise! Pardon!ŇOr, rather, let me introduce myself." : u"Ah, ƲÀ! Welcome back!ŇGood to see you again!ȼOh! I still wear my disguise! Pardon!");
+    textIAm.set_text(first_time ? u"ȆÀËI am a globe-trotting elite of theŇInternational Police.ȼMy name…ŞAh, no, I shall inform you of myŇcode name only.ȼMy code name, it is LOOKER.ŇIt is how I am called!" : u"ȆÀËIt is I, globe-trotting elite of theŇInternational Police.ȼMy code name, it is LOOKER.ŇIt is how I am called!");
     textWeHere.set_text(u"ȆÀËLOOKER: I am here in Kanto to findŇthe leader Giovanni.ȼHowever, in the meantime, I amŇhelping my friend Professor Jazmine.ȼThis is why you are here, no?ȼI shall contact her and tell herŇyou are ready.ŞCome! Allons y!");
     textMoveBox.set_text(u"ȆÀËOh, of course, I have to moveŇthe boxes. Silly me!");
-    textPCConvo.set_text(u"ȆÀÉJAZ: Ah, LOOKER! Good to hear fromŇyou! I take it ƲÀ has arrived?ȼȆÀËLOOKER: Indeed! They’re here andŇready to receive their POKÉMON!ȼȆÀÉJAZ: Excellent! I’ll be sending themŇover momentarily… stand by!ȼDon’t worry ƲÀ,Ňyou won’t have to do a thing!");
+    textPCConvo.set_text(u"ȆÀÉJAZ: Ah, LOOKER! Good to hear fromŇyou! I take it ƲÀ has arrived?ȼȆÀËLOOKER: Indeed! They’re here andŇready to receive their POKÉMON!ȼȆÀÉJAZ: Excellent! I’ll be sending themŇover momentarily… stand by!"); // ȼDon’t worry ƲÀ,Ňyou won’t have to do a thing!");
     textPCThanks.set_text(u"ȆÀÉJAZ: It looks like everything wasŇsent to your PC successfully!ȼThanks again for your help ƲÀ!ŇSee you around, LOOKER!");
     textThank.set_text(u"ȆÀËThanks for stopping by, ƲÀ!ȼIf you’ll excuse me, I need toŇreturn to my disguise.ŞUntil our paths cross again!");
     textPCFull.set_text(u"ȆÀÉJAZ: Hm, it seems like the PC is full!ȼGo make some room, and I can sendŇover the rest of your POKÉMON.");
@@ -176,18 +195,21 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
 
     const int movementWalkBackArray[2] = {MOVEMENT_ACTION_WALK_FAST_DOWN, MOVEMENT_ACTION_WALK_FAST_DOWN};
     movementWalkBack.set_movement(movementWalkBackArray, 2);
-
     const int movementLookDownArray[1] = {MOVEMENT_ACTION_FACE_DOWN};
     movementLookDown.set_movement(movementLookDownArray, 1);
 
+    const int movementOutOfWayArray[2] = {MOVEMENT_ACTION_WALK_FAST_RIGHT, MOVEMENT_ACTION_FACE_LEFT};
+    movementOutOfWay.set_movement(movementOutOfWayArray, 2);
+
+    const int movementInWayArray[2] = {MOVEMENT_ACTION_WALK_FAST_LEFT, MOVEMENT_ACTION_FACE_DOWN};
+    movementInWay.set_movement(movementInWayArray, 2);
+
     //                                      v Instrument
     songLooker.add_track({0xBC, 0x00, 0xBB, 0x38, 0xBD, 0x38, 0xBE, 0x64, 0xBF, 0x30, 0xD4, 0x37, 0x64, 0x86, 0x3C, 0x86, 0x40, 0x86, 0x43, 0x86, 0x48, 0x86, 0x4C, 0x86, 0xE0, 0x4F, 0x92, 0x4C, 0x92, 0xD4, 0x38, 0x86, 0x3C, 0x86, 0x3F, 0x86, 0x44, 0x86, 0x48, 0x86, 0x4B, 0x86, 0xE0, 0x50, 0x92, 0x4B, 0x92, 0xD4, 0x3A, 0x86, 0x3E, 0x86, 0x41, 0x86, 0x46, 0x86, 0x4A, 0x86, 0x4D, 0x86, 0xE0, 0x52, 0x8C, 0x86, 0xD4, 0x86, 0xD4, 0x86, 0xD4, 0x86, 0xF2, 0x54, 0xA8, 0xAF, 0x83, 0xB1});
-    songLooker.add_track({0xBC, 0x00, 0xBD, 0x3C, 0xBE, 0x5A, 0xBF, 0x50, 0x92, 0xD4, 0x24, 0x64, 0x86, 0x28, 0x86, 0x2B, 0x86, 0xE0, 0x28, 0x92, 0x24, 0x9C, 0xD4, 0x86, 0x27, 0x86, 0x2C, 0x86, 0xE0, 0x27, 0x92, 0x24, 0x9C, 0xD4, 0x26, 0x86, 0x29, 0x86, 0x2E, 0x86, 0xE0, 0x35, 0x8C, 0x86, 0xD4, 0x32, 0x86, 0xD4, 0x86, 0xD4, 0x86, 0xF0, 0x30, 0xA8, 0xAF, 0x83, 0xB1});
-    songLooker.add_track({0xBC, 0x00, 0xBD, 0x40, 0xBE, 0x5A, 0xBF, 0x61, 0xD4, 0x28, 0x64, 0x86, 0x2B, 0x86, 0x30, 0x86, 0x34, 0x86, 0x37, 0x86, 0x3C, 0x86, 0xE0, 0x40, 0x93, 0x3C, 0x58, 0x91, 0xD4, 0x27, 0x64, 0x86, 0x2C, 0x86, 0x30, 0x86, 0x33, 0x86, 0x38, 0x86, 0x3C, 0x86, 0xE0, 0x3F, 0x92, 0x3C, 0x92, 0xD4, 0x29, 0x86, 0x2E, 0x86, 0x32, 0x86, 0x35, 0x86, 0x3A, 0x86, 0x3E, 0x86, 0xDA, 0x41, 0x8C, 0x86, 0xD4, 0x86, 0xD4, 0x86, 0xD4, 0x86, 0xF2, 0x40, 0xA8, 0xAF, 0x83, 0xB1});
-    songLooker.add_track({0xBC, 0x00, 0xBD, 0x40, 0xBE, 0x5A, 0xBF, 0x20, 0x86, 0xD4, 0x28, 0x64, 0x86, 0x2B, 0x86, 0x30, 0x86, 0x34, 0x86, 0x37, 0x86, 0xE0, 0x3C, 0x92, 0x3C, 0x58, 0x98, 0xD4, 0x27, 0x64, 0x86, 0x2C, 0x86, 0x30, 0x86, 0x33, 0x86, 0x38, 0x86, 0xE0, 0x3C, 0x92, 0x38, 0x98, 0xD4, 0x29, 0x86, 0x2E, 0x86, 0x32, 0x86, 0x35, 0x86, 0x3A, 0x86, 0xE0, 0x3E, 0x8C, 0x86, 0xE0, 0x92, 0xF2, 0x3C, 0xA8, 0xAF, 0x83, 0xB1});
-    songLooker.add_track({0xBC, 0x00, 0xBD, 0x40, 0xBE, 0x5A, 0xBF, 0x40, 0xD4, 0x2B, 0x64, 0x86, 0x30, 0x86, 0x34, 0x86, 0x37, 0x86, 0x3C, 0x86, 0x40, 0x86, 0xE0, 0x43, 0x92, 0x40, 0x92, 0xD4, 0x2C, 0x86, 0x30, 0x86, 0x33, 0x86, 0x38, 0x86, 0x3C, 0x86, 0x3F, 0x86, 0xE0, 0x44, 0x92, 0x3F, 0x92, 0xD4, 0x2E, 0x86, 0x32, 0x86, 0x35, 0x86, 0x3A, 0x86, 0x3E, 0x86, 0x41, 0x86, 0xE0, 0x46, 0x8C, 0x86, 0xD4, 0x86, 0xD4, 0x86, 0xD4, 0x86, 0xF2, 0x48, 0xA8, 0xAF, 0x83, 0xB1, 0xD7, 0x6B});
-
-
+    // songLooker.add_track({0xBC, 0x00, 0xBD, 0x3C, 0xBE, 0x5A, 0xBF, 0x50, 0x92, 0xD4, 0x24, 0x64, 0x86, 0x28, 0x86, 0x2B, 0x86, 0xE0, 0x28, 0x92, 0x24, 0x9C, 0xD4, 0x86, 0x27, 0x86, 0x2C, 0x86, 0xE0, 0x27, 0x92, 0x24, 0x9C, 0xD4, 0x26, 0x86, 0x29, 0x86, 0x2E, 0x86, 0xE0, 0x35, 0x8C, 0x86, 0xD4, 0x32, 0x86, 0xD4, 0x86, 0xD4, 0x86, 0xF0, 0x30, 0xA8, 0xAF, 0x83, 0xB1});
+    // songLooker.add_track({0xBC, 0x00, 0xBD, 0x40, 0xBE, 0x5A, 0xBF, 0x61, 0xD4, 0x28, 0x64, 0x86, 0x2B, 0x86, 0x30, 0x86, 0x34, 0x86, 0x37, 0x86, 0x3C, 0x86, 0xE0, 0x40, 0x93, 0x3C, 0x58, 0x91, 0xD4, 0x27, 0x64, 0x86, 0x2C, 0x86, 0x30, 0x86, 0x33, 0x86, 0x38, 0x86, 0x3C, 0x86, 0xE0, 0x3F, 0x92, 0x3C, 0x92, 0xD4, 0x29, 0x86, 0x2E, 0x86, 0x32, 0x86, 0x35, 0x86, 0x3A, 0x86, 0x3E, 0x86, 0xDA, 0x41, 0x8C, 0x86, 0xD4, 0x86, 0xD4, 0x86, 0xD4, 0x86, 0xF2, 0x40, 0xA8, 0xAF, 0x83, 0xB1});
+    // songLooker.add_track({0xBC, 0x00, 0xBD, 0x40, 0xBE, 0x5A, 0xBF, 0x20, 0x86, 0xD4, 0x28, 0x64, 0x86, 0x2B, 0x86, 0x30, 0x86, 0x34, 0x86, 0x37, 0x86, 0xE0, 0x3C, 0x92, 0x3C, 0x58, 0x98, 0xD4, 0x27, 0x64, 0x86, 0x2C, 0x86, 0x30, 0x86, 0x33, 0x86, 0x38, 0x86, 0xE0, 0x3C, 0x92, 0x38, 0x98, 0xD4, 0x29, 0x86, 0x2E, 0x86, 0x32, 0x86, 0x35, 0x86, 0x3A, 0x86, 0xE0, 0x3E, 0x8C, 0x86, 0xE0, 0x92, 0xF2, 0x3C, 0xA8, 0xAF, 0x83, 0xB1});
+    // songLooker.add_track({0xBC, 0x00, 0xBD, 0x40, 0xBE, 0x5A, 0xBF, 0x40, 0xD4, 0x2B, 0x64, 0x86, 0x30, 0x86, 0x34, 0x86, 0x37, 0x86, 0x3C, 0x86, 0x40, 0x86, 0xE0, 0x43, 0x92, 0x40, 0x92, 0xD4, 0x2C, 0x86, 0x30, 0x86, 0x33, 0x86, 0x38, 0x86, 0x3C, 0x86, 0x3F, 0x86, 0xE0, 0x44, 0x92, 0x3F, 0x92, 0xD4, 0x2E, 0x86, 0x32, 0x86, 0x35, 0x86, 0x3A, 0x86, 0x3E, 0x86, 0x41, 0x86, 0xE0, 0x46, 0x8C, 0x86, 0xD4, 0x86, 0xD4, 0x86, 0xD4, 0x86, 0xF2, 0x48, 0xA8, 0xAF, 0x83, 0xB1, 0xD7, 0x6B});
 
     int dex_nums[MAX_PKMN_IN_BOX] = {};
 
@@ -217,16 +239,12 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
 
     // insert text
     textThank.insert_text(save_section_30);
-    textYouMustBe.insert_text(save_section_30);
-    // textPCFull.insert_text(save_section_30);
-    textReceived.insert_text(save_section_30);
-    textGreet.insert_text(save_section_30);
-    textIAm.insert_text(save_section_30);
+    textPCFull.insert_text(save_section_30);
     textWeHere.insert_text(save_section_30);
-    //textMoveBox.insert_text(save_section_30);
-    //textPCConvo.insert_text(save_section_30);
-    //textPCThanks.insert_text(save_section_30);
-    // textLookerFull.insert_text(save_section_30);
+    textPCConvo.insert_text(save_section_30);
+    textPCThanks.insert_text(save_section_30);
+    textLookerFull.insert_text(save_section_30);
+    textMoveBox.insert_text(save_section_30);
 
     movementSlowSpin.insert_movement(save_section_30);
     movementFastSpin.insert_movement(save_section_30);
@@ -234,6 +252,8 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     movementToBoxes.insert_movement(save_section_30);
     movementWalkBack.insert_movement(save_section_30);
     movementLookDown.insert_movement(save_section_30);
+    movementOutOfWay.insert_movement(save_section_30);
+    movementInWay.insert_movement(save_section_30);
 
     while (curr_section30_index % 4 != 0)
     {
@@ -245,15 +265,14 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     asm_var customSong(songLooker.get_loc_in_sec30(), sec30_variable_list, &curr_section30_index);
     asm_var customSongDuration(388, sec30_variable_list, &curr_section30_index);
 
-
-
     while (curr_section30_index % 4 != 0)
     {
         curr_section30_index++; // Align the code so that it is byte aligned
     }
 
 #include "mario.h"
-    spriteLooker.insert_sprite_data(save_section_30, marioTiles, 256);
+    spriteLooker.insert_sprite_data(save_section_30, marioTiles, 256, marioPal);
+    asm_var paletteData(curr_rom.loc_gSaveDataBuffer + (curr_section30_index - 32), sec30_variable_list, &curr_section30_index);
 
     mainAsmStart.set_start();                           // Set the memory pointer location for ASM start
     push(rlist_lr);                                     // save the load register to the stack
@@ -311,36 +330,31 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     add_word(dexSeenCaught_ptr.place_word());  // the location of the DEX_SEEN_CAUGHT variable
     add_word(setPokedexFlag_ptr.place_word()); // the location of GetSetPokedexFlag, plus one (so it is interpreted as thumb code)
 
-    customSoundASM.set_start(); // Note the location where the custom sound ASM starts
-    push(rlist_lr);             // save the load register to the stack
-
-    ldr3(r0, gMPlayInfo_BGM_ptr.add_reference()); // load the gMPlayInfo_BGM function location into r0
-    ldr3(r2, m4aMPlayStop_ptr.add_reference());   // load the m4aMPlayStop location into r2
-    mov3(r3, r15);                                // move r15 (the program counter) to r3
-    add2(r3, 5);                                  // add 5 to r3 to compensate for the four following bytes, as well as to tell it to read as THUMB code
-    mov3(r14, r3);                                // move r3 into r14 (the load register)
-    bx(r2);                                       // jump to the pointer stored in r2 (m4aMPlayStop)
-
-    ldr3(r0, sFanfareCounter_ptr.add_reference()); // load the sFanfareCounter_ptr function location into r0
-    ldr3(r1, customSongDuration.add_reference());  // load the custom song duration into r1
-    strh(r1, r0, 0);                               // Load the value into memory
-
-    ldr3(r0, gMPlayInfo_SE2_ptr.add_reference()); // load the gMPlayInfo_SE2 function location into r0
-    ldr3(r1, customSong.add_reference());         // load the custom song location into r1
-    ldr3(r2, MPlayStart_ptr.add_reference());     // load the m4aMPlayStop location into r2
-    mov3(r3, r15);                                // move r15 (the program counter) to r3
-    add2(r3, 5);                                  // add 5 to r3 to compensate for the four following bytes, as well as to tell it to read as THUMB code
-    mov3(r14, r3);                                // move r3 into r14 (the load register)
-    bx(r2);                                       // jump to the pointer stored in r2 (MPlayStart)
-
+    customSoundASM.set_start();                      // Note the location where the custom sound ASM starts
+    push(rlist_lr);                                  // save the load register to the stack
+    ldr3(r0, gMPlayInfo_BGM_ptr.add_reference());    // load the gMPlayInfo_BGM function location into r0
+    ldr3(r2, m4aMPlayStop_ptr.add_reference());      // load the m4aMPlayStop location into r2
+    mov3(r3, r15);                                   // move r15 (the program counter) to r3
+    add2(r3, 5);                                     // add 5 to r3 to compensate for the four following bytes, as well as to tell it to read as THUMB code
+    mov3(r14, r3);                                   // move r3 into r14 (the load register)
+    bx(r2);                                          // jump to the pointer stored in r2 (m4aMPlayStop)
+    ldr3(r0, sFanfareCounter_ptr.add_reference());   // load the sFanfareCounter_ptr function location into r0
+    ldr3(r1, customSongDuration.add_reference());    // load the custom song duration into r1
+    strh(r1, r0, 0);                                 // Load the value into memory
+    ldr3(r0, gMPlayInfo_SE2_ptr.add_reference());    // load the gMPlayInfo_SE2 function location into r0
+    ldr3(r1, customSong.add_reference());            // load the custom song location into r1
+    ldr3(r2, MPlayStart_ptr.add_reference());        // load the m4aMPlayStop location into r2
+    mov3(r3, r15);                                   // move r15 (the program counter) to r3
+    add2(r3, 5);                                     // add 5 to r3 to compensate for the four following bytes, as well as to tell it to read as THUMB code
+    mov3(r14, r3);                                   // move r3 into r14 (the load register)
+    bx(r2);                                          // jump to the pointer stored in r2 (MPlayStart)
     ldr3(r2, CreateFanfareTask_ptr.add_reference()); // load the m4aMPlayStop location into r2
     mov3(r3, r15);                                   // move r15 (the program counter) to r3
     add2(r3, 5);                                     // add 5 to r3 to compensate for the four following bytes, as well as to tell it to read as THUMB code
     mov3(r14, r3);                                   // move r3 into r14 (the load register)
     bx(r2);                                          // jump to the pointer stored in r2 (MPlayStart)
-
-    pop(rlist_r0); // remove r0 from the stack and put it into r0
-    bx(r0);        // jump to r0 (return to where the function was called)
+    pop(rlist_r0);                                   // remove r0 from the stack and put it into r0
+    bx(r0);                                          // jump to r0 (return to where the function was called)
     while (curr_section30_index % 4 != 0)
     {
         curr_section30_index++; // Align the code so that it is byte aligned
@@ -354,6 +368,24 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     add_word(customSong.place_word());
     add_word(customSongDuration.place_word());
 
+    loadPalette.set_start(); // Note the location where the custom sound ASM starts
+    push(rlist_lr);          // save the load register to the stack
+    ldr3(r0, paletteData.add_reference());      // load the paletteData location into r0
+    ldr3(r1, gPlttBufferFaded.add_reference()); // load the gPlttBufferFaded location into r1
+    ldr3(r2, copySizeControl.add_reference());  // load the copySizeControl location into r2
+    mov3(r3, r15);                              // move r15 (the program counter) to r3
+    add2(r3, 5);                                // add 5 to r3 to compensate for the four following bytes, as well as to tell it to read as THUMB code
+    mov3(r14, r3);                              // move r3 into r14 (the load register)
+    swi(0x0B);                                  // Call the CpuSet SWI for copying data (CpuCopy16)
+    pop(rlist_r0);                              // remove r0 from the stack and put it into r0
+    bx(r0);                                     // jump to r0 (return to where the function was called)
+    while (curr_section30_index % 4 != 0)
+    {
+        curr_section30_index++; // Align the code so that it is byte aligned
+    }
+    add_word(paletteData.place_word());
+    add_word(gPlttBufferFaded.place_word());
+    add_word(copySizeControl.place_word());
     // The start of the Mystery Gift Script
 
     // Located at 0x?8A8 in the .sav
@@ -362,23 +394,30 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     callASM(curr_rom.loc_loadSaveSection30 + READ_AS_THUMB);                // Load save section 30 into saveDataBuffer
     lock();                                                                 // Lock the player
     faceplayer();                                                           // Have the NPC face the player
-    msgboxMacro(textGreet.get_loc_in_sec30());                              // Start the dialouge
+    virtualmsgbox(textGreet.add_reference(1));                              // Start the dialouge
+    waitmsg();
+    waitkeypress();
     applymovement(curr_rom.npc_id, movementExclaim.get_loc_in_sec30());
     playse(0x15);
     waitse();
     waitmovement(curr_rom.npc_id);
-    msgboxMacro(textYouMustBe.get_loc_in_sec30());
+    virtualmsgbox(textYouMustBe.add_reference(1));
+    waitmsg();
+    waitkeypress();
     applymovement(curr_rom.npc_id, movementSlowSpin.get_loc_in_sec30());
     waitmovement(curr_rom.npc_id);
     applymovement(curr_rom.npc_id, movementFastSpin.get_loc_in_sec30());
     waitmovement(curr_rom.npc_id);
     changeSpriteMacro(1, spriteLooker.get_loc_in_sec30());
-    copyPaletteMacro(0xA, marioPal);
+    // copyPaletteMacro(0xA, marioPal);
+    callASM(loadPalette.get_loc_in_sec30());
     changePaletteMacro(curr_rom.npc_id, 0xA);
     applymovement(curr_rom.npc_id, movementLookDown.get_loc_in_sec30());
     callASM(customSoundASM.get_loc_in_sec30());
     waitfanfare();
-    msgboxMacro(textIAm.get_loc_in_sec30());
+    virtualmsgbox(textIAm.add_reference(1));
+    waitmsg();
+    waitkeypress();
     changeSpriteMacro(1, 0x083a0b08);
     changePaletteMacro(curr_rom.npc_id, 0x3);
     applymovement(curr_rom.npc_id, movementFastSpin.get_loc_in_sec30());
@@ -387,6 +426,11 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     waitmovement(curr_rom.npc_id);
     faceplayer();
     msgboxMacro(textWeHere.get_loc_in_sec30());
+    compare(0x800C, 1); // 0x800C == SpecialVar_Facing
+    virtualgotoif(COND_NOTEQUAL, jumpNotInWay.add_reference(2));
+    applymovement(0xFF, movementOutOfWay.get_loc_in_sec30());
+    waitmovement(0xFF);
+    jumpNotInWay.set_start();
     applymovement(curr_rom.npc_id, movementToBoxes.get_loc_in_sec30());
     waitmovement(curr_rom.npc_id);
     playse(0x15);
@@ -407,7 +451,6 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     playse(0x2);
     waitse();
     msgboxMacro(textPCConvo.get_loc_in_sec30());
-
     // -- POKEMON INJECTION START--
     setvar(var_index, 0);                                                        // set the index to 0
     setvar(var_pkmn_offset, 0);                                                  // Set the Pokemon struct offset to 0
@@ -431,9 +474,11 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     compare(var_index, MAX_PKMN_IN_BOX);                                         // Compare the index to 30
     virtualgotoif(COND_LESSTHAN, jumpLoop.add_reference(2));                     // if index is less than six, jump to the start of the loop
     setflag(curr_rom.all_collected_flag);                                        // Set the "all collected" flag
-    fanfare(0x100);                                                              // Play the received fanfare
-    msgboxMacro(textReceived.get_loc_in_sec30());                                // Display the recieved text
-    waitfanfare();                                                               // Wait for the fanfare
+    fanfare(257);                                                                // Play the received fanfare
+    virtualmsgbox(textReceived.add_reference(1));                                // Display the recieved text
+    waitmsg();
+    waitkeypress();
+    waitfanfare(); // Wait for the fanfare
 
     // -- POKEMON INJECTION END --
     jumpAllCollected.set_start();                 // Set the destination for if all the Pokemon have already been collected
@@ -454,6 +499,11 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     fadeScreen(0);
     applymovement(curr_rom.npc_id, movementWalkBack.get_loc_in_sec30());
     waitmovement(curr_rom.npc_id);
+    compare(0x800C, 2); // 0x800C == SpecialVar_Facing
+    virtualgotoif(COND_NOTEQUAL, jumpNotToSide.add_reference(2));
+    applymovement(0xFF, movementInWay.get_loc_in_sec30());
+    waitmovement(0xFF);
+    jumpNotToSide.set_start();
     faceplayer();
     msgboxMacro(textThank.get_loc_in_sec30());
     release();    // Release the player
@@ -478,10 +528,19 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     fadeScreen(0);
     applymovement(curr_rom.npc_id, movementWalkBack.get_loc_in_sec30());
     waitmovement(curr_rom.npc_id);
+    virtualgotoif(COND_NOTEQUAL, jumpNotToSideFull.add_reference(2));
+    applymovement(0xFF, movementInWay.get_loc_in_sec30());
+    waitmovement(0xFF);
+    jumpNotToSideFull.set_start();
     faceplayer();
     msgboxMacro(textLookerFull.get_loc_in_sec30());
     release(); // Release the player
     end();     // End the script
+
+    textGreet.insert_virtual_text(mg_script);
+    textYouMustBe.insert_virtual_text(mg_script);
+    textReceived.insert_virtual_text(mg_script);
+    textIAm.insert_virtual_text(mg_script);
 
     for (unsigned int i = 0; i < mg_variable_list.size(); i++) // Fill all the refrences for script variables in the mg
     {
@@ -1068,14 +1127,24 @@ void mystery_gift_script::ldr2(u8 rd, u8 rn, u8 rm)
 /**
  * @brief STRH (1) (Store Register Halfword) stores 16-bit data from a general-purpose register to memory. The addressing mode is useful for accessing structure (record) fields. With an offset of zero, the address produced is the unaltered value of the base register <Rn>.
  *
- * @param rd Is the register whose least significant halfword is stored to memory.
- * @param rn Is the register containing the base address for the instruction.
- * @param immed_5 Is a 5-bit immediate value that is multiplied by two and added to the value of <Rn> to form the memory address.
+ * @param immed_8 Is an 8-bit immediate value that is put into bits[7:0] of the instruction. This value is ignored by the processor, but can be used by an operating system's SWI exception handler to determine which operating system service is being requested.
  */
 void mystery_gift_script::strh(u8 rd, u8 rn, u8 immed_5)
 {
     add_asm(0b10000 << 11 | (immed_5 & 0b11111) << 6 | rn << 3 | rd);
 }
+/**
+ * @brief SWI (Software Interrupt) generates a software interrupt or SWI, which is handled by an operating system. See Exceptions on page A2-16. Use it as a call to an operating system service to provide a service.
+ *
+ * @param rd Is the register whose least significant halfword is stored to memory.
+ * @param rn Is the register containing the base address for the instruction.
+ * @param immed_5 Is a 5-bit immediate value that is multiplied by two and added to the value of <Rn> to form the memory address.
+ */
+void mystery_gift_script::swi(u8 immed_8)
+{
+    add_asm(0b11011111 << 8 | immed_8);
+}
+
 void mystery_gift_script::add_word(u32 word)
 {
     add_asm(word >> 0);

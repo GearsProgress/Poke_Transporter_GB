@@ -123,9 +123,26 @@ void textbox_var::set_start()
     start_location_in_script = *curr_loc_ptr;
 }
 
+void textbox_var::set_virtual_start()
+{
+    start_location_in_script = *curr_loc_ptr - 4;
+}
+
 void textbox_var::insert_text(u8 mg_array[])
 {
     set_start();
+    for (unsigned int parser = 0; parser < text.length(); parser++)
+    {
+        mg_array[*curr_loc_ptr] = get_gen_3_char((char16_t)(text.at(parser)), false);
+        (*curr_loc_ptr)++;
+    }
+    mg_array[*curr_loc_ptr] = 0xFF; // End string
+    (*curr_loc_ptr)++;
+}
+
+void textbox_var::insert_virtual_text(u8 mg_array[])
+{
+    set_virtual_start();
     for (unsigned int parser = 0; parser < text.length(); parser++)
     {
         mg_array[*curr_loc_ptr] = get_gen_3_char((char16_t)(text.at(parser)), false);
@@ -167,7 +184,7 @@ void sprite_var::set_start()
     start_location_in_script = *curr_loc_ptr;
 }
 
-void sprite_var::insert_sprite_data(u8 mg_array[], const unsigned int sprite_array[], unsigned int size)
+void sprite_var::insert_sprite_data(u8 mg_array[], const unsigned int sprite_array[], unsigned int size, const unsigned short palette_array[])
 {
     set_start();
     u32 pointer = curr_rom.loc_gSaveDataBuffer + *curr_loc_ptr + 8;
@@ -186,6 +203,11 @@ void sprite_var::insert_sprite_data(u8 mg_array[], const unsigned int sprite_arr
         mg_array[*curr_loc_ptr] = sprite_array[parser / 4] >> (8 * (parser % 4));
         (*curr_loc_ptr)++;
     }
+    for (unsigned int parser = 0; parser < 32; parser++)
+    {
+        mg_array[*curr_loc_ptr] = palette_array[parser / 2] >> (8 * (parser % 2));
+        (*curr_loc_ptr)++;
+    }
 }
 
 // MUSIC VAR
@@ -202,10 +224,10 @@ void music_var::add_track(std::vector<byte> track)
 
 void music_var::insert_music_data(u8 mg_array[], u8 blockCount, u8 priority, u8 reverb, u32 toneDataPointer)
 {
-    for (int i = 0; i < trackArrays.size(); i++)
+    for (unsigned int i = 0; i < trackArrays.size(); i++)
     {
         trackPointers.push_back(*curr_loc_ptr + curr_rom.loc_gSaveDataBuffer);
-        for (int j = 0; j < trackArrays[i].size(); j++)
+        for (unsigned int j = 0; j < trackArrays[i].size(); j++)
         {
             mg_array[(*curr_loc_ptr)++] = trackArrays[i][j];
         }
@@ -221,7 +243,7 @@ void music_var::insert_music_data(u8 mg_array[], u8 blockCount, u8 priority, u8 
         mg_array[(*curr_loc_ptr)++] = toneDataPointer >> (8 * i);
     }
 
-    for (int i = 0; i < trackArrays.size(); i++)
+    for (unsigned int i = 0; i < trackArrays.size(); i++)
     {
         mg_array[(*curr_loc_ptr)++] = trackPointers[i] >> 0;
         mg_array[(*curr_loc_ptr)++] = trackPointers[i] >> 8;

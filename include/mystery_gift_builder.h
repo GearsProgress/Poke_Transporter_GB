@@ -252,6 +252,8 @@
 #define MOVEMENT_ACTION_JUMP_SPECIAL_WITH_EFFECT_LEFT curr_rom.is_hoenn() ? 0xFF : 0xA8
 #define MOVEMENT_ACTION_JUMP_SPECIAL_WITH_EFFECT_RIGHT curr_rom.is_hoenn() ? 0xFF : 0xA9
 
+#define CPU_SET_16BIT     0x00000000
+#define CPU_SET_32BIT     0x04000000
 class mystery_gift_script
 {
     int curr_mg_index;
@@ -335,6 +337,7 @@ private:
     void and1(u8 rd, u8 rm);
     void ldr2(u8 rd, u8 rn, u8 rm);
     void strh(u8 rd, u8 rn, u8 immed_5);
+    void swi(u8 immed_8);
 };
 
 #endif
