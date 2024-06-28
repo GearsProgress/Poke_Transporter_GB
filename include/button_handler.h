@@ -6,8 +6,9 @@
 class Button
 {
 public:
+    Button();
     Button(OBJ_ATTR *L, OBJ_ATTR *R, int nLeft_button_width); // wide buttons
-    Button(OBJ_ATTR *B);              // short button
+    Button(OBJ_ATTR *B);                                      // short button
     bool isWide;
     void set_location(int x, int y);
     void set_highlight(bool highlight);

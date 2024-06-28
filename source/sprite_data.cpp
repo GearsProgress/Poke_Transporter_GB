@@ -91,7 +91,7 @@ void load_textbox_background()
 // SPRITES
 
 int num_sprites = 0;
-OBJ_ATTR *testroid = &obj_buffer[num_sprites++];
+//OBJ_ATTR *testroid = &obj_buffer[num_sprites++];
 OBJ_ATTR *prof = &obj_buffer[num_sprites++];
 OBJ_ATTR *ptgb_logo_l = &obj_buffer[num_sprites++];
 OBJ_ATTR *ptgb_logo_r = &obj_buffer[num_sprites++];
@@ -106,6 +106,10 @@ OBJ_ATTR *btn_d_l = &obj_buffer[num_sprites++];
 OBJ_ATTR *btn_d_r = &obj_buffer[num_sprites++];
 OBJ_ATTR *button_yes = &obj_buffer[num_sprites++];
 OBJ_ATTR *button_no = &obj_buffer[num_sprites++];
+OBJ_ATTR *button_blank_left = &obj_buffer[num_sprites++];
+OBJ_ATTR *button_blank_right = &obj_buffer[num_sprites++];
+OBJ_ATTR *button_blank_left_2 = &obj_buffer[num_sprites++];
+OBJ_ATTR *button_blank_right_2 = &obj_buffer[num_sprites++];
 
 OBJ_ATTR *dex_sprites[3][6] = { // Fills the dex sprites top to bottom, left to right
     {&obj_buffer[num_sprites++], &obj_buffer[num_sprites++], &obj_buffer[num_sprites++],
@@ -182,14 +186,14 @@ u32 global_tile_id_end = 0;
 
 void load_eternal_sprites()
 {
-    memcpy(pal_obj_mem + (METR_PAL * 16), metrPal, metrPalLen);
+    //memcpy(pal_obj_mem + (METR_PAL * 16), metrPal, metrPalLen);
     memcpy(pal_obj_mem + (PROF_PAL * 16), profPal, profPalLen);
     memcpy(pal_obj_mem + (BTN_PAL * 16), btn_t_lPal, btn_t_lPalLen);
     memcpy(pal_obj_mem + (BTN_LIT_PAL * 16), btn_t_rPal, btn_t_rPalLen);
     memcpy(pal_obj_mem + (LOGO_PAL * 16), ptgb_logo_lPal, ptgb_logo_lPalLen);
 
     u32 curr_tile_id = 0;
-    load_sprite(testroid, metrTiles, metrTilesLen, curr_tile_id, METR_PAL, ATTR0_SQUARE, ATTR1_SIZE_64x64, 0);
+    //load_sprite(testroid, metrTiles, metrTilesLen, curr_tile_id, METR_PAL, ATTR0_SQUARE, ATTR1_SIZE_64x64, 0);
     load_sprite(prof, profTiles, profTilesLen, curr_tile_id, PROF_PAL, ATTR0_SQUARE, ATTR1_SIZE_64x64, 2);
     load_sprite(ptgb_logo_l, ptgb_logo_lTiles, ptgb_logo_lTilesLen, curr_tile_id, LOGO_PAL, ATTR0_SQUARE, ATTR1_SIZE_64x64, 1);
     load_sprite(ptgb_logo_r, ptgb_logo_rTiles, ptgb_logo_rTilesLen, curr_tile_id, LOGO_PAL, ATTR0_SQUARE, ATTR1_SIZE_64x64, 1);
@@ -203,6 +207,10 @@ void load_eternal_sprites()
     load_sprite(btn_d_r, btn_d_rTiles, btn_d_rTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
     load_sprite(button_yes, button_yesTiles, button_yesTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
     load_sprite(button_no, button_noTiles, button_noTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
+    load_sprite(button_blank_left, button_blank_leftTiles, button_blank_leftTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
+    load_sprite(button_blank_right, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
+    load_sprite(button_blank_left_2, button_blank_leftTiles, button_blank_leftTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
+    load_sprite(button_blank_right_2, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
     global_tile_id_end = curr_tile_id;
 }
 

@@ -9,7 +9,7 @@
 #define BTN_MAIN_MENU 0
 #define BTN_TRANSFER 1
 #define BTN_POKEDEX 2
-#define BTN_LANGUAGE 3
+#define BTN_EVENTS 3
 #define BTN_CREDITS 4
 #define BUTTON_CANCEL -1
 

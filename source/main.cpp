@@ -102,7 +102,7 @@ void load_graphics()
 	main_menu.clear_vector();
 	main_menu.add_button(Button(btn_t_l, btn_t_r, 48), BTN_TRANSFER);
 	main_menu.add_button(Button(btn_p_l, btn_p_r, 48), BTN_POKEDEX);
-	// main_menu.add_button(Button(btn_d_l, btn_d_r), BTN_LANGUAGE);
+	main_menu.add_button(Button(btn_d_l, btn_d_r, 48), BTN_EVENTS);
 	main_menu.add_button(Button(btn_c_l, btn_c_r, 48), BTN_CREDITS);
 	main_menu.set_xy_min_max(0, H_MAX, 48, V_MAX);
 
@@ -208,7 +208,7 @@ int credits()
 		set_textbox_large();
 		tte_write(credits_array[curr_credits_num].c_str());
 		if (key_hit(KEY_B))
-		{			
+		{
 			hide_text_box();
 			set_textbox_small();
 			return 0;
@@ -293,7 +293,7 @@ int main(void)
 		{
 		case (BTN_TRANSFER):
 			obj_hide_multi(ptgb_logo_l, 2);
-			text_loop();
+			text_loop(BTN_TRANSFER);
 			break;
 		case (BTN_POKEDEX):
 			obj_hide_multi(ptgb_logo_l, 2);
@@ -305,6 +305,10 @@ int main(void)
 			obj_set_pos(ptgb_logo_l, 56, 108);
 			obj_set_pos(ptgb_logo_r, 56 + 64, 108);
 			credits();
+			break;
+		case (BTN_EVENTS):
+			obj_hide_multi(ptgb_logo_l, 2);
+			text_loop(BTN_EVENTS);
 			break;
 		default:
 			global_next_frame();

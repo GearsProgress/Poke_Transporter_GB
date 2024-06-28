@@ -1,1 +1,1 @@
-nm --size-sort Pokemon_Mirror_mb.elf > Pokemon_Mirror_mb.sym
+nm --size-sort Poke_Transporter_GB_mb.elf > Poke_Transporter_GB_mb.sym

@@ -34,8 +34,8 @@ int Button_Menu::button_main()
     organize_buttons();
     show_buttons();
     button_vector.at(curr_position).set_highlight(true);
-    int curr_x;
-    int curr_y;
+    int curr_x = 0;
+    int curr_y = 0;
 
     key_poll(); // Reset the buttons
 

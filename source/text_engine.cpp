@@ -7,6 +7,7 @@
 #include "pkmn_font.h"
 #include "script_array.h"
 #include "debug_mode.h"
+#include "main_menu.h"
 
 #define TEXT_CBB 3
 #define TEXT_SBB 28
@@ -29,15 +30,25 @@ void init_text_engine()
     pal_bg_bank[15][15] = 0b0001100011100110;
 
     // Set default variables
-    curr_line = script[SCRIPT_START];
     char_index = 0;
     line_char_index = 0;
-    curr_text = curr_line.get_text();
     text_exit = false;
 }
 
-int text_loop()
+int text_loop(int script)
 {
+    switch (script)
+    {
+    case BTN_TRANSFER:
+        curr_line = transfer_script[T_SCRIPT_START];
+        break;
+
+    case BTN_EVENTS:
+        curr_line = event_script[E_SCRIPT_START];
+        break;
+    }
+    curr_text = curr_line.get_text();
+
     show_text_box();
     tte_set_margins(LEFT, TOP, RIGHT, BOTTOM);
     while (true)
@@ -75,7 +86,15 @@ int text_loop()
                 else
                 {
                     line_char_index = 0;
-                    curr_line = script[text_next_obj_id(curr_line)];
+                    switch (script)
+                    {
+                    case BTN_TRANSFER:
+                        curr_line = transfer_script[text_next_obj_id(curr_line)];
+                        break;
+                    case BTN_EVENTS:
+                        curr_line = event_script[text_next_obj_id(curr_line)];
+                        break;
+                    }
                     curr_text = curr_line.get_text();
                 }
                 char_index = 0;

@@ -10,8 +10,8 @@
 #define DONT_REMOVE_PKMN false
 #define SHOW_INVALID_PKMN false
 
-#define DEBUG_GAME RUBY_ID
-#define DEBUG_VERS VERS_1_1
+#define DEBUG_GAME EMERALD_ID
+#define DEBUG_VERS VERS_1_0
 #define DEBUG_LANG LANG_ENG
 
 #define ENABLE_MATCH_PID true

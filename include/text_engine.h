@@ -15,7 +15,7 @@
 #define BOTTOM V_MAX
 
     void init_text_engine();
-    int text_loop();
+    int text_loop(int script);
     int text_next_obj_id(script_obj current_line);
     void show_text_box();
     void hide_text_box();

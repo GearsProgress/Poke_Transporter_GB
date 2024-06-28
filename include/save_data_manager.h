@@ -29,4 +29,5 @@ int get_def_lang_num();
 bool get_tutorial_flag();
 void set_tutorial_flag(bool value);
 void initalize_save_data();
+int get_dex_completion(int gen, bool include_mythicals);
 #endif

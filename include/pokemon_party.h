@@ -17,7 +17,7 @@ public:
     void set_game(int nGame);
     void set_lang(int nLang);
     int get_lang();
-    bool load_payload();
+    bool load_gb_rom();
     GB_ROM curr_gb_rom;
     void show_sprites();
     Simplified_Pokemon simple_pkmn_array[30];
@@ -26,7 +26,7 @@ public:
     bool get_contains_mythical();
     void set_mythic_stabilization(bool stabilize);
     bool contains_valid = false;
-
+    int get_game_gen();
 
 private:
     byte box_data_array[0x462];

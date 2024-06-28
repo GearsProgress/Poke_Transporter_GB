@@ -9,7 +9,7 @@
 #include "box_menu.h"
 #include "payload_builder.h"
 
-const GB_ROM *list_of_gb_roms[NUM_PAYLOADS] = {
+const GB_ROM *list_of_gb_roms[NUM_GB_ROMS] = {
         &ENG_RED_BLUE,
 		&ENG_YELLOW,
 		&ENG_GOLD,
@@ -223,6 +223,23 @@ void Pokemon_Party::set_game(int nGame)
 	game = nGame;
 }
 
+int Pokemon_Party::get_game_gen()
+{
+	switch(game){
+		case GREEN_ID:
+		case RED_ID:
+		case BLUE_ID:
+		case YELLOW_ID:
+		return 1;
+
+		case GOLD_ID:
+		case SILVER_ID:
+		case CRYSTAL_ID:
+		default:
+		return 2;
+	}
+}
+
 void Pokemon_Party::set_lang(int nLang)
 {
 	lang = nLang;
@@ -232,8 +249,8 @@ int Pokemon_Party::get_lang(){
 	return lang;
 }
 
-bool Pokemon_Party::load_payload(){
-	for (int i = 0; i < NUM_PAYLOADS; i++)
+bool Pokemon_Party::load_gb_rom(){
+	for (int i = 0; i < NUM_GB_ROMS; i++)
 	{
 		if (lang == list_of_gb_roms[i]->language &&
 			game == list_of_gb_roms[i]->version)
@@ -244,6 +261,7 @@ bool Pokemon_Party::load_payload(){
 	}  
 	return false;
 }
+
 
 Simplified_Pokemon Pokemon_Party::get_simple_pkmn(int index){
 	return simple_pkmn_array[index];

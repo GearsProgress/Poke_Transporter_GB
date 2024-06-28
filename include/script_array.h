@@ -30,37 +30,42 @@
 #define DIA_MG_OTHER_EVENT          21
 #define DIA_PKMN_TO_COLLECT         22
 #define DIA_NO_VALID_PKMN           23
-#define DIA_WHAT_GAME               24
-#define DIA_WHAT_LANG               25
+#define DIA_WHAT_GAME_TRANS         24
+#define DIA_WHAT_LANG_TRANS         25
 #define DIA_ASK_QUEST               26
-#define DIA_NO_PAYLOAD              27
+#define DIA_NO_GB_ROM               27
 #define DIA_IN_BOX                  28
 #define DIA_MYTHIC_CONVERT          29
 #define DIA_CANCEL                  30
+#define DIA_WHAT_LANG_EVENT         31
+#define DIA_WHAT_GAME_EVENT         32
+#define DIA_K_DEX_NOT_FULL          33
+#define DIA_J_DEX_NOT_FULL          34
 
-#define                    DIA_SIZE 31
+#define                    DIA_SIZE 35
 #define DIA_END DIA_SIZE
 
 // Commands
-#define SCRIPT_START            DIA_END + 0
-#define CMD_START_LINK          DIA_END + 1
-#define CMD_IMPORT_POKEMON      DIA_END + 2     // This one is special because it can be true or false
-#define CMD_BACK_TO_MENU        DIA_END + 3
-#define CMD_SHOW_PROF           DIA_END + 4
-#define CMD_HIDE_PROF           DIA_END + 5
-#define CMD_SET_TUTOR_TRUE      DIA_END + 6
-#define CMD_END_SCRIPT          DIA_END + 7
-#define CMD_GAME_MENU           DIA_END + 8
-#define CMD_LANG_MENU           DIA_END + 9
-#define CMD_SLIDE_PROF_LEFT     DIA_END + 10
-#define CMD_SLIDE_PROF_RIGHT    DIA_END + 11
-#define CMD_CONTINUE_LINK       DIA_END + 12
-#define CMD_BOX_MENU            DIA_END + 13
-#define CMD_MYTHIC_MENU         DIA_END + 14
-#define CMD_LOAD_SIMP           DIA_END + 15
-#define CMD_CANCEL_LINK         DIA_END + 16
+#define T_SCRIPT_START          DIA_END + 0
+#define E_SCRIPT_START          DIA_END + 1
+#define CMD_START_LINK          DIA_END + 2
+#define CMD_IMPORT_POKEMON      DIA_END + 3     // This one is special because it can be true or false
+#define CMD_BACK_TO_MENU        DIA_END + 4
+#define CMD_SHOW_PROF           DIA_END + 5
+#define CMD_HIDE_PROF           DIA_END + 6
+#define CMD_SET_TUTOR_TRUE      DIA_END + 7
+#define CMD_END_SCRIPT          DIA_END + 8
+#define CMD_GAME_MENU           DIA_END + 9
+#define CMD_LANG_MENU           DIA_END + 10
+#define CMD_SLIDE_PROF_LEFT     DIA_END + 11
+#define CMD_SLIDE_PROF_RIGHT    DIA_END + 12
+#define CMD_CONTINUE_LINK       DIA_END + 13
+#define CMD_BOX_MENU            DIA_END + 14
+#define CMD_MYTHIC_MENU         DIA_END + 15
+#define CMD_LOAD_SIMP           DIA_END + 16
+#define CMD_CANCEL_LINK         DIA_END + 17
 
-#define                         CMD_SIZE  17
+#define                         CMD_SIZE  18
 #define CMDS_END DIA_END + CMD_SIZE
 
 // Conditionals
@@ -77,17 +82,20 @@
 #define COND_IS_FRLGE               CMDS_END + 10
 #define COND_MG_OTHER_EVENT         CMDS_END + 11
 #define COND_PKMN_TO_COLLECT        CMDS_END + 12
-#define COND_PAYLOAD_EXISTS         CMDS_END + 13
+#define COND_GB_ROM_EXISTS          CMDS_END + 13
 #define COND_CHECK_MYTHIC           CMDS_END + 14
+#define COND_CHECK_DEX              CMDS_END + 15
+#define COND_CHECK_KANTO            CMDS_END + 16
 
-#define                             COND_SIZE  15
+#define                             COND_SIZE  17
 #define COND_END CMDS_END + COND_SIZE
 
 // Ends
 
 #define SCRIPT_SIZE COND_END
 
-extern script_obj script[];
+extern script_obj transfer_script[];
+extern script_obj event_script[];
 extern rom_data curr_rom;
 
 void populate_script();

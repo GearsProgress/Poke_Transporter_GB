@@ -10,8 +10,8 @@ extern OBJ_ATTR obj_buffer[128];
 extern OBJ_AFFINE *obj_aff_buffer;
 extern int num_sprites;
 
-#include "metr.h"
-extern OBJ_ATTR *testroid;
+//#include "metr.h"
+//extern OBJ_ATTR *testroid;
 #include "prof.h"
 extern OBJ_ATTR *prof;
 #include "btn_t_l.h"
@@ -34,6 +34,11 @@ extern OBJ_ATTR *btn_d_r;
 extern OBJ_ATTR *button_yes;
 #include "button_no.h"
 extern OBJ_ATTR *button_no;
+#include "button_blank_left.h"
+extern OBJ_ATTR *button_blank_left;
+extern OBJ_ATTR *button_blank_right;
+extern OBJ_ATTR *button_blank_left_2;
+extern OBJ_ATTR *button_blank_right_2;
 
 #define SPRITE_BATCH_DEX 0
 #include "dex_l.h"

@@ -8,7 +8,7 @@ typedef unsigned int u32, word, uint, eint;
 typedef unsigned long long u64;
 
 #define PAYLOAD_SIZE 672
-#define NUM_PAYLOADS 5
+#define NUM_GB_ROMS 5
 
 #define GB_TILE_WIDTH 20
 

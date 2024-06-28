@@ -34,7 +34,7 @@ void global_next_frame()
             tte_set_margins(40, 24, 206, 104);
             set_textbox_large();
             tte_write("\n\n#{cx:0xF000}The Pok@mon game was\nremoved. Please turn\noff the system and\nrestart the program.");
-            obj_hide_multi(testroid, 128);
+            //obj_hide_multi(testroid, 128);
             oam_copy(oam_mem, obj_buffer, num_sprites);
             while(true){};
         }

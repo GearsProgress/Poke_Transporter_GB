@@ -4114,7 +4114,7 @@ const byte FIRST_MOVES[252] = {
     0x49, // Celebi          (leech-seed)
 };
 const std::string_view NAMES[252]{
-    "", // Offset the list to remove "off by one" errors
+    "MissingNo", // Offset the list to remove "off by one" errors
     "Bulbasaur",
     "Ivysaur",
     "Venusaur",

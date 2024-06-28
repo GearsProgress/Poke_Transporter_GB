@@ -20,7 +20,8 @@ Button_Menu game_select_jpn(3, 2, 72, 32, true);
 Button_Menu game_select_kor(1, 1, 72, 32, true);
 Box_Menu box_viewer;
 
-script_obj script[SCRIPT_SIZE];
+script_obj transfer_script[SCRIPT_SIZE];
+script_obj event_script[SCRIPT_SIZE];
 std::string_view dialogue[DIA_SIZE];
 
 void populate_dialogue()
@@ -42,9 +43,9 @@ void populate_dialogue()
     dialogue[DIA_PKMN_TO_COLLECT] = "Hi Trainer! It looks like\nyou still have Pok@mon to\npick up...|I can't send over new\nPok@mon until you pick those\nup.|Come back after you've\nreceived them!";
     dialogue[DIA_NO_VALID_PKMN] = "Sorry Trainer, it doesn't\nlook like you have any valid\nPok@mon in your current box\nright now.|Go double check your current\nbox and we can give it\nanother shot!";
     dialogue[DIA_ASK_QUEST] = "Hi trainer! Before we begin,\nI need to ask you a few\nquestions.";
-    dialogue[DIA_WHAT_GAME] = "And which Game Boy Pok@mon\ngame are you transferring\nfrom?";
-    dialogue[DIA_WHAT_LANG] = "What language is the Game\nBoy Pok@mon game that you're\ntransferring from?";
-    dialogue[DIA_NO_PAYLOAD] = "I'm sorry, but that version\nin that language is not\ncurrently supported.";
+    dialogue[DIA_WHAT_GAME_TRANS] = "And which Game Boy Pok@mon\ngame are you transferring\nfrom?";
+    dialogue[DIA_WHAT_LANG_TRANS] = "What language is the Game\nBoy Pok@mon game that you're\ntransferring from?";
+    dialogue[DIA_NO_GB_ROM] = "I'm sorry, but that version\nin that language is not\ncurrently supported.";
     dialogue[DIA_IN_BOX] = "Great! Let's take a look at\nthe Pok@mon that will be\ntransfered.|Please remember, once a\nPok@mon is transfered, it\nCANNOT be returned to the\nGame Boy Game Pak.|Select confirm once you're\nready, or select cancel if\nyou want to keep the Pok@mon\non your Game Boy Game Pak.";
     dialogue[DIA_MYTHIC_CONVERT] = "It looks like you have a\nrare Mythical Pok@mon!|Due to their rarity, it\nseems they've corrupted the\nmachine.|I can stablize them if you'd\nlike, but it'll change some\nthings like name, Original\nTrainer, and Shininess.|Otherwise I can leave them\nas is, but there's no\nguarentee that they'll be\ntransferrable in the future.|Do you want me to stablize\nthem?";
     dialogue[DIA_CANCEL] = "No worries! Feel free to\ncome back if you change your\nmind!|See you around!";
@@ -54,78 +55,110 @@ void populate_dialogue()
     dialogue[DIA_ERROR_DISCONNECT] = "It looks like the Game Boy\nColor link cable was\ndisconnected...|Let's try that again!";
     dialogue[DIA_ERROR_TIME_ONE] = "It looks like the connection\ntimed out...|Let's try that again!";
     dialogue[DIA_ERROR_TIME_TWO] = "It seems like the connection\ntimed out...|Let's try that again!";
+
+    dialogue[DIA_WHAT_LANG_EVENT] = "What language is the Game\nBoy Pok@mon game that you\nwant to send an event to?";
+    dialogue[DIA_WHAT_GAME_EVENT] = "And which Game Boy Pok@mon\ngame do you want to send an event to?";
+    dialogue[DIA_K_DEX_NOT_FULL] = "Sorry trainer, it looks like\nyou haven't caught all 150\nPok@mon from the Kanto\nregion yet.|Go out and catch them all\nand then we'll be able to\nsend over the event!";
+    dialogue[DIA_J_DEX_NOT_FULL] = "Sorry trainer, it looks like\nyou haven't caught all 99\nnew Pok@mon from the Johto\nregion yet.|Go out and catch them all\nand then we'll be able to\nsend over the event!";
 }
 
 void populate_script()
 {
+    // -------- TRANSFER SCRIPT --------
     // Check that the conditions are set for the transfer
-    script[SCRIPT_START] = script_obj(CMD_SHOW_PROF, COND_BEAT_E4);
-    script[COND_BEAT_E4] = script_obj(COND_BEAT_E4, COND_MG_ENABLED, DIA_E4);
-    script[DIA_E4] = script_obj(dialogue[DIA_E4], CMD_END_SCRIPT);
-    script[COND_MG_ENABLED] = script_obj(COND_MG_ENABLED, COND_TUTORIAL_COMPLETE, COND_IS_FRLGE);
-    script[COND_IS_FRLGE] = script_obj(COND_IS_FRLGE, DIA_MG_FRLGE, DIA_MG_RS);
-    script[DIA_MG_FRLGE] = script_obj(dialogue[DIA_MG_FRLGE], CMD_END_SCRIPT);
-    script[DIA_MG_RS] = script_obj(dialogue[DIA_MG_RS], CMD_END_SCRIPT);
-    script[COND_TUTORIAL_COMPLETE] = script_obj(COND_TUTORIAL_COMPLETE, COND_MG_OTHER_EVENT, DIA_OPEN);
-    script[DIA_OPEN] = script_obj(dialogue[DIA_OPEN], CMD_SET_TUTOR_TRUE);
-    script[CMD_SET_TUTOR_TRUE] = script_obj(CMD_SET_TUTOR_TRUE, CMD_END_SCRIPT);
-    script[COND_MG_OTHER_EVENT] = script_obj(COND_MG_OTHER_EVENT, DIA_MG_OTHER_EVENT, COND_PKMN_TO_COLLECT);
-    script[COND_PKMN_TO_COLLECT] = script_obj(COND_PKMN_TO_COLLECT, DIA_PKMN_TO_COLLECT, DIA_ASK_QUEST);
-    script[DIA_MG_OTHER_EVENT] = script_obj(dialogue[DIA_MG_OTHER_EVENT], DIA_ASK_QUEST);
-    script[DIA_PKMN_TO_COLLECT] = script_obj(dialogue[DIA_PKMN_TO_COLLECT], CMD_END_SCRIPT);
+    transfer_script[T_SCRIPT_START] = script_obj(CMD_SHOW_PROF, COND_BEAT_E4);
+    transfer_script[COND_BEAT_E4] = script_obj(COND_BEAT_E4, COND_MG_ENABLED, DIA_E4);
+    transfer_script[DIA_E4] = script_obj(dialogue[DIA_E4], CMD_END_SCRIPT);
+    transfer_script[COND_MG_ENABLED] = script_obj(COND_MG_ENABLED, COND_TUTORIAL_COMPLETE, COND_IS_FRLGE);
+    transfer_script[COND_IS_FRLGE] = script_obj(COND_IS_FRLGE, DIA_MG_FRLGE, DIA_MG_RS);
+    transfer_script[DIA_MG_FRLGE] = script_obj(dialogue[DIA_MG_FRLGE], CMD_END_SCRIPT);
+    transfer_script[DIA_MG_RS] = script_obj(dialogue[DIA_MG_RS], CMD_END_SCRIPT);
+    transfer_script[COND_TUTORIAL_COMPLETE] = script_obj(COND_TUTORIAL_COMPLETE, COND_MG_OTHER_EVENT, DIA_OPEN);
+    transfer_script[DIA_OPEN] = script_obj(dialogue[DIA_OPEN], CMD_SET_TUTOR_TRUE);
+    transfer_script[CMD_SET_TUTOR_TRUE] = script_obj(CMD_SET_TUTOR_TRUE, CMD_END_SCRIPT);
+    transfer_script[COND_MG_OTHER_EVENT] = script_obj(COND_MG_OTHER_EVENT, DIA_MG_OTHER_EVENT, COND_PKMN_TO_COLLECT);
+    transfer_script[COND_PKMN_TO_COLLECT] = script_obj(COND_PKMN_TO_COLLECT, DIA_PKMN_TO_COLLECT, DIA_ASK_QUEST);
+    transfer_script[DIA_MG_OTHER_EVENT] = script_obj(dialogue[DIA_MG_OTHER_EVENT], DIA_ASK_QUEST);
+    transfer_script[DIA_PKMN_TO_COLLECT] = script_obj(dialogue[DIA_PKMN_TO_COLLECT], CMD_END_SCRIPT);
 
     // Ask the user what game and language they're using
-    script[DIA_WHAT_GAME] = script_obj(dialogue[DIA_WHAT_GAME], CMD_GAME_MENU);
-    script[CMD_GAME_MENU] = script_obj(CMD_GAME_MENU, COND_PAYLOAD_EXISTS, DIA_WHAT_LANG);
-    script[DIA_WHAT_LANG] = script_obj(dialogue[DIA_WHAT_LANG], CMD_LANG_MENU);
-    script[CMD_LANG_MENU] = script_obj(CMD_LANG_MENU, DIA_WHAT_GAME);
-    script[DIA_ASK_QUEST] = script_obj(dialogue[DIA_ASK_QUEST], CMD_SLIDE_PROF_LEFT);
-    script[CMD_SLIDE_PROF_LEFT] = script_obj(CMD_SLIDE_PROF_LEFT, DIA_WHAT_LANG);
-    script[CMD_SLIDE_PROF_RIGHT] = script_obj(CMD_SLIDE_PROF_RIGHT, DIA_LETS_START);
-    script[COND_PAYLOAD_EXISTS] = script_obj(COND_PAYLOAD_EXISTS, CMD_SLIDE_PROF_RIGHT, DIA_NO_PAYLOAD);
-    script[DIA_NO_PAYLOAD] = script_obj(dialogue[DIA_NO_PAYLOAD], DIA_WHAT_LANG);
+    transfer_script[DIA_WHAT_GAME_TRANS] = script_obj(dialogue[DIA_WHAT_GAME_TRANS], CMD_GAME_MENU);
+    transfer_script[CMD_GAME_MENU] = script_obj(CMD_GAME_MENU, COND_GB_ROM_EXISTS, DIA_WHAT_LANG_TRANS);
+    transfer_script[DIA_WHAT_LANG_TRANS] = script_obj(dialogue[DIA_WHAT_LANG_TRANS], CMD_LANG_MENU);
+    transfer_script[CMD_LANG_MENU] = script_obj(CMD_LANG_MENU, DIA_WHAT_GAME_TRANS);
+    transfer_script[DIA_ASK_QUEST] = script_obj(dialogue[DIA_ASK_QUEST], CMD_SLIDE_PROF_LEFT);
+    transfer_script[CMD_SLIDE_PROF_LEFT] = script_obj(CMD_SLIDE_PROF_LEFT, DIA_WHAT_LANG_TRANS);
+    transfer_script[CMD_SLIDE_PROF_RIGHT] = script_obj(CMD_SLIDE_PROF_RIGHT, DIA_LETS_START);
+    transfer_script[COND_GB_ROM_EXISTS] = script_obj(COND_GB_ROM_EXISTS, CMD_SLIDE_PROF_RIGHT, DIA_NO_GB_ROM);
+    transfer_script[DIA_NO_GB_ROM] = script_obj(dialogue[DIA_NO_GB_ROM], DIA_WHAT_LANG_TRANS);
 
     // Initiate the transfer and check for errors
-    script[DIA_LETS_START] = script_obj(dialogue[DIA_LETS_START], DIA_START);
-    script[DIA_START] = script_obj(dialogue[DIA_START], CMD_START_LINK);
-    script[CMD_START_LINK] = script_obj(CMD_START_LINK, COND_ERROR_TIMEOUT_ONE);
-    script[COND_ERROR_TIMEOUT_ONE] = script_obj(COND_ERROR_TIMEOUT_ONE, COND_ERROR_TIMEOUT_TWO, DIA_ERROR_TIME_ONE);
-    script[DIA_ERROR_TIME_ONE] = script_obj(dialogue[DIA_ERROR_TIME_ONE], DIA_START);
-    script[COND_ERROR_TIMEOUT_TWO] = script_obj(COND_ERROR_TIMEOUT_TWO, COND_ERROR_COM_ENDED, DIA_ERROR_TIME_TWO);
-    script[DIA_ERROR_TIME_TWO] = script_obj(dialogue[DIA_ERROR_TIME_TWO], DIA_START);
-    script[COND_ERROR_COM_ENDED] = script_obj(COND_ERROR_COM_ENDED, COND_ERROR_COLOSSEUM, DIA_ERROR_COM_ENDED);
-    script[DIA_ERROR_COM_ENDED] = script_obj(dialogue[DIA_ERROR_COM_ENDED], DIA_START);
-    script[COND_ERROR_COLOSSEUM] = script_obj(COND_ERROR_COLOSSEUM, COND_ERROR_DISCONNECT, DIA_ERROR_COLOSSEUM);
-    script[DIA_ERROR_COLOSSEUM] = script_obj(dialogue[DIA_ERROR_COLOSSEUM], DIA_START);
-    script[COND_ERROR_DISCONNECT] = script_obj(COND_ERROR_DISCONNECT, CMD_LOAD_SIMP, DIA_ERROR_DISCONNECT);
-    script[DIA_ERROR_DISCONNECT] = script_obj(dialogue[DIA_ERROR_DISCONNECT], DIA_START);
+    transfer_script[DIA_LETS_START] = script_obj(dialogue[DIA_LETS_START], DIA_START);
+    transfer_script[DIA_START] = script_obj(dialogue[DIA_START], CMD_START_LINK);
+    transfer_script[CMD_START_LINK] = script_obj(CMD_START_LINK, COND_ERROR_TIMEOUT_ONE);
+    transfer_script[COND_ERROR_TIMEOUT_ONE] = script_obj(COND_ERROR_TIMEOUT_ONE, COND_ERROR_TIMEOUT_TWO, DIA_ERROR_TIME_ONE);
+    transfer_script[DIA_ERROR_TIME_ONE] = script_obj(dialogue[DIA_ERROR_TIME_ONE], DIA_START);
+    transfer_script[COND_ERROR_TIMEOUT_TWO] = script_obj(COND_ERROR_TIMEOUT_TWO, COND_ERROR_COM_ENDED, DIA_ERROR_TIME_TWO);
+    transfer_script[DIA_ERROR_TIME_TWO] = script_obj(dialogue[DIA_ERROR_TIME_TWO], DIA_START);
+    transfer_script[COND_ERROR_COM_ENDED] = script_obj(COND_ERROR_COM_ENDED, COND_ERROR_COLOSSEUM, DIA_ERROR_COM_ENDED);
+    transfer_script[DIA_ERROR_COM_ENDED] = script_obj(dialogue[DIA_ERROR_COM_ENDED], DIA_START);
+    transfer_script[COND_ERROR_COLOSSEUM] = script_obj(COND_ERROR_COLOSSEUM, COND_ERROR_DISCONNECT, DIA_ERROR_COLOSSEUM);
+    transfer_script[DIA_ERROR_COLOSSEUM] = script_obj(dialogue[DIA_ERROR_COLOSSEUM], DIA_START);
+    transfer_script[COND_ERROR_DISCONNECT] = script_obj(COND_ERROR_DISCONNECT, CMD_LOAD_SIMP, DIA_ERROR_DISCONNECT);
+    transfer_script[DIA_ERROR_DISCONNECT] = script_obj(dialogue[DIA_ERROR_DISCONNECT], DIA_START);
 
     // Pause the transfer and show the user their box data
-    script[CMD_LOAD_SIMP] = script_obj(CMD_LOAD_SIMP, COND_CHECK_MYTHIC, DIA_NO_VALID_PKMN);
-    script[DIA_NO_VALID_PKMN] = script_obj(dialogue[DIA_NO_VALID_PKMN], CMD_CANCEL_LINK);
-    script[COND_CHECK_MYTHIC] = script_obj(COND_CHECK_MYTHIC, DIA_MYTHIC_CONVERT, DIA_IN_BOX);
-    script[DIA_MYTHIC_CONVERT] = script_obj(dialogue[DIA_MYTHIC_CONVERT], CMD_MYTHIC_MENU);
-    script[CMD_MYTHIC_MENU] = script_obj(CMD_MYTHIC_MENU, DIA_IN_BOX);
-    script[DIA_IN_BOX] = script_obj(dialogue[DIA_IN_BOX], CMD_BOX_MENU);
-    script[CMD_BOX_MENU] = script_obj(CMD_BOX_MENU, CMD_CONTINUE_LINK, DIA_CANCEL);
-    script[DIA_CANCEL] = script_obj(dialogue[DIA_CANCEL], CMD_CANCEL_LINK);
-    script[CMD_CONTINUE_LINK] = script_obj(CMD_CONTINUE_LINK, CMD_IMPORT_POKEMON);
-    script[CMD_CANCEL_LINK] = script_obj(CMD_CANCEL_LINK, CMD_END_SCRIPT);
+    transfer_script[CMD_LOAD_SIMP] = script_obj(CMD_LOAD_SIMP, COND_CHECK_MYTHIC, DIA_NO_VALID_PKMN);
+    transfer_script[DIA_NO_VALID_PKMN] = script_obj(dialogue[DIA_NO_VALID_PKMN], CMD_CANCEL_LINK);
+    transfer_script[COND_CHECK_MYTHIC] = script_obj(COND_CHECK_MYTHIC, DIA_MYTHIC_CONVERT, DIA_IN_BOX);
+    transfer_script[DIA_MYTHIC_CONVERT] = script_obj(dialogue[DIA_MYTHIC_CONVERT], CMD_MYTHIC_MENU);
+    transfer_script[CMD_MYTHIC_MENU] = script_obj(CMD_MYTHIC_MENU, DIA_IN_BOX);
+    transfer_script[DIA_IN_BOX] = script_obj(dialogue[DIA_IN_BOX], CMD_BOX_MENU);
+    transfer_script[CMD_BOX_MENU] = script_obj(CMD_BOX_MENU, CMD_CONTINUE_LINK, DIA_CANCEL);
+    transfer_script[DIA_CANCEL] = script_obj(dialogue[DIA_CANCEL], CMD_CANCEL_LINK);
+    transfer_script[CMD_CONTINUE_LINK] = script_obj(CMD_CONTINUE_LINK, CMD_IMPORT_POKEMON);
+    transfer_script[CMD_CANCEL_LINK] = script_obj(CMD_CANCEL_LINK, CMD_END_SCRIPT);
 
     // Complete the transfer and give messages based on the transfered Pokemon
-    script[CMD_IMPORT_POKEMON] = script_obj(CMD_IMPORT_POKEMON, DIA_TRANS_GOOD);
-    script[DIA_TRANS_GOOD] = script_obj(dialogue[DIA_TRANS_GOOD], COND_NEW_POKEMON);
-    script[COND_NEW_POKEMON] = script_obj(COND_NEW_POKEMON, DIA_NEW_DEX, DIA_NO_NEW_DEX);
-    script[DIA_NEW_DEX] = script_obj(dialogue[DIA_NEW_DEX], COND_IS_HOENN);
-    script[DIA_NO_NEW_DEX] = script_obj(dialogue[DIA_NO_NEW_DEX], COND_IS_HOENN);
-    script[COND_IS_HOENN] = script_obj(COND_IS_HOENN, DIA_SEND_FRIEND_HOENN, DIA_SEND_FRIEND_KANTO);
-    script[DIA_SEND_FRIEND_HOENN] = script_obj(dialogue[DIA_SEND_FRIEND_HOENN], DIA_THANK);
-    script[DIA_SEND_FRIEND_KANTO] = script_obj(dialogue[DIA_SEND_FRIEND_KANTO], DIA_THANK);
-    script[DIA_THANK] = script_obj(dialogue[DIA_THANK], CMD_END_SCRIPT);
+    transfer_script[CMD_IMPORT_POKEMON] = script_obj(CMD_IMPORT_POKEMON, DIA_TRANS_GOOD);
+    transfer_script[DIA_TRANS_GOOD] = script_obj(dialogue[DIA_TRANS_GOOD], COND_NEW_POKEMON);
+    transfer_script[COND_NEW_POKEMON] = script_obj(COND_NEW_POKEMON, DIA_NEW_DEX, DIA_NO_NEW_DEX);
+    transfer_script[DIA_NEW_DEX] = script_obj(dialogue[DIA_NEW_DEX], COND_IS_HOENN);
+    transfer_script[DIA_NO_NEW_DEX] = script_obj(dialogue[DIA_NO_NEW_DEX], COND_IS_HOENN);
+    transfer_script[COND_IS_HOENN] = script_obj(COND_IS_HOENN, DIA_SEND_FRIEND_HOENN, DIA_SEND_FRIEND_KANTO);
+    transfer_script[DIA_SEND_FRIEND_HOENN] = script_obj(dialogue[DIA_SEND_FRIEND_HOENN], DIA_THANK);
+    transfer_script[DIA_SEND_FRIEND_KANTO] = script_obj(dialogue[DIA_SEND_FRIEND_KANTO], DIA_THANK);
+    transfer_script[DIA_THANK] = script_obj(dialogue[DIA_THANK], CMD_END_SCRIPT);
 
     // Hide the dialouge and professor
-    script[CMD_END_SCRIPT] = script_obj(CMD_END_SCRIPT, CMD_BACK_TO_MENU);
-    script[CMD_BACK_TO_MENU] = script_obj(CMD_BACK_TO_MENU, SCRIPT_START);
+    transfer_script[CMD_END_SCRIPT] = script_obj(CMD_END_SCRIPT, CMD_BACK_TO_MENU);
+    transfer_script[CMD_BACK_TO_MENU] = script_obj(CMD_BACK_TO_MENU, T_SCRIPT_START);
+
+    // -------- EVENTS SCRIPT --------
+    // Start the dialogue and show the menu
+    event_script[E_SCRIPT_START] = script_obj(CMD_SHOW_PROF, DIA_ASK_QUEST);
+    event_script[DIA_ASK_QUEST] = script_obj(dialogue[DIA_ASK_QUEST], CMD_SLIDE_PROF_LEFT);
+
+    // Ask the user what game and language they're using
+    event_script[DIA_WHAT_GAME_EVENT] = script_obj(dialogue[DIA_WHAT_GAME_EVENT], CMD_GAME_MENU);
+    event_script[CMD_GAME_MENU] = script_obj(CMD_GAME_MENU, COND_GB_ROM_EXISTS, DIA_WHAT_LANG_EVENT);
+    event_script[DIA_WHAT_LANG_EVENT] = script_obj(dialogue[DIA_WHAT_LANG_EVENT], CMD_LANG_MENU);
+    event_script[CMD_LANG_MENU] = script_obj(CMD_LANG_MENU, DIA_WHAT_GAME_EVENT);
+    event_script[DIA_ASK_QUEST] = script_obj(dialogue[DIA_ASK_QUEST], CMD_SLIDE_PROF_LEFT);
+    event_script[CMD_SLIDE_PROF_LEFT] = script_obj(CMD_SLIDE_PROF_LEFT, DIA_WHAT_LANG_EVENT);
+    event_script[CMD_SLIDE_PROF_RIGHT] = script_obj(CMD_SLIDE_PROF_RIGHT, COND_CHECK_DEX);
+    event_script[COND_GB_ROM_EXISTS] = script_obj(COND_GB_ROM_EXISTS, CMD_SLIDE_PROF_RIGHT, DIA_NO_GB_ROM);
+    event_script[DIA_NO_GB_ROM] = script_obj(dialogue[DIA_NO_GB_ROM], DIA_WHAT_LANG_EVENT);
+
+    // Check the player's dex
+    event_script[COND_CHECK_DEX] = script_obj(COND_CHECK_DEX, 0, COND_CHECK_KANTO);
+    event_script[COND_CHECK_KANTO] = script_obj(COND_CHECK_KANTO, DIA_K_DEX_NOT_FULL, DIA_J_DEX_NOT_FULL);
+    event_script[DIA_K_DEX_NOT_FULL] = script_obj(dialogue[DIA_K_DEX_NOT_FULL], CMD_END_SCRIPT);
+    event_script[DIA_J_DEX_NOT_FULL] = script_obj(dialogue[DIA_J_DEX_NOT_FULL], CMD_END_SCRIPT);
+
+    // Hide the dialouge and professor
+    event_script[CMD_END_SCRIPT] = script_obj(CMD_END_SCRIPT, CMD_BACK_TO_MENU);
+    event_script[CMD_BACK_TO_MENU] = script_obj(CMD_BACK_TO_MENU, T_SCRIPT_START);
 };
 
 void populate_lang_buttons()
@@ -217,11 +250,24 @@ bool run_conditional(int index)
     case COND_PKMN_TO_COLLECT:
         return compare_map_and_npc_data(curr_rom.map_bank, curr_rom.map_id, curr_rom.npc_id) && !read_flag(curr_rom.all_collected_flag) && !IGNORE_UNRECEIVED_PKMN;
 
-    case COND_PAYLOAD_EXISTS:
-        return party_data.load_payload();
+    case COND_GB_ROM_EXISTS:
+        return party_data.load_gb_rom();
 
     case COND_CHECK_MYTHIC:
         return party_data.get_contains_mythical();
+
+    case COND_CHECK_DEX:
+        if (party_data.get_game_gen() == 1)
+        {
+            return get_dex_completion(1, false) == 150;
+        }
+        else
+        {
+            return get_dex_completion(1, false) == 99;
+        }
+
+    case COND_CHECK_KANTO:
+        return party_data.get_game_gen() == 1;
 
     case CMD_START_LINK:
         obj_hide(prof);
@@ -319,7 +365,7 @@ bool run_conditional(int index)
     case CMD_LOAD_SIMP:
         return party_data.fill_simple_pkmn_array();
 
-        case CMD_CANCEL_LINK:
+    case CMD_CANCEL_LINK:
         party_data.continue_link(true);
         return true;
 
