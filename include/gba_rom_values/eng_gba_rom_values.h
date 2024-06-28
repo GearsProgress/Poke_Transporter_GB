@@ -18,6 +18,16 @@ const struct ROM_DATA ENG_RUBY_v0 = {
     .loc_getSetPokedexFlag = 0x08090D90,
     .loc_gSaveDataBuffer = 0x02000000, // Known as "gSharedMem" in RS
     .loc_readFlashSector = 0x08125BF8, // Known as "DoReadFlashWholeSection" in RS
+    .loc_m4aMPlayStop = 0x081DE740,
+    .loc_gMPlayInfo_BGM = 0x03007380,
+    .loc_gMPlayInfo_SE2 = 0x03007400,
+    .loc_MPlayStart = 0x081DE65C,
+    .loc_CreateFanfareTask = 0x08074F48,
+    .loc_sFanfareCounter = 0x030006DA,
+    .loc_gPlttBufferFaded = 0x0202EEC8,
+    .loc_gSprites = 0x02020004,
+    .loc_voicegroup = 0x08451F90,
+    .loc_sPicTable_NPC = 0x0836E788,
 
     // The following should be consistant across languages and revisions.
     .offset_ramscript = 0x3690, // Ramscript offset as found within the SaveBlock1 struct in global.h
@@ -67,6 +77,7 @@ const struct ROM_DATA ENG_SAPPHIRE_v0 = {
     .loc_gSprites = 0x02020004,
     .loc_voicegroup = 0x08451FEC,
     .loc_sPicTable_NPC = 0x0836E718,
+
     // The following should be consistant across languages and revisions.
     .offset_ramscript = 0x3690, // Ramscript offset as found within the SaveBlock1 struct in global.h
     .offset_flags = 0x1220,     // Flag offset as found within the SaveBlock1 struct in global.h
@@ -102,9 +113,19 @@ const struct ROM_DATA ENG_RUBY_v1 = {
     .loc_copyMonToPC = 0x0803D998, // Known as "SendMonToPC"
     .loc_gSpecialVar_0x8000 = 0x0202E8C4,
     .loc_gSaveBlock1 = 0x02025734,
-    .loc_getSetPokedexFlag = 0x08090D90,
+    .loc_getSetPokedexFlag = 0x08090DB0,
     .loc_gSaveDataBuffer = 0x02000000, // Known as "gSharedMem" in RS
-    .loc_readFlashSector = 0x08125BF8, // Known as "DoReadFlashWholeSection" in RS
+    .loc_readFlashSector = 0x08125C18, // Known as "DoReadFlashWholeSection" in RS
+    .loc_m4aMPlayStop = 0x081DE758,
+    .loc_gMPlayInfo_BGM = 0x03007380,
+    .loc_gMPlayInfo_SE2 = 0x03007400,
+    .loc_MPlayStart = 0x081DE674,
+    .loc_CreateFanfareTask = 0x08074F68,
+    .loc_sFanfareCounter = 0x030006DA,
+    .loc_gPlttBufferFaded = 0x0202EEC8,
+    .loc_gSprites = 0x02020004,
+    .loc_voicegroup = 0x08451FA4,
+    .loc_sPicTable_NPC = 0x0836E7A0,
 
     // The following should be consistant across languages and revisions.
     .offset_ramscript = 0x3690, // Ramscript offset as found within the SaveBlock1 struct in global.h
@@ -144,6 +165,16 @@ const struct ROM_DATA ENG_SAPPHIRE_v1 = {
     .loc_getSetPokedexFlag = 0x08090DB0,
     .loc_gSaveDataBuffer = 0x02000000, // Known as "gSharedMem" in RS
     .loc_readFlashSector = 0x08125C18, // Known as "DoReadFlashWholeSection" in RS
+    .loc_m4aMPlayStop = 0x081DE6E8,
+    .loc_gMPlayInfo_BGM = 0x03007380,
+    .loc_gMPlayInfo_SE2 = 0x03007400,
+    .loc_MPlayStart = 0x081DE604,
+    .loc_CreateFanfareTask = 0x08074F6C,
+    .loc_sFanfareCounter = 0x030006DA,
+    .loc_gPlttBufferFaded = 0x0202EEC8,
+    .loc_gSprites = 0x02020004,
+    .loc_voicegroup = 0x08452004,
+    .loc_sPicTable_NPC = 0x0836E730,
 
     // The following should be consistant across languages and revisions.
     .offset_ramscript = 0x3690, // Ramscript offset as found within the SaveBlock1 struct in global.h
@@ -183,6 +214,16 @@ const struct ROM_DATA ENG_RUBY_v2 = {
     .loc_getSetPokedexFlag = 0x08090DB0,
     .loc_gSaveDataBuffer = 0x02000000, // Known as "gSharedMem" in RS
     .loc_readFlashSector = 0x08125C18, // Known as "DoReadFlashWholeSection" in RS
+    .loc_m4aMPlayStop = 0x081DE758,
+    .loc_gMPlayInfo_BGM = 0x03007380,
+    .loc_gMPlayInfo_SE2 = 0x03007400,
+    .loc_MPlayStart = 0x081DE674,
+    .loc_CreateFanfareTask = 0x08074F68,
+    .loc_sFanfareCounter = 0x030006DA,
+    .loc_gPlttBufferFaded = 0x0202EEC8,
+    .loc_gSprites = 0x02020004,
+    .loc_voicegroup = 0x08451FA4,
+    .loc_sPicTable_NPC = 0x0836E7A0,
 
     // The following should be consistant across languages and revisions.
     .offset_ramscript = 0x3690, // Ramscript offset as found within the SaveBlock1 struct in global.h
@@ -212,7 +253,7 @@ const struct ROM_DATA ENG_RUBY_v2 = {
 const struct ROM_DATA ENG_SAPPHIRE_v2 = {
     .is_valid = true,
 
-    .gamecode = RUBY_ID,
+    .gamecode = SAPPHIRE_ID,
     .version = VERS_1_2,
     .language = LANG_ENG,
 
@@ -222,6 +263,16 @@ const struct ROM_DATA ENG_SAPPHIRE_v2 = {
     .loc_getSetPokedexFlag = 0x08090DB0,
     .loc_gSaveDataBuffer = 0x02000000, // Known as "gSharedMem" in RS
     .loc_readFlashSector = 0x08125C18, // Known as "DoReadFlashWholeSection" in RS
+    .loc_m4aMPlayStop = 0x081DE6E8,
+    .loc_gMPlayInfo_BGM = 0x03007380,
+    .loc_gMPlayInfo_SE2 = 0x03007400,
+    .loc_MPlayStart = 0x081DE604,
+    .loc_CreateFanfareTask = 0x08074F6C,
+    .loc_sFanfareCounter = 0x030006DA,
+    .loc_gPlttBufferFaded = 0x0202EEC8,
+    .loc_gSprites = 0x02020004,
+    .loc_voicegroup = 0x08452004,
+    .loc_sPicTable_NPC = 0x0836E730,
 
     // The following should be consistant across languages and revisions.
     .offset_ramscript = 0x3690, // Ramscript offset as found within the SaveBlock1 struct in global.h

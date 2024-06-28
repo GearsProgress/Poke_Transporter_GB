@@ -250,6 +250,7 @@ Simplified_Pokemon Pokemon_Party::get_simple_pkmn(int index){
 }
 
 bool Pokemon_Party::fill_simple_pkmn_array(){
+	contains_mythical = false;
 	for (int index = 0; index < 30; index++){
 		Pokemon converted_mon;
 		converted_mon.load_data(index, box_data_array, game, lang);

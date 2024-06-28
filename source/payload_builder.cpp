@@ -1088,7 +1088,7 @@ void write_call(int generation, byte array_data[], int &offset, word call_locati
     }
 };
 
-int main() // Rename to "main" to send the payload to test_payload.txt
+int test_main() // Rename to "main" to send the payload to test_payload.txt
 {
     freopen("test_payload.txt", "w", stdout);
     std::cout << std::endl;
