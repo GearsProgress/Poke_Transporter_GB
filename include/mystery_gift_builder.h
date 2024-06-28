@@ -277,9 +277,7 @@ private:
     void add_asm(u16 command);
     void init_npc_location(u8 bank, u8 map, u8 npc);
     void add_word(u32 word);
-    void four_align();
-    void add_padding();
-
+    
     // Scripting commands
     void setvirtualaddress(u32 location);
     void lock();
@@ -319,7 +317,6 @@ private:
 
     void msgboxMacro(u32 location);
     void changeSpriteMacro(u8 npcId, u32 spriteTablePtr);
-    void copyPaletteMacro(u8 palNum, const unsigned short palette_array[]);
     void changePaletteMacro(u8 npcId, u8 palNum);
 
     // ASM commands

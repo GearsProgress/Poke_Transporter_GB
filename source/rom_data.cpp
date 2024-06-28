@@ -57,16 +57,27 @@ void rom_data::fill_values(const ROM_DATA *rom_values)
     loc_sendMonToPC = rom_values->loc_copyMonToPC;
     loc_gSpecialVar_0x8000 = rom_values->loc_gSpecialVar_0x8000;
     loc_gSaveBlock1 = rom_values->loc_gSaveBlock1;
-    loc_gSaveBlock1PTR = rom_values->loc_gSaveBlock1PTR;
     loc_setPokedexFlag = rom_values->loc_getSetPokedexFlag;
     loc_gSaveDataBuffer = rom_values->loc_gSaveDataBuffer;
     loc_readFlashSector = rom_values->loc_readFlashSector;
     loc_loadSaveSection30 = rom_values->loc_loadSaveSection30;
+    loc_m4aMPlayStop = rom_values->loc_m4aMPlayStop;
+    loc_gMPlayInfo_BGM = rom_values->loc_gMPlayInfo_BGM;
+    loc_gMPlayInfo_SE2 = rom_values->loc_gMPlayInfo_SE2;
+    loc_MPlayStart = rom_values->loc_MPlayStart;
+    loc_CreateFanfareTask = rom_values->loc_CreateFanfareTask;
+    loc_sFanfareCounter = rom_values->loc_sFanfareCounter;
+    loc_gPlttBufferFaded = rom_values->loc_gPlttBufferFaded;
+    loc_gSprites = rom_values->loc_gSprites;
+    loc_voicegroup = rom_values->loc_voicegroup;
+    loc_sPicTable_NPC = rom_values->loc_sPicTable_NPC;
+
     offset_ramscript = rom_values->offset_ramscript;
     offset_flags = rom_values->offset_flags;
     offset_wondercard = rom_values->offset_wondercard;
     offset_script = rom_values->offset_script;
     text_region = rom_values->text_region;
+    special_DrawWholeMapView = rom_values->special_DrawWholeMapView;
 
     e4_flag = rom_values->e4_flag;                                 // The flag that is set when you become champion. Often listed as "GAME_CLEAR"
     mg_flag = rom_values->mg_flag;                                 // The flag that is set when you enable Mystery Gift. Known as "EXDATA_ENABLE" in RS
@@ -77,6 +88,7 @@ void rom_data::fill_values(const ROM_DATA *rom_values)
     map_bank = (DEBUG_MODE ? rom_values->test_map_bank : rom_values->map_bank);
     map_id = (DEBUG_MODE ? rom_values->test_map_id : rom_values->map_id);
     npc_id = (DEBUG_MODE ? rom_values->test_npc_id : rom_values->npc_id);
+    npc_palette = rom_values->npc_palette;
 
     def_map_bank = rom_values->def_map_bank;
     def_map_id = rom_values->def_map_id;

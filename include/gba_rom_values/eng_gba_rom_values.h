@@ -24,15 +24,17 @@ const struct ROM_DATA ENG_RUBY_v0 = {
     .offset_flags = 0x1220,     // Flag offset as found within the SaveBlock1 struct in global.h
     .offset_script = 0x0810,
     .text_region = TEXT_HOENN,
+    .special_DrawWholeMapView = 0x8E,
 
     // PKHeX's list of flags is useful for making sure the detection is accurate: https://github.com/kwsch/PKHeX/blob/78a557c3cdaa6f48b42cc96df8ccb4d20b897937/PKHeX.Core/Resources/text/other/flags_rs.txt
     .e4_flag = 0x800 + 0x04,   // The flag that is set when you become champion. Often listed as "GAME_CLEAR"
     .mg_flag = 0x800 + 0x4C,   // The flag that is set when you enable Mystery Gift. Known as "EXDATA_ENABLE" in RS
     .unused_flag_start = 0x21, // The start of the unused flags and must have 31 open flags in a row
 
-    .map_bank = 20,
-    .map_id = 2,
+    .map_bank = 14,
+    .map_id = 11,
     .npc_id = 1,
+    .npc_palette = 5,
 
     .def_map_bank = 8,
     .def_map_id = 1,
@@ -55,21 +57,32 @@ const struct ROM_DATA ENG_SAPPHIRE_v0 = {
     .loc_getSetPokedexFlag = 0x08090D90,
     .loc_gSaveDataBuffer = 0x02000000, // Known as "gSharedMem" in RS
     .loc_readFlashSector = 0x08125BF8, // Known as "DoReadFlashWholeSection" in RS
-
+    .loc_m4aMPlayStop = 0x081DE6D0,
+    .loc_gMPlayInfo_BGM = 0x03007380,
+    .loc_gMPlayInfo_SE2 = 0x03007400,
+    .loc_MPlayStart = 0x081DE5EC,
+    .loc_CreateFanfareTask = 0x08074F4C,
+    .loc_sFanfareCounter = 0x030006DA,
+    .loc_gPlttBufferFaded = 0x0202EEC8,
+    .loc_gSprites = 0x02020004,
+    .loc_voicegroup = 0x08451FEC,
+    .loc_sPicTable_NPC = 0x0836E718,
     // The following should be consistant across languages and revisions.
     .offset_ramscript = 0x3690, // Ramscript offset as found within the SaveBlock1 struct in global.h
     .offset_flags = 0x1220,     // Flag offset as found within the SaveBlock1 struct in global.h
     .offset_script = 0x0810,
     .text_region = TEXT_HOENN,
+    .special_DrawWholeMapView = 0x8E,
 
     // PKHeX's list of flags is useful for making sure the detection is accurate: https://github.com/kwsch/PKHeX/blob/78a557c3cdaa6f48b42cc96df8ccb4d20b897937/PKHeX.Core/Resources/text/other/flags_rs.txt
     .e4_flag = 0x800 + 0x04,   // The flag that is set when you become champion. Often listed as "GAME_CLEAR"
     .mg_flag = 0x800 + 0x4C,   // The flag that is set when you enable Mystery Gift. Known as "EXDATA_ENABLE" in RS
     .unused_flag_start = 0x21, // The start of the unused flags and must have 31 open flags in a row
 
-    .map_bank = 20,
-    .map_id = 2,
+    .map_bank = 14,
+    .map_id = 11,
     .npc_id = 1,
+    .npc_palette = 5,
 
     .def_map_bank = 8,
     .def_map_id = 1,
@@ -98,15 +111,17 @@ const struct ROM_DATA ENG_RUBY_v1 = {
     .offset_flags = 0x1220,     // Flag offset as found within the SaveBlock1 struct in global.h
     .offset_script = 0x0810,
     .text_region = TEXT_HOENN,
+    .special_DrawWholeMapView = 0x8E,
 
     // PKHeX's list of flags is useful for making sure the detection is accurate: https://github.com/kwsch/PKHeX/blob/78a557c3cdaa6f48b42cc96df8ccb4d20b897937/PKHeX.Core/Resources/text/other/flags_rs.txt
     .e4_flag = 0x800 + 0x04,   // The flag that is set when you become champion. Often listed as "GAME_CLEAR"
     .mg_flag = 0x800 + 0x4C,   // The flag that is set when you enable Mystery Gift. Known as "EXDATA_ENABLE" in RS
     .unused_flag_start = 0x21, // The start of the unused flags and must have 31 open flags in a row
 
-    .map_bank = 20,
-    .map_id = 2,
+    .map_bank = 14,
+    .map_id = 11,
     .npc_id = 1,
+    .npc_palette = 5,
 
     .def_map_bank = 8,
     .def_map_id = 1,
@@ -135,15 +150,17 @@ const struct ROM_DATA ENG_SAPPHIRE_v1 = {
     .offset_flags = 0x1220,     // Flag offset as found within the SaveBlock1 struct in global.h
     .offset_script = 0x0810,
     .text_region = TEXT_HOENN,
+    .special_DrawWholeMapView = 0x8E,
 
     // PKHeX's list of flags is useful for making sure the detection is accurate: https://github.com/kwsch/PKHeX/blob/78a557c3cdaa6f48b42cc96df8ccb4d20b897937/PKHeX.Core/Resources/text/other/flags_rs.txt
     .e4_flag = 0x800 + 0x04,   // The flag that is set when you become champion. Often listed as "GAME_CLEAR"
     .mg_flag = 0x800 + 0x4C,   // The flag that is set when you enable Mystery Gift. Known as "EXDATA_ENABLE" in RS
     .unused_flag_start = 0x21, // The start of the unused flags and must have 31 open flags in a row
 
-    .map_bank = 20,
-    .map_id = 2,
+    .map_bank = 14,
+    .map_id = 11,
     .npc_id = 1,
+    .npc_palette = 5,
 
     .def_map_bank = 8,
     .def_map_id = 1,
@@ -172,15 +189,17 @@ const struct ROM_DATA ENG_RUBY_v2 = {
     .offset_flags = 0x1220,     // Flag offset as found within the SaveBlock1 struct in global.h
     .offset_script = 0x0810,
     .text_region = TEXT_HOENN,
+    .special_DrawWholeMapView = 0x8E,
 
     // PKHeX's list of flags is useful for making sure the detection is accurate: https://github.com/kwsch/PKHeX/blob/78a557c3cdaa6f48b42cc96df8ccb4d20b897937/PKHeX.Core/Resources/text/other/flags_rs.txt
     .e4_flag = 0x800 + 0x04,   // The flag that is set when you become champion. Often listed as "GAME_CLEAR"
     .mg_flag = 0x800 + 0x4C,   // The flag that is set when you enable Mystery Gift. Known as "EXDATA_ENABLE" in RS
     .unused_flag_start = 0x21, // The start of the unused flags and must have 31 open flags in a row
 
-    .map_bank = 20,
-    .map_id = 2,
+    .map_bank = 14,
+    .map_id = 11,
     .npc_id = 1,
+    .npc_palette = 5,
 
     .def_map_bank = 8,
     .def_map_id = 1,
@@ -209,15 +228,17 @@ const struct ROM_DATA ENG_SAPPHIRE_v2 = {
     .offset_flags = 0x1220,     // Flag offset as found within the SaveBlock1 struct in global.h
     .offset_script = 0x0810,
     .text_region = TEXT_HOENN,
+    .special_DrawWholeMapView = 0x8E,
 
     // PKHeX's list of flags is useful for making sure the detection is accurate: https://github.com/kwsch/PKHeX/blob/78a557c3cdaa6f48b42cc96df8ccb4d20b897937/PKHeX.Core/Resources/text/other/flags_rs.txt
     .e4_flag = 0x800 + 0x04,   // The flag that is set when you become champion. Often listed as "GAME_CLEAR"
     .mg_flag = 0x800 + 0x4C,   // The flag that is set when you enable Mystery Gift. Known as "EXDATA_ENABLE" in RS
     .unused_flag_start = 0x21, // The start of the unused flags and must have 31 open flags in a row
 
-    .map_bank = 20,
-    .map_id = 2,
+    .map_bank = 14,
+    .map_id = 11,
     .npc_id = 1,
+    .npc_palette = 5,
 
     .def_map_bank = 8,
     .def_map_id = 1,
@@ -236,11 +257,20 @@ const struct ROM_DATA ENG_FIRERED_v0 = {
 
     .loc_copyMonToPC = 0x08040B90, // Known as "SendMonToPC"
     .loc_gSpecialVar_0x8000 = 0x020370B8,
-    .loc_gSaveBlock1PTR = 0x03005008,
-    .loc_getSetPokedexFlag = 0x08088E8C,
+    .loc_getSetPokedexFlag = 0x08088E74,
     .loc_gSaveDataBuffer = 0x02039A38, // The location of the saveDataBuffer
     .loc_readFlashSector = 0x080DA190,
-    .loc_loadSaveSection30 = 0x0815D7BC,// The location of the function that loads save section 30: CEReaderTool_LoadTrainerTower_r in FRLG, TryReadTrainerHill_Internal in Emerald
+    .loc_loadSaveSection30 = 0x0815D7BC, // The location of the function that loads save section 30: CEReaderTool_LoadTrainerTower_r in FRLG, TryReadTrainerHill_Internal in Emerald
+    .loc_m4aMPlayStop = 0x081DD93C,
+    .loc_gMPlayInfo_BGM = 0x03007300,
+    .loc_gMPlayInfo_SE2 = 0x03007380,
+    .loc_MPlayStart = 0x081DD858,
+    .loc_CreateFanfareTask = 0x08071CEC,
+    .loc_sFanfareCounter = 0x03000FC6,
+    .loc_gPlttBufferFaded = 0x020375F8,
+    .loc_gSprites = 0x0202063C,
+    .loc_voicegroup = 0x084957A0,
+    .loc_sPicTable_NPC = 0x083A0AB8,
 
     // The following should be consistant across languages and revisions.
     .offset_ramscript = 0x361C, // Ramscript offset as found within the SaveBlock1 struct in global.h
@@ -248,15 +278,17 @@ const struct ROM_DATA ENG_FIRERED_v0 = {
     .offset_wondercard = 0x0460,
     .offset_script = 0x079C,
     .text_region = TEXT_KANTO,
+    .special_DrawWholeMapView = 0x8E,
 
     // PKHeX's list of flags is useful for making sure the detection is accurate: https://github.com/kwsch/PKHeX/blob/78a557c3cdaa6f48b42cc96df8ccb4d20b897937/PKHeX.Core/Resources/text/other/flags_rs.txt
     .e4_flag = 0x860 + 0x04,   // The flag that is set when you become champion. Often listed as "GAME_CLEAR"
     .mg_flag = 0x860 + 0x7B,   // The flag that is set when you enable Mystery Gift. Known as "EXDATA_ENABLE" in RS
     .unused_flag_start = 0x20, // The start of the unused flags and must have 31 open flags in a row
 
-    .map_bank = 30,
+    .map_bank = 31,
     .map_id = 0,
     .npc_id = 1,
+    .npc_palette = 3,
 
     .def_map_bank = 0xFF,
     .def_map_id = 0xFF,
@@ -275,11 +307,20 @@ const struct ROM_DATA ENG_LEAFGREEN_v0 = {
 
     .loc_copyMonToPC = 0x08040B90,
     .loc_gSpecialVar_0x8000 = 0x020370B8,
-    .loc_gSaveBlock1PTR = 0x03005008,
     .loc_getSetPokedexFlag = 0x08088E48,
     .loc_gSaveDataBuffer = 0x02039A38, // The location of the saveDataBuffer
     .loc_readFlashSector = 0x080DA164,
-    .loc_loadSaveSection30 = 0x0815D798,// The location of the function that loads save section 30: CEReaderTool_LoadTrainerTower_r in FRLG, TryReadTrainerHill_Internal in Emerald
+    .loc_loadSaveSection30 = 0x0815D798, // The location of the function that loads save section 30: CEReaderTool_LoadTrainerTower_r in FRLG, TryReadTrainerHill_Internal in Emerald
+    .loc_m4aMPlayStop = 0x081DD918,
+    .loc_gMPlayInfo_BGM = 0x03007300,
+    .loc_gMPlayInfo_SE2 = 0x03007380,
+    .loc_MPlayStart = 0x081DD834,
+    .loc_CreateFanfareTask = 0x08071CEC,
+    .loc_sFanfareCounter = 0x03000FC6,
+    .loc_gPlttBufferFaded = 0x020375F8,
+    .loc_gSprites = 0x0202063C,
+    .loc_voicegroup = 0x0849507C,
+    .loc_sPicTable_NPC = 0x083A0A98,
 
     // The following should be consistant across languages and revisions.
     .offset_ramscript = 0x361C, // Ramscript offset as found within the SaveBlock1 struct in global.h
@@ -287,15 +328,17 @@ const struct ROM_DATA ENG_LEAFGREEN_v0 = {
     .offset_wondercard = 0x0460,
     .offset_script = 0x079C,
     .text_region = TEXT_KANTO,
+    .special_DrawWholeMapView = 0x8E,
 
     // PKHeX's list of flags is useful for making sure the detection is accurate: https://github.com/kwsch/PKHeX/blob/78a557c3cdaa6f48b42cc96df8ccb4d20b897937/PKHeX.Core/Resources/text/other/flags_rs.txt
     .e4_flag = 0x860 + 0x04,   // The flag that is set when you become champion. Often listed as "GAME_CLEAR"
     .mg_flag = 0x860 + 0x7B,   // The flag that is set when you enable Mystery Gift. Known as "EXDATA_ENABLE" in RS
     .unused_flag_start = 0x20, // The start of the unused flags and must have 31 open flags in a row
 
-    .map_bank = 30,
+    .map_bank = 31,
     .map_id = 0,
     .npc_id = 1,
+    .npc_palette = 3,
 
     .def_map_bank = 0xFF,
     .def_map_id = 0xFF,
@@ -314,11 +357,20 @@ const struct ROM_DATA ENG_FIRERED_v1 = {
 
     .loc_copyMonToPC = 0x08040BA4,
     .loc_gSpecialVar_0x8000 = 0x020370B8,
-    .loc_gSaveBlock1PTR = 0x03005008,
     .loc_getSetPokedexFlag = 0x08088E88,
     .loc_gSaveDataBuffer = 0x02039A38, // The location of the saveDataBuffer
     .loc_readFlashSector = 0x080DA1A4,
-    .loc_loadSaveSection30 = 0x0815D834,// The location of the function that loads save section 30: CEReaderTool_LoadTrainerTower_r in FRLG, TryReadTrainerHill_Internal in Emerald
+    .loc_loadSaveSection30 = 0x0815D834, // The location of the function that loads save section 30: CEReaderTool_LoadTrainerTower_r in FRLG, TryReadTrainerHill_Internal in Emerald
+    .loc_m4aMPlayStop = 0x081DD9AC,
+    .loc_gMPlayInfo_BGM = 0x03007300,
+    .loc_gMPlayInfo_SE2 = 0x03007380,
+    .loc_MPlayStart = 0x081DD8C8,
+    .loc_CreateFanfareTask = 0x08071D00,
+    .loc_sFanfareCounter = 0x03000FC6,
+    .loc_gPlttBufferFaded = 0x020375F8,
+    .loc_gSprites = 0x0202063C,
+    .loc_voicegroup = 0x08495800,
+    .loc_sPicTable_NPC = 0x083A0B28,
 
     // The following should be consistant across languages and revisions.
     .offset_ramscript = 0x361C, // Ramscript offset as found within the SaveBlock1 struct in global.h
@@ -326,15 +378,17 @@ const struct ROM_DATA ENG_FIRERED_v1 = {
     .offset_wondercard = 0x0460,
     .offset_script = 0x079C,
     .text_region = TEXT_KANTO,
+    .special_DrawWholeMapView = 0x8E,
 
     // PKHeX's list of flags is useful for making sure the detection is accurate: https://github.com/kwsch/PKHeX/blob/78a557c3cdaa6f48b42cc96df8ccb4d20b897937/PKHeX.Core/Resources/text/other/flags_rs.txt
     .e4_flag = 0x860 + 0x04,   // The flag that is set when you become champion. Often listed as "GAME_CLEAR"
     .mg_flag = 0x860 + 0x7B,   // The flag that is set when you enable Mystery Gift. Known as "EXDATA_ENABLE" in RS
     .unused_flag_start = 0x20, // The start of the unused flags and must have 31 open flags in a row
 
-    .map_bank = 30,
+    .map_bank = 31,
     .map_id = 0,
     .npc_id = 1,
+    .npc_palette = 3,
 
     .def_map_bank = 0xFF,
     .def_map_id = 0xFF,
@@ -353,18 +407,28 @@ const struct ROM_DATA ENG_LEAFGREEN_v1 = {
 
     .loc_copyMonToPC = 0x08040BA4,
     .loc_gSpecialVar_0x8000 = 0x020370B8,
-    .loc_gSaveBlock1PTR = 0x03005008,
     .loc_getSetPokedexFlag = 0x08088E5C,
     .loc_gSaveDataBuffer = 0x02039A38, // The location of the saveDataBuffer
     .loc_readFlashSector = 0x080DA178,
-    .loc_loadSaveSection30 = 0x0815D810,// The location of the function that loads save section 30: CEReaderTool_LoadTrainerTower_r in FRLG, TryReadTrainerHill_Internal in Emerald
-    
+    .loc_loadSaveSection30 = 0x0815D810, // The location of the function that loads save section 30: CEReaderTool_LoadTrainerTower_r in FRLG, TryReadTrainerHill_Internal in Emerald
+    .loc_m4aMPlayStop = 0x081DD988,
+    .loc_gMPlayInfo_BGM = 0x03007300,
+    .loc_gMPlayInfo_SE2 = 0x03007380,
+    .loc_MPlayStart = 0x081DD8A4,
+    .loc_CreateFanfareTask = 0x08071D00,
+    .loc_sFanfareCounter = 0x03000FC6,
+    .loc_gPlttBufferFaded = 0x020375F8,
+    .loc_gSprites = 0x0202063C,
+    .loc_voicegroup = 0x084950EC,
+    .loc_sPicTable_NPC = 0x083A0B08,
+
     // The following should be consistant across languages and revisions.
     .offset_ramscript = 0x361C, // Ramscript offset as found within the SaveBlock1 struct in global.h
     .offset_flags = 0x0EE0,     // Flag offset as found within the SaveBlock1 struct in global.h
     .offset_wondercard = 0x0460,
     .offset_script = 0x079C,
     .text_region = TEXT_KANTO,
+    .special_DrawWholeMapView = 0x8E,
 
     // PKHeX's list of flags is useful for making sure the detection is accurate: https://github.com/kwsch/PKHeX/blob/78a557c3cdaa6f48b42cc96df8ccb4d20b897937/PKHeX.Core/Resources/text/other/flags_rs.txt
     .e4_flag = 0x860 + 0x04,   // The flag that is set when you become champion. Often listed as "GAME_CLEAR"
@@ -374,6 +438,7 @@ const struct ROM_DATA ENG_LEAFGREEN_v1 = {
     .map_bank = 31,
     .map_id = 0,
     .npc_id = 1,
+    .npc_palette = 3,
 
     .def_map_bank = 0xFF,
     .def_map_id = 0xFF,
@@ -392,11 +457,20 @@ const struct ROM_DATA ENG_EMERALD_v0 = {
 
     .loc_copyMonToPC = 0x0806B490,
     .loc_gSpecialVar_0x8000 = 0x020375D8,
-    .loc_gSaveBlock1PTR = 0x03005D8C,
     .loc_getSetPokedexFlag = 0x080C0664,
     .loc_gSaveDataBuffer = 0x0203ABBC, // The location of the saveDataBuffer
     .loc_readFlashSector = 0x0815314C,
-    .loc_loadSaveSection30 = 0x081D3AD8,// The location of the function that loads save section 30: CEReaderTool_LoadTrainerTower_r in FRLG, TryReadTrainerHill_Internal in Emerald
+    .loc_loadSaveSection30 = 0x081D3AD8, // The location of the function that loads save section 30: CEReaderTool_LoadTrainerTower_r in FRLG, TryReadTrainerHill_Internal in Emerald
+    .loc_m4aMPlayStop = 0x082E0978,
+    .loc_gMPlayInfo_BGM = 0x03007420,
+    .loc_gMPlayInfo_SE2 = 0x03007630,
+    .loc_MPlayStart = 0x082E0894,
+    .loc_CreateFanfareTask = 0x080A3170,
+    .loc_sFanfareCounter = 0x03000F4E,
+    .loc_gPlttBufferFaded = 0x02037B14,
+    .loc_gSprites = 0x02020630,
+    .loc_voicegroup = 0x086A6DE4,
+    .loc_sPicTable_NPC = 0x08506404,
 
     // The following should be consistant across languages and revisions.
     .offset_ramscript = 0x3728, // Ramscript offset as found within the SaveBlock1 struct in global.h
@@ -404,15 +478,17 @@ const struct ROM_DATA ENG_EMERALD_v0 = {
     .offset_wondercard = 0x056C,
     .offset_script = 0x08A8,
     .text_region = TEXT_HOENN,
+    .special_DrawWholeMapView = 0x91,
 
     // PKHeX's list of flags is useful for making sure the detection is accurate: https://github.com/kwsch/PKHeX/blob/78a557c3cdaa6f48b42cc96df8ccb4d20b897937/PKHeX.Core/Resources/text/other/flags_rs.txt
     .e4_flag = 0x860 + 0x04,   // The flag that is set when you become champion. Often listed as "GAME_CLEAR"
     .mg_flag = 0x860 + 0x7B,   // The flag that is set when you enable Mystery Gift. Known as "EXDATA_ENABLE" in RS
     .unused_flag_start = 0x20, // The start of the unused flags and must have 31 open flags in a row
 
-    .map_bank = 20,
-    .map_id = 2,
+    .map_bank = 15,
+    .map_id = 13,
     .npc_id = 1,
+    .npc_palette = 5,
 
     .def_map_bank = 0xFF,
     .def_map_id = 0xFF,

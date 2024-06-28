@@ -22,9 +22,12 @@ class asm_var : public script_var
 public:
     using script_var::script_var;
     void set_start();                       // Add a pointer to where the start is
-    u8 add_reference();                     // Add a location for the variable to be refrenced in the script
+    void set_start(bool nIsDirect);                       // Add a pointer to where the start is
+    u8 add_reference();  // Add a location for the variable to be refrenced in the script
+    u8 add_reference(int nCommand_offset);  // Add a location for the variable to be refrenced in the script
     void fill_refrences(u8 mg_array_ptr[]); // goes through all the script locations and updates them to point to the start
     u32 get_loc_in_sec30();
+    bool isDirect;
 };
 
 class xse_var : public script_var
@@ -70,9 +73,8 @@ public:
     using xse_var::xse_var;
     void insert_sprite_data(u8 mg_array[], const unsigned int sprite_array[], unsigned int size, const unsigned short palette_array[]);
     void set_start();
-    };
+};
 
-    
 class music_var : public xse_var
 {
 public:
@@ -83,4 +85,4 @@ public:
     int numTracks;
     std::vector<u32> trackPointers;
     std::vector<std::vector<byte>> trackArrays;
-    };
+};

@@ -47,11 +47,23 @@ void script_var::fill_refrences(u8 mg_array[])
 void asm_var::set_start()
 {
     start_location_in_script = *curr_loc_ptr - 2;
+    isDirect = false;
+}
+
+void asm_var::set_start(bool nIsDirect)
+{
+    start_location_in_script = *curr_loc_ptr - 2;
+    isDirect = nIsDirect;
 }
 
 u8 asm_var::add_reference()
 {
-    location_list.push_back(*curr_loc_ptr);
+    return add_reference(0);
+}
+
+u8 asm_var::add_reference(int nCommand_offset)
+{
+    location_list.push_back(*curr_loc_ptr + nCommand_offset);
     return 0x00;
 }
 
@@ -59,7 +71,17 @@ void asm_var::fill_refrences(u8 mg_array[])
 {
     for (unsigned int i = 0; i < location_list.size(); i++)
     {
-        mg_array[location_list[i]] += ((start_location_in_script - location_list[i]) / 4) & 0xFF;
+        if (isDirect)
+        {
+            for (int j = 0; j < 4; j++)
+            {
+                mg_array[location_list[i] + j] += (start_location_in_script + curr_rom.loc_gSaveBlock1 + curr_rom.offset_ramscript + 7)  >> (j * 8);
+            }
+        }
+        else
+        {
+            mg_array[location_list[i]] += ((start_location_in_script - location_list[i]) / 4) & 0xFF;
+        }
     }
 }
 
@@ -133,8 +155,16 @@ void textbox_var::insert_text(u8 mg_array[])
     set_start();
     for (unsigned int parser = 0; parser < text.length(); parser++)
     {
-        mg_array[*curr_loc_ptr] = get_gen_3_char((char16_t)(text.at(parser)), false);
-        (*curr_loc_ptr)++;
+        byte character = get_gen_3_char((char16_t)(text.at(parser)), false);
+        if (curr_rom.is_hoenn() && (character == 0xFC) && (get_gen_3_char((char16_t)(text.at(parser + 1)), false) == 0x01)) // Removes colored text
+        {
+            parser += 2;
+        }
+        else
+        {
+            mg_array[*curr_loc_ptr] = character;
+            (*curr_loc_ptr)++;
+        }
     }
     mg_array[*curr_loc_ptr] = 0xFF; // End string
     (*curr_loc_ptr)++;
@@ -145,8 +175,16 @@ void textbox_var::insert_virtual_text(u8 mg_array[])
     set_virtual_start();
     for (unsigned int parser = 0; parser < text.length(); parser++)
     {
-        mg_array[*curr_loc_ptr] = get_gen_3_char((char16_t)(text.at(parser)), false);
-        (*curr_loc_ptr)++;
+        byte character = get_gen_3_char((char16_t)(text.at(parser)), false);
+        if (curr_rom.is_hoenn() && (character == 0xFC) && (get_gen_3_char((char16_t)(text.at(parser + 1)), false) == 0x01)) // Removes colored text
+        {
+            parser += 2;
+        }
+        else
+        {
+            mg_array[*curr_loc_ptr] = character;
+            (*curr_loc_ptr)++;
+        }
     }
     mg_array[*curr_loc_ptr] = 0xFF; // End string
     (*curr_loc_ptr)++;

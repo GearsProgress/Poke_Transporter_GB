@@ -1088,11 +1088,11 @@ void write_call(int generation, byte array_data[], int &offset, word call_locati
     }
 };
 
-int test_main() // Rename to "main" to send the payload to test_payload.txt
+int main() // Rename to "main" to send the payload to test_payload.txt
 {
     freopen("test_payload.txt", "w", stdout);
     std::cout << std::endl;
-    byte *payload = generate_payload(ENG_GOLD, true);
+    byte *payload = generate_payload(ENG_YELLOW, true);
     for (int i = 0; i < PAYLOAD_SIZE; i++)
     {
         std::cout << "0x" << std::setfill('0') << std::setw(2) << std::hex << std::uppercase << (unsigned int)payload[i] << ", ";
