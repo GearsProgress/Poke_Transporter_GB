@@ -107,4 +107,4 @@ Everything else, and the programming code, is governed by the MIT license
 _This project is not endorsed or supported by GameFreak or Nintendo. Please support the original developers._
 
 ## Special Mentions
-A huge thank you to Goppier for being the first one to bridge the gap between generation 2 and generation 3 and for provide exremely useful documentation about both versions of the Link Cable, and a huge thank you to Lorenzooone for being the direct inspiration for this project, as well as answering questions I had during development. This project would never have happened without either of them, and I cannot thank them enough.
+A huge thank you to Goppier for being the first one to bridge the gap between generation 2 and generation 3 and for provide extremely useful documentation about both versions of the Link Cable, and a huge thank you to Lorenzooone for being the direct inspiration for this project, as well as answering questions I had during development. This project would never have happened without either of them, and I cannot thank them enough.
