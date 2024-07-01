@@ -50,9 +50,9 @@ const struct ROM_DATA ENG_RUBY_v0 = {
     .def_map_id = 1,
     .def_npc_id = 1,
 
-    .test_map_bank = 2,
-    .test_map_id = 2,
-    .test_npc_id = 3,
+    .old_map_bank = 20,
+    .old_map_id = 2,
+    .old_npc_id = 1,
 };
 const struct ROM_DATA ENG_SAPPHIRE_v0 = {
     .is_valid = true,
@@ -99,9 +99,9 @@ const struct ROM_DATA ENG_SAPPHIRE_v0 = {
     .def_map_id = 1,
     .def_npc_id = 1,
 
-    .test_map_bank = 2,
-    .test_map_id = 2,
-    .test_npc_id = 3,
+    .old_map_bank = 20,
+    .old_map_id = 2,
+    .old_npc_id = 1,
 };
 const struct ROM_DATA ENG_RUBY_v1 = {
     .is_valid = true,
@@ -148,9 +148,9 @@ const struct ROM_DATA ENG_RUBY_v1 = {
     .def_map_id = 1,
     .def_npc_id = 1,
 
-    .test_map_bank = 2,
-    .test_map_id = 2,
-    .test_npc_id = 3,
+    .old_map_bank = 20,
+    .old_map_id = 2,
+    .old_npc_id = 1,
 };
 const struct ROM_DATA ENG_SAPPHIRE_v1 = {
     .is_valid = true,
@@ -197,9 +197,9 @@ const struct ROM_DATA ENG_SAPPHIRE_v1 = {
     .def_map_id = 1,
     .def_npc_id = 1,
 
-    .test_map_bank = 2,
-    .test_map_id = 2,
-    .test_npc_id = 3,
+    .old_map_bank = 20,
+    .old_map_id = 2,
+    .old_npc_id = 1,
 };
 const struct ROM_DATA ENG_RUBY_v2 = {
     .is_valid = true,
@@ -246,9 +246,9 @@ const struct ROM_DATA ENG_RUBY_v2 = {
     .def_map_id = 1,
     .def_npc_id = 1,
 
-    .test_map_bank = 2,
-    .test_map_id = 2,
-    .test_npc_id = 3,
+    .old_map_bank = 20,
+    .old_map_id = 2,
+    .old_npc_id = 1,
 };
 const struct ROM_DATA ENG_SAPPHIRE_v2 = {
     .is_valid = true,
@@ -295,9 +295,9 @@ const struct ROM_DATA ENG_SAPPHIRE_v2 = {
     .def_map_id = 1,
     .def_npc_id = 1,
 
-    .test_map_bank = 2,
-    .test_map_id = 2,
-    .test_npc_id = 3,
+    .old_map_bank = 20,
+    .old_map_id = 2,
+    .old_npc_id = 1,
 };
 const struct ROM_DATA ENG_FIRERED_v0 = {
     .is_valid = true,
@@ -345,9 +345,11 @@ const struct ROM_DATA ENG_FIRERED_v0 = {
     .def_map_id = 0xFF,
     .def_npc_id = 0xFF,
 
-    .test_map_bank = 7,
-    .test_map_id = 3,
-    .test_npc_id = 2,
+    .old_map_bank = 30,
+    .old_map_id = 0,
+    .old_npc_id = 1,
+
+    .loc_gSaveBlock1PTR = 0x03005008, // TODO: Only used for old script, can be removed later
 };
 const struct ROM_DATA ENG_LEAFGREEN_v0 = {
     .is_valid = true,
@@ -395,9 +397,11 @@ const struct ROM_DATA ENG_LEAFGREEN_v0 = {
     .def_map_id = 0xFF,
     .def_npc_id = 0xFF,
 
-    .test_map_bank = 7,
-    .test_map_id = 3,
-    .test_npc_id = 2,
+    .old_map_bank = 30,
+    .old_map_id = 0,
+    .old_npc_id = 1,
+
+    .loc_gSaveBlock1PTR = 0x03005008, // TODO: Only used for old script, can be removed later
 };
 const struct ROM_DATA ENG_FIRERED_v1 = {
     .is_valid = true,
@@ -445,9 +449,11 @@ const struct ROM_DATA ENG_FIRERED_v1 = {
     .def_map_id = 0xFF,
     .def_npc_id = 0xFF,
 
-    .test_map_bank = 7,
-    .test_map_id = 3,
-    .test_npc_id = 2,
+    .old_map_bank = 30,
+    .old_map_id = 0,
+    .old_npc_id = 1,
+
+    .loc_gSaveBlock1PTR = 0x03005008, // TODO: Only used for old script, can be removed later
 };
 const struct ROM_DATA ENG_LEAFGREEN_v1 = {
     .is_valid = true,
@@ -495,9 +501,11 @@ const struct ROM_DATA ENG_LEAFGREEN_v1 = {
     .def_map_id = 0xFF,
     .def_npc_id = 0xFF,
 
-    .test_map_bank = 7,
-    .test_map_id = 3,
-    .test_npc_id = 2,
+    .old_map_bank = 30,
+    .old_map_id = 0,
+    .old_npc_id = 1,
+
+    .loc_gSaveBlock1PTR = 0x03005008, // TODO: Only used for old script, can be removed later
 };
 const struct ROM_DATA ENG_EMERALD_v0 = {
     .is_valid = true,
@@ -545,9 +553,11 @@ const struct ROM_DATA ENG_EMERALD_v0 = {
     .def_map_id = 0xFF,
     .def_npc_id = 0xFF,
 
-    .test_map_bank = 5,
-    .test_map_id = 4,
-    .test_npc_id = 2,
+    .old_map_bank = 20,
+    .old_map_id = 2,
+    .old_npc_id = 1,
+
+    .loc_gSaveBlock1PTR = 0x03005D8C, // TODO: Only used for old script, can be removed later
 };
 
 #endif

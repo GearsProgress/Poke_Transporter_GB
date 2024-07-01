@@ -27,6 +27,18 @@ int ptr_dex_seen_caught;
 int ptr_index;
 int ptr_pkmn_offset;
 
+// TODO: For old script, can be removed later
+int ptr_callASM;
+int ptr_script_ptr_low;
+int ptr_script_ptr_high;
+int ptr_call_return_1;
+int ptr_block_ptr_low;
+int ptr_block_ptr_high;
+int var_callASM = (VAR_ID_START + 0x00);
+int var_script_ptr_low = (VAR_ID_START + 0x01);
+int var_script_ptr_high = (VAR_ID_START + 0x02);
+int var_call_return_1 = (VAR_ID_START + 0x03);
+
 mystery_gift_script::mystery_gift_script()
 {
     curr_mg_index = NPC_LOCATION_OFFSET;
@@ -38,6 +50,14 @@ mystery_gift_script::mystery_gift_script()
     ptr_dex_seen_caught = (curr_rom.loc_gSpecialVar_0x8000 + 0x0E);
     ptr_index = (curr_rom.loc_gSpecialVar_0x8000 + 0x12);
     ptr_pkmn_offset = (curr_rom.loc_gSpecialVar_0x8000 + 0x14);
+
+    // TODO: For old script, can be removed later
+    ptr_callASM = (curr_rom.loc_gSpecialVar_0x8000 + 0x00);
+    ptr_script_ptr_low = (curr_rom.loc_gSpecialVar_0x8000 + 0x02);
+    ptr_script_ptr_high = (curr_rom.loc_gSpecialVar_0x8000 + 0x04);
+    ptr_call_return_1 = (curr_rom.loc_gSpecialVar_0x8000 + 0x06);
+    ptr_block_ptr_low = (curr_rom.loc_gSaveBlock1PTR + 0x00);
+    ptr_block_ptr_high = (curr_rom.loc_gSaveBlock1PTR + 0x02);
 }
 
 void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
@@ -746,6 +766,221 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
         tte_erase_screen();
         int val = (curr_section30_index - 0x4096) - four_align_value;
         tte_write("S30 Script exceeded by ");
+        tte_write(std::to_string(val).c_str());
+        tte_write(" bytes");
+        while (true)
+        {
+        }
+    }
+};
+
+void mystery_gift_script::build_script_old(Pokemon_Party &incoming_box_data)
+{
+    std::vector<script_var *> asm_variable_list;
+    asm_var sendMonToPC_ptr(curr_rom.loc_sendMonToPC + READ_AS_THUMB, asm_variable_list, &curr_mg_index);
+    asm_var returned_box_success_ptr(ptr_box_return, asm_variable_list, &curr_mg_index);
+    asm_var curr_pkmn_index_ptr(ptr_pkmn_offset, asm_variable_list, &curr_mg_index);
+    asm_var setPokedexFlag_ptr(curr_rom.loc_setPokedexFlag + READ_AS_THUMB, asm_variable_list, &curr_mg_index);
+    asm_var dexSeenCaught_ptr(ptr_dex_seen_caught, asm_variable_list, &curr_mg_index);
+    asm_var currPkmnIndex_ptr(ptr_index, asm_variable_list, &curr_mg_index);
+    asm_var pkmnStruct(curr_rom.loc_gSaveDataBuffer, asm_variable_list, &curr_mg_index);
+    asm_var dexStruct(curr_rom.loc_gSaveDataBuffer + (MAX_PKMN_IN_BOX * POKEMON_SIZE), asm_variable_list, &curr_mg_index);
+    asm_var flashBuffer_ptr(curr_rom.loc_gSaveDataBuffer, asm_variable_list, &curr_mg_index);
+    asm_var readFlashSector_ptr(curr_rom.loc_readFlashSector + READ_AS_THUMB, asm_variable_list, &curr_mg_index);
+    xse_var mainAsmStart(asm_variable_list, &curr_mg_index);
+    xse_var dexAsmStart(asm_variable_list, &curr_mg_index);
+    xse_var readFlashStart(asm_variable_list, &curr_mg_index);
+
+    xse_var jumpLoop(asm_variable_list, &curr_mg_index);
+    xse_var jumpBoxFull(asm_variable_list, &curr_mg_index);
+    xse_var jumpPkmnCollected(asm_variable_list, &curr_mg_index);
+    xse_var jumpAllCollected(asm_variable_list, &curr_mg_index);
+
+    textbox_var textGreet(asm_variable_list, &curr_mg_index);
+    textbox_var textReceived(asm_variable_list, &curr_mg_index);
+    textbox_var textPCFull(asm_variable_list, &curr_mg_index);
+    textbox_var textThank(asm_variable_list, &curr_mg_index);
+    textbox_var textTest(asm_variable_list, &curr_mg_index);
+
+    // Ş = Wait for button and scroll text
+    // ȼ = Wait for button and clear text
+    // Ȇ = Escape character
+    // Ʋ = Variable escape sequence
+    //      À = Player name
+    // Ň = New line
+    // ƞ = string terminator
+    textGreet.set_text((curr_rom.text_region == TEXT_HOENN)
+                           ? u"LANETTE: Hey ƲÀ!ȼPROFESSOR FENNEL told me that you’dŇbe coming by for these POKÉMON!"
+                           : u"BILL: Hey ƲÀ!ȼPROFESSOR FENNEL told me that you’dŇbe coming by for these POKÉMON!");
+    textThank.set_text(u"Thanks for helping out FENNEL!");
+    textPCFull.set_text(u"The PC is full…ȼGo make some more room!");
+    textReceived.set_text(u"ȆÀÁƲÀ’S POKÉMON were sent to theŇPC!");
+    textTest.set_text(u"Testing...");
+
+    // Located at 0x?8A8 in the .sav
+    init_npc_location(curr_rom.map_bank, curr_rom.map_id, curr_rom.npc_id); // Set the location of the NPC
+    setvirtualaddress(VIRTUAL_ADDRESS);                                     // Set virtual address
+    lock();                                                                 // Lock the player
+    faceplayer();                                                           // Have the NPC face the player
+    checkflag(curr_rom.all_collected_flag);                                 // Check if the "all collected" flag has been set
+    virtualgotoif(COND_FLAGTRUE, jumpAllCollected.add_reference(2));        // If "all collected" is true, then jump to the "thank you" text
+    virtualmsgbox(textGreet.add_reference(1));                              // Otherwise, greet the player
+    waitmsg();                                                              // Wait for the message to finish
+    waitkeypress();                                                         // Wait for the player to press A/B
+    setvar(var_index, 0);                                                   // set the index to 0
+    setvar(var_callASM, rev_endian(0x0023));                                // set the call_asm variable to 0x23: 0x23 = CALL ASM
+    setvar(var_pkmn_offset, 0);                                             // Set the Pokemon struct offset to 0
+    if (curr_rom.is_ruby_sapphire())                                        // Ruby and Sapphire don't shift their save blocks around, so we can hardcode it
+    {                                                                       // FOR RUBY AND SAPPHIRE:
+        setvar(var_script_ptr_low, curr_rom.loc_gSaveBlock1 & 0xFFFF);      // Copy the first two bytes of the saveblock1 location to a variable
+        setvar(var_script_ptr_high, curr_rom.loc_gSaveBlock1 >> 16);        // Copy the second two bytes of the saveblock1 location to a variable
+    } //
+    else                                                           //
+    {                                                              // FOR FIRERED, LEAFGREEN, AND EMERALD
+        copybyte(ptr_script_ptr_low, ptr_block_ptr_low);           // Copy the first byte of the saveblock1ptr to a variable
+        copybyte(ptr_script_ptr_low + 1, ptr_block_ptr_low + 1);   // Copy the second byte of the saveblock1ptr to a variable
+        copybyte(ptr_script_ptr_high, ptr_block_ptr_high);         // Copy the third byte of the saveblock1ptr to a variable
+        copybyte(ptr_script_ptr_high + 1, ptr_block_ptr_high + 1); // Copy the fourth byte of the saveblock1ptr to a variable
+    } //
+    addvar(var_script_ptr_low, curr_rom.offset_ramscript + 8 + READ_AS_THUMB);   // add the offset for ramscript, plus 8. 8 is for the 8 bytes of Checksum, padding and NPC info
+    addvar(var_script_ptr_low, readFlashStart.add_reference(3));                 // Add the offset for the start of ASM
+    setvar(var_call_return_1, rev_endian(0x0300));                               // Set the vairable to 0x03. 0x03 = RETURN
+    setvar(var_call_check_flag, rev_endian(0x2B00));                             // Set the variable to 0x2B. 0x2B = CHECK FLAG
+    addvar(var_call_check_flag, rev_endian(curr_rom.pkmn_collected_flag_start)); // Add the starting flag ID (plus one to ignore the is collected flag) to the check flag ASM variable
+    setvar(var_call_return_2, rev_endian(0x0003));                               // Set the variable to 0x03. 0x03 = RETURN
+    jumpLoop.set_start();                                                        // Set the jump destination for the JUMP_LOOP
+    call(ptr_call_check_flag);                                                   // Call the check flag ASM
+    virtualgotoif(COND_FLAGFALSE, jumpPkmnCollected.add_reference(2));           // If the "pokemon collected" flag is false, jump to the end of the loop
+    call(ptr_callASM);                                                           // Call readFlash ASM
+    addvar(var_script_ptr_low, mainAsmStart.add_reference(3, &readFlashStart));  // add to the CallASM offset so that it points to MAIN_ASM_START instead
+    call(ptr_callASM);                                                           // Call SendMonToPC ASM
+    compare(var_box_return, 2);                                                  // Compare the resulting return to #2
+    virtualgotoif(COND_EQUALS, jumpBoxFull.add_reference(2));                    // If the return value was #2, jump to the box full message
+    addvar(var_script_ptr_low, dexAsmStart.add_reference(3, &mainAsmStart));     // add to the CallASM offset so that it points to PTR_DEX_START instead
+    setvar(var_dex_seen_caught, 2);                                              // set the seen caught variable to 2, so that the Pokemon is set to "seen"
+    call(ptr_callASM);                                                           // call "PTR_DEX_START"
+    addvar(var_dex_seen_caught, 1);                                              // add 1 to the seen caught variable so that the Pokemon will be "Caught"
+    call(ptr_callASM);                                                           // Call "PTR_DEX_START" again
+    subvar(var_script_ptr_low, dexAsmStart.add_reference(3, &mainAsmStart));     // subtract from the CallASM offset so that it points to CALL_ASM again
+    subvar(var_script_ptr_low, mainAsmStart.add_reference(3, &readFlashStart));  // subtract from the CallASM offset so that it points to READ_FLASH
+    jumpPkmnCollected.set_start();                                               // Set the jump destination for if the Pokemon has already been collected
+    addvar(var_pkmn_offset, POKEMON_SIZE);                                       // Add the size of one Pokmeon to the Pokemon offset
+    addvar(var_index, 1);                                                        // Add one to the index
+    addvar(var_call_check_flag, rev_endian(1));                                  // Add one to the flag index
+    compare(var_index, MAX_PKMN_IN_BOX);                                         // Compare the index to 30
+    virtualgotoif(COND_LESSTHAN, jumpLoop.add_reference(2));                     // if index is less than six, jump to the start of the loop
+    setflag(curr_rom.all_collected_flag);                                        // Set the "all collected" flag
+    fanfare(0xA4);                                                               // Play the received fanfare
+    virtualmsgbox(textReceived.add_reference(1));                                // Display the recieved text
+    waitfanfare();                                                               // Wait for the fanfare
+    waitmsg();                                                                   // Wait for the text to finish
+    waitkeypress();                                                              // Wait for the player to press A/B
+    jumpAllCollected.set_start();                                                // Set the destination for if all the Pokemon have already been collected
+    virtualmsgbox(textThank.add_reference(1));                                   // Display the thank test
+    waitmsg();                                                                   // Wait for the message
+    waitkeypress();                                                              // Wait for the player to press A/B
+    release();                                                                   // Release the player
+    killscript();                                                                // Erase RAMscript
+    jumpBoxFull.set_start();                                                     // Set the destination for if the box is full
+    virtualmsgbox(textPCFull.add_reference(1));                                  // Display the full box message
+    waitmsg();                                                                   // Wait for the message
+    waitkeypress();                                                              // Wait for the player to presse A/B
+    release();                                                                   // Release the player
+    end();                                                                       // End the script
+
+    textGreet.insert_text(mg_script);
+    textThank.insert_text(mg_script);
+    textPCFull.insert_text(mg_script);
+    textReceived.insert_text(mg_script);
+    textTest.insert_text(mg_script);
+
+    while (curr_mg_index % 4 != 0)
+    {
+        curr_mg_index++; // Align the code so that it is byte aligned
+    }
+
+    readFlashStart.set_start();
+    push(rlist_lr);                                     // save the load register to the stack
+    mov1(r0, 30);                                       // set r0 to 30 (the sector ID for eReader data)
+    ldr3(r1, flashBuffer_ptr.add_reference());          // set r1 to the location of "flashBuffer" plus one, since it is thumb code
+    ldr3(r2, readFlashSector_ptr.add_reference());      // set r2 to the location of "readFlashSector" plus one, since it is thumb code
+    mov3(r3, r15);                                      // move r15 (the program counter) to r3
+    add2(r3, 5);                                        // add 5 to r3 to compensate for the four following bytes, plus to tell the system to read as thumb code
+    mov3(r14, r3);                                      // move r3 into r14 (the load register)
+    bx(r2);                                             // jump to the pointer stored in r2 (readFlashSector)
+    pop(rlist_r0);                                      // remove r0 from the stack and put it into r0
+    bx(r0);                                             // go to r0
+                                                        //
+    mainAsmStart.set_start();                           // Set the memory pointer location for ASM start
+    push(rlist_lr);                                     // save the load register to the stack
+    ldr3(r3, curr_pkmn_index_ptr.add_reference());      // set r3 to the pointer to the pokemon index variable
+    ldr1(r3, r3, 0);                                    // set r3 to the value in memory r3 points to
+    add5(r0, pkmnStruct.add_reference());               // set r0 to a pointer to the start of the Pokemon struct.
+    ldr1(r0, r0, 0);                                    // set r0 to the value in memory r0 points to
+    add3(r0, r0, r3);                                   // add r3 to r0, giving it the correct offset for the current index
+    ldr3(r1, sendMonToPC_ptr.add_reference());          // set r1 to the location of "SendMonToPC" plus one, since it is thumb code
+    mov3(r2, r15);                                      // move r15 (the program counter) to r2
+    add2(r2, 5);                                        // add 5 to r2 to compensate for the four following bytes, plus to tell the system to read as thumb code
+    mov3(r14, r2);                                      // move r2 into r14 (the load register)
+    bx(r1);                                             // jump to the pointer stored in r1 (SendMonToPC)
+    ldr3(r2, returned_box_success_ptr.add_reference()); // load variable 0x8006's pointer into r2
+    str1(r0, r2, 0);                                    // put the value of r0 into the memory location pointed at by r2, plus 0
+    pop(rlist_r0);                                      // remove r0 from the stack and put it into r0
+    bx(r0);                                             // jump to r0 (return to where the function was called)
+                                                        //
+    dexAsmStart.set_start();                            // Note the location where the Dex ASM starts
+    push(rlist_lr);                                     // save the load register to the stack
+    ldr3(r0, currPkmnIndex_ptr.add_reference());        // load the pointer to the index variable into r0
+    ldr1(r0, r0, 0);                                    // load the value at r0's pointer
+    mov1(r3, 0xFF);                                     // load 0xFF into r3
+    and1(r0, r3);                                       // AND r0 and r3, which will give us just the least significant byte
+                                                        //
+    add5(r1, dexStruct.add_reference());                // set r1 to the value stored X bytes ahead
+    ldr1(r1, r1, 0);                                    // loda the value at the memory location stored in r1
+    add3(r0, r0, r1);                                   // add r0 and r1, which is the current index and dex_struct respectivly
+    ldr1(r0, r0, 0);                                    // load the value at the memory location stored in r0
+    and1(r0, r3);                                       // truncate to just the least significant byte, which is the current dex number
+    ldr3(r1, dexSeenCaught_ptr.add_reference());        // load the dex_seen_caught variable's pointer into r1
+    ldr1(r1, r1, 0);                                    // load the value of memory pointed at by r1
+    and1(r1, r3);                                       // AND r1 and r3, which will keep only the least significant byte
+    ldr3(r2, setPokedexFlag_ptr.add_reference());       // load the GetSetPokedexFlag function location into r2
+    mov3(r3, r15);                                      // move r15 (the program counter) to r3
+    add2(r3, 5);                                        // add 5 to r3 to compensate for the four following bytes, as well as to tell it to read as THUMB code
+    mov3(r14, r3);                                      // move r3 into r14 (the load register)
+    bx(r2);                                             // jump to the pointer stored in r2 (GetSetPokedexFlag)
+    pop(rlist_r0);                                      // remove r0 from the stack and put it into r0
+    bx(r0);                                             // jump to r0 (return to where the function was called)
+                                                        //
+                                                        //
+    while (curr_mg_index % 4 != 0)
+    {
+        curr_mg_index++; // Align the code so that it is byte aligned
+    }
+    add_word(sendMonToPC_ptr.place_word());          // the location of "SendMonToPC", plus one (so it is interpreted as thumb code)
+    add_word(returned_box_success_ptr.place_word()); // the location of variable "0x8006" (the return value)
+    add_word(curr_pkmn_index_ptr.place_word());      // the location of variable "0x8008" (the pokemon offset)
+    add_word(setPokedexFlag_ptr.place_word());       // the location of GetSetPokedexFlag, plus one (so it is interpreted as thumb code)
+    add_word(dexSeenCaught_ptr.place_word());        // the location of the DEX_SEEN_CAUGHT variable
+    add_word(currPkmnIndex_ptr.place_word());        // the location of the INDEX variable
+    add_word(flashBuffer_ptr.place_word());          // the location of the FLASH_BUFFER variable
+    add_word(readFlashSector_ptr.place_word());      // the location of "readFlashSector", plus one (so it is interpreted as thumb code)
+    add_word(pkmnStruct.place_word());               // the location of the Pokemon Struct
+    add_word(dexStruct.place_word());                // the location of the dex struct
+                                                     //
+    while (curr_mg_index % 4 != 0)
+    {
+        curr_mg_index++; // Align the code so that it is byte aligned
+    }
+    for (unsigned int i = 0; i < asm_variable_list.size(); i++) // Fill all the refrences for script variables
+    {
+        asm_variable_list[i]->fill_refrences(mg_script);
+    }
+
+    if (curr_mg_index > MG_SCRIPT_SIZE) // Throw an error if the script is too large
+    {
+        tte_erase_screen();
+        int val = (curr_mg_index - MG_SCRIPT_SIZE) - four_align_value;
+        tte_write("Script exceeded by ");
         tte_write(std::to_string(val).c_str());
         tte_write(" bytes");
         while (true)

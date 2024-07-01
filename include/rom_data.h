@@ -39,7 +39,7 @@ public:
 
     int loc_sendMonToPC;
     int loc_gSpecialVar_0x8000;
-    int loc_gSaveBlock1;    // Only used in R/S
+    int loc_gSaveBlock1; // Only used in R/S
     int loc_setPokedexFlag;
     int loc_gSaveDataBuffer; // The location of the saveDataBuffer
     int loc_readFlashSector;
@@ -76,6 +76,8 @@ public:
     u8 def_map_bank;
     u8 def_map_id;
     u8 def_npc_id;
+
+    int loc_gSaveBlock1PTR; // TODO: Only used for old script, can be removed later
 
 private:
     void fill_values(const ROM_DATA *rom_values);

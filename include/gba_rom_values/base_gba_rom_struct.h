@@ -71,9 +71,11 @@ struct ROM_DATA
     u8 def_map_id;
     u8 def_npc_id;
 
-    u8 test_map_bank;
-    u8 test_map_id;
-    u8 test_npc_id;
+    u8 old_map_bank;
+    u8 old_map_id;
+    u8 old_npc_id;
+
+    int loc_gSaveBlock1PTR; // TODO: Only used for old script, can be removed later
 };
 
 #endif

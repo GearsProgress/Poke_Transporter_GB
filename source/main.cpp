@@ -102,7 +102,7 @@ void load_graphics()
 	main_menu.clear_vector();
 	main_menu.add_button(Button(btn_t_l, btn_t_r, 48), BTN_TRANSFER);
 	main_menu.add_button(Button(btn_p_l, btn_p_r, 48), BTN_POKEDEX);
-	main_menu.add_button(Button(btn_d_l, btn_d_r, 48), BTN_EVENTS);
+	//main_menu.add_button(Button(btn_d_l, btn_d_r, 48), BTN_EVENTS);
 	main_menu.add_button(Button(btn_c_l, btn_c_r, 48), BTN_CREDITS);
 	main_menu.set_xy_min_max(0, H_MAX, 48, V_MAX);
 
@@ -183,7 +183,7 @@ void first_load_message(void)
 
 int credits()
 {
-#define CREDITS_ARRAY_SIZE 15
+#define CREDITS_ARRAY_SIZE 16
 	int curr_credits_num = 0;
 	std::string credits_array[CREDITS_ARRAY_SIZE] = {
 		"Lead developer:\n\nThe Gears of\nProgress\n\nLead graphic design:\n\nJome",
@@ -197,6 +197,7 @@ int credits()
 		"Pok@mon data\nobtained from:\n\n-Bulbapedia\n-Serebii\n-PokeAPI.com",
 		"Discord community\nassistance:\n\n-Hex Maniac Advance\n Development\n-gbadev\n-pret",
 		"Writing assistance:\n\n\n-Mad",
+		"Remote and Arbitrary\nCode Execution\nassistance:\n\n\n-TimoVM",
 		"An immense thanks to\nLorenzooone for\ntheir assistance in\nreading/writing save\ndata. Without them,\nthis project would\nnot have been\npossible.",
 		"Special thanks to\nEnn, roku, Sleepy,\nEza, sarahtonin,\nBasabi, Mad, and\neveryone who has\nlistened to me talk\nabout this for\nmonths!",
 		"All Pok@mon names,\nsprites, and names\nof related resources\nare copyright\nNintendo,\nCreatures Inc.,\nand GAME FREAK Inc.",

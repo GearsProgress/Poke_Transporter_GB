@@ -15,7 +15,14 @@ static u8 lanette_wonder_card[0x14E] = {
 bool inject_mystery(Pokemon_Party &incoming_box_data)
 {
     mystery_gift_script script;
-    script.build_script(incoming_box_data);
+    if (ENABLE_OLD_EVENT)
+    {
+        script.build_script_old(incoming_box_data);
+    }
+    else
+    {
+        script.build_script(incoming_box_data);
+    }
     u32 checksum = 0;
     if (curr_rom.is_ruby_sapphire())
     {
@@ -62,12 +69,44 @@ bool inject_mystery(Pokemon_Party &incoming_box_data)
     copy_save_to_ram(0x1E000, &global_memory_buffer[0], 0x1000);
     int curr_index = 0;
 
-    for (int i = 0; i < 0x1000; i++) // Copy over the save data section
+    int dex_nums[MAX_PKMN_IN_BOX] = {};
+
+    if (ENABLE_OLD_EVENT)
     {
-        global_memory_buffer[curr_index] = script.get_section30_value_at(i);
-        curr_index++;
+        for (int i = 0; i < MAX_PKMN_IN_BOX; i++) // Add in the Pokemon data
+        {
+            Pokemon curr_pkmn = incoming_box_data.get_converted_pkmn(i);
+            if (curr_pkmn.get_validity())
+            {
+
+                for (int curr_byte = 0; curr_byte < POKEMON_SIZE; curr_byte++)
+                {
+                    global_memory_buffer[curr_index] = curr_pkmn.get_gen_3_data(curr_byte);
+                    curr_index++;
+                }
+                dex_nums[i] = curr_pkmn.get_dex_number();
+            }
+            else
+            {
+                curr_index += POKEMON_SIZE;
+            }
+        }
+
+        for (int i = 0; i < MAX_PKMN_IN_BOX; i++) // Add in the dex numbers
+        {
+            global_memory_buffer[curr_index] = dex_nums[i];
+            curr_index++;
+        }
     }
-    
+    else
+    {
+        for (int i = 0; i < 0x1000; i++) // Copy over the save data section
+        {
+            global_memory_buffer[curr_index] = script.get_section30_value_at(i);
+            curr_index++;
+        }
+    }
+
     update_memory_buffer_checksum(false);
     erase_sector(0x1E000);
     copy_ram_to_save(&global_memory_buffer[0], 0x1E000, 0x1000);

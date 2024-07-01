@@ -2,6 +2,7 @@
 #include <string>
 #include "script_var.h"
 #include "pokemon_data.h"
+#include "debug_mode.h"
 
 extern rom_data curr_rom;
 
@@ -142,7 +143,7 @@ void textbox_var::set_text(std::u16string_view nText)
 
 void textbox_var::set_start()
 {
-    start_location_in_script = *curr_loc_ptr;
+    start_location_in_script = *curr_loc_ptr - (ENABLE_OLD_EVENT * 4);
 }
 
 void textbox_var::set_virtual_start()
