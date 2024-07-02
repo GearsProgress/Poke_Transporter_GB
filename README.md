@@ -1,16 +1,16 @@
 ## About
-Poké Transporter GB is a transfer tool for created to transfer Pokémon from Pokémon Red and Blue to Pokémon Ruby, Sapphire, FireRed, LeafGreen, and Emerald. Yellow, Gold, Silver, and Crystal are currently in development as well and will be added in the near future. Poké Transporter GB is designed to emulate what GameFreak may have released should they persued it. Many inspirations were taken from the Pal Park, PokéTransfer Lab, and PokéTransporter to keep a "GameFreak" feeling.
+Poké Transporter GB is a transfer tool for created to transfer Pokémon from Pokémon Red, Blue, Yellow, Gold, Silver, and Crystal to Pokémon Ruby, Sapphire, FireRed, LeafGreen, and Emerald. Poké Transporter GB is designed to emulate what GameFreak may have released should they persued it. Many inspirations were taken from the Pal Park, PokéTransfer Lab, and PokéTransporter to keep a "GameFreak" feeling.
 
 _Poké Transporter GB WILL modify both your generation 3 and generation 1/2 save file. The program is designed to not corrupt anything, but if you do not wish to modify your save file then you should bypass this experience._
 
 _**Please note that Poké Transporter GB is still in beta, so save file backups of both games are HIGHLY recommended before using**._
 
 ## Notes
-Pokémon Transfered using Poké Transporter GB *will* be removed from Green, Red, Blue, Yellow, Gold Silver, or Crystal.
+Pokémon Transfered using Poké Transporter GB *will* be removed from Red, Blue, Yellow, Gold, Silver, or Crystal.
 
 Currently the only release is in English. Releases supporting other languages is planned for the near future.
 
-Only English copies of Red, Blue, Ruby, Sappire, FireRed, LeafGreen, and Emerald are supported at this time. Compatibility for other languages, as well as Green, Yellow, Gold, Silver, and Crystal, will be added in the near future.
+Only English copies of Red, Blue, Yellow, Gold, Silver, Crystal, Ruby, Sapphire, FireRed, LeafGreen, and Emerald are supported at this time. Compatibility for other languages will be added in the near future.
 
 ## Usage
 Poké Transporter GB is a Multiboot program for the Game Boy Advance. There are two main ways to run the Poké Transporter GB ROM on a Game Boy Advance:
@@ -40,8 +40,9 @@ A full list of modifications made to transfered Pokémon can be found [here](htt
 
 ## Screenshots and Video
 ![Poke_Transporter_GB_mb-2](https://github.com/GearsProgress/Poke_Transporter_GB/assets/23065741/6fdfd9dc-e287-4fd9-ba0a-2a82b6e66364)
-![Pokemon_Mirror_mb-0](https://github.com/Starport75/Pokemon_Mirror/assets/23065741/a58463c0-9067-4ec0-a8b1-d16fa14cb85e)
-![Pokemon_Mirror_mb-1](https://github.com/Starport75/Pokemon_Mirror/assets/23065741/7a54892d-17a0-491e-8c68-4f6d0d796a00)
+![Poke_Transporter_GB_mb-0](https://github.com/GearsProgress/Poke_Transporter_GB/assets/23065741/bda4699b-9d02-4bd4-a031-28e5c999ce67)
+![Poke_Transporter_GB_mb-1](https://github.com/GearsProgress/Poke_Transporter_GB/assets/23065741/0feaba14-e1f7-4a81-9230-8588b660a923)
+
 
 ![Pokemon_Mirror_mb-3](https://github.com/Starport75/Pokemon_Mirror/assets/23065741/481bac72-0d57-475c-940f-a53876eaaa3b)
 ![Pokemon_Mirror_mb-4](https://github.com/Starport75/Pokemon_Mirror/assets/23065741/3b5df6f8-c76e-466b-8dbd-351d7d4676d1)
