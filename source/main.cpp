@@ -32,20 +32,11 @@
 /*
 
 TODO:
-- Rename to PokeTransporter GB
 - Add in putting item from Pkmn to bag in gen 2
-- Stablize link cable (switch between slave and master)
-- Fix double transfer glitch
-- Remove global variables
-- Better custom sprites (Progress, Fennel, Title)
-- Add a % or x/250 for the Dream Dex
 - Determine if transfered Shiny Pokemon are square/star sparkles
 - Music and sound effects
-- Simplify the sprite initalization
-- Smoother transitions
 - Wii Channel
 - Events
-- ignore Mew/Celebi
 - MissingNo/Enigma Berry
 - Text translations
 - Add support for other languages
@@ -102,7 +93,7 @@ void load_graphics()
 	main_menu.clear_vector();
 	main_menu.add_button(Button(btn_t_l, btn_t_r, 48), BTN_TRANSFER);
 	main_menu.add_button(Button(btn_p_l, btn_p_r, 48), BTN_POKEDEX);
-	//main_menu.add_button(Button(btn_d_l, btn_d_r, 48), BTN_EVENTS);
+	// main_menu.add_button(Button(btn_d_l, btn_d_r, 48), BTN_EVENTS);
 	main_menu.add_button(Button(btn_c_l, btn_c_r, 48), BTN_CREDITS);
 	main_menu.set_xy_min_max(0, H_MAX, 48, V_MAX);
 
@@ -242,7 +233,7 @@ int main(void)
 	initalize_memory_locations();
 	load_custom_save_data();
 
-	if (get_tutorial_flag() == false || FORCE_TUTORIAL)
+	if (!IGNORE_MG_E4_FLAGS && (!get_tutorial_flag() || !read_flag(curr_rom.e4_flag) || FORCE_TUTORIAL))
 	{
 		first_load_message();
 		initalize_save_data();
@@ -297,8 +288,11 @@ int main(void)
 			text_loop(BTN_TRANSFER);
 			break;
 		case (BTN_POKEDEX):
-			obj_hide_multi(ptgb_logo_l, 2);
-			pokedex_loop();
+			if (IGNORE_MG_E4_FLAGS || read_flag(curr_rom.e4_flag))
+			{
+				obj_hide_multi(ptgb_logo_l, 2);
+				pokedex_loop();
+			}
 			break;
 		case (BTN_CREDITS):
 			set_textbox_large();

@@ -139,7 +139,7 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
     if (species_index_struct > 251 ||                  // Checks if the Pokemon is beyond Celebi
         species_index_struct == 0 ||                   // Checks that the Pokemon isn't a blank party space
         species_index_struct != species_index_party || // Checks that the Pokemon isn't a hybrid or an egg
-        index_in_box >= num_in_box)                     // Checks that we're not reading beyond the Pokemon in the box
+        index_in_box >= num_in_box)                    // Checks that we're not reading beyond the Pokemon in the box
     {
         is_valid = false;
         return;
@@ -343,22 +343,24 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
     copy_from_to(&trainer_id[0], &gen_3_pkmn[4], 2, true);
 
     // Check if the Pokemon is shiny
-    if (                                                                     // Is shiny
-        (dvs[1] == 0b10101010) &&                                            // Checks if the Speed and Special DVs equal 10
-        ((dvs[0] & 0xF) == 0b1010) &&                                        // Checks if the Defense DVs equal 10
-        (((dvs[0] & 0b11000000) >> 6) | (((dvs[0] & 0b00110000) >> 2) > 7))) // Reorganizes the Attack DV bits so that they will be >7 if the Pokemon is shiny
+    if (                                // Is shiny
+        ((dvs[1] == 0b10101010) &&       // Checks if the Speed and Special DVs equal 10
+        ((dvs[0] & 0xF) == 0b1010) &&   // Checks if the Defense DVs equal 10
+        ((dvs[0] & 0b00100000) >> 5))) // Checks if the second bit of the Attack DV is true
     {
-        secret_id[0] = trainer_id[0] ^ pid[0] ^ pid[2] ^ 0xFF;
-        secret_id[1] = trainer_id[1] ^ pid[1] ^ pid[3] ^ 0xFF;
+        secret_id[0] = trainer_id[1] ^ pid[0] ^ pid[2] ^ 0x0; // This value at the end should be random between 0 - 15, if that is to be implemented
+        secret_id[1] = trainer_id[0] ^ pid[1] ^ pid[3] ^ 0x0;
         // Randomly shift by 16 (maybe)
     }
     else // Not shiny, make sure it isn't
     {
+        secret_id[0] = dvs[0];
+        secret_id[1] = dvs[1];
+
         if (((trainer_id[0] ^ secret_id[0] ^ pid[0] ^ pid[2]) == 0) &&
             ((trainer_id[1] ^ secret_id[1] ^ pid[1] ^ pid[3]) < 8))
         {
-            secret_id[0] = 0xFF;
-            secret_id[1] = 0xFF;
+            secret_id[1] += 8;
         }
     }
     copy_from_to(&secret_id[0], &gen_3_pkmn[6], 2, false); // Set SID

@@ -47,8 +47,9 @@ void populate_dialogue()
     dialogue[DIA_WHAT_LANG_TRANS] = "What language is the Game\nBoy Pok@mon game that you're\ntransferring from?";
     dialogue[DIA_NO_GB_ROM] = "I'm sorry, but that version\nin that language is not\ncurrently supported.";
     dialogue[DIA_IN_BOX] = "Great! Let's take a look at\nthe Pok@mon that will be\ntransfered.|Please remember, once a\nPok@mon is transfered, it\nCANNOT be returned to the\nGame Boy Game Pak.|Select confirm once you're\nready, or select cancel if\nyou want to keep the Pok@mon\non your Game Boy Game Pak.";
-    dialogue[DIA_MYTHIC_CONVERT] = "It looks like you have a\nrare Mythical Pok@mon!|Due to their rarity, it\nseems they've corrupted the\nmachine.|I can stablize them if you'd\nlike, but it'll change some\nthings like name, Original\nTrainer, and Shininess.|Otherwise I can leave them\nas is, but there's no\nguarentee that they'll be\ntransferrable in the future.|Do you want me to stablize\nthem?";
+    dialogue[DIA_MYTHIC_CONVERT] = "It looks like you have a\nrare Mythical Pok@mon!|Due to their rarity, it\nseems they've overloaded the\nmachine.|I can stablize them if you'd\nlike, but it'll change some\nthings like name, Original\nTrainer, and Shininess.|Otherwise I can leave them\nas is, but there's no\nguarentee that they'll be\ntransferrable in the future.|Do you want me to stablize\nthem?";
     dialogue[DIA_CANCEL] = "No worries! Feel free to\ncome back if you change your\nmind!|See you around!";
+    dialogue[DIA_SOME_INVALID_PKMN] = "I see there is at least one\ninvalid Pok@mon in your\ncurrent box.|Invalid Pok@mon won't be\nable to be transfered, but\nthe rest will transfer with no problems!";
 
     dialogue[DIA_ERROR_COLOSSEUM] = "It looks like you went to\nthe colosseum instead of the\ntrading room!|Let's try that again!";
     dialogue[DIA_ERROR_COM_ENDED] = "Communication with the other\ndevice was terminated.|Let's try that again!";
@@ -108,8 +109,10 @@ void populate_script()
     transfer_script[DIA_ERROR_DISCONNECT] = script_obj(dialogue[DIA_ERROR_DISCONNECT], DIA_START);
 
     // Pause the transfer and show the user their box data
-    transfer_script[CMD_LOAD_SIMP] = script_obj(CMD_LOAD_SIMP, COND_CHECK_MYTHIC, DIA_NO_VALID_PKMN);
+    transfer_script[CMD_LOAD_SIMP] = script_obj(CMD_LOAD_SIMP, COND_SOME_INVALID_PKMN, DIA_NO_VALID_PKMN);
     transfer_script[DIA_NO_VALID_PKMN] = script_obj(dialogue[DIA_NO_VALID_PKMN], CMD_CANCEL_LINK);
+    transfer_script[COND_SOME_INVALID_PKMN] = script_obj(COND_SOME_INVALID_PKMN, DIA_SOME_INVALID_PKMN, COND_CHECK_MYTHIC);
+    transfer_script[DIA_SOME_INVALID_PKMN] = script_obj(dialogue[DIA_SOME_INVALID_PKMN], COND_CHECK_MYTHIC);
     transfer_script[COND_CHECK_MYTHIC] = script_obj(COND_CHECK_MYTHIC, DIA_MYTHIC_CONVERT, DIA_IN_BOX);
     transfer_script[DIA_MYTHIC_CONVERT] = script_obj(dialogue[DIA_MYTHIC_CONVERT], CMD_MYTHIC_MENU);
     transfer_script[CMD_MYTHIC_MENU] = script_obj(CMD_MYTHIC_MENU, DIA_IN_BOX);
@@ -268,6 +271,9 @@ bool run_conditional(int index)
 
     case COND_CHECK_KANTO:
         return party_data.get_game_gen() == 1;
+
+    case COND_SOME_INVALID_PKMN:
+        return party_data.get_contains_invalid();
 
     case CMD_START_LINK:
         obj_hide(prof);

@@ -70,10 +70,10 @@ void initalize_save_data()
 }
 
 int get_dex_completion(int gen, bool include_mythicals){
-    int num = (gen == 1 ? 151 : 100);
-    int offset = (gen == 1 ? 1 : 152);
+    int stop = (gen == 1 ? 151 : 251);
+    int start = (gen == 1 ? 1 : 152);
     int count = 0;
-    for (int i = 0; i < num; i++){
+    for (int i = start; i < stop + include_mythicals; i++){
         if (is_caught(i)){
             count++;
         }

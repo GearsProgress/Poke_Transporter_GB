@@ -41,8 +41,9 @@
 #define DIA_WHAT_GAME_EVENT         32
 #define DIA_K_DEX_NOT_FULL          33
 #define DIA_J_DEX_NOT_FULL          34
+#define DIA_SOME_INVALID_PKMN       35
 
-#define                    DIA_SIZE 35
+#define                    DIA_SIZE 36
 #define DIA_END DIA_SIZE
 
 // Commands
@@ -86,8 +87,9 @@
 #define COND_CHECK_MYTHIC           CMDS_END + 14
 #define COND_CHECK_DEX              CMDS_END + 15
 #define COND_CHECK_KANTO            CMDS_END + 16
+#define COND_SOME_INVALID_PKMN      CMDS_END + 17
 
-#define                             COND_SIZE  17
+#define                             COND_SIZE  18
 #define COND_END CMDS_END + COND_SIZE
 
 // Ends

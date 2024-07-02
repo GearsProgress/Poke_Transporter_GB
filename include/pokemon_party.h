@@ -26,7 +26,10 @@ public:
     bool get_contains_mythical();
     void set_mythic_stabilization(bool stabilize);
     bool contains_valid = false;
+    bool contains_invalid = false;
     int get_game_gen();
+    int get_num_pkmn();
+    bool get_contains_invalid();
 
 private:
     byte box_data_array[0x462];

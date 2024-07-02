@@ -134,7 +134,7 @@ int pokedex_loop()
             tte_set_pos(dex_x_cord + (1 * 8), (i * 8 * 3) + 16);
             tte_write(is_caught(dex_shift + i + 1 + mythic_skip) ? "^" : " ");
             tte_set_pos(dex_x_cord + (3 * 8), (i * 8 * 3) + 16);
-            tte_write(is_caught(dex_shift + i + 1 + mythic_skip) ? std::string(NAMES[dex_shift + i + 1]).data() : "----------");
+            tte_write(is_caught(dex_shift + i + 1 + mythic_skip) ? std::string(NAMES[dex_shift + i + 1 + mythic_skip]).data() : "----------");
             tte_set_pos(dex_x_cord + (14 * 8), (i * 8 * 3) + 16);
             tte_write("000");
             if (dex_shift + i + 1 + mythic_skip < 10)
