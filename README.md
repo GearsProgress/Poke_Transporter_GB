@@ -10,7 +10,7 @@ Pokémon Transfered using Poké Transporter GB *will* be removed from Red, Blue,
 
 Currently the only release is in English. Releases supporting other languages is planned for the near future.
 
-Only English copies of Red, Blue, Yellow, Gold, Silver, Crystal, Ruby, Sappire, FireRed, LeafGreen, and Emerald are supported at this time. Compatibility for other languages will be added in the near future.
+Only English copies of Red, Blue, Yellow, Gold, Silver, Crystal, Ruby, Sapphire, FireRed, LeafGreen, and Emerald are supported at this time. Compatibility for other languages will be added in the near future.
 
 ## Usage
 Poké Transporter GB is a Multiboot program for the Game Boy Advance. There are two main ways to run the Poké Transporter GB ROM on a Game Boy Advance:
