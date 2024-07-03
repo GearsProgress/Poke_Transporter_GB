@@ -13,7 +13,7 @@
 //                                | Offset  | Size  | Contents
 //                                --------------------------
 #define CAUGHT_DATA 0x00      //  | 0x0     | 32    | Flags for each Pokemon species
-#define TUTORIAL_FLAG 0x20    //  | 0x1     | 1     | Has made it through the tutorial
+#define TUTORIAL_FLAG 0x20    //  | 0x21    | 1     | Has made it through the tutorial
 #define DEFAULT_LANGUAGE 0x21 //  | 0x22    | 1     | Default international language
 #define SAVE_DATA_SIZE 0x22
 
@@ -23,7 +23,6 @@ void load_custom_save_data();
 void write_custom_save_data();
 bool is_caught(int dex_num);
 void set_caught(int dex_num);
-int get_def_lang();
 void set_def_lang(int nLang);
 int get_def_lang_num();
 bool get_tutorial_flag();

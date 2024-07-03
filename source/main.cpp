@@ -40,6 +40,7 @@ TODO:
 - MissingNo/Enigma Berry
 - Text translations
 - Add support for other languages
+- Add in dolls for gen 2/3
 - Doxygen generation
 --------
 */
@@ -79,6 +80,16 @@ int test_main(void) Music
 	}
 }
 */
+
+template <typename I>
+std::string n2hexstr(I w, size_t hex_len = sizeof(I) << 1)
+{
+	static const char *digits = "0123456789ABCDEF";
+	std::string rc(hex_len, '0');
+	for (size_t i = 0, j = (hex_len - 1) * 4; i < hex_len; ++i, j -= 4)
+		rc[i] = digits[(w >> j) & 0x0f];
+	return rc;
+}
 
 void load_graphics()
 {
@@ -144,7 +155,6 @@ void game_load_error(void)
 	tte_set_margins(40, 24, 206, 104);
 	set_textbox_large();
 	tte_write("#{cx:0xF000}The Pok@mon save\nfile was not loaded successfully.\n\nPlease remove and\nreinsert the Game\nPak, and then press the A button.");
-	// tte_write(std::to_string(get_gamecode() >> 8).c_str());
 	key_poll();
 	while (!key_hit(KEY_A))
 	{
@@ -199,6 +209,7 @@ int credits()
 	{
 		set_textbox_large();
 		tte_write(credits_array[curr_credits_num].c_str());
+
 		if (key_hit(KEY_B))
 		{
 			hide_text_box();
@@ -213,9 +224,69 @@ int credits()
 		{
 			curr_credits_num++;
 		}
+		if (ENABLE_DEBUG_SCREEN && key_hit(KEY_SELECT))
+		{
+			u32 pkmn_flags = 0;
+			bool e4_flag = read_flag(curr_rom.e4_flag);
+			bool mg_flag = read_flag(curr_rom.mg_flag);
+			bool all_collected_flag = read_flag(curr_rom.all_collected_flag);
+			for (int i = 0; i < 30; i++)
+			{
+				pkmn_flags |= (read_flag(curr_rom.pkmn_collected_flag_start + i) << i);
+			}
+
+			bool tutorial = get_tutorial_flag();
+			int def_lang = get_def_lang_num();
+			
+			set_textbox_large();
+			tte_write("Debug info:\n\nG: ");
+			std::string lang;
+			lang += curr_rom.language;
+			tte_write(lang.c_str());
+			switch (curr_rom.gamecode)
+			{
+			case RUBY_ID:
+				tte_write("-R-");
+				break;
+			case SAPPHIRE_ID:
+				tte_write("-S-");
+				break;
+			case FIRERED_ID:
+				tte_write("-F-");
+				break;
+			case LEAFGREEN_ID:
+				tte_write("-L-");
+				break;
+			case EMERALD_ID:
+				tte_write("-E-");
+				break;
+			}
+			tte_write(std::to_string(curr_rom.version).c_str());
+
+			tte_write("\nF: ");
+			tte_write(std::to_string(e4_flag).c_str());
+			tte_write(std::to_string(mg_flag).c_str());
+			tte_write(std::to_string(all_collected_flag).c_str());
+			tte_write("-");
+			tte_write((n2hexstr(pkmn_flags)).c_str());
+			tte_write("\nS:   ");
+			tte_write(std::to_string(tutorial).c_str());
+			tte_write("-");
+			tte_write((n2hexstr(def_lang)).c_str());
+			while (true)
+			{
+				if (key_hit(KEY_B))
+				{
+					hide_text_box();
+					set_textbox_small();
+					return 0;
+				}
+				global_next_frame();
+			}
+		}
 		global_next_frame();
 	}
-}
+};
 
 int main(void)
 {

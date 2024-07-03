@@ -8,13 +8,13 @@
 #define SBB 24
 int x, y;
 
-void background_frame()
+void background_frame(int global_frame_count)
 {
-        x++;
-        y++;
+                x++;
+                y++;
 
-        REG_BG0HOFS = x;
-        REG_BG0VOFS = y;
+                REG_BG0HOFS = x;
+                REG_BG0VOFS = y;
 }
 
 void set_textbox_large()

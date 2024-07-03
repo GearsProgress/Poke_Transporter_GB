@@ -1000,6 +1000,8 @@ byte *generate_payload(GB_ROM curr_rom, bool debug)
         // ld [hl], a
         payload_storage[offset++] = 0x77;
 
+        // call TakePartyItem
+
         // call _RemovePokemon
         if (DONT_REMOVE_PKMN)
         {
@@ -1007,6 +1009,7 @@ byte *generate_payload(GB_ROM curr_rom, bool debug)
         }
         else
         {
+            //write_call(curr_rom.generation, payload_storage, offset, 0x046C60);
             write_call(curr_rom.generation, payload_storage, offset, curr_rom._RemovePokemon);
         }
 
@@ -1092,7 +1095,7 @@ int test_main() // Rename to "main" to send the payload to test_payload.txt
 {
     freopen("test_payload.txt", "w", stdout);
     std::cout << std::endl;
-    byte *payload = generate_payload(ENG_YELLOW, true);
+    byte *payload = generate_payload(ENG_CRYSTAL, true);
     for (int i = 0; i < PAYLOAD_SIZE; i++)
     {
         std::cout << "0x" << std::setfill('0') << std::setw(2) << std::hex << std::uppercase << (unsigned int)payload[i] << ", ";

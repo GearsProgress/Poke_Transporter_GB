@@ -332,9 +332,9 @@ const struct ROM_DATA ENG_FIRERED_v0 = {
     .special_DrawWholeMapView = 0x8E,
 
     // PKHeX's list of flags is useful for making sure the detection is accurate: https://github.com/kwsch/PKHeX/blob/78a557c3cdaa6f48b42cc96df8ccb4d20b897937/PKHeX.Core/Resources/text/other/flags_rs.txt
-    .e4_flag = 0x860 + 0x04,   // The flag that is set when you become champion. Often listed as "GAME_CLEAR"
-    .mg_flag = 0x860 + 0x7B,   // The flag that is set when you enable Mystery Gift. Known as "EXDATA_ENABLE" in RS
-    .unused_flag_start = 0x20, // The start of the unused flags and must have 31 open flags in a row
+    .e4_flag = 0x800 + 0x2C,   // The flag that is set when you become champion. Often listed as "GAME_CLEAR"
+    .mg_flag = 0x800 + 0x39,   // The flag that is set when you enable Mystery Gift. Known as "EXDATA_ENABLE" in RS
+    .unused_flag_start = 0xAF, // The start of the unused flags and must have 31 open flags in a row
 
     .map_bank = 31,
     .map_id = 0,
@@ -384,9 +384,9 @@ const struct ROM_DATA ENG_LEAFGREEN_v0 = {
     .special_DrawWholeMapView = 0x8E,
 
     // PKHeX's list of flags is useful for making sure the detection is accurate: https://github.com/kwsch/PKHeX/blob/78a557c3cdaa6f48b42cc96df8ccb4d20b897937/PKHeX.Core/Resources/text/other/flags_rs.txt
-    .e4_flag = 0x860 + 0x04,   // The flag that is set when you become champion. Often listed as "GAME_CLEAR"
-    .mg_flag = 0x860 + 0x7B,   // The flag that is set when you enable Mystery Gift. Known as "EXDATA_ENABLE" in RS
-    .unused_flag_start = 0x20, // The start of the unused flags and must have 31 open flags in a row
+    .e4_flag = 0x800 + 0x2C,   // The flag that is set when you become champion. Often listed as "GAME_CLEAR"
+    .mg_flag = 0x800 + 0x39,   // The flag that is set when you enable Mystery Gift. Known as "EXDATA_ENABLE" in RS
+    .unused_flag_start = 0xAF, // The start of the unused flags and must have 31 open flags in a row
 
     .map_bank = 31,
     .map_id = 0,
@@ -436,9 +436,9 @@ const struct ROM_DATA ENG_FIRERED_v1 = {
     .special_DrawWholeMapView = 0x8E,
 
     // PKHeX's list of flags is useful for making sure the detection is accurate: https://github.com/kwsch/PKHeX/blob/78a557c3cdaa6f48b42cc96df8ccb4d20b897937/PKHeX.Core/Resources/text/other/flags_rs.txt
-    .e4_flag = 0x860 + 0x04,   // The flag that is set when you become champion. Often listed as "GAME_CLEAR"
-    .mg_flag = 0x860 + 0x7B,   // The flag that is set when you enable Mystery Gift. Known as "EXDATA_ENABLE" in RS
-    .unused_flag_start = 0x20, // The start of the unused flags and must have 31 open flags in a row
+    .e4_flag = 0x800 + 0x2C,   // The flag that is set when you become champion. Often listed as "GAME_CLEAR"
+    .mg_flag = 0x800 + 0x39,   // The flag that is set when you enable Mystery Gift. Known as "EXDATA_ENABLE" in RS
+    .unused_flag_start = 0xAF, // The start of the unused flags and must have 31 open flags in a row
 
     .map_bank = 31,
     .map_id = 0,
@@ -488,9 +488,9 @@ const struct ROM_DATA ENG_LEAFGREEN_v1 = {
     .special_DrawWholeMapView = 0x8E,
 
     // PKHeX's list of flags is useful for making sure the detection is accurate: https://github.com/kwsch/PKHeX/blob/78a557c3cdaa6f48b42cc96df8ccb4d20b897937/PKHeX.Core/Resources/text/other/flags_rs.txt
-    .e4_flag = 0x860 + 0x04,   // The flag that is set when you become champion. Often listed as "GAME_CLEAR"
-    .mg_flag = 0x860 + 0x7B,   // The flag that is set when you enable Mystery Gift. Known as "EXDATA_ENABLE" in RS
-    .unused_flag_start = 0x20, // The start of the unused flags and must have 31 open flags in a row
+    .e4_flag = 0x800 + 0x2C,   // The flag that is set when you become champion. Often listed as "GAME_CLEAR"
+    .mg_flag = 0x800 + 0x39,   // The flag that is set when you enable Mystery Gift. Known as "EXDATA_ENABLE" in RS
+    .unused_flag_start = 0xAF, // The start of the unused flags and must have 31 open flags in a row
 
     .map_bank = 31,
     .map_id = 0,
