@@ -18,7 +18,8 @@ public:
     int get_cond_id();
 
 private:
-    std::string text;
+    std::string_view text;
+    bool has_text = false;
     int next_index;
     int conditional_index;
     int next_false_index;

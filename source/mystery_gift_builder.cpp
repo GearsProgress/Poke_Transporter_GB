@@ -60,6 +60,7 @@ mystery_gift_script::mystery_gift_script()
     ptr_block_ptr_high = (curr_rom.loc_gSaveBlock1PTR + 0x02);
 }
 
+
 void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
 {
     std::vector<script_var *> mg_variable_list;

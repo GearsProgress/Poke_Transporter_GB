@@ -5,12 +5,12 @@
 #include "pokemon_party.h"
 #include "script_array.h"
 
-script_obj::script_obj(){
-};
+script_obj::script_obj(){};
 
 script_obj::script_obj(std::string_view nText, int nNext)
 {
     text = nText;
+    has_text = true;
     next_index = nNext;
     conditional_index = 0;
     next_false_index = 0;
@@ -18,7 +18,6 @@ script_obj::script_obj(std::string_view nText, int nNext)
 
 script_obj::script_obj(int nRun, int nNext)
 {
-    text = "";
     next_index = nNext;
     conditional_index = nRun;
     next_false_index = nNext;
@@ -26,16 +25,21 @@ script_obj::script_obj(int nRun, int nNext)
 
 script_obj::script_obj(int nRun, int nNext_if_true, int nNext_if_false)
 {
-    text = "";
     next_index = nNext_if_true;
     conditional_index = nRun;
     next_false_index = nNext_if_false;
 }
 
-
 std::string script_obj::get_text()
 {
-    return text;
+    if (has_text)
+    {
+        return std::string(text).data();
+    }
+    else
+    {
+        return "";
+    }
 }
 
 int script_obj::get_true_index()

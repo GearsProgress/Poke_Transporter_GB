@@ -129,6 +129,7 @@ int Box_Menu::box_main(Pokemon_Party party_data)
                 tte_set_pos(146, 80);
                 tte_write("Lv: ");
                 tte_write(std::to_string(party_data.get_simple_pkmn(index).met_level).c_str());
+                update_pos = false;
             }
         }
         global_next_frame();

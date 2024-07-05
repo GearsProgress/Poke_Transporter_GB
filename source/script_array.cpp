@@ -46,7 +46,7 @@ void populate_dialogue()
     dialogue[DIA_WHAT_GAME_TRANS] = "And which Game Boy Pok@mon\ngame are you transferring\nfrom?";
     dialogue[DIA_WHAT_LANG_TRANS] = "What language is the Game\nBoy Pok@mon game that you're\ntransferring from?";
     dialogue[DIA_NO_GB_ROM] = "I'm sorry, but that version\nin that language is not\ncurrently supported.";
-    dialogue[DIA_IN_BOX] = "Great! Let's take a look at\nthe Pok@mon that will be\ntransfered.|Please remember, once a\nPok@mon is transfered, it\nCANNOT be returned to the\nGame Boy Game Pak.|Select confirm once you're\nready, or select cancel if\nyou want to keep the Pok@mon\non your Game Boy Game Pak.";
+    dialogue[DIA_IN_BOX] = "Alright! Let's take a look\nat the Pok@mon that will be\ntransfered.|Please remember, once a\nPok@mon is transfered, it\nCANNOT be returned to the\nGame Boy Game Pak.|Select confirm once you're\nready, or select cancel if\nyou want to keep the Pok@mon\non your Game Boy Game Pak.";
     dialogue[DIA_MYTHIC_CONVERT] = "It looks like you have a\nrare Mythical Pok@mon!|Due to their rarity, it\nseems they've overloaded the\nmachine.|I can stablize them if you'd\nlike, but it'll change some\nthings like name, Original\nTrainer, and Shininess.|Otherwise I can leave them\nas is, but there's no\nguarentee that they'll be\ntransferrable in the future.|Do you want me to stablize\nthem?";
     dialogue[DIA_CANCEL] = "No worries! Feel free to\ncome back if you change your\nmind!|See you around!";
     dialogue[DIA_SOME_INVALID_PKMN] = "I see there is at least one\ninvalid Pok@mon in your\ncurrent box.|Invalid Pok@mon won't be\nable to be transfered, but\nthe rest will transfer with no problems!";
@@ -117,13 +117,13 @@ void populate_script()
     transfer_script[DIA_MYTHIC_CONVERT] = script_obj(dialogue[DIA_MYTHIC_CONVERT], CMD_MYTHIC_MENU);
     transfer_script[CMD_MYTHIC_MENU] = script_obj(CMD_MYTHIC_MENU, DIA_IN_BOX);
     transfer_script[DIA_IN_BOX] = script_obj(dialogue[DIA_IN_BOX], CMD_BOX_MENU);
-    transfer_script[CMD_BOX_MENU] = script_obj(CMD_BOX_MENU, CMD_CONTINUE_LINK, DIA_CANCEL);
+    transfer_script[CMD_BOX_MENU] = script_obj(CMD_BOX_MENU, CMD_IMPORT_POKEMON, DIA_CANCEL);
     transfer_script[DIA_CANCEL] = script_obj(dialogue[DIA_CANCEL], CMD_CANCEL_LINK);
-    transfer_script[CMD_CONTINUE_LINK] = script_obj(CMD_CONTINUE_LINK, CMD_IMPORT_POKEMON);
+    transfer_script[CMD_IMPORT_POKEMON] = script_obj(CMD_IMPORT_POKEMON, CMD_CONTINUE_LINK);
+    transfer_script[CMD_CONTINUE_LINK] = script_obj(CMD_CONTINUE_LINK, DIA_TRANS_GOOD);
     transfer_script[CMD_CANCEL_LINK] = script_obj(CMD_CANCEL_LINK, CMD_END_SCRIPT);
 
     // Complete the transfer and give messages based on the transfered Pokemon
-    transfer_script[CMD_IMPORT_POKEMON] = script_obj(CMD_IMPORT_POKEMON, DIA_TRANS_GOOD);
     transfer_script[DIA_TRANS_GOOD] = script_obj(dialogue[DIA_TRANS_GOOD], COND_NEW_POKEMON);
     transfer_script[COND_NEW_POKEMON] = script_obj(COND_NEW_POKEMON, DIA_NEW_DEX, DIA_NO_NEW_DEX);
     transfer_script[DIA_NEW_DEX] = script_obj(dialogue[DIA_NEW_DEX], COND_IS_HOENN);
