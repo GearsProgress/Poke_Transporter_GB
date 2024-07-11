@@ -30,6 +30,7 @@ public:
     int ot_and_party = 0;
     int ot_size = 0;
     int nickname_size = 0;
+    int nature_mod = 0;
     Pokemon();
     void load_data(int index, byte *party_data, int game, int lang);
     void convert_to_gen_three(bool simplified, bool stabilize_mythical);
@@ -51,7 +52,7 @@ public:
     u8 get_letter_from_pid(u32 pid);
     u8 get_nature_from_pid(u32 pid);
     u8 get_gender_from_pid(u32 pid);
-    void set_to_event();
+    void set_to_event(byte nature);
     int num_in_box;
     int index_in_box;
 
@@ -69,6 +70,7 @@ private:
     byte pokerus;
     byte caught_data[2];
     byte met_level;
+    byte item;
     byte gen_3_pkmn[80];
     byte unencrypted_data[49];  // Contains the 48 GAEM bytes, along with the modulo int
     byte pid[4] = {0, 0, 0, 0}; // Little Endian, reverse of Bulbapedia

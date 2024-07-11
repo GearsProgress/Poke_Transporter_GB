@@ -63,68 +63,69 @@ void Pokemon::load_data(int index, byte *party_data, int game, int lang)
             box_size = 20;
             break;
         }
+    }
+    int party_species_offset =
+        1 +          // the num pkmn byte
+        (1 * index); // the pkmn index we're looking for
 
-        int party_species_offset =
-            1 +          // the num pkmn byte
-            (1 * index); // the pkmn index we're looking for
+    int box_struct_offset =
+        1 +                  // the num of pkmn byte
+        (1 * box_size) + 1 + // list of pkmn in box and terminator
+        (pkmn_size * index); // the pokemon we're looking for
 
-        int box_struct_offset =
-            1 +                  // the num of pkmn byte
-            (1 * box_size) + 1 + // list of pkmn in box and terminator
-            (pkmn_size * index); // the pokemon we're looking for
+    int ot_offset =
+        1 +                      // the num of pkmn byte
+        (1 * box_size) + 1 +     // list of pkmn in box and terminator
+        (pkmn_size * box_size) + // the pokemon structs
+        (ot_size * index);       // the ot we're looking for
 
-        int ot_offset =
-            1 +                      // the num of pkmn byte
-            (1 * box_size) + 1 +     // list of pkmn in box and terminator
-            (pkmn_size * box_size) + // the pokemon structs
-            (ot_size * index);       // the ot we're looking for
+    int nickname_offset =
+        1 +                      // the num of pkmn byte
+        (1 * box_size) + 1 +     // list of pkmn in box and terminator
+        (pkmn_size * box_size) + // the pokemon structs
+        (ot_size * box_size) +   // the ots
+        (nickname_size * index); // the nickname we're looking for
 
-        int nickname_offset =
-            1 +                      // the num of pkmn byte
-            (1 * box_size) + 1 +     // list of pkmn in box and terminator
-            (pkmn_size * box_size) + // the pokemon structs
-            (ot_size * box_size) +   // the ots
-            (nickname_size * index); // the nickname we're looking for
+    num_in_box = party_data[0];
+    index_in_box = index;
 
-        num_in_box = party_data[0];
-        index_in_box = index;
+    switch (gen)
+    {
+    case 1:
+        // tte_write(std::to_string(party_data[1121]).c_str());
+        // while (true){};
+        species_index_party = party_data[party_species_offset];
+        species_index_struct = party_data[box_struct_offset + 0x00];
+        met_level = party_data[box_struct_offset + 0x03];
+        copy_from_to(&party_data[box_struct_offset + 0x08], &moves[0], 4, false);
+        copy_from_to(&party_data[box_struct_offset + 0x0C], &trainer_id[0], 2, false);
+        copy_from_to(&party_data[box_struct_offset + 0x0E], &exp[0], 3, true);
+        copy_from_to(&party_data[box_struct_offset + 0x1B], &dvs[0], 2, false);
+        copy_from_to(&party_data[box_struct_offset + 0x1D], &pp_values[0], 4, false);
+        copy_from_to(&party_data[nickname_offset], &nickname[0], 10, false);
+        copy_from_to(&party_data[ot_offset], &trainer_name[0], 7, false);
+        // Data not in gen 1
+        pokerus = 0x00;
+        caught_data[0] = 0x00;
+        caught_data[1] = 0x00;
+        item = 0;
 
-        switch (gen)
-        {
-        case 1:
-            // tte_write(std::to_string(party_data[1121]).c_str());
-            // while (true){};
-            species_index_party = party_data[party_species_offset];
-            species_index_struct = party_data[box_struct_offset + 0x00];
-            met_level = party_data[box_struct_offset + 0x03];
-            copy_from_to(&party_data[box_struct_offset + 0x08], &moves[0], 4, false);
-            copy_from_to(&party_data[box_struct_offset + 0x0C], &trainer_id[0], 2, false);
-            copy_from_to(&party_data[box_struct_offset + 0x0E], &exp[0], 3, true);
-            copy_from_to(&party_data[box_struct_offset + 0x1B], &dvs[0], 2, false);
-            copy_from_to(&party_data[box_struct_offset + 0x1D], &pp_values[0], 4, false);
-            copy_from_to(&party_data[nickname_offset], &nickname[0], 10, false);
-            copy_from_to(&party_data[ot_offset], &trainer_name[0], 7, false);
-            // Data not in gen 1
-            pokerus = 0x00;
-            caught_data[0] = 0x00;
-            caught_data[1] = 0x00;
-
-            break;
-        case 2:
-            species_index_party = party_data[party_species_offset];
-            species_index_struct = party_data[box_struct_offset + 0x00];
-            copy_from_to(&party_data[box_struct_offset + 0x02], &moves[0], 4, false);
-            copy_from_to(&party_data[box_struct_offset + 0x06], &trainer_id[0], 2, false);
-            copy_from_to(&party_data[box_struct_offset + 0x08], &exp[0], 3, true);
-            copy_from_to(&party_data[box_struct_offset + 0x15], &dvs[0], 2, false);
-            copy_from_to(&party_data[box_struct_offset + 0x17], &pp_values[0], 4, false);
-            pokerus = party_data[box_struct_offset + 0x1C];
-            copy_from_to(&party_data[box_struct_offset + 0x1D], &caught_data[0], 2, false);
-            met_level = party_data[box_struct_offset + 0x1F];
-            copy_from_to(&party_data[nickname_offset], &nickname[0], 10, false);
-            copy_from_to(&party_data[ot_offset + 0x00], &trainer_name[0], 7, false);
-            break;
-        }
+        break;
+    case 2:
+        species_index_party = party_data[party_species_offset];
+        species_index_struct = party_data[box_struct_offset + 0x00];
+        item = party_data[box_struct_offset + 0x01];
+        copy_from_to(&party_data[box_struct_offset + 0x02], &moves[0], 4, false);
+        copy_from_to(&party_data[box_struct_offset + 0x06], &trainer_id[0], 2, false);
+        copy_from_to(&party_data[box_struct_offset + 0x08], &exp[0], 3, true);
+        copy_from_to(&party_data[box_struct_offset + 0x15], &dvs[0], 2, false);
+        copy_from_to(&party_data[box_struct_offset + 0x17], &pp_values[0], 4, false);
+        pokerus = party_data[box_struct_offset + 0x1C];
+        copy_from_to(&party_data[box_struct_offset + 0x1D], &caught_data[0], 2, false);
+        met_level = party_data[box_struct_offset + 0x1F];
+        copy_from_to(&party_data[nickname_offset], &nickname[0], 10, false);
+        copy_from_to(&party_data[ot_offset + 0x00], &trainer_name[0], 7, false);
+        break;
     }
 }
 void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
@@ -139,12 +140,15 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
     if (species_index_struct > 251 ||                  // Checks if the Pokemon is beyond Celebi
         species_index_struct == 0 ||                   // Checks that the Pokemon isn't a blank party space
         species_index_struct != species_index_party || // Checks that the Pokemon isn't a hybrid or an egg
-        index_in_box >= num_in_box)                    // Checks that we're not reading beyond the Pokemon in the box
+        index_in_box >= num_in_box ||                  // Checks that we're not reading beyond the Pokemon in the box
+        item != 0)                                     // Checks that the Pokemon doesn't have an item
     {
         is_valid = false;
         return;
     }
     is_valid = true;
+
+    nature_mod = *(vu32 *)exp % 25; // save the nature mod in case the level is changed
 
     // Update dex if not simple
     if (!simplified && !is_caught(species_index_struct))
@@ -202,67 +206,19 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
         copy_from_to(convert_text(&trainer_name[0], 7, gen, language), &gen_3_pkmn[20], 7, false); // OT Name
     }
 
-    if (simplified)
-    {
-        return;
-    }
-    else if (stabilize_mythical && (species_index_struct == 151 || species_index_struct == 251))
-    {
-        set_to_event();
-        return;
-    }
-
-    // Generate PID
-    disable_auto_random();
-    u32 n_pid;
-    if (ENABLE_MATCH_PID)
-    {
-        n_pid = generate_pid_iv_match(species_index_struct, *(vu32 *)exp % 25, &dvs[0]);
-
-        u16 curr_rand = get_rand_u16();
-        ivs[0] = (curr_rand >> 0) & 0b11111;
-        ivs[1] = (curr_rand >> 5) & 0b11111;
-        ivs[2] = (curr_rand >> 10) & 0b11111;
-        curr_rand = get_rand_u16();
-        ivs[3] = (curr_rand >> 0) & 0b11111;
-        ivs[4] = (curr_rand >> 5) & 0b11111;
-        ivs[5] = (curr_rand >> 10) & 0b11111;
-        iv_egg_ability = 0;
-        for (int i = 0; i < 6; i++)
-        {
-            iv_egg_ability |= ((ivs[i] & 0b11111) << (i * 5));
-        }
-    }
-    else
-    {
-        n_pid = generate_pid_save_iv(species_index_struct, *(vu32 *)exp % 25, &dvs[0]);
-
-        // Convert and set IVs
-        int hp_iv = 0;
-        for (int i = 0; i < 4; i++)
-        {
-            ivs[i + 1] = (dvs[i / 2] >> (((i + 1) % 2) * 4)) & 0b1111;
-            hp_iv |= ((ivs[i + 1] & 0x1) << i);
-        };
-        ivs[0] = hp_iv;
-        ivs[5] = ivs[4];
-
-        for (int i = 0; i < 6; i++)
-        {
-            ivs[i] = (ivs[i] * 2) + 1;
-            iv_egg_ability |= ((ivs[i] & 0b11111) << (i * 5));
-        }
-    }
-    for (int i = 0; i < 4; i++)
-    {
-        pid[i] = (n_pid >> (i * 8)) & 0xFF;
-    }
-    enable_auto_random();
-
     // Make sure Level is not over 100 based on EXP
     if (*(vu32 *)exp > get_max_exp(species_index_struct))
     {
         *(vu32 *)exp = get_max_exp(species_index_struct);
+    }
+
+    if (simplified)
+    {
+        if ((species_index_struct == 151 || species_index_struct == 251) && *(vu32 *)exp < 560) // Minimum EXP for level 10
+        {
+            met_level = 10;
+        }
+        return;
     }
 
     // Separate the PP Up values from the Move PP values
@@ -322,6 +278,60 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
         pure_pp_values[i] = POWER_POINTS[moves[i]] + ((POWER_POINTS[moves[i]] / 5) * pp_bonus[i]);
     }
 
+    // This is everything the mythical needs, don't change anything else
+    if (stabilize_mythical && (species_index_struct == 151 || species_index_struct == 251))
+    {
+        set_to_event(nature_mod);
+        return;
+    }
+
+    // Generate PID
+    disable_auto_random();
+    u32 n_pid;
+    if (ENABLE_MATCH_PID)
+    {
+        n_pid = generate_pid_iv_match(species_index_struct, nature_mod, &dvs[0]);
+
+        u16 curr_rand = get_rand_u16();
+        ivs[0] = (curr_rand >> 0) & 0b11111;
+        ivs[1] = (curr_rand >> 5) & 0b11111;
+        ivs[2] = (curr_rand >> 10) & 0b11111;
+        curr_rand = get_rand_u16();
+        ivs[3] = (curr_rand >> 0) & 0b11111;
+        ivs[4] = (curr_rand >> 5) & 0b11111;
+        ivs[5] = (curr_rand >> 10) & 0b11111;
+        iv_egg_ability = 0;
+        for (int i = 0; i < 6; i++)
+        {
+            iv_egg_ability |= ((ivs[i] & 0b11111) << (i * 5));
+        }
+    }
+    else
+    {
+        n_pid = generate_pid_save_iv(species_index_struct, nature_mod, &dvs[0]);
+
+        // Convert and set IVs
+        int hp_iv = 0;
+        for (int i = 0; i < 4; i++)
+        {
+            ivs[i + 1] = (dvs[i / 2] >> (((i + 1) % 2) * 4)) & 0b1111;
+            hp_iv |= ((ivs[i + 1] & 0x1) << i);
+        };
+        ivs[0] = hp_iv;
+        ivs[5] = ivs[4];
+
+        for (int i = 0; i < 6; i++)
+        {
+            ivs[i] = (ivs[i] * 2) + 1;
+            iv_egg_ability |= ((ivs[i] & 0b11111) << (i * 5));
+        }
+    }
+    for (int i = 0; i < 4; i++)
+    {
+        pid[i] = (n_pid >> (i * 8)) & 0xFF;
+    }
+    enable_auto_random();
+
     // Determine and set Ability
     iv_egg_ability |= ((pid[0] & 0x1) ? get_num_abilities(species_index_struct) : 0) << 31;
 
@@ -344,9 +354,9 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
 
     // Check if the Pokemon is shiny
     if (                                // Is shiny
-        ((dvs[1] == 0b10101010) &&       // Checks if the Speed and Special DVs equal 10
-        ((dvs[0] & 0xF) == 0b1010) &&   // Checks if the Defense DVs equal 10
-        ((dvs[0] & 0b00100000) >> 5))) // Checks if the second bit of the Attack DV is true
+        ((dvs[1] == 0b10101010) &&      // Checks if the Speed and Special DVs equal 10
+         ((dvs[0] & 0xF) == 0b1010) &&  // Checks if the Defense DVs equal 10
+         ((dvs[0] & 0b00100000) >> 5))) // Checks if the second bit of the Attack DV is true
     {
         secret_id[0] = trainer_id[1] ^ pid[0] ^ pid[2] ^ 0x0; // This value at the end should be random between 0 - 15, if that is to be implemented
         secret_id[1] = trainer_id[0] ^ pid[1] ^ pid[3] ^ 0x0;
@@ -761,10 +771,8 @@ Simplified_Pokemon Pokemon::get_simple_pkmn()
     return curr_pkmn;
 }
 
-void Pokemon::set_to_event()
+void Pokemon::set_to_event(byte nature)
 {
-    // Things that need to be modified: PID, IV_egg_ability, checksum, OT gender, and the encryption
-
     int event_id = 0;
     if (species_index_struct == 151)
     {
@@ -812,6 +820,10 @@ void Pokemon::set_to_event()
     // Load the event into the Pokemon array and unencrypted data array
     for (int i = 0; i < 0x20; i++)
     {
+        if (i == 0x08)
+        {
+            i += 10; // Skip over the nickname
+        }
         gen_3_pkmn[i] = EVENT_PKMN[event_id][i];
     }
 
@@ -823,11 +835,15 @@ void Pokemon::set_to_event()
         data_section_M[i] = EVENT_PKMN[event_id][i + 0x20 + 36];
     }
 
-    // Set garbage data at end of nickname to PTGB for true event preservation efforts
-    gen_3_pkmn[0x10] = 0xCA;
-    gen_3_pkmn[0x11] = 0xCE;
+    // insert moves and PP bonuses
+    data_section_G[8] = (pp_bonus[0] << 0 | pp_bonus[1] << 2 | pp_bonus[2] << 4 | pp_bonus[3] << 6);
+    data_section_A[0] = moves[0]; // Move 1
+    data_section_A[2] = moves[1]; // Move 2
+    data_section_A[4] = moves[2]; // Move 3
+    data_section_A[6] = moves[3]; // Move 4
 
     // get a new PID in the BACD_R format, and make sure it isn't shiny
+    disable_auto_random();
     u32 n_pid;
     do
     {
@@ -840,7 +856,8 @@ void Pokemon::set_to_event()
             pid[i] = (n_pid >> (i * 8)) & 0xFF;
         };
     } while (((pid[0] ^ pid[2] ^ gen_3_pkmn[4] ^ gen_3_pkmn[6]) < 8) &&
-             ((pid[1] ^ pid[3] ^ gen_3_pkmn[5] ^ gen_3_pkmn[7]) == 0));
+             ((pid[1] ^ pid[3] ^ gen_3_pkmn[5] ^ gen_3_pkmn[7]) == 0) &&
+             (n_pid % 25 != nature)); // maintain the nature
 
     // Set and fill the IVs
     u16 curr_rand = get_rand_u16();
@@ -857,6 +874,7 @@ void Pokemon::set_to_event()
     {
         iv_egg_ability |= ((ivs[i] & 0b11111) << (i * 5));
     }
+    enable_auto_random();
 
     // Determine and set Ability
     iv_egg_ability |= ((pid[0] & 0x1) ? get_num_abilities(species_index_struct) : 0) << 31;
@@ -869,6 +887,14 @@ void Pokemon::set_to_event()
 
     // Determine and set OT gender
     data_section_M[3] |= (caught_data[1] & 0b10000000);
+
+    // Check the level
+    if (*(vu32 *)exp < 560) // Minimum EXP for level 10
+    {
+        *(vu32 *)exp = 560;
+    }
+
+    data_section_G[2] = (is_new ? 0x44 : 0x00); // Rare Candy if new
 
     // Update and set the checksum
     checksum = 0x0000;

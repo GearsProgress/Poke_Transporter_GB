@@ -47,9 +47,9 @@ void populate_dialogue()
     dialogue[DIA_WHAT_LANG_TRANS] = "What language is the Game\nBoy Pok@mon game that you're\ntransferring from?";
     dialogue[DIA_NO_GB_ROM] = "I'm sorry, but that version\nin that language is not\ncurrently supported.";
     dialogue[DIA_IN_BOX] = "Alright! Let's take a look\nat the Pok@mon that will be\ntransfered.|Please remember, once a\nPok@mon is transfered, it\nCANNOT be returned to the\nGame Boy Game Pak.|Select confirm once you're\nready, or select cancel if\nyou want to keep the Pok@mon\non your Game Boy Game Pak.";
-    dialogue[DIA_MYTHIC_CONVERT] = "It looks like you have a\nrare Mythical Pok@mon!|Due to their rarity, it\nseems they've overloaded the\nmachine.|I can stablize them if you'd\nlike, but it'll change some\nthings like name, Original\nTrainer, and Shininess.|Otherwise I can leave them\nas is, but there's no\nguarentee that they'll be\ntransferrable in the future.|Do you want me to stablize\nthem?";
+    dialogue[DIA_MYTHIC_CONVERT] = "It looks like you have a\nrare Mythical Pok@mon!|Due to their rarity, it\nseems they've overloaded the\nmachine.|I can stablize them if you'd\nlike, but it'll change some\nthings like met location,\nOT, TID, and Shininess.|Otherwise I can leave them\nas is, but there's no\nguarentee that they'll be\ntransferrable in the future.|Do you want me to stablize\nthem? This will apply to\nall of the Mythical Pok@mon\ncurrently in your box.";
     dialogue[DIA_CANCEL] = "No worries! Feel free to\ncome back if you change your\nmind!|See you around!";
-    dialogue[DIA_SOME_INVALID_PKMN] = "I see there is at least one\ninvalid Pok@mon in your\ncurrent box.|Invalid Pok@mon won't be\nable to be transfered, but\nthe rest will transfer with no problems!";
+    dialogue[DIA_SOME_INVALID_PKMN] = "I see there is at least one\nPok@mon that cannot be\ntransferred from your\ncurrent box.|Pok@mon holding items or\nmodified incorrectly through\nunintended means cannot\nbe transferred.|The other Pok@mon will\ntransfer just fine though!";
 
     dialogue[DIA_ERROR_COLOSSEUM] = "It looks like you went to\nthe colosseum instead of the\ntrading room!|Let's try that again!";
     dialogue[DIA_ERROR_COM_ENDED] = "Communication with the other\ndevice was terminated.|Let's try that again!";
@@ -262,11 +262,11 @@ bool run_conditional(int index)
     case COND_CHECK_DEX:
         if (party_data.get_game_gen() == 1)
         {
-            return get_dex_completion(1, false) == 150;
+            return (get_dex_completion(1, false) == 150) || IGNORE_DEX_COMPLETION;
         }
         else
         {
-            return get_dex_completion(1, false) == 99;
+            return (get_dex_completion(1, false) == 99) || IGNORE_DEX_COMPLETION;
         }
 
     case COND_CHECK_KANTO:

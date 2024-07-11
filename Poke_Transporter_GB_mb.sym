@@ -95,7 +95,6 @@
 00000004 d _ZN12_GLOBAL__N_120io_category_instanceE
 00000004 b _ZN12_GLOBAL__N_1L11static_condE
 00000004 b _ZN12_GLOBAL__N_1L12static_mutexE
-00000004 T _ZN13Pokemon_Party12get_num_pkmnEv
 00000004 T _ZN7Pokemon20get_full_gen_3_arrayEv
 00000004 T _ZNKSt11logic_error4whatEv
 00000004 T _ZNKSt13runtime_error4whatEv
@@ -356,6 +355,7 @@
 0000000c T _ZN11Button_Menu12clear_vectorEv
 0000000c T _ZN11Button_Menu14set_xy_min_maxEiiii
 0000000c b _ZN12_GLOBAL__N_110eh_globalsE
+0000000c T _ZN13Pokemon_Party12get_num_pkmnEv
 0000000c T _ZN13Pokemon_Party16get_has_new_pkmnEv
 0000000c T _ZN13Pokemon_Party20get_contains_invalidEv
 0000000c T _ZN13Pokemon_Party21get_contains_mythicalEv
@@ -638,7 +638,6 @@
 00000023 R _ZTSN9__gnu_cxx20recursive_init_errorE
 00000024 T __aeabi_ui2d
 00000024 T __floatunsidf
-00000024 t _GLOBAL__sub_I_curr_line
 00000024 T _Z12hide_textboxv
 00000024 T _ZN10script_objC1ESt17basic_string_viewIcSt11char_traitsIcEEi
 00000024 T _ZN10script_objC2ESt17basic_string_viewIcSt11char_traitsIcEEi
@@ -664,6 +663,7 @@
 00000028 t __gnu_unwind_get_pr_addr
 00000028 B __malloc_current_mallinfo
 00000028 t _GLOBAL__sub_D__ZN17__eh_globals_init7_S_initE
+00000028 t _GLOBAL__sub_I_curr_line
 00000028 T _Z18delay_cycles_untilmPVhhh
 00000028 T _ZN19mystery_gift_script10fadeScreenEh
 00000028 T _ZN19mystery_gift_script11add_commandEi
@@ -1036,7 +1036,6 @@
 000000ea W _ZNSo3putEc
 000000ec T tte_write
 000000f0 B _Z9out_arrayB5cxx11
-000000f0 T _ZN13Pokemon_Party22fill_simple_pkmn_arrayEv
 000000f4 T _ZN7Pokemon12convert_textEPhiii
 000000fa T __cxa_call_unexpected
 000000fc T __udivsi3
@@ -1047,6 +1046,7 @@
 000000fc R MENU_SPRITES
 000000fc R NUM_ABILITIES
 000000fc R POWER_POINTS
+00000100 T _ZN13Pokemon_Party22fill_simple_pkmn_arrayEv
 00000101 R _ctype_
 00000104 t _ZL28read_encoded_value_with_basehjPKhPj
 00000108 T _Z12pokedex_initv
@@ -1071,6 +1071,7 @@
 00000130 T _Z15is_save_correctPhjj
 0000013c T _Z5printNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEE
 0000013c T _ZN11Button_Menu10add_buttonE6Buttoni
+00000148 T _Z13load_graphicsv
 00000148 T sbmp16_blit
 0000014c W _ZNSt6vectorIS_IhSaIhEESaIS1_EE17_M_realloc_appendIJRKS1_EEEvDpOT_
 00000150 T _Z21populate_lang_buttonsv
@@ -1078,7 +1079,6 @@
 00000164 T tte_init_se
 00000168 B __sf
 00000168 T _Z17print_mem_sectionv
-0000017c T _Z13load_graphicsv
 0000017c W _ZNSo9_M_insertIlEERSoT_
 0000017c W _ZNSo9_M_insertImEERSoT_
 0000018e T _ZNK10__cxxabiv121__vmi_class_type_info11__do_upcastEPKNS_17__class_type_infoEPKvRNS1_15__upcast_resultE
@@ -1111,6 +1111,7 @@
 0000028c T _ZN11Button_Menu11button_mainEv
 00000290 T __aeabi_dmul
 00000290 T __muldf3
+00000294 T _Z14inject_mysteryR13Pokemon_Party
 00000294 T _Z20load_eternal_spritesv
 000002a0 B payload_storage
 000002a4 T _ZN8rom_data14print_rom_infoEv
@@ -1118,14 +1119,13 @@
 000002d4 W _ZSt16__ostream_insertIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_PKS3_i
 000002e0 T _ZN7Pokemon12set_to_eventEv
 000002e4 T _Unwind_VRS_Pop
-000002ec T _Z15run_conditionali
+000002f0 T _Z15run_conditionali
 0000030c T __gnu_unwind_execute
 00000310 T __adddf3
 00000310 T __aeabi_dadd
 00000314 T __aeabi_dsub
 00000314 T __subdf3
 0000037c T _Z21populate_game_buttonsv
-000003ac T _Z14inject_mysteryR13Pokemon_Party
 00000400 B internal_io
 00000400 B obj_buffer
 00000408 D __malloc_av_
@@ -1134,24 +1134,24 @@
 0000044e D gen2_debug_box_data
 00000454 T tte_cmd_default
 00000462 D gen1_debug_box_data
-00000480 T _Z9text_loopi
 00000494 T _ZNK10__cxxabiv121__vmi_class_type_info12__do_dyncastEiNS_17__class_type_info10__sub_kindEPKS1_PKvS4_S6_RNS1_16__dyncast_resultE
+000004bc T _Z9text_loopi
 000004ee T __gxx_personality_v0
 00000588 T _malloc_r
-000005bc T _ZN8Box_Menu8box_mainE13Pokemon_Party
+000005d8 T _ZN8Box_Menu8box_mainE13Pokemon_Party
 00000600 T _ZN7Pokemon20convert_to_gen_threeEbb
 000006c0 B event_script
 000006c0 B party_data
 000006c0 B transfer_script
-000006c8 T _Z15populate_scriptv
 000007e0 B NAMES
 000007f4 T _Z12pokedex_loopv
 00000850 T _Z7creditsv
+00000940 T _Z15populate_scriptv
 00000bd0 R JPN_NAMES
-00000d3c T _Z16generate_payload6GB_ROMb
+00000d74 T _Z16generate_payload6GB_ROMb
 00001000 B global_memory_buffer
 00001000 d handles
 000011f8 t _GLOBAL__sub_I_EXP_TYPES
-0000158c T _ZN19mystery_gift_script16build_script_oldER13Pokemon_Party
+00001570 T _ZN19mystery_gift_script16build_script_oldER13Pokemon_Party
 00001f80 R MOVESETS
 0000449e T _ZN19mystery_gift_script12build_scriptER13Pokemon_Party
