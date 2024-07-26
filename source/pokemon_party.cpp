@@ -179,7 +179,7 @@ void Pokemon_Party::start_link()
 	else
 	{
 		setup();
-		last_error = loop(&box_data_array[0], generate_payload(curr_gb_rom, false), &curr_gb_rom, simple_pkmn_array, false);
+		last_error = loop(&box_data_array[0], generate_payload(curr_gb_rom, TRANSFER, false), &curr_gb_rom, simple_pkmn_array, false);
 	}
 }
 
@@ -187,7 +187,7 @@ void Pokemon_Party::continue_link(bool cancel_connection)
 {
 	if (!IGNORE_LINK_CABLE)
 	{
-		last_error = loop(&box_data_array[0], generate_payload(curr_gb_rom, false), &curr_gb_rom, simple_pkmn_array, cancel_connection);
+		last_error = loop(&box_data_array[0], generate_payload(curr_gb_rom, TRANSFER, false), &curr_gb_rom, simple_pkmn_array, cancel_connection);
 	}
 }
 

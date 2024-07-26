@@ -9,7 +9,11 @@
 
 byte payload_storage[PAYLOAD_SIZE] = {};
 
-byte *generate_payload(GB_ROM curr_rom, bool debug)
+byte copy_table_storage[0x40] = {};
+int copy_table_offset = 0;
+#define copy_table_start 0xBF00
+
+byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
 {
     /*  10 RNG bytes
         8 Preamble bytes
@@ -21,7 +25,6 @@ byte *generate_payload(GB_ROM curr_rom, bool debug)
         */
 
     int offset = 0;
-
     if ((curr_rom.generation == 1 && curr_rom.method == METHOD_NEWLINE))
     {
 
@@ -478,284 +481,346 @@ byte *generate_payload(GB_ROM curr_rom, bool debug)
 
         int offset = 0x1BB;
 
-        // ld a, 0x01
-        payload_storage[offset++] = 0x3E;
-        payload_storage[offset++] = 0x01;
-
-        // call BankswitchCommon
-        payload_storage[offset++] = 0xCD;
-        payload_storage[offset++] = 0x7E;
-        payload_storage[offset++] = 0x3E;
-
-        /* Write transferring message to screen: */
-        // call ClearScreen
-        payload_storage[offset++] = 0xCD;
-        payload_storage[offset++] = (curr_rom.clearScreen >> 0) & 0xFF;
-        payload_storage[offset++] = (curr_rom.clearScreen >> 8) & 0xFF;
-
-        // ld hl, [upper left textbox corner in VRAM]
-        payload_storage[offset++] = 0x21;
-        payload_storage[offset++] = (curr_rom.textBorderUppLeft >> 0) & 0xFF;
-        payload_storage[offset++] = (curr_rom.textBorderUppLeft >> 8) & 0xFF;
-
-        // ld b, 3 [height]
-        payload_storage[offset++] = 0x06;
-        payload_storage[offset++] = (curr_rom.textBorderWidth >> 0) & 0xFF;
-
-        // ld c, 14 [width]
-        payload_storage[offset++] = 0x0E;
-        payload_storage[offset++] = (curr_rom.textBorderHeight >> 0) & 0xFF;
-
-        // call CableClub_TextBoxBorder
-        payload_storage[offset++] = 0xCD;
-        payload_storage[offset++] = (curr_rom.CableClub_TextBoxBorder >> 0) & 0xFF;
-        payload_storage[offset++] = (curr_rom.CableClub_TextBoxBorder >> 8) & 0xFF;
-
-        // ld hl, [transfer string location]
-        payload_storage[offset++] = 0x21;
-        payload_storage[offset++] = (curr_rom.transferStringLocation >> 0) & 0xFF;
-        payload_storage[offset++] = (curr_rom.transferStringLocation >> 8) & 0xFF;
-
-        // ld de, TransferWaitString
-        payload_storage[offset++] = 0x11;
-        payload_storage[offset++] = (curr_rom.transferWaitString >> 0) & 0xFF;
-        payload_storage[offset++] = (curr_rom.transferWaitString >> 8) & 0xFF;
-
-        // call PlaceString
-        payload_storage[offset++] = 0xCD;
-        payload_storage[offset++] = (curr_rom.placeString >> 0) & 0xFF;
-        payload_storage[offset++] = (curr_rom.placeString >> 8) & 0xFF;
-
-        /* Transfer box data: */
-        // ld hl, hSerialConnectionStatus
-        payload_storage[offset++] = 0x21;
-        payload_storage[offset++] = (curr_rom.hSerialConnectionStatus >> 0) & 0xFF;
-        payload_storage[offset++] = (curr_rom.hSerialConnectionStatus >> 8) & 0xFF;
-
-        // ld [hl], 0x01 [Make sure GB is the slave, master if debug]
-        payload_storage[offset++] = 0x36;
-        payload_storage[offset++] = (debug ? 0x02 : 0x01);
-
-        // ld hl, (wBoxDataStart - 1) [data to send]
-        payload_storage[offset++] = 0x21;
-        payload_storage[offset++] = ((curr_rom.wBoxDataStart - 1) >> 0) & 0xFF;
-        payload_storage[offset++] = ((curr_rom.wBoxDataStart - 1) >> 8) & 0xFF;
-
-        // ld [hl], 0xFD [set the start of the data to 0xFD so Serial_ExchangeBytes is happy]
-        payload_storage[offset++] = 0x36;
-        payload_storage[offset++] = 0xFD;
-
-        // ld de, (wBoxDataStart - 3) [location to put stored data]
-        payload_storage[offset++] = 0x11;
-        payload_storage[offset++] = ((curr_rom.wBoxDataStart - (debug ? 2 : 3)) >> 0) & 0xFF;
-        payload_storage[offset++] = ((curr_rom.wBoxDataStart - (debug ? 2 : 3)) >> 8) & 0xFF;
-
-        // ld bc, (wBoxDataEnd - wBoxDataStart) + 2
-        payload_storage[offset++] = 0x01;
-        payload_storage[offset++] = (((curr_rom.wBoxDataEnd - curr_rom.wBoxDataStart) + 2) >> 0) & 0xFF;
-        payload_storage[offset++] = (((curr_rom.wBoxDataEnd - curr_rom.wBoxDataStart) + 2) >> 8) & 0xFF;
-
-        // call Serial_ExchangeBytes [Send the box data] (unless Debug)
-        if (debug)
+        if (type == TRANSFER)
         {
-            offset += 3;
-        }
-        else
-        {
+
+            // ld a, 0x01
+            payload_storage[offset++] = 0x3E;
+            payload_storage[offset++] = 0x01;
+
+            // call BankswitchCommon
             payload_storage[offset++] = 0xCD;
-            payload_storage[offset++] = (curr_rom.Serial_ExchangeBytes >> 0) & 0xFF;
-            payload_storage[offset++] = (curr_rom.Serial_ExchangeBytes >> 8) & 0xFF;
-        }
-        /* Recieve the Pokemon to remove */
-        // ld hl, hSerialConnectionStatus
-        payload_storage[offset++] = 0x21;
-        payload_storage[offset++] = (curr_rom.hSerialConnectionStatus >> 0) & 0xFF;
-        payload_storage[offset++] = (curr_rom.hSerialConnectionStatus >> 8) & 0xFF;
+            payload_storage[offset++] = 0x7E;
+            payload_storage[offset++] = 0x3E;
 
-        // ld [hl], 0x01 [Make sure GB is the slave, master if debug]
-        payload_storage[offset++] = 0x36;
-        payload_storage[offset++] = (debug ? 0x02 : 0x01);
-
-        // ld hl, 0x0161 [data to send, garbage data]
-        payload_storage[offset++] = 0x21;
-        payload_storage[offset++] = (curr_rom.garbageDataLocation >> 0) & 0xFF;
-        payload_storage[offset++] = (curr_rom.garbageDataLocation >> 8) & 0xFF;
-
-        // ld de, 0xC651 [data to recieve]
-        payload_storage[offset++] = 0x11;
-        payload_storage[offset++] = (curr_rom.pkmnTransferArray >> 0) & 0xFF;
-        payload_storage[offset++] = (curr_rom.pkmnTransferArray >> 8) & 0xFF;
-
-        // ld bc, 0x001E [size of data] - Preamble does *not* count
-        payload_storage[offset++] = 0x01;
-        payload_storage[offset++] = 0x1E;
-        payload_storage[offset++] = 0x00;
-
-        // call Serial_ExchangeBytes [Recieve the removal array]
-        if (debug)
-        {
-            offset += 3; // Don't add in the Serial_ExchangeBytes call if in debug
-        }
-        else
-        {
+            /* Write transferring message to screen: */
+            // call ClearScreen
             payload_storage[offset++] = 0xCD;
-            payload_storage[offset++] = (curr_rom.Serial_ExchangeBytes >> 0) & 0xFF;
-            payload_storage[offset++] = (curr_rom.Serial_ExchangeBytes >> 8) & 0xFF;
-        }
+            payload_storage[offset++] = (curr_rom.clearScreen >> 0) & 0xFF;
+            payload_storage[offset++] = (curr_rom.clearScreen >> 8) & 0xFF;
 
-        /* Remove the transfered Pokemon */
-        // ld hl, wRemoveMonFromBox
-        payload_storage[offset++] = 0x21;
-        payload_storage[offset++] = (curr_rom.wRemoveMonFromBox >> 0) & 0xFF;
-        payload_storage[offset++] = (curr_rom.wRemoveMonFromBox >> 8) & 0xFF;
+            // ld hl, [upper left textbox corner in VRAM]
+            payload_storage[offset++] = 0x21;
+            payload_storage[offset++] = (curr_rom.textBorderUppLeft >> 0) & 0xFF;
+            payload_storage[offset++] = (curr_rom.textBorderUppLeft >> 8) & 0xFF;
 
-        // ld [hl], [!= 0x00 specifies the current box]
-        payload_storage[offset++] = 0x36;
-        payload_storage[offset++] = 0x01;
+            // ld b, 3 [height]
+            payload_storage[offset++] = 0x06;
+            payload_storage[offset++] = (curr_rom.textBorderWidth >> 0) & 0xFF;
 
-        // ld a, [arrayCounter]
-        payload_storage[offset++] = 0xFA;
-        payload_storage[offset++] = (curr_rom.arrayCounter >> 0) & 0xFF;
-        payload_storage[offset++] = (curr_rom.arrayCounter >> 8) & 0xFF;
+            // ld c, 14 [width]
+            payload_storage[offset++] = 0x0E;
+            payload_storage[offset++] = (curr_rom.textBorderHeight >> 0) & 0xFF;
 
-        // ld e, a
-        payload_storage[offset++] = 0x5F;
-
-        // ld d, 0x00
-        payload_storage[offset++] = 0x16;
-        payload_storage[offset++] = 0x00;
-
-        // ld hl, [removalArray]
-        payload_storage[offset++] = 0x21;
-        payload_storage[offset++] = (curr_rom.pkmnTransferArray >> 0) & 0xFF;
-        payload_storage[offset++] = (curr_rom.pkmnTransferArray >> 8) & 0xFF;
-
-        // add hl, de
-        payload_storage[offset++] = 0x19;
-
-        // ld e, 0xFF
-        payload_storage[offset++] = 0x1E;
-        payload_storage[offset++] = 0xFF;
-
-        // inc a
-        payload_storage[offset++] = 0x3C;
-
-        // ld [arrayCounter], a
-        payload_storage[offset++] = 0xEA;
-        payload_storage[offset++] = (curr_rom.arrayCounter >> 0) & 0xFF;
-        payload_storage[offset++] = (curr_rom.arrayCounter >> 8) & 0xFF;
-
-        // ld a, [wBoxCount]
-        payload_storage[offset++] = 0xFA;
-        payload_storage[offset++] = (curr_rom.wBoxCount >> 0) & 0xFF;
-        payload_storage[offset++] = (curr_rom.wBoxCount >> 8) & 0xFF;
-
-        // ld b, a
-        payload_storage[offset++] = 0x47;
-
-        // ld a, [hl]
-        payload_storage[offset++] = 0x2A;
-
-        // cp a, e
-        payload_storage[offset++] = 0xBB;
-
-        // jr z, 12
-        payload_storage[offset++] = 0x28;
-        payload_storage[offset++] = 0x0C;
-
-        // cp a, b
-        payload_storage[offset++] = 0xB8;
-
-        // jr nc, -27
-        payload_storage[offset++] = 0x30;
-        payload_storage[offset++] = 0xE5;
-
-        // ld hl, wWhichPokemon
-        payload_storage[offset++] = 0x21;
-        payload_storage[offset++] = (curr_rom.wWhichPokemon >> 0) & 0xFF;
-        payload_storage[offset++] = (curr_rom.wWhichPokemon >> 8) & 0xFF;
-
-        // ld [hl], a
-        payload_storage[offset++] = 0x77;
-        // call _RemovePokemon
-        if (DONT_REMOVE_PKMN)
-        {
-            offset += 3;
-        }
-        else
-        {
+            // call CableClub_TextBoxBorder
             payload_storage[offset++] = 0xCD;
-            payload_storage[offset++] = (curr_rom._RemovePokemon >> 0) & 0xFF;
-            payload_storage[offset++] = (curr_rom._RemovePokemon >> 8) & 0xFF;
-        }
+            payload_storage[offset++] = (curr_rom.CableClub_TextBoxBorder >> 0) & 0xFF;
+            payload_storage[offset++] = (curr_rom.CableClub_TextBoxBorder >> 8) & 0xFF;
 
-        // jr, -36
-        payload_storage[offset++] = 0x18;
-        payload_storage[offset++] = 0xDC;
+            // ld hl, [transfer string location]
+            payload_storage[offset++] = 0x21;
+            payload_storage[offset++] = (curr_rom.transferStringLocation >> 0) & 0xFF;
+            payload_storage[offset++] = (curr_rom.transferStringLocation >> 8) & 0xFF;
 
-        /* Save the current box */
-        // ld a, 0x1C
-        payload_storage[offset++] = 0x3E;
-        payload_storage[offset++] = (curr_rom.SaveSAVtoSRAM1 >> 16) & 0xFF;
+            // ld de, TransferWaitString
+            payload_storage[offset++] = 0x11;
+            payload_storage[offset++] = (curr_rom.transferWaitString >> 0) & 0xFF;
+            payload_storage[offset++] = (curr_rom.transferWaitString >> 8) & 0xFF;
 
-        // call BankswitchCommon
-        payload_storage[offset++] = 0xCD;
-        payload_storage[offset++] = 0x7E;
-        payload_storage[offset++] = 0x3E;
+            // call PlaceString
+            payload_storage[offset++] = 0xCD;
+            payload_storage[offset++] = (curr_rom.placeString >> 0) & 0xFF;
+            payload_storage[offset++] = (curr_rom.placeString >> 8) & 0xFF;
 
-        // call SaveSAVtoSRAM1
-        payload_storage[offset++] = 0xCD;
-        payload_storage[offset++] = 0x32;
-        payload_storage[offset++] = 0x7B;
+            /* Transfer box data: */
+            // ld hl, hSerialConnectionStatus
+            payload_storage[offset++] = 0x21;
+            payload_storage[offset++] = (curr_rom.hSerialConnectionStatus >> 0) & 0xFF;
+            payload_storage[offset++] = (curr_rom.hSerialConnectionStatus >> 8) & 0xFF;
 
-        // call SaveSAVtoSRAM2
-        payload_storage[offset++] = 0xCD;
-        payload_storage[offset++] = 0x56;
-        payload_storage[offset++] = 0x7B;
+            // ld [hl], 0x01 [Make sure GB is the slave, master if debug]
+            payload_storage[offset++] = 0x36;
+            payload_storage[offset++] = (debug ? 0x02 : 0x01);
 
-        // jp SoftReset
-        payload_storage[offset++] = 0xC3;
-        payload_storage[offset++] = (curr_rom.SoftReset >> 0) & 0xFF;
-        payload_storage[offset++] = (curr_rom.SoftReset >> 8) & 0xFF;
+            // ld hl, (wBoxDataStart - 1) [data to send]
+            payload_storage[offset++] = 0x21;
+            payload_storage[offset++] = ((curr_rom.wBoxDataStart - 1) >> 0) & 0xFF;
+            payload_storage[offset++] = ((curr_rom.wBoxDataStart - 1) >> 8) & 0xFF;
 
-        // 1 byte to store the current array counter
-        // $C650
-        if (offset > (0x1BB + (194 - 72)))
-        {
-            std::cout << "Error: Script exceeded by " << offset - (0x1BB + (194 - 72)) << " bytes!" << std::endl;
-        }
-        offset = 0x1BB + (194 - 72);
-        payload_storage[offset++] = 0x00;
+            // ld [hl], 0xFD [set the start of the data to 0xFD so Serial_ExchangeBytes is happy]
+            payload_storage[offset++] = 0x36;
+            payload_storage[offset++] = 0xFD;
 
-        // 40 byte storage for list of Pokemon to remove
-        // $C651
-        for (int i = 0; i < 40; i++)
-        {
+            // ld de, (wBoxDataStart - 3) [location to put stored data]
+            payload_storage[offset++] = 0x11;
+            payload_storage[offset++] = ((curr_rom.wBoxDataStart - (debug ? 2 : 3)) >> 0) & 0xFF;
+            payload_storage[offset++] = ((curr_rom.wBoxDataStart - (debug ? 2 : 3)) >> 8) & 0xFF;
+
+            // ld bc, (wBoxDataEnd - wBoxDataStart) + 2
+            payload_storage[offset++] = 0x01;
+            payload_storage[offset++] = (((curr_rom.wBoxDataEnd - curr_rom.wBoxDataStart) + 2) >> 0) & 0xFF;
+            payload_storage[offset++] = (((curr_rom.wBoxDataEnd - curr_rom.wBoxDataStart) + 2) >> 8) & 0xFF;
+
+            // call Serial_ExchangeBytes [Send the box data] (unless Debug)
             if (debug)
             {
-                payload_storage[offset++] = (i < 30 ? (29 - i) : 0xFF);
+                offset += 3;
             }
             else
             {
-                payload_storage[offset++] = (i < 30 ? 0xFD : 0xFF);
+                payload_storage[offset++] = 0xCD;
+                payload_storage[offset++] = (curr_rom.Serial_ExchangeBytes >> 0) & 0xFF;
+                payload_storage[offset++] = (curr_rom.Serial_ExchangeBytes >> 8) & 0xFF;
             }
+            /* Recieve the Pokemon to remove */
+            // ld hl, hSerialConnectionStatus
+            payload_storage[offset++] = 0x21;
+            payload_storage[offset++] = (curr_rom.hSerialConnectionStatus >> 0) & 0xFF;
+            payload_storage[offset++] = (curr_rom.hSerialConnectionStatus >> 8) & 0xFF;
+
+            // ld [hl], 0x01 [Make sure GB is the slave, master if debug]
+            payload_storage[offset++] = 0x36;
+            payload_storage[offset++] = (debug ? 0x02 : 0x01);
+
+            // ld hl, 0x0161 [data to send, garbage data]
+            payload_storage[offset++] = 0x21;
+            payload_storage[offset++] = (curr_rom.garbageDataLocation >> 0) & 0xFF;
+            payload_storage[offset++] = (curr_rom.garbageDataLocation >> 8) & 0xFF;
+
+            // ld de, 0xC651 [data to recieve]
+            payload_storage[offset++] = 0x11;
+            payload_storage[offset++] = (curr_rom.pkmnTransferArray >> 0) & 0xFF;
+            payload_storage[offset++] = (curr_rom.pkmnTransferArray >> 8) & 0xFF;
+
+            // ld bc, 0x001E [size of data] - Preamble does *not* count
+            payload_storage[offset++] = 0x01;
+            payload_storage[offset++] = 0x1E;
+            payload_storage[offset++] = 0x00;
+
+            // call Serial_ExchangeBytes [Recieve the removal array]
+            if (debug)
+            {
+                offset += 3; // Don't add in the Serial_ExchangeBytes call if in debug
+            }
+            else
+            {
+                payload_storage[offset++] = 0xCD;
+                payload_storage[offset++] = (curr_rom.Serial_ExchangeBytes >> 0) & 0xFF;
+                payload_storage[offset++] = (curr_rom.Serial_ExchangeBytes >> 8) & 0xFF;
+            }
+
+            /* Remove the transfered Pokemon */
+            // ld hl, wRemoveMonFromBox
+            payload_storage[offset++] = 0x21;
+            payload_storage[offset++] = (curr_rom.wRemoveMonFromBox >> 0) & 0xFF;
+            payload_storage[offset++] = (curr_rom.wRemoveMonFromBox >> 8) & 0xFF;
+
+            // ld [hl], [!= 0x00 specifies the current box]
+            payload_storage[offset++] = 0x36;
+            payload_storage[offset++] = 0x01;
+
+            // ld a, [arrayCounter]
+            payload_storage[offset++] = 0xFA;
+            payload_storage[offset++] = (curr_rom.arrayCounter >> 0) & 0xFF;
+            payload_storage[offset++] = (curr_rom.arrayCounter >> 8) & 0xFF;
+
+            // ld e, a
+            payload_storage[offset++] = 0x5F;
+
+            // ld d, 0x00
+            payload_storage[offset++] = 0x16;
+            payload_storage[offset++] = 0x00;
+
+            // ld hl, [removalArray]
+            payload_storage[offset++] = 0x21;
+            payload_storage[offset++] = (curr_rom.pkmnTransferArray >> 0) & 0xFF;
+            payload_storage[offset++] = (curr_rom.pkmnTransferArray >> 8) & 0xFF;
+
+            // add hl, de
+            payload_storage[offset++] = 0x19;
+
+            // ld e, 0xFF
+            payload_storage[offset++] = 0x1E;
+            payload_storage[offset++] = 0xFF;
+
+            // inc a
+            payload_storage[offset++] = 0x3C;
+
+            // ld [arrayCounter], a
+            payload_storage[offset++] = 0xEA;
+            payload_storage[offset++] = (curr_rom.arrayCounter >> 0) & 0xFF;
+            payload_storage[offset++] = (curr_rom.arrayCounter >> 8) & 0xFF;
+
+            // ld a, [wBoxCount]
+            payload_storage[offset++] = 0xFA;
+            payload_storage[offset++] = (curr_rom.wBoxCount >> 0) & 0xFF;
+            payload_storage[offset++] = (curr_rom.wBoxCount >> 8) & 0xFF;
+
+            // ld b, a
+            payload_storage[offset++] = 0x47;
+
+            // ld a, [hl]
+            payload_storage[offset++] = 0x2A;
+
+            // cp a, e
+            payload_storage[offset++] = 0xBB;
+
+            // jr z, 12
+            payload_storage[offset++] = 0x28;
+            payload_storage[offset++] = 0x0C;
+
+            // cp a, b
+            payload_storage[offset++] = 0xB8;
+
+            // jr nc, -27
+            payload_storage[offset++] = 0x30;
+            payload_storage[offset++] = 0xE5;
+
+            // ld hl, wWhichPokemon
+            payload_storage[offset++] = 0x21;
+            payload_storage[offset++] = (curr_rom.wWhichPokemon >> 0) & 0xFF;
+            payload_storage[offset++] = (curr_rom.wWhichPokemon >> 8) & 0xFF;
+
+            // ld [hl], a
+            payload_storage[offset++] = 0x77;
+            // call _RemovePokemon
+            if (DONT_REMOVE_PKMN)
+            {
+                offset += 3;
+            }
+            else
+            {
+                payload_storage[offset++] = 0xCD;
+                payload_storage[offset++] = (curr_rom._RemovePokemon >> 0) & 0xFF;
+                payload_storage[offset++] = (curr_rom._RemovePokemon >> 8) & 0xFF;
+            }
+
+            // jr, -36
+            payload_storage[offset++] = 0x18;
+            payload_storage[offset++] = 0xDC;
+
+            /* Save the current box */
+            // ld a, 0x1C
+            payload_storage[offset++] = 0x3E;
+            payload_storage[offset++] = (curr_rom.SaveSAVtoSRAM1 >> 16) & 0xFF;
+
+            // call BankswitchCommon
+            payload_storage[offset++] = 0xCD;
+            payload_storage[offset++] = 0x7E;
+            payload_storage[offset++] = 0x3E;
+
+            // call SaveSAVtoSRAM1
+            payload_storage[offset++] = 0xCD;
+            payload_storage[offset++] = 0x32;
+            payload_storage[offset++] = 0x7B;
+
+            // call SaveSAVtoSRAM2
+            payload_storage[offset++] = 0xCD;
+            payload_storage[offset++] = 0x56;
+            payload_storage[offset++] = 0x7B;
+
+            // jp SoftReset
+            payload_storage[offset++] = 0xC3;
+            payload_storage[offset++] = (curr_rom.SoftReset >> 0) & 0xFF;
+            payload_storage[offset++] = (curr_rom.SoftReset >> 8) & 0xFF;
+
+            // 1 byte to store the current array counter
+            // $C650
+            if (offset > (0x1BB + (194 - 72)))
+            {
+                std::cout << "Error: Script exceeded by " << offset - (0x1BB + (194 - 72)) << " bytes!" << std::endl;
+            }
+            offset = 0x1BB + (194 - 72);
+            payload_storage[offset++] = 0x00;
+
+            // 40 byte storage for list of Pokemon to remove
+            // $C651
+            for (int i = 0; i < 40; i++)
+            {
+                if (debug)
+                {
+                    payload_storage[offset++] = (i < 30 ? (29 - i) : 0xFF);
+                }
+                else
+                {
+                    payload_storage[offset++] = (i < 30 ? 0xFD : 0xFF);
+                }
+            }
+
+            // permanent array terminator, just in case
+            // $C679
+            payload_storage[offset++] = 0xFF;
+
+            // TransferWaitString
+            // $C67A
+            for (int i = 0; i < 30; i++)
+            {
+                payload_storage[offset++] = curr_rom.transferString[i];
+            }
+
+            // This payload works by placing Pokemon ID 0xFC's name in the stack, and causing a return to CD8E,
+            // which is part of the RNG seed. From there we can jump anywhere- and we choose to jump to D887,
+            // which is the rival's name. This code fixes the stack and jumps to the patchlist, which is where
+            // our final code is.
         }
-
-        // permanent array terminator, just in case
-        // $C679
-        payload_storage[offset++] = 0xFF;
-
-        // TransferWaitString
-        // $C67A
-        for (int i = 0; i < 30; i++)
+        else if (type == EVENT)
         {
-            payload_storage[offset++] = curr_rom.transferString[i];
-        }
+            // ld a, $03
+            payload_storage[offset++] = 0x3A;
+            payload_storage[offset++] = 0x03;
 
-        // This payload works by placing Pokemon ID 0xFC's name in the stack, and causing a return to CD8E,
-        // which is part of the RNG seed. From there we can jump anywhere- and we choose to jump to D887,
-        // which is the rival's name. This code fixes the stack and jumps to the patchlist, which is where
-        // our final code is.
+            // call OpenSRAM
+            payload_storage[offset++] = 0xC3;
+            payload_storage[offset++] = (curr_rom.OpenSRAM >> 0) & 0xFF;
+            payload_storage[offset++] = (curr_rom.OpenSRAM >> 8) & 0xFF;
+
+            // ld de, $BEB0
+            payload_storage[offset++] = 0x11;
+            payload_storage[offset++] = 0xB0;
+            payload_storage[offset++] = 0xBE;
+
+            // ld bc, $150
+            payload_storage[offset++] = 0x01;
+            payload_storage[offset++] = 0x50;
+            payload_storage[offset++] = 0x01;
+
+            // ld hl, ???
+            payload_storage[offset++] = 0x21;
+            payload_storage[offset++] = 0x00;
+            payload_storage[offset++] = 0x00;
+
+            //  CUSTOM EVENT SCRIPT:
+            // Start with the table data
+            int init_offset = offset;
+            insert_ext_copy_cmd(&offset, 0x11410E, 0xD930, 18); // Copy text pointers
+            insert_ext_copy_cmd(&offset, 0x00C120, 0xC140, 10); //
+            insert_ext_copy_cmd(&offset, 0x00C220, 0xC240, 16); //
+            byte temp[] = {0xD0, 0x0A};
+            insert_int_copy_cmd(&offset, 0xD4E9, 2, temp); //
+            byte temp1[] = {0x15, 0x05};
+            insert_int_copy_cmd(&offset, 0xD517, 2, temp1); //
+            byte temp2[] = {0x30, 0xD9};
+            insert_int_copy_cmd(&offset, 0xD36B, 2, temp2); //
+            byte temp3[] = {0x0B, 0xF0, 0xFF};
+            insert_int_copy_cmd(&offset, 0xD5D3, 3, temp3); //
+            byte temp4[] = {0x05};
+            insert_int_copy_cmd(&offset, 0xD4E0, 1, temp4); //
+            byte temp5[] = {0x44, 0xD9, 0x08, 0x21, 0x54, 0xD9, 0xCD, 0x68, 0x31, 0x21, 0xB0, 0xC1, 0x00, 0x00, 0xC3, 0xD2, 0x23, 0x01, 0x00, 0x5E, 0xD8, 0xD8, 0xC9, 0xD8, 0xC9, 0xD8, 0xC9, 0xD8, 0xC9, 0x00, 0x8C, 0xB8, 0xB4, 0xB4, 0xE7, 0x50, 0x08, 0x3E, 0x83, 0xCD, 0x8B, 0x11, 0xCD, 0x3E, 0x37, 0xC3, 0xD2, 0x23};
+            insert_int_copy_cmd(&offset, 0xD942, 48, temp5); //
+            payload_storage[offset++] = 0xFF;
+
+            /*
+            // call CloseSRAM
+            payload_storage[offset++] = 0xC3;
+            payload_storage[offset++] = (curr_rom.CloseSRAM >> 0) & 0xFF;
+            payload_storage[offset++] = (curr_rom.CloseSRAM >> 8) & 0xFF;
+
+            // call SoftReset
+            payload_storage[offset++] = 0xC3;
+            payload_storage[offset++] = (curr_rom.SoftReset >> 0) & 0xFF;
+            payload_storage[offset++] = (curr_rom.SoftReset >> 8) & 0xFF;
+            */
+        }
     }
     else if (curr_rom.generation == 2)
     {
@@ -1009,7 +1074,7 @@ byte *generate_payload(GB_ROM curr_rom, bool debug)
         }
         else
         {
-            //write_call(curr_rom.generation, payload_storage, offset, 0x046C60);
+            // write_call(curr_rom.generation, payload_storage, offset, 0x046C60);
             write_call(curr_rom.generation, payload_storage, offset, curr_rom._RemovePokemon);
         }
 
@@ -1091,19 +1156,53 @@ void write_call(int generation, byte array_data[], int &offset, word call_locati
     }
 };
 
+void insert_ext_copy_cmd(int *offset, word source, hword destination, byte size)
+{
+    payload_storage[(*offset)++] = size;
+    payload_storage[(*offset)++] = destination >> 8;
+    payload_storage[(*offset)++] = destination >> 0;
+    payload_storage[(*offset)++] = source >> 16;
+    payload_storage[(*offset)++] = source >> 8;
+    payload_storage[(*offset)++] = source >> 0;
+}
+
+void insert_int_copy_cmd(int *offset, hword destination, byte size, byte data[])
+{
+    insert_ext_copy_cmd(offset, copy_table_start + copy_table_offset, destination, size);
+    for (int i = 0; i < size; i++){
+       copy_table_storage[copy_table_offset + i];
+    }
+    copy_table_offset += size;
+}
+
 int test_main() // Rename to "main" to send the payload to test_payload.txt
 {
     freopen("test_payload.txt", "w", stdout);
     std::cout << std::endl;
-    byte *payload = generate_payload(ENG_CRYSTAL, true);
-    for (int i = 0; i < PAYLOAD_SIZE; i++)
+    byte *payload = generate_payload(ENG_YELLOW, EVENT, true);
+    if (!EVENT)
     {
-        std::cout << "0x" << std::setfill('0') << std::setw(2) << std::hex << std::uppercase << (unsigned int)payload[i] << ", ";
-        if (i % 0x10 == 0xF)
+        for (int i = 0; i < PAYLOAD_SIZE; i++)
         {
-            std::cout << std::endl
-                      << "# 0x" << std::hex << i + 1 << std::endl;
+
+            std::cout << "0x" << std::setfill('0') << std::setw(2) << std::hex << std::uppercase << (unsigned int)payload[i] << ", ";
+            if (i % 0x10 == 0xF)
+            {
+                std::cout << std::endl
+                          << "# 0x" << std::hex << i + 1 << std::endl;
+            }
         }
     }
-    return 0;
+    else
+    {
+        for (int i = 0; i < 0x150; i++)
+        {
+            std::cout << std::setfill('0') << std::setw(2) << std::hex << std::uppercase << (unsigned int)payload[i + ((0x10 * 28) + 9)] << " ";
+            if (i % 0x10 == 0xF)
+            {
+                std::cout << std::endl;
+            }
+        }
+        return 0;
+    }
 }

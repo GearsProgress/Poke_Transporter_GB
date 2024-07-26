@@ -191,7 +191,7 @@ int credits()
 		"Development\nassistance:\n\n-im a blisy\n-rileyk64\n-Shao",
 		"Built using:\n\n\n-DevkitPro\n-LibTonc\n-LibGBA",
 		"Inspired by the\nworks of:\n\n-Goppier\n-Lorenzooone\n-im a blisy\n-RETIRE",
-		"Programs used:\n\n\n-HexManiacAdvance\n-PKHeX\n-WC3Tool\n-Usenti\n",
+		"Programs used:\n\n\n-HexManiacAdvance\n-PKHeX\n-WC3Tool\n-Usenti\n-SappyMidToAGB",
 		"Open Source Code and\nLibraries:\n\n-libtonc-examples\n-PokemonGen3toGenX\n-gba-link-connection\n-awesome-gbadev\n-arduino-poke-gen2",
 		"Research resources:\n\n-arm-docs\n-PokemonGen3toGenX\n\nFull links can be\nfound on this\nprogram's GitHub",
 		"ROM data obtained\nfrom decompilations created by the PRET team",

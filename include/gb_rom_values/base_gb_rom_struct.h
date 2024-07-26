@@ -48,6 +48,7 @@ public:
     word Bankswitch;              // location of the Bankswitch function in the ROM
     word SoftReset;               // location of the SoftReset function in the ROM
     word garbageDataLocation;     // location of random data starting with 0xFD in the ROM
+    word CloseSRAM;               // location of the OpenSRAM function in the ROM
 
     word wRemoveMonFromBox;       // location of wRemoveMonFromBox in RAM
     word wBoxCount;               // location of wBoxCount in RAM
