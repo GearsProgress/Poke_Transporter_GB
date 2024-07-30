@@ -46,7 +46,7 @@ const struct GB_ROM ENG_RED_BLUE = {
     ._RemovePokemon = 0x7B68,
     .SaveSAVtoSRAM1 = 0x1C77E2,
     .SaveSAVtoSRAM2 = 0x1C780F,
-    .BankswitchCommon = 0x35D6,
+    .Bankswitch = 0x35D6,
     .SoftReset = 0x1F49,
     .garbageDataLocation = 0x0316,
 
@@ -92,7 +92,7 @@ const struct GB_ROM ENG_YELLOW = {
     .SaveSAVtoSRAM1 = 0x1C7B32,
     .SaveSAVtoSRAM2 = 0x1C7B56,
     .OpenSRAM = 0x3E99,
-    .BankswitchCommon = 0x3E7E,
+    .Bankswitch = 0x3E7E,
     .SoftReset = 0x1D05,
     .garbageDataLocation = 0x0161,
     .CloseSRAM = 0x3EA9,

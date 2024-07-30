@@ -16,7 +16,7 @@ void z80_asm_handler::add_byte(u8 value)
 void z80_asm_handler::throw_error(std::string message)
 {
 
-    //throw std::runtime_error(message);
+    throw std::runtime_error(message);
     while (true)
     {
     }

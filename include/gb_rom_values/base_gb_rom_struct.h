@@ -45,7 +45,7 @@ public:
     word SaveSAVtoSRAM2;          // location of the SaveSAVtoSRAM2 function in the ROM
     word OpenSRAM;                // location of the OpenSRAM function in the ROM
     word SaveBox;                 // location of the SaveBox function in the ROM
-    word BankswitchCommon;        // location of the BankswitchCommon function in the ROM
+    word Bankswitch;              // location of the BankswitchCommon function in the ROM
     word SoftReset;               // location of the SoftReset function in the ROM
     word garbageDataLocation;     // location of random data starting with 0xFD in the ROM
     word CloseSRAM;               // location of the OpenSRAM function in the ROM
