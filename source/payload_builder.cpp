@@ -2,6 +2,7 @@
 #include "gb_rom_values/base_gb_rom_struct.h"
 #include "gb_rom_values/eng_gb_rom_values.h"
 #include "debug_mode.h"
+#include "z80_asm.h"
 
 #include <iostream>
 #include <fstream>
@@ -25,6 +26,8 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
         */
 
     int offset = 0;
+    z80_asm_handler z80(&offset, payload_storage);
+
     if ((curr_rom.generation == 1 && curr_rom.method == METHOD_NEWLINE))
     {
 
@@ -296,8 +299,8 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
 
         // call Bankswitch [which will jump to what's loaded in HL]
         payload_storage[offset++] = 0xCD;
-        payload_storage[offset++] = (curr_rom.Bankswitch >> 0) & 0xFF;
-        payload_storage[offset++] = (curr_rom.Bankswitch >> 8) & 0xFF;
+        payload_storage[offset++] = (curr_rom.BankswitchCommon >> 0) & 0xFF;
+        payload_storage[offset++] = (curr_rom.BankswitchCommon >> 8) & 0xFF;
 
         // ld b, 0x1C [memory bank of SaveSAVtoSRAM2]
         payload_storage[offset++] = 0x06;
@@ -310,8 +313,8 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
 
         // call Bankswitch [which will jump to what's loaded in HL]
         payload_storage[offset++] = 0xCD;
-        payload_storage[offset++] = (curr_rom.Bankswitch >> 0) & 0xFF;
-        payload_storage[offset++] = (curr_rom.Bankswitch >> 8) & 0xFF;
+        payload_storage[offset++] = (curr_rom.BankswitchCommon >> 0) & 0xFF;
+        payload_storage[offset++] = (curr_rom.BankswitchCommon >> 8) & 0xFF;
 
         // jp SoftReset
         payload_storage[offset++] = 0xC3;
@@ -367,23 +370,26 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
         // Preamble
         // At 0x0A, 0x08 in length
         // Must be filled with 0xFD
+        offset = 0x0A;
         for (int i = 0; i < 8; i++)
         {
-            payload_storage[0x0A + i] = 0xFD;
+            z80.add_byte(0xFD);
         }
 
         // Rival name
         // At 0x12, 0x0B in length
         // Set to stored name
+        offset = 0x12;
         for (int i = 0; i < 11; i++)
         {
-            payload_storage[0x12 + i] = curr_rom.custom_name[i];
+            z80.add_byte(curr_rom.custom_name[i]);
         }
 
         // Number of Pokemon
         // At 0x1D, 0x01 in length
         // Does not need to be set
-        payload_storage[0x1D] = 0x06;
+        offset = 0x1D;
+        z80.add_byte(0x06);
 
         // Pokemon list
         // At 0x1E, can be up to 0x1A2 / 0x1B9 bytes in length.
@@ -393,336 +399,138 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
         int distance = curr_rom.stack_overwrite_location - curr_rom.print_string_start;
         distance /= 20; // Automatically truncated, so it won't overshoot
 
+        offset = 0x1E;
         for (int i = 0; i < distance; i++)
         {
-            payload_storage[0x1E + i] = (i != 277 ? curr_rom.short_pkmn_name : 0xC8);
+            z80.add_byte(i != 277 ? curr_rom.short_pkmn_name : 0xC8);
         }
-        payload_storage[0x1E + distance] = curr_rom.pointer_pkmn_name;
-        payload_storage[0x1E + distance + 1] = 0xFF;
+        z80.add_byte(curr_rom.pointer_pkmn_name);
+        z80.add_byte(0xFF);
 
         // Add in the code for reloading the script, keeping in mind the MEWs
         offset = 0x19E;
 
         // ld hl, hSerialConnectionStatus
-        payload_storage[offset++] = 0x21;
-        payload_storage[offset++] = (curr_rom.hSerialConnectionStatus >> 0) & 0xFF;
-        payload_storage[offset++] = (curr_rom.hSerialConnectionStatus >> 8) & 0xFF;
-
-        // ld [hl], 0x01 [Make sure GB is the slave, master if debug]
-        payload_storage[offset++] = 0x36;
-        payload_storage[offset++] = (debug ? 0x02 : 0x01);
-
+        z80.LD(HL, curr_rom.hSerialConnectionStatus | T_U16);
+        z80.LD(HL_PTR, (debug ? 0x02 : 0x01) | T_U8); // Make sure GB is the slave, master if debug
         offset += 4; // Mew
-
-        // ld hl, 0x0161 [data to send, garbage data]
-        payload_storage[offset++] = 0x21;
-        payload_storage[offset++] = (curr_rom.garbageDataLocation >> 0) & 0xFF;
-        payload_storage[offset++] = (curr_rom.garbageDataLocation >> 8) & 0xFF;
-
-        // ld de, 0xC5D0 [data to recieve]
-        payload_storage[offset++] = 0x11;
-        payload_storage[offset++] = 0xD0;
-        payload_storage[offset++] = 0xC5;
-
-        // Relative jump, since that's all we have space for
-        // jr -47
-        payload_storage[offset++] = 0x18;
-        payload_storage[offset++] = 0xD1;
-
+        z80.LD(HL, curr_rom.garbageDataLocation | T_U16);
+        z80.LD(DE, 0xC5D0 | T_U16); // wSerialEnemyMonsPatchList
+        z80.JR((-47 & 0xFF) | T_I8); // Relative jump, since that's all we have space for
+        
         offset -= 47;
 
-        // ld bc, 0x00C2 [size of data]
-        payload_storage[offset++] = 0x01;
-        payload_storage[offset++] = 0xC2;
-        payload_storage[offset++] = 0x00;
-
-        // call Serial_ExchangeBytes [Refresh the patch section]
-        payload_storage[offset++] = 0xCD;
-        payload_storage[offset++] = (curr_rom.Serial_ExchangeBytes >> 0) & 0xFF;
-        payload_storage[offset++] = (curr_rom.Serial_ExchangeBytes >> 8) & 0xFF;
-
-        // ld a, 0x1C
-        payload_storage[offset++] = 0x3E;
-        payload_storage[offset++] = (curr_rom.SaveSAVtoSRAM1 >> 16) & 0xFF;
-
-        // call BankswitchCommon
-        payload_storage[offset++] = 0xCD;
-        payload_storage[offset++] = 0x7E;
-        payload_storage[offset++] = 0x3E;
-
-        // call LoadSAV1
-        payload_storage[offset++] = 0xCD;
-        payload_storage[offset++] = 0xFC;
-        payload_storage[offset++] = 0x79;
+        z80.LD(BC, 0x00C2 | T_U16);
+        z80.CALL(curr_rom.Serial_ExchangeBytes | T_U16); // Refresh the patch section
+        z80.LD(A, (curr_rom.SaveSAVtoSRAM1 >> 16) | T_U8);
+        z80.CALL(curr_rom.BankswitchCommon | T_U16);
+        z80.CALL(0x79FC | T_U16); // Call LoadSAV1
 
         offset += 5; // Mew
 
-        // call LoadSAV2
-        payload_storage[offset++] = 0xCD;
-        payload_storage[offset++] = 0x24;
-        payload_storage[offset++] = 0x7A;
-
-        // jump 0xC5D7
-        payload_storage[offset++] = 0xC3;
-        payload_storage[offset++] = 0xD6;
-        payload_storage[offset++] = 0xC5;
+        z80.CALL(0x7A24 | T_U16);
+        z80.JP(0xC5D6 | T_U16);
 
         // Patchlist preamble
         // At 0x1B4 0x07 in length
         // Set as five 0xFD and two 0xFF
+        offset = 0x1B4;
         for (int i = 0; i < 7; i++)
         {
-            payload_storage[0x1B4 + i] = (i < 5 ? 0xFD : 0xFF);
+            z80.add_byte(i < 5 ? 0xFD : 0xFF);
         }
 
         // Patchlist
         // At 0x1BB / 0x1DE, 0xC2 in length (0xC4, but the last 2 are unused)
         // Fill with custom code
 
-        int offset = 0x1BB;
+        offset = 0x1BB;
 
         if (type == TRANSFER)
         {
-
-            // ld a, 0x01
-            payload_storage[offset++] = 0x3E;
-            payload_storage[offset++] = 0x01;
-
-            // call BankswitchCommon
-            payload_storage[offset++] = 0xCD;
-            payload_storage[offset++] = 0x7E;
-            payload_storage[offset++] = 0x3E;
+            z80.LD(A, 0x01 | T_U8);
+            z80.CALL(curr_rom.BankswitchCommon | T_U16);
 
             /* Write transferring message to screen: */
-            // call ClearScreen
-            payload_storage[offset++] = 0xCD;
-            payload_storage[offset++] = (curr_rom.clearScreen >> 0) & 0xFF;
-            payload_storage[offset++] = (curr_rom.clearScreen >> 8) & 0xFF;
-
-            // ld hl, [upper left textbox corner in VRAM]
-            payload_storage[offset++] = 0x21;
-            payload_storage[offset++] = (curr_rom.textBorderUppLeft >> 0) & 0xFF;
-            payload_storage[offset++] = (curr_rom.textBorderUppLeft >> 8) & 0xFF;
-
-            // ld b, 3 [height]
-            payload_storage[offset++] = 0x06;
-            payload_storage[offset++] = (curr_rom.textBorderWidth >> 0) & 0xFF;
-
-            // ld c, 14 [width]
-            payload_storage[offset++] = 0x0E;
-            payload_storage[offset++] = (curr_rom.textBorderHeight >> 0) & 0xFF;
-
-            // call CableClub_TextBoxBorder
-            payload_storage[offset++] = 0xCD;
-            payload_storage[offset++] = (curr_rom.CableClub_TextBoxBorder >> 0) & 0xFF;
-            payload_storage[offset++] = (curr_rom.CableClub_TextBoxBorder >> 8) & 0xFF;
-
-            // ld hl, [transfer string location]
-            payload_storage[offset++] = 0x21;
-            payload_storage[offset++] = (curr_rom.transferStringLocation >> 0) & 0xFF;
-            payload_storage[offset++] = (curr_rom.transferStringLocation >> 8) & 0xFF;
-
-            // ld de, TransferWaitString
-            payload_storage[offset++] = 0x11;
-            payload_storage[offset++] = (curr_rom.transferWaitString >> 0) & 0xFF;
-            payload_storage[offset++] = (curr_rom.transferWaitString >> 8) & 0xFF;
-
-            // call PlaceString
-            payload_storage[offset++] = 0xCD;
-            payload_storage[offset++] = (curr_rom.placeString >> 0) & 0xFF;
-            payload_storage[offset++] = (curr_rom.placeString >> 8) & 0xFF;
+            z80.CALL(curr_rom.clearScreen | T_U16);
+            z80.LD(HL, curr_rom.textBorderUppLeft | T_U16);
+            z80.LD(B, curr_rom.textBorderWidth | T_U8);
+            z80.LD(C, curr_rom.textBorderHeight | T_U8);
+            z80.CALL(curr_rom.CableClub_TextBoxBorder | T_U16);
+            z80.LD(HL, curr_rom.transferStringLocation | T_U16);
+            z80.LD(DE, curr_rom.transferWaitString | T_U16);
+            z80.CALL(curr_rom.placeString | T_U16);
 
             /* Transfer box data: */
-            // ld hl, hSerialConnectionStatus
-            payload_storage[offset++] = 0x21;
-            payload_storage[offset++] = (curr_rom.hSerialConnectionStatus >> 0) & 0xFF;
-            payload_storage[offset++] = (curr_rom.hSerialConnectionStatus >> 8) & 0xFF;
+            z80.LD(HL, curr_rom.hSerialConnectionStatus | T_U16); // Can be shortened since it is 0xFFxx
+            z80.LD(HL_PTR, (debug ? 0x02 : 0x01) | T_U8);         // Make sure GB is the slave, master if debug
+            z80.LD(HL, (curr_rom.wBoxDataStart - 1) | T_U16);
+            z80.LD(HL_PTR, 0xFD | T_U8);                                    // set the start of the data to 0xFD so Serial_ExchangeBytes is happy
+            z80.LD(DE, (curr_rom.wBoxDataStart - (debug ? 2 : 3)) | T_U16); // location to put stored data
+            z80.LD(BC, ((curr_rom.wBoxDataEnd - curr_rom.wBoxDataStart) + 2) | T_U16);
 
-            // ld [hl], 0x01 [Make sure GB is the slave, master if debug]
-            payload_storage[offset++] = 0x36;
-            payload_storage[offset++] = (debug ? 0x02 : 0x01);
-
-            // ld hl, (wBoxDataStart - 1) [data to send]
-            payload_storage[offset++] = 0x21;
-            payload_storage[offset++] = ((curr_rom.wBoxDataStart - 1) >> 0) & 0xFF;
-            payload_storage[offset++] = ((curr_rom.wBoxDataStart - 1) >> 8) & 0xFF;
-
-            // ld [hl], 0xFD [set the start of the data to 0xFD so Serial_ExchangeBytes is happy]
-            payload_storage[offset++] = 0x36;
-            payload_storage[offset++] = 0xFD;
-
-            // ld de, (wBoxDataStart - 3) [location to put stored data]
-            payload_storage[offset++] = 0x11;
-            payload_storage[offset++] = ((curr_rom.wBoxDataStart - (debug ? 2 : 3)) >> 0) & 0xFF;
-            payload_storage[offset++] = ((curr_rom.wBoxDataStart - (debug ? 2 : 3)) >> 8) & 0xFF;
-
-            // ld bc, (wBoxDataEnd - wBoxDataStart) + 2
-            payload_storage[offset++] = 0x01;
-            payload_storage[offset++] = (((curr_rom.wBoxDataEnd - curr_rom.wBoxDataStart) + 2) >> 0) & 0xFF;
-            payload_storage[offset++] = (((curr_rom.wBoxDataEnd - curr_rom.wBoxDataStart) + 2) >> 8) & 0xFF;
-
-            // call Serial_ExchangeBytes [Send the box data] (unless Debug)
-            if (debug)
+            if (debug) // Don't call serialExchangeBytes if debug is enabled
             {
                 offset += 3;
             }
             else
             {
-                payload_storage[offset++] = 0xCD;
-                payload_storage[offset++] = (curr_rom.Serial_ExchangeBytes >> 0) & 0xFF;
-                payload_storage[offset++] = (curr_rom.Serial_ExchangeBytes >> 8) & 0xFF;
+                z80.CALL(curr_rom.Serial_ExchangeBytes | T_U16);
             }
+
             /* Recieve the Pokemon to remove */
-            // ld hl, hSerialConnectionStatus
-            payload_storage[offset++] = 0x21;
-            payload_storage[offset++] = (curr_rom.hSerialConnectionStatus >> 0) & 0xFF;
-            payload_storage[offset++] = (curr_rom.hSerialConnectionStatus >> 8) & 0xFF;
+            z80.LD(HL, curr_rom.hSerialConnectionStatus | T_U16); // This can also be shortened
+            z80.LD(HL_PTR, (debug ? 0x02 : 0x01) | T_U8);         // Make sure GB is the slave, master if debug
+            z80.LD(HL, curr_rom.garbageDataLocation | T_U16);
+            z80.LD(DE, curr_rom.pkmnTransferArray | T_U16);
+            z80.LD(BC, 0x001E | T_U16); // Preamble does *not* count
 
-            // ld [hl], 0x01 [Make sure GB is the slave, master if debug]
-            payload_storage[offset++] = 0x36;
-            payload_storage[offset++] = (debug ? 0x02 : 0x01);
-
-            // ld hl, 0x0161 [data to send, garbage data]
-            payload_storage[offset++] = 0x21;
-            payload_storage[offset++] = (curr_rom.garbageDataLocation >> 0) & 0xFF;
-            payload_storage[offset++] = (curr_rom.garbageDataLocation >> 8) & 0xFF;
-
-            // ld de, 0xC651 [data to recieve]
-            payload_storage[offset++] = 0x11;
-            payload_storage[offset++] = (curr_rom.pkmnTransferArray >> 0) & 0xFF;
-            payload_storage[offset++] = (curr_rom.pkmnTransferArray >> 8) & 0xFF;
-
-            // ld bc, 0x001E [size of data] - Preamble does *not* count
-            payload_storage[offset++] = 0x01;
-            payload_storage[offset++] = 0x1E;
-            payload_storage[offset++] = 0x00;
-
-            // call Serial_ExchangeBytes [Recieve the removal array]
-            if (debug)
+            if (debug) // Don't add in the Serial_ExchangeBytes call if in debug
             {
-                offset += 3; // Don't add in the Serial_ExchangeBytes call if in debug
+                offset += 3;
             }
             else
             {
-                payload_storage[offset++] = 0xCD;
-                payload_storage[offset++] = (curr_rom.Serial_ExchangeBytes >> 0) & 0xFF;
-                payload_storage[offset++] = (curr_rom.Serial_ExchangeBytes >> 8) & 0xFF;
+                z80.CALL(curr_rom.Serial_ExchangeBytes | T_U16);
             }
 
             /* Remove the transfered Pokemon */
-            // ld hl, wRemoveMonFromBox
-            payload_storage[offset++] = 0x21;
-            payload_storage[offset++] = (curr_rom.wRemoveMonFromBox >> 0) & 0xFF;
-            payload_storage[offset++] = (curr_rom.wRemoveMonFromBox >> 8) & 0xFF;
-
-            // ld [hl], [!= 0x00 specifies the current box]
-            payload_storage[offset++] = 0x36;
-            payload_storage[offset++] = 0x01;
-
-            // ld a, [arrayCounter]
-            payload_storage[offset++] = 0xFA;
-            payload_storage[offset++] = (curr_rom.arrayCounter >> 0) & 0xFF;
-            payload_storage[offset++] = (curr_rom.arrayCounter >> 8) & 0xFF;
-
-            // ld e, a
-            payload_storage[offset++] = 0x5F;
-
-            // ld d, 0x00
-            payload_storage[offset++] = 0x16;
-            payload_storage[offset++] = 0x00;
-
-            // ld hl, [removalArray]
-            payload_storage[offset++] = 0x21;
-            payload_storage[offset++] = (curr_rom.pkmnTransferArray >> 0) & 0xFF;
-            payload_storage[offset++] = (curr_rom.pkmnTransferArray >> 8) & 0xFF;
-
-            // add hl, de
-            payload_storage[offset++] = 0x19;
-
-            // ld e, 0xFF
-            payload_storage[offset++] = 0x1E;
-            payload_storage[offset++] = 0xFF;
-
-            // inc a
-            payload_storage[offset++] = 0x3C;
-
-            // ld [arrayCounter], a
-            payload_storage[offset++] = 0xEA;
-            payload_storage[offset++] = (curr_rom.arrayCounter >> 0) & 0xFF;
-            payload_storage[offset++] = (curr_rom.arrayCounter >> 8) & 0xFF;
-
-            // ld a, [wBoxCount]
-            payload_storage[offset++] = 0xFA;
-            payload_storage[offset++] = (curr_rom.wBoxCount >> 0) & 0xFF;
-            payload_storage[offset++] = (curr_rom.wBoxCount >> 8) & 0xFF;
-
-            // ld b, a
-            payload_storage[offset++] = 0x47;
-
-            // ld a, [hl]
-            payload_storage[offset++] = 0x2A;
-
-            // cp a, e
-            payload_storage[offset++] = 0xBB;
-
-            // jr z, 12
-            payload_storage[offset++] = 0x28;
-            payload_storage[offset++] = 0x0C;
-
-            // cp a, b
-            payload_storage[offset++] = 0xB8;
-
-            // jr nc, -27
-            payload_storage[offset++] = 0x30;
-            payload_storage[offset++] = 0xE5;
-
-            // ld hl, wWhichPokemon
-            payload_storage[offset++] = 0x21;
-            payload_storage[offset++] = (curr_rom.wWhichPokemon >> 0) & 0xFF;
-            payload_storage[offset++] = (curr_rom.wWhichPokemon >> 8) & 0xFF;
-
-            // ld [hl], a
-            payload_storage[offset++] = 0x77;
-            // call _RemovePokemon
+            z80.LD(HL, curr_rom.wRemoveMonFromBox | T_U16);
+            z80.LD(HL_PTR, 0x01 | T_U8); // != 0x00 specifies the current box
+            z80.LD(A, curr_rom.arrayCounter | T_U16);
+            z80.LD(E, A);
+            z80.LD(D, 0x00 | T_U8);
+            z80.LD(HL, curr_rom.pkmnTransferArray | T_U16);
+            z80.ADD(HL, DE);
+            z80.LD(E, 0xFF | T_U8);
+            z80.INC(A);
+            z80.LD(curr_rom.arrayCounter | T_U16, A);
+            z80.LD(A, curr_rom.wBoxCount | T_U16);
+            z80.LD(B, A);
+            z80.LD(A, HL_PTR);
+            z80.CP(A, E);
+            z80.JR(Z_F, 12 | T_I8);
+            z80.CP(A, B);
+            z80.JR(NC_F, (-27 & 0xFF) | T_I8);
+            z80.LD(HL, curr_rom.wWhichPokemon | T_U16);
+            z80.LD(HL_PTR, A);
             if (DONT_REMOVE_PKMN)
             {
                 offset += 3;
             }
             else
             {
-                payload_storage[offset++] = 0xCD;
-                payload_storage[offset++] = (curr_rom._RemovePokemon >> 0) & 0xFF;
-                payload_storage[offset++] = (curr_rom._RemovePokemon >> 8) & 0xFF;
+                z80.CALL(curr_rom._RemovePokemon | T_U16);
             }
-
-            // jr, -36
-            payload_storage[offset++] = 0x18;
-            payload_storage[offset++] = 0xDC;
+            z80.JR((-36 & 0xFF) | T_I8);
 
             /* Save the current box */
             // ld a, 0x1C
-            payload_storage[offset++] = 0x3E;
-            payload_storage[offset++] = (curr_rom.SaveSAVtoSRAM1 >> 16) & 0xFF;
-
-            // call BankswitchCommon
-            payload_storage[offset++] = 0xCD;
-            payload_storage[offset++] = 0x7E;
-            payload_storage[offset++] = 0x3E;
-
-            // call SaveSAVtoSRAM1
-            payload_storage[offset++] = 0xCD;
-            payload_storage[offset++] = 0x32;
-            payload_storage[offset++] = 0x7B;
-
-            // call SaveSAVtoSRAM2
-            payload_storage[offset++] = 0xCD;
-            payload_storage[offset++] = 0x56;
-            payload_storage[offset++] = 0x7B;
-
-            // jp SoftReset
-            payload_storage[offset++] = 0xC3;
-            payload_storage[offset++] = (curr_rom.SoftReset >> 0) & 0xFF;
-            payload_storage[offset++] = (curr_rom.SoftReset >> 8) & 0xFF;
+            z80.LD(A, curr_rom.SaveSAVtoSRAM1 >> 16); // Load ROM Bank
+            z80.CALL(curr_rom.BankswitchCommon | T_U16);
+            z80.CALL(curr_rom.SaveSAVtoSRAM1 | T_U16);
+            z80.CALL(curr_rom.SaveSAVtoSRAM2 | T_U16);
+            z80.JP(curr_rom.SoftReset | T_U16);
 
             // 1 byte to store the current array counter
             // $C650
@@ -1169,18 +977,19 @@ void insert_ext_copy_cmd(int *offset, word source, hword destination, byte size)
 void insert_int_copy_cmd(int *offset, hword destination, byte size, byte data[])
 {
     insert_ext_copy_cmd(offset, copy_table_start + copy_table_offset, destination, size);
-    for (int i = 0; i < size; i++){
-       copy_table_storage[copy_table_offset + i];
+    for (int i = 0; i < size; i++)
+    {
+        copy_table_storage[copy_table_offset + i];
     }
     copy_table_offset += size;
 }
 
-int test_main() // Rename to "main" to send the payload to test_payload.txt
+int main() // Rename to "main" to send the payload to test_payload.txt
 {
     freopen("test_payload.txt", "w", stdout);
     std::cout << std::endl;
-    byte *payload = generate_payload(ENG_YELLOW, EVENT, true);
-    if (!EVENT)
+    byte *payload = generate_payload(ENG_RED_BLUE, TRANSFER, true);
+    if (true)
     {
         for (int i = 0; i < PAYLOAD_SIZE; i++)
         {
@@ -1192,6 +1001,7 @@ int test_main() // Rename to "main" to send the payload to test_payload.txt
                           << "# 0x" << std::hex << i + 1 << std::endl;
             }
         }
+        return 0;
     }
     else
     {

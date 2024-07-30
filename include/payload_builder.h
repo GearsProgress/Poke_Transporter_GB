@@ -3,6 +3,7 @@
 
 #define TRANSFER 1
 #define EVENT 2
+#define TEST 3
 
 #include "gb_rom_values/base_gb_rom_struct.h"
 

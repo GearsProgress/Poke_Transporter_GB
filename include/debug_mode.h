@@ -3,7 +3,7 @@
 
 #define DEBUG_MODE false
 #define IGNORE_GAME_PAK true
-#define IGNORE_LINK_CABLE true
+#define IGNORE_LINK_CABLE false
 #define IGNORE_MG_E4_FLAGS false
 #define IGNORE_UNRECEIVED_PKMN true
 #define FORCE_TUTORIAL false
