@@ -9,9 +9,6 @@
 #include <vector>
 
 byte* generate_payload(GB_ROM curr_rom, int type, bool debug);
-void write_call(int generation, byte array_data[], int& offset, word call_location);
-void insert_ext_copy_cmd(int *offset, word source, hword destination, byte size);
-void insert_int_copy_cmd(int *offset, hword destination, byte size, byte data[]);
 
 
 #endif
