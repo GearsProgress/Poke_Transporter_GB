@@ -2,6 +2,9 @@
 #define Z80_ASM_H
 
 #include <string>
+#include <stdarg.h>
+#include <vector>
+
 /*
 All registers are above 16 to not confuse them with u8 or u16
 u8 registers have a 0x0, while u16 have 0x1
@@ -49,11 +52,12 @@ typedef unsigned char byte; // Issues with including Tonc again with the test pa
 
 class z80_asm_handler
 {
-    int *index_ptr;
-    byte *array_ptr;
-
 public:
-    z80_asm_handler(int *nIndex_ptr, unsigned char *nArray_ptr);
+    int index;
+    int memory_offset;
+    std::vector<byte> data_vector;
+
+    z80_asm_handler(int data_size, int mem_offset);
     void add_byte(u8 value);
     void LD(int destination, int source);
     void HALT();
@@ -104,6 +108,40 @@ public:
 private:
     void ROT(int reg, int info);
     void throw_error(std::string message);
+};
+
+class z80_variable
+{
+public:
+    std::vector<byte> data;
+    int size;
+    z80_variable(std::vector<z80_variable*> *var_vec, int data_size, ...);
+    z80_variable(std::vector<z80_variable*> *var_vec);
+    void load_data(int data_size, byte array_data[]);
+    int place_ptr(z80_asm_handler *z80_instance);
+    void insert_variable(z80_asm_handler *var);
+    void update_ptrs();
+
+private:
+    std::vector<int> ptr_locations;
+    std::vector<z80_asm_handler *> asm_handlers;
+    int var_mem_location;
+};
+
+class z80_jump
+{
+public:
+    z80_jump(std::vector<z80_jump*> *jump_vec);
+    int place_relative_jump(z80_asm_handler *z80_instance);
+    int place_direct_jump(z80_asm_handler *z80_instance);
+    void set_start(z80_asm_handler *var);
+    void update_jumps();
+
+private:
+    std::vector<int> ptr_locations;
+    std::vector<z80_asm_handler *> asm_handlers;
+    std::vector<bool> jump_types;
+    int jump_mem_location;
 };
 
 #endif

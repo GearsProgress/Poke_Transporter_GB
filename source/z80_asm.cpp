@@ -1,26 +1,37 @@
 #include "z80_asm.h"
 #include <stdexcept>
 #include <string>
+#include <vector>
 
-z80_asm_handler::z80_asm_handler(int *nIndex_ptr, unsigned char *nArray_ptr)
+#define DIRECT false
+#define RELATIVE true
+
+z80_asm_handler::z80_asm_handler(int data_size, int mem_offset)
 {
-    index_ptr = nIndex_ptr;
-    array_ptr = nArray_ptr;
+    data_vector.resize(data_size, 0x00);
+    index = 0;
+    memory_offset = mem_offset;
 }
 
 void z80_asm_handler::add_byte(u8 value)
 {
-    array_ptr[(*index_ptr)++] = value;
+    data_vector.at(index++) = value;
 }
 
 void z80_asm_handler::throw_error(std::string message)
 {
 
-    throw std::runtime_error(message);
+    // throw std::runtime_error(message);
     while (true)
     {
     }
 }
+
+/* Figuring out pointers automatically is tricky since there are two seperate sections where our code is going. One is wSerialEnemyDataBlock, and the other is wSerialPartyMonsPatchList (0xC5D0)
+However, theoretically all of our code should be in the patch list and all of the payload hijack stuff should be in the enemy data block.
+Yellow is (currently) weird, but that will be fixed. The only time they cross over outside of that is in Gen 2 due to the box saving corrupting the code we're reading.
+Thus, we should be able to assume that all the variables and jumps will be within the patch list.
+*/
 
 // Taken from the Game BoyTM CPU Manual (http://marc.rawer.de/Gameboy/Docs/GBCPUman.pdf) and GBops (https://izik1.github.io/gbops/)
 
@@ -619,5 +630,101 @@ void z80_asm_handler::SET(int bit, int reg)
     else
     {
         throw_error("Invalid Z80 SET command: " + std::to_string(reg));
+    }
+}
+
+z80_variable::z80_variable(std::vector<z80_variable*> *var_vec)
+{
+    var_vec->push_back(this);
+}
+
+z80_variable::z80_variable(std::vector<z80_variable*> *var_vec, int data_size, ...)
+{
+    var_vec->push_back(this);
+    data.resize(data_size);
+    va_list pargs;
+    va_start(pargs, data_size);
+    for (int i = 0; i < data_size; i++)
+    {
+        data.at(i) = (va_arg(pargs, int));
+    }
+    va_end(pargs);
+    size = data_size;
+}
+
+void z80_variable::load_data(int data_size, byte array_data[])
+{
+    data.resize(data_size);
+    for (int i = 0; i < data_size; i++)
+    {
+        data.at(i) = array_data[i];
+    }
+    size = data_size;
+}
+
+void z80_variable::insert_variable(z80_asm_handler *var)
+{
+    var_mem_location = (var->index - 1) + var->memory_offset;
+    for (int i = 0; i < size; i++)
+    {
+        var->add_byte(data.at(i));
+    }
+}
+
+int z80_variable::place_ptr(z80_asm_handler *z80_instance)
+{
+    ptr_locations.push_back(z80_instance->index + 1);
+    asm_handlers.push_back(z80_instance);
+    return 0x0000;
+}
+
+void z80_variable::update_ptrs()
+{
+    for (unsigned int i = 0; i < asm_handlers.size(); i++)
+    {
+        asm_handlers.at(i)->data_vector.at(ptr_locations.at(i)) = var_mem_location >> 0;
+        asm_handlers.at(i)->data_vector.at(ptr_locations.at(i) + 1) = var_mem_location >> 8;
+    }
+}
+
+z80_jump::z80_jump(std::vector<z80_jump*> *jump_vec)
+{
+    jump_vec->push_back(this);
+}
+
+void z80_jump::set_start(z80_asm_handler *var)
+{
+    jump_mem_location = (var->index - 1) + var->memory_offset;
+}
+
+int z80_jump::place_direct_jump(z80_asm_handler *z80_instance)
+{
+    ptr_locations.push_back(z80_instance->index + 1);
+    asm_handlers.push_back(z80_instance);
+    jump_types.push_back(DIRECT);
+    return 0x0000;
+}
+
+int z80_jump::place_relative_jump(z80_asm_handler *z80_instance)
+{
+    ptr_locations.push_back(z80_instance->index + 1);
+    asm_handlers.push_back(z80_instance);
+    jump_types.push_back(RELATIVE);
+    return 0x0000;
+}
+
+void z80_jump::update_jumps()
+{
+    for (unsigned int i = 0; i < asm_handlers.size(); i++)
+    {
+        if (jump_types.at(i) == DIRECT)
+        {
+            asm_handlers.at(i)->data_vector.at(ptr_locations.at(i)) = jump_mem_location >> 0;
+            asm_handlers.at(i)->data_vector.at(ptr_locations.at(i) + 1) = jump_mem_location >> 8;
+        }
+        else if (jump_types.at(i) == RELATIVE)
+        {
+            asm_handlers.at(i)->data_vector.at(ptr_locations.at(i)) = (jump_mem_location - (ptr_locations.at(i) + asm_handlers.at(i)->memory_offset)) & 0xFF;
+        }
     }
 }

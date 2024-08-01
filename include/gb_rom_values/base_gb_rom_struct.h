@@ -57,13 +57,6 @@ public:
     word wBoxDataStart;           // location of wBoxDataStart in RAM
     word wBoxDataEnd;             // location of wBoxDataEnd in RAM
 
-    word transferWaitString; // location of the transferWaitString in RAM
-    word pkmnTransferArray;  // location of the pkmnTransferArray in RAM
-    word arrayCounter;       // location of the arrayCounter in RAM
-
-    byte transferString[30]; // the custom transfer string
-    byte custom_name[11];    // the custom name string
-
     hword transferStringLocation; // location in VRAM to start writing the transfer string to
     hword textBorderUppLeft;      // location in VRAM to put the upper left corner of the border
     byte textBorderWidth;         // the width of the text box border
