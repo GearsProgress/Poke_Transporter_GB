@@ -489,7 +489,7 @@ void z80_asm_handler::CALL(int flag, int destination)
 }
 void z80_asm_handler::RST(int value)
 {
-    if ((value % 8) != 0 && ((value & 0xFF) >= 0) && ((value & 0xFF) <= 0x38))
+    if ((value % 8) == 0 && ((value & 0xFF) >= 0) && ((value & 0xFF) <= 0x38))
     { // 0xC7, 0xCF, 0xD7, 0xDF, 0xE7, 0xEF, 0xF7, 0xFF
         add_byte(0b11000111 | value);
     }

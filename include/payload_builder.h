@@ -10,5 +10,4 @@
 
 byte* generate_payload(GB_ROM curr_rom, int type, bool debug);
 
-
 #endif
