@@ -12,8 +12,6 @@ extern int num_sprites;
 
 //#include "metr.h"
 //extern OBJ_ATTR *testroid;
-#include "prof.h"
-extern OBJ_ATTR *prof;
 #include "btn_t_l.h"
 extern OBJ_ATTR *btn_t_l;
 #include "btn_t_r.h"
@@ -40,16 +38,7 @@ extern OBJ_ATTR *button_blank_right;
 extern OBJ_ATTR *button_blank_left_2;
 extern OBJ_ATTR *button_blank_right_2;
 
-#define SPRITE_BATCH_DEX 0
-#include "dex_l.h"
-#define DEX_SPRITE_LEFT 0
-#include "dex_m.h"
-#define DEX_SPRITE_MID 1
-#include "dex_r.h"
-#define DEX_SPRITE_RIGHT 2
-extern OBJ_ATTR *dex_sprites[3][6];
-
-#define SPRITE_BATCH_LANG 1
+#define SPRITE_BATCH_LANG 0
 #include "btn_lang_jpn.h"
 extern OBJ_ATTR *btn_lang_jpn;
 #include "btn_lang_eng.h"
@@ -65,7 +54,7 @@ extern OBJ_ATTR *btn_lang_spa;
 #include "btn_lang_kor.h"
 extern OBJ_ATTR *btn_lang_kor;
 
-#define SPRITE_BATCH_GAMES 2
+#define SPRITE_BATCH_GAMES 1
 #include "button_green_left.h"
 extern OBJ_ATTR *button_green_left;
 extern OBJ_ATTR *button_green_right;
@@ -89,6 +78,15 @@ extern OBJ_ATTR *button_crystal_left;
 extern OBJ_ATTR *button_crystal_right;
 #include "button_game_select_edge.h"
 
+#define SPRITE_BATCH_DEX 2
+#include "types.h"
+extern OBJ_ATTR *type_sprites[14];
+#include "arrows.h"
+extern OBJ_ATTR *up_arrow;
+extern OBJ_ATTR *down_arrow;
+extern OBJ_ATTR *point_arrow;
+
+
 #include "duel_frame_menu_sprites.h"
 extern OBJ_ATTR *party_sprites[30];
 extern const unsigned short frame_one_pal[16];
@@ -107,7 +105,7 @@ extern OBJ_ATTR *ptgb_logo_l;
 #include "ptgb_logo_r.h"
 extern OBJ_ATTR *ptgb_logo_r;
 
-#include "mario.h"
+#include "lookerFRLG.h"
 
 #define BG2VOF_SMALL_TEXTBOX 96
 #define BG2VOF_LARGE_TEXTBOX 0
@@ -118,14 +116,22 @@ extern OBJ_ATTR *ptgb_logo_r;
 #define BTN_LIT_PAL 3
 #define MENU_SPRITE_PAL 4
 #define LOGO_PAL 5
+#define TYPES_PAL1 6
+#define TYPES_PAL2 7
+
+#define BG_OPENING 0
+#define BG_FENNEL 1
+#define BG_DEX 2
 
 void load_sprite(OBJ_ATTR *sprite, const unsigned int objTiles[], int objTilesLen,
                  u32 &tile_id, u32 pal_bank, int attr0, int attr1, u32 priority);
 void load_background();
+void modify_background_pal(bool dark);
 void load_textbox_background();
-void load_opening_background();
+void load_flex_background(int background_id, int layer);
 void load_eternal_sprites();
 void load_temp_sprites(int sprite_batch_id);
 void load_temp_box_sprites(Pokemon_Party party_data);
+void load_type_sprites(int pkmn_index, int dex_offset, bool is_caught);
 
 #endif

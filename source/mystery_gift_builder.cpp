@@ -60,7 +60,6 @@ mystery_gift_script::mystery_gift_script()
     ptr_block_ptr_high = (curr_rom.loc_gSaveBlock1PTR + 0x02);
 }
 
-
 void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
 {
     std::vector<script_var *> mg_variable_list;
@@ -155,32 +154,32 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     case RUBY_ID:
         textGreet.set_text(u"When I was young, I traveled the worldŇas a POKéMON TRAINER.");
         textMoveBox.set_text(u"ȆÀËOh, of course, I have to unlockŇthe door. Silly me!");
-        textWeHere.set_text(u"ȆÀËLOOKER: I am here in Hoenn to findŇthe leader Maxie.ȼHowever, in the meantime, I amŇhelping my friend Professor Jazmine.ȼThis is why you are here, no?ȼI shall contact her and tell herŇyou are ready.ŞCome! Allons y!");
+        textWeHere.set_text(u"ȆÀËLOOKER: I am here in Hoenn to findŇthe leader MAXIE.ȼHowever, in the meantime, I amŇhelping my friend Professor FENNEL.ȼThis is why you are here, no?ȼI shall contact her and tell herŇyou are ready.ŞCome! Allons y!");
         break;
     case SAPPHIRE_ID:
         textGreet.set_text(u"When I was young, I traveled the worldŇas a POKéMON TRAINER.");
         textMoveBox.set_text(u"ȆÀËOh, of course, I have to unlockŇthe door. Silly me!");
-        textWeHere.set_text(u"ȆÀËLOOKER: I am here in Hoenn to findŇthe leader Archie.ȼHowever, in the meantime, I amŇhelping my friend Professor Jazmine.ȼThis is why you are here, no?ȼI shall contact her and tell herŇyou are ready.ŞCome! Allons y!");
+        textWeHere.set_text(u"ȆÀËLOOKER: I am here in Hoenn to findŇthe leader ARCHIE.ȼHowever, in the meantime, I amŇhelping my friend Professor FENNEL.ȼThis is why you are here, no?ȼI shall contact her and tell herŇyou are ready.ŞCome! Allons y!");
         break;
     case FIRERED_ID:
     case LEAFGREEN_ID:
         textGreet.set_text(u"I may not look like much now,Ňbut when I was younger…");
         textMoveBox.set_text(u"ȆÀËOh, of course, I have to moveŇthe boxes. Silly me!");
-        textWeHere.set_text(u"ȆÀËLOOKER: I am here in the Sevii IslandsŇto find the leader Giovanni.ȼHowever, in the meantime, I amŇhelping my friend Professor Jazmine.ȼThis is why you are here, no?ȼI shall contact her and tell herŇyou are ready.ŞCome! Allons y!");
+        textWeHere.set_text(u"ȆÀËLOOKER: I am here in the Sevii IslandsŇto find the leader GIOVANNI.ȼHowever, in the meantime, I amŇhelping my friend Professor FENNEL.ȼThis is why you are here, no?ȼI shall contact her and tell herŇyou are ready.ŞCome! Allons y!");
         break;
     case EMERALD_ID:
         textGreet.set_text(u"When I was young, I traveled the worldŇas a POKéMON TRAINER.");
         textMoveBox.set_text(u"ȆÀËOh, of course, I have to moveŇthe plants. Silly me!");
-        textWeHere.set_text(u"ȆÀËLOOKER: I am here in Hoenn to findŇthe leaders Maxie and Archie.ȼHowever, in the meantime, I amŇhelping my friend Professor Jazmine.ȼThis is why you are here, no?ȼI shall contact her and tell herŇyou are ready.ŞCome! Allons y!");
+        textWeHere.set_text(u"ȆÀËLOOKER: I am here in Hoenn to findŇthe leaders MAXIE and ARCHIE.ȼHowever, in the meantime, I amŇhelping my friend Professor FENNEL.ȼThis is why you are here, no?ȼI shall contact her and tell herŇyou are ready.ŞCome! Allons y!");
         break;
     }
     textReceived.set_text(u"ȆÀÁƲÀ’S POKéMON were sent to theŇPC!");
     textYouMustBe.set_text(first_time ? u"Ah! You must be ƲÀ!ŇI was told you’d be coming.ȼOh! I still wear my disguise! Pardon!ŇOr, rather, let me introduce myself." : u"Ah, ƲÀ! Welcome back!ŇGood to see you again!ȼOh! I still wear my disguise! Pardon!");
     textIAm.set_text(first_time ? u"ȆÀËI am a globe-trotting elite of theŇInternational Police.ȼMy name…ŞAh, no, I shall inform you of myŇcode name only.ȼMy code name, it is LOOKER.ŇIt is how I am called!" : u"ȆÀËIt is I, globe-trotting elite of theŇInternational Police.ȼMy code name, it is LOOKER.ŇIt is how I am called!");
-    textPCConvo.set_text(u"ȆÀÉJAZ: Ah, LOOKER! Good to hear fromŇyou! I take it ƲÀ has arrived?ȼȆÀËLOOKER: Indeed! They’re here andŇready to receive their POKéMON!ȼȆÀÉJAZ: Excellent! I’ll be sending themŇover momentarily… stand by!"); // ȼDon’t worry ƲÀ,Ňyou won’t have to do a thing!");
-    textPCThanks.set_text(u"ȆÀÉJAZ: It looks like everything wasŇsent to your PC successfully!ȼThanks again for your help ƲÀ!ŇSee you around, LOOKER!");
+    textPCConvo.set_text(u"ȆÀÉFENNEL: Ah, LOOKER! Good to hear fromŇyou! I take it ƲÀ has arrived?ȼȆÀËLOOKER: Indeed! They’re here andŇready to receive their POKéMON!ȼȆÀÉFENNEL: Excellent! I’ll be sending themŇover momentarily… stand by!"); // ȼDon’t worry ƲÀ,Ňyou won’t have to do a thing!");
+    textPCThanks.set_text(u"ȆÀÉFENNEL: It looks like everything wasŇsent to your PC successfully!ȼThanks again for your help ƲÀ!ŇSee you around, LOOKER!");
     textThank.set_text(u"ȆÀËThanks for stopping by, ƲÀ!ȼIf you’ll excuse me, I need toŇreturn to my disguise.ŞUntil our paths cross again!");
-    textPCFull.set_text(u"ȆÀÉJAZ: Hm, it seems like the PC is full!ȼGo make some room, and I can sendŇover the rest of your POKéMON.");
+    textPCFull.set_text(u"ȆÀÉFENNEL: Hm, it seems like the PC is full!ȼGo make some room, and I can sendŇover the rest of your POKéMON.");
     textLookerFull.set_text(u"ȆÀËLOOKER: Speak to me again afterŇyou’ve made room, ƲÀ!ȼIn the meantime, I will return toŇmy disguise.");
 
     const int movementSlowSpinArray[16] = {
@@ -282,7 +281,7 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     movementGoDown.set_movement(movementGoDownArray, 2);
 
     //                                      v Instrument
-    songLooker.add_track({0xBC, 0x00, 0xBB, 0x38, 0xBD, 0x38, 0xBE, 0x64, 0xBF, 0x30, 0xD4, 0x37, 0x64, 0x86, 0x3C, 0x86, 0x40, 0x86, 0x43, 0x86, 0x48, 0x86, 0x4C, 0x86, 0xE0, 0x4F, 0x92, 0x4C, 0x92, 0xD4, 0x38, 0x86, 0x3C, 0x86, 0x3F, 0x86, 0x44, 0x86, 0x48, 0x86, 0x4B, 0x86, 0xE0, 0x50, 0x92, 0x4B, 0x92, 0xD4, 0x3A, 0x86, 0x3E, 0x86, 0x41, 0x86, 0x46, 0x86, 0x4A, 0x86, 0x4D, 0x86, 0xE0, 0x52, 0x8C, 0x86, 0xD4, 0x86, 0xD4, 0x86, 0xD4, 0x86, 0xF2, 0x54, 0xA8, 0xAF, 0x83, 0xB1});
+    // songLooker.add_track({0xBC, 0x00, 0xBB, 0x38, 0xBD, 0x38, 0xBE, 0x64, 0xBF, 0x30, 0xD4, 0x37, 0x64, 0x86, 0x3C, 0x86, 0x40, 0x86, 0x43, 0x86, 0x48, 0x86, 0x4C, 0x86, 0xE0, 0x4F, 0x92, 0x4C, 0x92, 0xD4, 0x38, 0x86, 0x3C, 0x86, 0x3F, 0x86, 0x44, 0x86, 0x48, 0x86, 0x4B, 0x86, 0xE0, 0x50, 0x92, 0x4B, 0x92, 0xD4, 0x3A, 0x86, 0x3E, 0x86, 0x41, 0x86, 0x46, 0x86, 0x4A, 0x86, 0x4D, 0x86, 0xE0, 0x52, 0x8C, 0x86, 0xD4, 0x86, 0xD4, 0x86, 0xD4, 0x86, 0xF2, 0x54, 0xA8, 0xAF, 0x83, 0xB1});
     // songLooker.add_track({0xBC, 0x00, 0xBD, 0x3C, 0xBE, 0x5A, 0xBF, 0x50, 0x92, 0xD4, 0x24, 0x64, 0x86, 0x28, 0x86, 0x2B, 0x86, 0xE0, 0x28, 0x92, 0x24, 0x9C, 0xD4, 0x86, 0x27, 0x86, 0x2C, 0x86, 0xE0, 0x27, 0x92, 0x24, 0x9C, 0xD4, 0x26, 0x86, 0x29, 0x86, 0x2E, 0x86, 0xE0, 0x35, 0x8C, 0x86, 0xD4, 0x32, 0x86, 0xD4, 0x86, 0xD4, 0x86, 0xF0, 0x30, 0xA8, 0xAF, 0x83, 0xB1});
     // songLooker.add_track({0xBC, 0x00, 0xBD, 0x40, 0xBE, 0x5A, 0xBF, 0x61, 0xD4, 0x28, 0x64, 0x86, 0x2B, 0x86, 0x30, 0x86, 0x34, 0x86, 0x37, 0x86, 0x3C, 0x86, 0xE0, 0x40, 0x93, 0x3C, 0x58, 0x91, 0xD4, 0x27, 0x64, 0x86, 0x2C, 0x86, 0x30, 0x86, 0x33, 0x86, 0x38, 0x86, 0x3C, 0x86, 0xE0, 0x3F, 0x92, 0x3C, 0x92, 0xD4, 0x29, 0x86, 0x2E, 0x86, 0x32, 0x86, 0x35, 0x86, 0x3A, 0x86, 0x3E, 0x86, 0xDA, 0x41, 0x8C, 0x86, 0xD4, 0x86, 0xD4, 0x86, 0xD4, 0x86, 0xF2, 0x40, 0xA8, 0xAF, 0x83, 0xB1});
     // songLooker.add_track({0xBC, 0x00, 0xBD, 0x40, 0xBE, 0x5A, 0xBF, 0x20, 0x86, 0xD4, 0x28, 0x64, 0x86, 0x2B, 0x86, 0x30, 0x86, 0x34, 0x86, 0x37, 0x86, 0xE0, 0x3C, 0x92, 0x3C, 0x58, 0x98, 0xD4, 0x27, 0x64, 0x86, 0x2C, 0x86, 0x30, 0x86, 0x33, 0x86, 0x38, 0x86, 0xE0, 0x3C, 0x92, 0x38, 0x98, 0xD4, 0x29, 0x86, 0x2E, 0x86, 0x32, 0x86, 0x35, 0x86, 0x3A, 0x86, 0xE0, 0x3E, 0x8C, 0x86, 0xE0, 0x92, 0xF2, 0x3C, 0xA8, 0xAF, 0x83, 0xB1});
@@ -350,8 +349,16 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
         curr_section30_index++; // Align the code so that it is byte aligned
     }
 
-#include "mario.h"
-    spriteLooker.insert_sprite_data(save_section_30, marioTiles, 256, marioPal);
+#include "lookerFRLG.h"
+#include "lookerRSE.h"
+    if (curr_rom.is_hoenn())
+    {
+        spriteLooker.insert_sprite_data(save_section_30, lookerRSETiles, 256, lookerRSEPal);
+    }
+    else
+    {
+        spriteLooker.insert_sprite_data(save_section_30, lookerFRLGTiles, 256, lookerFRLGPal);
+    }
     asm_var paletteData(curr_rom.loc_gSaveDataBuffer + (curr_section30_index - 32), sec30_variable_list, &curr_section30_index);
 
     asm_payload_location = S30_SCRIPT;

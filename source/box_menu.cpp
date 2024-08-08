@@ -13,7 +13,7 @@ Box_Menu::Box_Menu(){};
 int Box_Menu::box_main(Pokemon_Party party_data)
 {
     tte_erase_screen();
-    obj_hide(prof);
+    load_flex_background(BG_FENNEL, 3);
     REG_BG2VOFS = BG2VOF_LARGE_TEXTBOX;
     REG_BG2VOFS = 0;
     load_temp_box_sprites(party_data);
@@ -104,7 +104,7 @@ int Box_Menu::box_main(Pokemon_Party party_data)
                     obj_hide(party_sprites[i]);
                 }
                 tte_erase_screen();
-                obj_unhide(prof, 0);
+                load_flex_background(BG_FENNEL, 2);
                 REG_BG2VOFS = BG2VOF_SMALL_TEXTBOX;
                 global_next_frame();
                 return curr_button;

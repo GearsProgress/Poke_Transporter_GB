@@ -53,23 +53,60 @@ void load_background()
     // Load map into SBB 30
     memcpy(&se_mem[SBB][0], backgroundMap, backgroundMapLen);
 
-    REG_BG0CNT = BG_CBB(CBB) | BG_SBB(SBB) | BG_4BPP | BG_REG_32x32 | BG_PRIO(2);
+    REG_BG0CNT = BG_CBB(CBB) | BG_SBB(SBB) | BG_4BPP | BG_REG_32x32 | BG_PRIO(3);
+}
+
+void modify_background_pal(bool dark)
+{
+    if (dark)
+    {
+        memcpy(pal_bg_mem, &backgroundPal[4], 16);
+    }
+    else
+    {
+        memcpy(pal_bg_mem, backgroundPal, backgroundPalLen);
+    }
 }
 
 #include "openingBG.h"
-void load_opening_background()
+#include "fennelBG.h"
+#include "dexBG.h"
+void load_flex_background(int background_id, int layer)
 {
-    int CBB = 1;
-    int SBB = 9;
-    // Load palette
-    memcpy(pal_bg_mem + 32, openingBGPal, openingBGPalLen);
-    // Load tiles into CBB 0
-    memcpy(&tile_mem[CBB][0], openingBGTiles, openingBGTilesLen);
-    // Load map into SBB 0
-    memcpy(&se_mem[SBB][0], openingBGMap, openingBGMapLen);
+    int CBB = 1;  // CBB is the tiles that make up the sprite
+    int SBB = 15; // SSB is the array of which tile goes where
+    switch (background_id)
+    {
+    case (BG_OPENING):
+        // Load palette
+        memcpy(pal_bg_mem + 32, openingBGPal, openingBGPalLen);
+        // Load tiles into CBB 0
+        memcpy(&tile_mem[CBB][0], openingBGTiles, openingBGTilesLen);
+        // Load map into SBB 0
+        memcpy(&se_mem[SBB][0], openingBGMap, openingBGMapLen);
+        REG_BG1VOFS = 96;
+        break;
+    case (BG_FENNEL):
+        // Load palette
+        memcpy(pal_bg_mem + 32, fennelBGPal, fennelBGPalLen);
+        // Load tiles into CBB 0
+        memcpy(&tile_mem[CBB][0], fennelBGTiles, fennelBGTilesLen);
+        // Load map into SBB 0
+        memcpy(&se_mem[SBB][0], fennelBGMap, fennelBGMapLen);
+        REG_BG1VOFS = 0;
+        break;
+    case (BG_DEX):
+        // Load palette
+        memcpy(pal_bg_mem + 32, dexBGPal, dexBGPalLen);
+        // Load tiles into CBB 0
+        memcpy(&tile_mem[CBB][0], dexBGTiles, dexBGTilesLen);
+        // Load map into SBB 0
+        memcpy(&se_mem[SBB][0], dexBGMap, dexBGMapLen);
+        REG_BG1VOFS = 0;
+        break;
+    }
 
-    REG_BG1VOFS = 96;
-    REG_BG1CNT = BG_CBB(CBB) | BG_SBB(SBB) | BG_4BPP | BG_REG_32x32 | BG_PRIO(1);
+    REG_BG1CNT = BG_CBB(CBB) | BG_SBB(SBB) | BG_4BPP | BG_REG_32x32 | BG_PRIO(layer);
 }
 
 #include "textboxBG.h"
@@ -91,8 +128,6 @@ void load_textbox_background()
 // SPRITES
 
 int num_sprites = 0;
-//OBJ_ATTR *testroid = &obj_buffer[num_sprites++];
-OBJ_ATTR *prof = &obj_buffer[num_sprites++];
 OBJ_ATTR *ptgb_logo_l = &obj_buffer[num_sprites++];
 OBJ_ATTR *ptgb_logo_r = &obj_buffer[num_sprites++];
 
@@ -142,6 +177,26 @@ OBJ_ATTR *button_silver_right = &obj_buffer[num_sprites++];
 OBJ_ATTR *button_crystal_left = &obj_buffer[num_sprites++];
 OBJ_ATTR *button_crystal_right = &obj_buffer[num_sprites++];
 
+OBJ_ATTR *type_sprites[14] = {
+    &obj_buffer[num_sprites++],
+    &obj_buffer[num_sprites++],
+    &obj_buffer[num_sprites++],
+    &obj_buffer[num_sprites++],
+    &obj_buffer[num_sprites++],
+    &obj_buffer[num_sprites++],
+    &obj_buffer[num_sprites++],
+    &obj_buffer[num_sprites++],
+    &obj_buffer[num_sprites++],
+    &obj_buffer[num_sprites++],
+    &obj_buffer[num_sprites++],
+    &obj_buffer[num_sprites++],
+    &obj_buffer[num_sprites++],
+    &obj_buffer[num_sprites++],
+};
+
+OBJ_ATTR *up_arrow = &obj_buffer[num_sprites++];
+OBJ_ATTR *down_arrow = &obj_buffer[num_sprites++];
+
 OBJ_ATTR *box_select = &obj_buffer[num_sprites++];
 
 OBJ_ATTR *party_sprites[30] = {
@@ -186,15 +241,12 @@ u32 global_tile_id_end = 0;
 
 void load_eternal_sprites()
 {
-    //memcpy(pal_obj_mem + (METR_PAL * 16), metrPal, metrPalLen);
-    memcpy(pal_obj_mem + (PROF_PAL * 16), profPal, profPalLen);
     memcpy(pal_obj_mem + (BTN_PAL * 16), btn_t_lPal, btn_t_lPalLen);
     memcpy(pal_obj_mem + (BTN_LIT_PAL * 16), btn_t_rPal, btn_t_rPalLen);
     memcpy(pal_obj_mem + (LOGO_PAL * 16), ptgb_logo_lPal, ptgb_logo_lPalLen);
+    memcpy(pal_obj_mem + (TYPES_PAL1 * 16), typesPal, typesPalLen);
 
     u32 curr_tile_id = 0;
-    //load_sprite(testroid, metrTiles, metrTilesLen, curr_tile_id, METR_PAL, ATTR0_SQUARE, ATTR1_SIZE_64x64, 0);
-    load_sprite(prof, profTiles, profTilesLen, curr_tile_id, PROF_PAL, ATTR0_SQUARE, ATTR1_SIZE_64x64, 2);
     load_sprite(ptgb_logo_l, ptgb_logo_lTiles, ptgb_logo_lTilesLen, curr_tile_id, LOGO_PAL, ATTR0_SQUARE, ATTR1_SIZE_64x64, 1);
     load_sprite(ptgb_logo_r, ptgb_logo_rTiles, ptgb_logo_rTilesLen, curr_tile_id, LOGO_PAL, ATTR0_SQUARE, ATTR1_SIZE_64x64, 1);
     load_sprite(btn_t_l, btn_t_lTiles, btn_t_lTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
@@ -219,14 +271,6 @@ void load_temp_sprites(int sprite_batch_id)
     u32 curr_tile_id = global_tile_id_end;
     switch (sprite_batch_id)
     {
-    case SPRITE_BATCH_DEX:
-        for (int col = 0; col < 6; col++)
-        {
-            load_sprite(dex_sprites[DEX_SPRITE_LEFT][col], dex_lTiles, dex_lTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 2);
-            load_sprite(dex_sprites[DEX_SPRITE_MID][col], dex_mTiles, dex_mTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 2);
-            load_sprite(dex_sprites[DEX_SPRITE_RIGHT][col], dex_rTiles, dex_rTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_16x32, 2);
-        }
-        break;
     case SPRITE_BATCH_LANG:
         load_sprite(btn_lang_jpn, btn_lang_jpnTiles, btn_lang_jpnTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
         load_sprite(btn_lang_eng, btn_lang_engTiles, btn_lang_engTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
@@ -253,6 +297,14 @@ void load_temp_sprites(int sprite_batch_id)
         load_sprite(button_crystal_left, button_crystal_leftTiles, button_crystal_leftTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
         load_sprite(button_crystal_right, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
         break;
+
+    case SPRITE_BATCH_DEX:
+        global_tile_id_end += 14 * 4; // For the type sprites
+        load_sprite(down_arrow, &arrowsTiles[0], 64, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_16x8, 1);
+        load_sprite(up_arrow, &arrowsTiles[16], 64, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_16x8, 1);
+        obj_set_pos(down_arrow, 14 * 8, 17 * 8);
+        obj_set_pos(up_arrow, 14 * 8, 3 * 8);
+        break;
     }
 }
 
@@ -273,6 +325,34 @@ void load_temp_box_sprites(Pokemon_Party party_data)
     load_sprite(button_cancel_right, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
     load_sprite(button_confirm_left, button_confirm_leftTiles, button_confirm_leftTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
     load_sprite(button_confirm_right, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
+}
+
+void load_type_sprites(int pkmn_index, int dex_offset, bool is_caught)
+{
+    if (is_caught)
+    {
+        u32 curr_tile_id = global_tile_id_end + (dex_offset * 2 * 4);
+        int type1 = TYPES[pkmn_index][0];
+        int type2 = TYPES[pkmn_index][1];
+
+        //                                                  V this is super weird because Grit keeps adding in an extra blank tile. Not sure why.
+        load_sprite(type_sprites[(dex_offset * 2) + 0], &typesTiles[(type1 * 32) + 8], 128, curr_tile_id, (type1 < 13 ? TYPES_PAL1 : TYPES_PAL2), ATTR0_WIDE, ATTR1_SIZE_32x8, 1);
+        load_sprite(type_sprites[(dex_offset * 2) + 1], &typesTiles[(type2 * 32) + 8], 128, curr_tile_id, (type2 < 13 ? TYPES_PAL1 : TYPES_PAL2), ATTR0_WIDE, ATTR1_SIZE_32x8, 1);
+
+        obj_set_pos(type_sprites[(dex_offset * 2) + 0], 19 * 8, (8 * 2 * dex_offset) + (8 * 4));
+        obj_set_pos(type_sprites[(dex_offset * 2) + 1], 23 * 8, (8 * 2 * dex_offset) + (8 * 4));
+
+        obj_unhide(type_sprites[(dex_offset * 2) + 0], 0);
+        if (type1 != type2)
+        {
+            obj_unhide(type_sprites[(dex_offset * 2) + 1], 0);
+        }
+    }
+    else
+    {
+        obj_hide(type_sprites[(dex_offset * 2) + 0]);
+        obj_hide(type_sprites[(dex_offset * 2) + 1]);
+    }
 }
 
 void load_sprite(OBJ_ATTR *sprite, const unsigned int objTiles[], int objTilesLen,

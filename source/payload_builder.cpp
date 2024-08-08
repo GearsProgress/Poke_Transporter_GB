@@ -709,8 +709,6 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
         save_box.set_start(&z80_patchlist);
         z80_patchlist.JP(jump_to_party.place_direct_jump(&z80_patchlist) | T_U16); // jp pkmn list (because saving the box overwrites the data)
 
-        z80_patchlist.index += 0x0A;
-
         array_counter.insert_variable(&z80_patchlist);
         removal_array.insert_variable(&z80_patchlist);
         transfer_wait_string.insert_variable(&z80_patchlist);
@@ -748,7 +746,7 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
     }
 };
 
-int main() // Rename to "main" to send the payload to test_payload.txt
+int test_main() // Rename to "main" to send the payload to test_payload.txt
 {
     freopen("test_payload.txt", "w", stdout);
     std::cout << std::endl;

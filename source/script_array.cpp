@@ -276,10 +276,10 @@ bool run_conditional(int index)
         return party_data.get_contains_invalid();
 
     case CMD_START_LINK:
-        obj_hide(prof);
+        load_flex_background(BG_FENNEL, 3);
         party_data.start_link();
         set_textbox_small();
-        obj_unhide(prof, 0);
+        load_flex_background(BG_FENNEL, 2);
         return true;
 
     case CMD_IMPORT_POKEMON:
@@ -288,16 +288,15 @@ bool run_conditional(int index)
 
     case CMD_BACK_TO_MENU:
         set_text_exit();
-        obj_hide(prof);
+        load_flex_background(BG_FENNEL, 3);
         return true;
 
     case CMD_SHOW_PROF:
-        obj_unhide(prof, 0);
-        obj_set_pos(prof, 96, 56);
+        load_flex_background(BG_FENNEL, 2);
         return true;
 
     case CMD_HIDE_PROF:
-        obj_hide(prof);
+        load_flex_background(BG_FENNEL, 3);
         return true;
 
     case CMD_SET_TUTOR_TRUE:
@@ -338,7 +337,7 @@ bool run_conditional(int index)
     case CMD_SLIDE_PROF_LEFT:
         for (int i = 0; i < 48; i++)
         {
-            obj_set_pos(prof, (prof->attr1 & ATTR1_X_MASK) - 2, prof->attr0 & ATTR0_Y_MASK);
+            //obj_set_pos(prof, (prof->attr1 & ATTR1_X_MASK) - 2, prof->attr0 & ATTR0_Y_MASK);
             if (!DEBUG_MODE)
             {
                 global_next_frame();
@@ -349,7 +348,7 @@ bool run_conditional(int index)
     case CMD_SLIDE_PROF_RIGHT:
         for (int i = 0; i < 48; i++)
         {
-            obj_set_pos(prof, (prof->attr1 & ATTR1_X_MASK) + 2, prof->attr0 & ATTR0_Y_MASK);
+            //obj_set_pos(prof, (prof->attr1 & ATTR1_X_MASK) + 2, prof->attr0 & ATTR0_Y_MASK);
             if (!DEBUG_MODE)
             {
                 global_next_frame();

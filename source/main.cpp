@@ -95,7 +95,7 @@ void load_graphics()
 {
 	tte_erase_rect(0, 0, H_MAX, V_MAX);
 	// Load opening background first so it hides everything else
-	load_opening_background();
+	load_flex_background(BG_OPENING, 1);
 	load_background();
 	load_textbox_background();
 	load_eternal_sprites();
@@ -104,7 +104,7 @@ void load_graphics()
 	main_menu.clear_vector();
 	main_menu.add_button(Button(btn_t_l, btn_t_r, 48), BTN_TRANSFER);
 	main_menu.add_button(Button(btn_p_l, btn_p_r, 48), BTN_POKEDEX);
-	main_menu.add_button(Button(btn_d_l, btn_d_r, 48), BTN_EVENTS);
+	//main_menu.add_button(Button(btn_d_l, btn_d_r, 48), BTN_EVENTS);
 	main_menu.add_button(Button(btn_c_l, btn_c_r, 48), BTN_CREDITS);
 	main_menu.set_xy_min_max(0, H_MAX, 48, V_MAX);
 
@@ -356,13 +356,19 @@ int main(void)
 		{
 		case (BTN_TRANSFER):
 			obj_hide_multi(ptgb_logo_l, 2);
+			load_flex_background(BG_FENNEL, 2);
 			text_loop(BTN_TRANSFER);
 			break;
 		case (BTN_POKEDEX):
 			if (IGNORE_MG_E4_FLAGS || read_flag(curr_rom.e4_flag))
 			{
+				load_flex_background(BG_DEX, 2);
+				modify_background_pal(true);
+				load_temp_sprites(SPRITE_BATCH_DEX);
 				obj_hide_multi(ptgb_logo_l, 2);
 				pokedex_loop();
+				load_flex_background(BG_DEX, 3);
+				modify_background_pal(false);
 			}
 			break;
 		case (BTN_CREDITS):

@@ -62,6 +62,7 @@ extern const u16 gen_2_ItaSpa_char_array[256];
 extern const u16 gen_3_Jpn_char_array[256];
 extern const u16 gen_3_Intern_char_array[256];
 extern const byte EVENT_PKMN[8][80];
+extern const u8 TYPES[252][2];
 
 u32 get_max_exp(int index_num);
 u8 get_gender_threshold(int index_num, bool is_gen_3);

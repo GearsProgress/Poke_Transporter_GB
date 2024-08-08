@@ -1,4 +1,4 @@
 #
 # Metroid : 4bpp, not compressed. Only use the first 64 columns.
 #
--gB4 -ar64
+-gB4 -ps0 -pe16

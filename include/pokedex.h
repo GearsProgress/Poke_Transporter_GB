@@ -5,7 +5,7 @@
 
 #include "dex_handler.h"
 
-#define DEX_MAX 6
+#define DEX_MAX 7
 #define DEX_SHIFT_MAX (251 - DEX_MAX)
 #define SPEED_DELAY 30
 #define MAX_NAME_SIZE 10
