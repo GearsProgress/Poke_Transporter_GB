@@ -10,14 +10,13 @@
 #include "box_menu.h"
 #include <tonc.h>
 #include "background_engine.h"
+#include "select_menu.h"
 
 int last_error;
 Pokemon_Party party_data = Pokemon_Party();
 
-Button_Menu lang_select(2, 4, 40, 24, false);
-Button_Menu game_select_def(2, 2, 72, 32, true);
-Button_Menu game_select_jpn(3, 2, 72, 32, true);
-Button_Menu game_select_kor(1, 1, 72, 32, true);
+Select_Menu langs(false, LANG_MENU);
+Select_Menu games(false, CART_MENU);
 Box_Menu box_viewer;
 
 script_obj transfer_script[SCRIPT_SIZE];
@@ -86,7 +85,7 @@ void populate_script()
     transfer_script[DIA_WHAT_GAME_TRANS] = script_obj(dialogue[DIA_WHAT_GAME_TRANS], CMD_GAME_MENU);
     transfer_script[CMD_GAME_MENU] = script_obj(CMD_GAME_MENU, COND_GB_ROM_EXISTS, DIA_WHAT_LANG_TRANS);
     transfer_script[DIA_WHAT_LANG_TRANS] = script_obj(dialogue[DIA_WHAT_LANG_TRANS], CMD_LANG_MENU);
-    transfer_script[CMD_LANG_MENU] = script_obj(CMD_LANG_MENU, DIA_WHAT_GAME_TRANS);
+    transfer_script[CMD_LANG_MENU] = script_obj(CMD_LANG_MENU, DIA_WHAT_GAME_TRANS, DIA_CANCEL);
     transfer_script[DIA_ASK_QUEST] = script_obj(dialogue[DIA_ASK_QUEST], CMD_SLIDE_PROF_LEFT);
     transfer_script[CMD_SLIDE_PROF_LEFT] = script_obj(CMD_SLIDE_PROF_LEFT, DIA_WHAT_LANG_TRANS);
     transfer_script[CMD_SLIDE_PROF_RIGHT] = script_obj(CMD_SLIDE_PROF_RIGHT, DIA_LETS_START);
@@ -164,53 +163,56 @@ void populate_script()
     event_script[CMD_BACK_TO_MENU] = script_obj(CMD_BACK_TO_MENU, T_SCRIPT_START);
 };
 
-void populate_lang_buttons()
+void populate_lang_menu()
 {
-    lang_select.set_xy_min_max(48, 240, 0, 112);
-    lang_select.clear_vector();
-    lang_select.add_button(Button(btn_lang_jpn), JPN_ID);
-    lang_select.add_button(Button(btn_lang_eng), ENG_ID);
-    lang_select.add_button(Button(btn_lang_fre), FRE_ID);
-    lang_select.add_button(Button(btn_lang_ita), ITA_ID);
-    lang_select.add_button(Button(btn_lang_ger), GER_ID);
-    lang_select.add_button(Button(btn_lang_spa), SPA_ID);
-    lang_select.add_button(Button(btn_lang_kor), KOR_ID);
+    langs.add_option("English", ENG_ID);
+    langs.add_option("Japanese", JPN_ID);
+    langs.add_option("Spanish", SPA_ID);
+    langs.add_option("French", FRE_ID);
+    langs.add_option("German", GER_ID);
+    langs.add_option("Italian", ITA_ID);
+    langs.add_option("Korean", KOR_ID);
+    langs.add_option("Cancel", -1);
 }
 
-void populate_game_buttons()
+void populate_game_menu(int lang)
 {
-    game_select_jpn.clear_vector();
-    game_select_jpn.set_rows_and_columns(3, 3);
-    game_select_jpn.add_button(Button(button_green_left, button_green_right, 64), GREEN_ID);
-    game_select_jpn.add_button(Button(button_red_left, button_red_right, 64), RED_ID);
-    game_select_jpn.add_button(Button(button_blue_left, button_blue_right, 64), BLUE_ID);
-    game_select_jpn.add_button(Button(button_yellow_left, button_yellow_right, 64), YELLOW_ID);
-    game_select_jpn.add_button(Button(button_gold_left, button_gold_right, 64), GOLD_ID);
-    game_select_jpn.add_button(Button(button_silver_left, button_silver_right, 64), SILVER_ID);
-    game_select_jpn.add_button(Button(button_crystal_left, button_crystal_right, 64), CRYSTAL_ID);
-    game_select_jpn.set_xy_min_max(32, 240, 0, 120);
+    switch (lang)
+    {
+    case (JPN_ID):
+        games.add_option("Red", RED_ID);
+        games.add_option("Green", GREEN_ID);
+        games.add_option("Blue", BLUE_ID);
+        games.add_option("Yellow", YELLOW_ID);
+        games.add_option("Gold", GOLD_ID);
+        games.add_option("Silver", SILVER_ID);
+        games.add_option("Crystal", CRYSTAL_ID);
+        games.add_option("Cancel", -1);
+        break;
 
-    game_select_kor.clear_vector();
-    game_select_kor.set_rows_and_columns(1, 2);
-    game_select_kor.add_button(Button(button_gold_left, button_gold_right, 64), GOLD_ID);
-    game_select_kor.add_button(Button(button_silver_left, button_silver_right, 64), SILVER_ID);
-    game_select_kor.set_xy_min_max(48, 240, 0, 120);
+    case (KOR_ID):
+        games.add_option("Gold", GOLD_ID);
+        games.add_option("Silver", SILVER_ID);
+        games.add_option("Cancel", -1);
+        break;
 
-    game_select_def.clear_vector();
-    game_select_def.set_rows_and_columns(3, 2);
-    game_select_def.add_button(Button(button_red_left, button_red_right, 64), RED_ID);
-    game_select_def.add_button(Button(button_blue_left, button_blue_right, 64), RED_ID); // red and blue are identical, so we just say red
-    game_select_def.add_button(Button(button_yellow_left, button_yellow_right, 64), YELLOW_ID);
-    game_select_def.add_button(Button(button_gold_left, button_gold_right, 64), GOLD_ID);
-    game_select_def.add_button(Button(button_silver_left, button_silver_right, 64), SILVER_ID);
-    game_select_def.add_button(Button(button_crystal_left, button_crystal_right, 64), CRYSTAL_ID);
-    game_select_def.set_xy_min_max(48, 240, 0, 120);
+    default:
+        games.add_option("Red", RED_ID);
+        games.add_option("Blue", BLUE_ID);
+        games.add_option("Yellow", YELLOW_ID);
+        games.add_option("Gold", GOLD_ID);
+        games.add_option("Silver", SILVER_ID);
+        games.add_option("Crystal", CRYSTAL_ID);
+        games.add_option("Cancel", -1);
+        break;
+    }
 }
 
 bool run_conditional(int index)
 {
     // Here is most of the logic that drives what lines show up where. It's probably not the best way to code it, but it works
     int game;
+    int lang;
     switch (index)
     {
 
@@ -288,6 +290,7 @@ bool run_conditional(int index)
 
     case CMD_BACK_TO_MENU:
         set_text_exit();
+        REG_BG1HOFS = 0;
         load_flex_background(BG_FENNEL, 3);
         return true;
 
@@ -307,26 +310,19 @@ bool run_conditional(int index)
         return true;
 
     case CMD_LANG_MENU:
-        load_temp_sprites(SPRITE_BATCH_LANG);
-        populate_lang_buttons();
-        party_data.set_lang(lang_select.button_main());
+        populate_lang_menu();
+        lang = langs.select_menu_main();
+        if (lang == BUTTON_CANCEL)
+        {
+            return false;
+        }
+        games.set_lang(lang);
+        party_data.set_lang(lang);
         return true;
 
     case CMD_GAME_MENU:
-        load_temp_sprites(SPRITE_BATCH_GAMES);
-        populate_game_buttons();
-        switch (party_data.get_lang())
-        {
-        case JPN_ID:
-            game = game_select_jpn.button_main();
-            break;
-        case KOR_ID:
-            game = game_select_kor.button_main();
-            break;
-        default:
-            game = game_select_def.button_main();
-            break;
-        }
+        populate_game_menu(party_data.get_lang());
+        game = games.select_menu_main();
         if (game == BUTTON_CANCEL)
         {
             return false;
@@ -335,9 +331,9 @@ bool run_conditional(int index)
         return true;
 
     case CMD_SLIDE_PROF_LEFT:
-        for (int i = 0; i < 48; i++)
+        for (int i = 0; i <= (8 * 7); i += 2)
         {
-            //obj_set_pos(prof, (prof->attr1 & ATTR1_X_MASK) - 2, prof->attr0 & ATTR0_Y_MASK);
+            REG_BG1HOFS = i;
             if (!DEBUG_MODE)
             {
                 global_next_frame();
@@ -346,9 +342,9 @@ bool run_conditional(int index)
         return true;
 
     case CMD_SLIDE_PROF_RIGHT:
-        for (int i = 0; i < 48; i++)
+        for (int i = (8 * 7); i >= 0; i -= 2)
         {
-            //obj_set_pos(prof, (prof->attr1 & ATTR1_X_MASK) + 2, prof->attr0 & ATTR0_Y_MASK);
+            REG_BG1HOFS = i;
             if (!DEBUG_MODE)
             {
                 global_next_frame();

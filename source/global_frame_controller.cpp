@@ -22,8 +22,6 @@ void global_next_frame()
     // mmFrame(); //Music
     if (global_frame_count % 60 == 0)
     {
-        memcpy(pal_obj_mem + (MENU_SPRITE_PAL * 16), frame_one_pal, 32);
-
         if (!curr_rom.verify_rom())
         {
             REG_BG0CNT = (REG_BG0CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
@@ -39,10 +37,7 @@ void global_next_frame()
             while(true){};
         }
     }
-    else if (global_frame_count % 60 == 30)
-    {
-        memcpy(pal_obj_mem + (MENU_SPRITE_PAL * 16), frame_two_pal, 32);
-    }
+
     global_frame_count++;
 };
 

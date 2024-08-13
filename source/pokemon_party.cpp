@@ -10,7 +10,8 @@
 #include "payload_builder.h"
 
 const GB_ROM *list_of_gb_roms[NUM_GB_ROMS] = {
-	&ENG_RED_BLUE,
+	&ENG_RED,
+	&ENG_BLUE,
 	&ENG_YELLOW,
 	&ENG_GOLD,
 	&ENG_SILVER,

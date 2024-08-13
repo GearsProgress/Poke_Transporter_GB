@@ -1,3 +1,0 @@
-#
-# Button : 4bpp, not compressed. Pallet 2, copy from 32 to 48.
--gB4 -ps32 -pe48

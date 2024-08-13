@@ -1,0 +1,117 @@
+#include "select_menu.h"
+#include "sprite_data.h"
+
+Select_Menu::Select_Menu(bool enable_cancel, int nMenu_type)
+{
+    cancel_enabled = enable_cancel;
+    menu_type = nMenu_type;
+}
+
+void Select_Menu::add_option(std::string option, int return_value)
+{
+    menu_options.push_back(option);
+    return_values.push_back(return_value);
+}
+
+int Select_Menu::select_menu_main()
+{
+    show_menu();
+    curr_selection = 0;
+
+    key_poll(); // Reset the buttons
+
+    while (true)
+    {
+        obj_set_pos(point_arrow, 19 * 8, (2 + curr_selection) * 8);
+        if (return_values[curr_selection] == -1)
+        {
+            switch (menu_type)
+            {
+            case CART_MENU:
+                obj_hide(cart_shell);
+                obj_hide(cart_label);
+                break;
+            case LANG_MENU:
+                obj_hide(flag);
+                break;
+            }
+        }
+        else
+        {
+            switch (menu_type)
+            {
+            case CART_MENU:
+                load_cart(return_values[curr_selection], lang);
+                break;
+            case LANG_MENU:
+                load_flag(return_values[curr_selection]);
+                break;
+            }
+        }
+
+        if (key_hit(KEY_DOWN))
+        {
+            curr_selection = ((curr_selection + 1) % menu_options.size());
+        }
+
+        else if (key_hit(KEY_UP))
+        {
+            curr_selection = ((curr_selection + (menu_options.size() - 1)) % menu_options.size());
+        }
+        else if (key_hit(KEY_A))
+        {
+            hide_menu();
+            return return_values[curr_selection];
+        }
+        else if (cancel_enabled && key_hit(KEY_B))
+        {
+            hide_menu();
+            return -1;
+        }
+
+        global_next_frame();
+    }
+    return 0;
+}
+
+void Select_Menu::show_menu()
+{
+    add_menu_box(menu_options.size());
+    for (unsigned int i = 0; i < menu_options.size(); i++)
+    {
+        tte_set_pos(20 * 8, (2 + i) * 8);
+        tte_write(menu_options[i].c_str());
+    }
+    obj_unhide(point_arrow, 0);
+    obj_set_pos(point_arrow, 19 * 8, 2 * 8);
+}
+
+void Select_Menu::hide_menu()
+{
+    obj_hide(point_arrow);
+    tte_erase_rect(20 * 8, 2 * 8, (20 + 8) * 8, (2 + menu_options.size()) * 8);
+    reload_textbox_background();
+    clear_options();
+    obj_hide(point_arrow);
+    switch (menu_type)
+    {
+    case CART_MENU:
+        obj_hide(cart_shell);
+        obj_hide(cart_label);
+        break;
+    case LANG_MENU:
+        obj_hide(flag);
+        break;
+    }
+}
+
+void Select_Menu::clear_options()
+{
+    menu_options.clear();
+    return_values.clear();
+}
+
+void Select_Menu::set_lang(int nLang)
+{
+    lang = nLang;
+}

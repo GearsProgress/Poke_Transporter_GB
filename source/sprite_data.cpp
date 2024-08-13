@@ -1,5 +1,6 @@
 #include <tonc.h>
 #include <cstring>
+#include <cmath>
 #include "sprite_data.h"
 #include "debug_mode.h"
 
@@ -11,10 +12,11 @@ OBJ_AFFINE *obj_aff_buffer = (OBJ_AFFINE *)obj_buffer;
 // These are the two pallets used by the menu sprites,
 // it's easier to set them up this way instead of through grit
 // (R + G*32 + B*1024)
-#define WHITE (31 + 31 * 32 + 31 * 1024)
-#define YELLOW (31 + 19 * 32 + 10 * 1024)
-#define RED (31 + 07 * 32 + 04 * 1024)
-#define BLACK (00 + 00 * 32 + 00 * 1024)
+#define RGB(r, g, b) (r + g * 32 + b * 1024)
+#define WHITE RGB(31, 31, 31)
+#define YELLOW RGB(31, 19, 10)
+#define RED RGB(31, 7, 4)
+#define BLACK RGB(0, 0, 0)
 const unsigned short frame_one_pal[16] = {
     WHITE, WHITE, WHITE, WHITE,
     YELLOW, YELLOW, YELLOW, YELLOW,
@@ -125,6 +127,56 @@ void load_textbox_background()
     REG_BG2CNT = BG_CBB(CBB) | BG_SBB(SBB) | BG_4BPP | BG_REG_32x32 | BG_PRIO(3);
 }
 
+void reload_textbox_background()
+{
+    int SBB = 17;
+    memcpy(&se_mem[SBB][0], textBoxBGMap, textBoxBGMapLen);
+}
+
+// tile ID, VH Flip, Palette Bank
+#define TILE_CLEAR (0 | (0b00 << 0xA) | (1 << 0xC))
+#define TILE_N (2 | (0b00 << 0xA) | (1 << 0xC))
+#define TILE_NE (1 | (0b01 << 0xA) | (1 << 0xC))
+#define TILE_E (3 | (0b01 << 0xA) | (1 << 0xC))
+#define TILE_SE (5 | (0b01 << 0xA) | (1 << 0xC))
+#define TILE_S (6 | (0b00 << 0xA) | (1 << 0xC))
+#define TILE_SW (5 | (0b00 << 0xA) | (1 << 0xC))
+#define TILE_W (3 | (0b00 << 0xA) | (1 << 0xC))
+#define TILE_NW (1 | (0b00 << 0xA) | (1 << 0xC))
+#define TILE_MID (4 | (0b00 << 0xA) | (1 << 0xC))
+#define MENU_WIDTH 11 - 1
+
+void add_menu_box(int options)
+{
+    int start = (32 * 13) + 18;
+    int SBB = 17;
+
+    se_mem[SBB][start] = TILE_NW;
+    se_mem[SBB][start + MENU_WIDTH] = TILE_NE;
+    se_mem[SBB][start + (32 * (options + 1))] = TILE_SW;
+    se_mem[SBB][start + (32 * (options + 1)) + MENU_WIDTH] = TILE_SE;
+
+    for (int i = 1; i < MENU_WIDTH; i++)
+    {
+        se_mem[SBB][start + i] = TILE_N;
+        se_mem[SBB][start + ((32 * (options + 1))) + i] = TILE_S;
+    }
+
+    for (int i = 0; i < options; i++)
+    {
+        se_mem[SBB][start + (32 * (i + 1)) + MENU_WIDTH] = TILE_E;
+        se_mem[SBB][start + (32 * (i + 1))] = TILE_W;
+    }
+
+    for (int x = 1; x < MENU_WIDTH; x++)
+    {
+        for (int y = 1; y < options + 1; y++)
+        {
+            se_mem[SBB][start + (32 * y) + x] = TILE_MID;
+        }
+    }
+}
+
 // SPRITES
 
 int num_sprites = 0;
@@ -141,41 +193,9 @@ OBJ_ATTR *btn_d_l = &obj_buffer[num_sprites++];
 OBJ_ATTR *btn_d_r = &obj_buffer[num_sprites++];
 OBJ_ATTR *button_yes = &obj_buffer[num_sprites++];
 OBJ_ATTR *button_no = &obj_buffer[num_sprites++];
-OBJ_ATTR *button_blank_left = &obj_buffer[num_sprites++];
-OBJ_ATTR *button_blank_right = &obj_buffer[num_sprites++];
-OBJ_ATTR *button_blank_left_2 = &obj_buffer[num_sprites++];
-OBJ_ATTR *button_blank_right_2 = &obj_buffer[num_sprites++];
-
-OBJ_ATTR *dex_sprites[3][6] = { // Fills the dex sprites top to bottom, left to right
-    {&obj_buffer[num_sprites++], &obj_buffer[num_sprites++], &obj_buffer[num_sprites++],
-     &obj_buffer[num_sprites++], &obj_buffer[num_sprites++], &obj_buffer[num_sprites++]},
-    {&obj_buffer[num_sprites++], &obj_buffer[num_sprites++], &obj_buffer[num_sprites++],
-     &obj_buffer[num_sprites++], &obj_buffer[num_sprites++], &obj_buffer[num_sprites++]},
-    {&obj_buffer[num_sprites++], &obj_buffer[num_sprites++], &obj_buffer[num_sprites++],
-     &obj_buffer[num_sprites++], &obj_buffer[num_sprites++], &obj_buffer[num_sprites++]}};
-
-OBJ_ATTR *btn_lang_jpn = &obj_buffer[num_sprites++];
-OBJ_ATTR *btn_lang_eng = &obj_buffer[num_sprites++];
-OBJ_ATTR *btn_lang_fre = &obj_buffer[num_sprites++];
-OBJ_ATTR *btn_lang_ita = &obj_buffer[num_sprites++];
-OBJ_ATTR *btn_lang_ger = &obj_buffer[num_sprites++];
-OBJ_ATTR *btn_lang_spa = &obj_buffer[num_sprites++];
-OBJ_ATTR *btn_lang_kor = &obj_buffer[num_sprites++];
-
-OBJ_ATTR *button_green_left = &obj_buffer[num_sprites++];
-OBJ_ATTR *button_green_right = &obj_buffer[num_sprites++];
-OBJ_ATTR *button_blue_left = &obj_buffer[num_sprites++];
-OBJ_ATTR *button_blue_right = &obj_buffer[num_sprites++];
-OBJ_ATTR *button_red_left = &obj_buffer[num_sprites++];
-OBJ_ATTR *button_red_right = &obj_buffer[num_sprites++];
-OBJ_ATTR *button_yellow_left = &obj_buffer[num_sprites++];
-OBJ_ATTR *button_yellow_right = &obj_buffer[num_sprites++];
-OBJ_ATTR *button_gold_left = &obj_buffer[num_sprites++];
-OBJ_ATTR *button_gold_right = &obj_buffer[num_sprites++];
-OBJ_ATTR *button_silver_left = &obj_buffer[num_sprites++];
-OBJ_ATTR *button_silver_right = &obj_buffer[num_sprites++];
-OBJ_ATTR *button_crystal_left = &obj_buffer[num_sprites++];
-OBJ_ATTR *button_crystal_right = &obj_buffer[num_sprites++];
+OBJ_ATTR *cart_shell = &obj_buffer[num_sprites++];
+OBJ_ATTR *cart_label = &obj_buffer[num_sprites++];
+OBJ_ATTR *flag = &obj_buffer[num_sprites++];
 
 OBJ_ATTR *type_sprites[14] = {
     &obj_buffer[num_sprites++],
@@ -196,6 +216,7 @@ OBJ_ATTR *type_sprites[14] = {
 
 OBJ_ATTR *up_arrow = &obj_buffer[num_sprites++];
 OBJ_ATTR *down_arrow = &obj_buffer[num_sprites++];
+OBJ_ATTR *point_arrow = &obj_buffer[num_sprites++];
 
 OBJ_ATTR *box_select = &obj_buffer[num_sprites++];
 
@@ -259,53 +280,13 @@ void load_eternal_sprites()
     load_sprite(btn_d_r, btn_d_rTiles, btn_d_rTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
     load_sprite(button_yes, button_yesTiles, button_yesTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
     load_sprite(button_no, button_noTiles, button_noTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-    load_sprite(button_blank_left, button_blank_leftTiles, button_blank_leftTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-    load_sprite(button_blank_right, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
-    load_sprite(button_blank_left_2, button_blank_leftTiles, button_blank_leftTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-    load_sprite(button_blank_right_2, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
+    load_sprite(cart_label, &Label_GreenTiles[8], Label_GreenTilesLen - 32, curr_tile_id, CART_PAL, ATTR0_SQUARE, ATTR1_SIZE_32x32, 1);
+    load_sprite(point_arrow, &arrowsTiles[32], 32, curr_tile_id, BTN_PAL, ATTR0_SQUARE, ATTR1_SIZE_8x8, 1);
+    load_sprite(down_arrow, &arrowsTiles[0], 64, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_16x8, 1);
+    load_sprite(up_arrow, &arrowsTiles[16], 64, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_16x8, 1);
+    obj_set_pos(down_arrow, 14 * 8, 17 * 8);
+    obj_set_pos(up_arrow, 14 * 8, 3 * 8);
     global_tile_id_end = curr_tile_id;
-}
-
-void load_temp_sprites(int sprite_batch_id)
-{
-    u32 curr_tile_id = global_tile_id_end;
-    switch (sprite_batch_id)
-    {
-    case SPRITE_BATCH_LANG:
-        load_sprite(btn_lang_jpn, btn_lang_jpnTiles, btn_lang_jpnTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-        load_sprite(btn_lang_eng, btn_lang_engTiles, btn_lang_engTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-        load_sprite(btn_lang_fre, btn_lang_freTiles, btn_lang_freTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-        load_sprite(btn_lang_ita, btn_lang_itaTiles, btn_lang_itaTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-        load_sprite(btn_lang_ger, btn_lang_gerTiles, btn_lang_gerTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-        load_sprite(btn_lang_spa, btn_lang_spaTiles, btn_lang_spaTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-        load_sprite(btn_lang_kor, btn_lang_korTiles, btn_lang_korTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-        break;
-
-    case SPRITE_BATCH_GAMES:
-        load_sprite(button_green_left, button_green_leftTiles, button_green_leftTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-        load_sprite(button_green_right, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
-        load_sprite(button_blue_left, button_blue_leftTiles, button_blue_leftTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-        load_sprite(button_blue_right, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
-        load_sprite(button_red_left, button_red_leftTiles, button_red_leftTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-        load_sprite(button_red_right, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
-        load_sprite(button_yellow_left, button_yellow_leftTiles, button_yellow_leftTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-        load_sprite(button_yellow_right, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
-        load_sprite(button_gold_left, button_gold_leftTiles, button_gold_leftTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-        load_sprite(button_gold_right, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
-        load_sprite(button_silver_left, button_silver_leftTiles, button_silver_leftTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-        load_sprite(button_silver_right, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
-        load_sprite(button_crystal_left, button_crystal_leftTiles, button_crystal_leftTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-        load_sprite(button_crystal_right, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
-        break;
-
-    case SPRITE_BATCH_DEX:
-        global_tile_id_end += 14 * 4; // For the type sprites
-        load_sprite(down_arrow, &arrowsTiles[0], 64, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_16x8, 1);
-        load_sprite(up_arrow, &arrowsTiles[16], 64, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_16x8, 1);
-        obj_set_pos(down_arrow, 14 * 8, 17 * 8);
-        obj_set_pos(up_arrow, 14 * 8, 3 * 8);
-        break;
-    }
 }
 
 void load_temp_box_sprites(Pokemon_Party party_data)
@@ -363,3 +344,176 @@ void load_sprite(OBJ_ATTR *sprite, const unsigned int objTiles[], int objTilesLe
     tile_id += objTilesLen / 32;
     obj_hide(sprite);
 };
+
+void load_cart(int game_id, int lang)
+{
+    //                                    Alpha         Shadow          Main Color       Grey             Black         Mid
+    const unsigned short jpn_gb_pal[6] = {RGB(0, 0, 0), RGB(10, 9, 10), RGB(17, 17, 17), RGB(22, 22, 22), RGB(0, 0, 0), RGB(14, 13, 14)};
+    const unsigned short eng_red_pal[6] = {RGB(0, 0, 0), RGB(16, 1, 0), RGB(27, 6, 5), RGB(22, 22, 22), RGB(0, 0, 0), RGB(23, 3, 2)};
+    const unsigned short eng_blue_pal[6] = {RGB(0, 0, 0), RGB(0, 4, 16), RGB(5, 10, 24), RGB(22, 22, 22), RGB(0, 0, 0), RGB(1, 6, 20)};
+    const unsigned short eng_yellow_pal[6] = {RGB(0, 0, 0), RGB(18, 12, 0), RGB(27, 21, 5), RGB(22, 22, 22), RGB(0, 0, 0), RGB(22, 16, 1)};
+    const unsigned short eng_gold_pal[6] = {RGB(0, 0, 0), RGB(13, 10, 2), RGB(22, 18, 8), RGB(22, 22, 22), RGB(0, 0, 0), RGB(17, 14, 4)};
+    const unsigned short eng_silver_pal[6] = {RGB(0, 0, 0), RGB(11, 12, 14), RGB(20, 22, 23), RGB(22, 22, 22), RGB(0, 0, 0), RGB(15, 16, 19)};
+    const unsigned short crystal_pal[6] = {RGB(0, 0, 0), RGB(9, 13, 17), RGB(16, 21, 25), RGB(22, 22, 22), RGB(0, 0, 0), RGB(12, 17, 22)};
+    const unsigned short jpn_gold_pal[6] = {RGB(0, 0, 0), RGB(0, 0, 0), RGB(5, 7, 12), RGB(22, 22, 22), RGB(0, 0, 0), RGB(3, 4, 8)};
+    const unsigned short jpn_silver_pal[6] = {RGB(0, 0, 0), RGB(5, 4, 5), RGB(11, 10, 10), RGB(22, 22, 22), RGB(0, 0, 0), RGB(8, 7, 7)};
+
+    const unsigned int *label_tiles = 0;
+    const unsigned short *label_palette = 0;
+    const unsigned int *cart_tiles = 0;
+    const unsigned short *cart_palette = 0;
+    switch (game_id)
+    {
+    case (GREEN_ID):
+        label_tiles = Label_GreenTiles;
+        label_palette = Label_GreenPal;
+        cart_tiles = GB_ShellTiles;
+        cart_palette = jpn_gb_pal;
+        break;
+
+    case (RED_ID):
+        label_tiles = Label_RedTiles;
+        label_palette = Label_RedPal;
+        cart_tiles = GB_ShellTiles;
+        if (lang == JPN_ID)
+        {
+            cart_palette = jpn_gb_pal;
+        }
+        else
+        {
+            cart_palette = eng_red_pal;
+        }
+        break;
+
+    case (BLUE_ID):
+        label_tiles = Label_BlueTiles;
+        label_palette = Label_BluePal;
+        cart_tiles = GB_ShellTiles;
+        if (lang == JPN_ID)
+        {
+            cart_palette = jpn_gb_pal;
+        }
+        else
+        {
+            cart_palette = eng_blue_pal;
+        }
+        break;
+
+    case (YELLOW_ID):
+        label_tiles = Label_YellowTiles;
+        label_palette = Label_YellowPal;
+        cart_tiles = GB_ShellTiles;
+        if (lang == JPN_ID)
+        {
+            cart_palette = jpn_gb_pal;
+        }
+        else
+        {
+            cart_palette = eng_yellow_pal;
+        }
+        break;
+
+    case (GOLD_ID):
+        label_tiles = Label_GoldTiles;
+        label_palette = Label_GoldPal;
+        if (lang == JPN_ID)
+        {
+            cart_tiles = GB_ShellTiles;
+            cart_palette = jpn_gold_pal;
+        }
+        else if (lang == KOR_ID)
+        {
+            cart_tiles = GBC_ShellTiles;
+            cart_palette = jpn_gold_pal;
+        }
+        else
+        {
+            cart_tiles = GBS_ShellTiles;
+            cart_palette = eng_gold_pal;
+        }
+        break;
+
+    case (SILVER_ID):
+        label_tiles = Label_SilverTiles;
+        label_palette = Label_SilverPal;
+        if (lang == JPN_ID)
+        {
+            cart_tiles = GB_ShellTiles;
+            cart_palette = jpn_silver_pal;
+        }
+        else if (lang == KOR_ID)
+        {
+            cart_tiles = GBC_ShellTiles;
+            cart_palette = jpn_silver_pal;
+        }
+        else
+        {
+            cart_tiles = GBS_ShellTiles;
+            cart_palette = eng_silver_pal;
+        }
+        break;
+
+    case (CRYSTAL_ID):
+        label_tiles = Label_CrystalTiles;
+        label_palette = Label_CrystalPal;
+        cart_tiles = GBCS_ShellTiles;
+        cart_palette = crystal_pal;
+        break;
+    }
+    u32 curr_tile_id = global_tile_id_end;
+
+    memcpy(pal_obj_mem + (CART_PAL * 16), cart_palette, 12);
+    memcpy(pal_obj_mem + (CART_PAL * 16) + 6, label_palette + 6, 20);
+    load_sprite(cart_shell, cart_tiles, GB_ShellTilesLen, curr_tile_id, CART_PAL, ATTR0_SQUARE, ATTR1_SIZE_64x64, 1);
+    load_sprite(cart_label, &label_tiles[8], Label_GreenTilesLen - 32, curr_tile_id, CART_PAL, ATTR0_SQUARE, ATTR1_SIZE_32x32, 1);
+    int y_offset = sin((get_frame_count() * 4) % 360 * (3.1415 / 180)) * 5;
+    obj_set_pos(cart_shell, (8 * 12) + 4, (8 * 4) + 11 + y_offset);
+    obj_set_pos(cart_label, (8 * 12) + 4 + 8, (8 * 4) + 11 + 13 + y_offset);
+    obj_unhide(cart_shell, 0);
+    obj_unhide(cart_label, 0);
+}
+
+void load_flag(int lang_id)
+{
+    u32 curr_tile_id = global_tile_id_end;
+
+    const unsigned int *flag_tiles = 0;
+    const unsigned short *flag_palette = 0;
+    switch (lang_id)
+    {
+    case JPN_ID:
+        flag_tiles = flag_jpnTiles;
+        flag_palette = flag_jpnPal;
+        break;
+    case ENG_ID:
+        flag_tiles = flag_engTiles;
+        flag_palette = flag_engPal;
+        break;
+    case FRE_ID:
+        flag_tiles = flag_freTiles;
+        flag_palette = flag_frePal;
+        break;
+    case ITA_ID:
+        flag_tiles = flag_itaTiles;
+        flag_palette = flag_itaPal;
+        break;
+    case GER_ID:
+        flag_tiles = flag_gerTiles;
+        flag_palette = flag_gerPal;
+        break;
+    case SPA_ID:
+        flag_tiles = flag_spaTiles;
+        flag_palette = flag_spaPal;
+        break;
+    case KOR_ID:
+        flag_tiles = flag_korTiles;
+        flag_palette = flag_korPal;
+        break;
+    }
+
+    load_sprite(flag, flag_tiles, flag_jpnTilesLen, curr_tile_id, FLAG_PAL, ATTR0_WIDE, ATTR1_SIZE_32x64, 1);
+    memcpy(pal_obj_mem + (FLAG_PAL * 16), flag_palette, 16); // Grit is being stupid.
+    int y_offset = sin((get_frame_count() * 4) % 360 * (3.1415 / 180)) * 5;
+    obj_set_pos(flag, (8 * 12) + 4, (8 * 4) + 19 + y_offset);
+    obj_unhide(flag, 0);
+}

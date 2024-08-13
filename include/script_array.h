@@ -102,8 +102,8 @@ extern rom_data curr_rom;
 
 void populate_script();
 void populate_dialogue();
-void populate_lang_buttons();
-void populate_game_buttons();
+void populate_lang_menu();
+void populate_game_menu(int lang);
 bool run_conditional(int index);
 
 #endif

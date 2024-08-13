@@ -10,8 +10,8 @@ extern OBJ_ATTR obj_buffer[128];
 extern OBJ_AFFINE *obj_aff_buffer;
 extern int num_sprites;
 
-//#include "metr.h"
-//extern OBJ_ATTR *testroid;
+// #include "metr.h"
+// extern OBJ_ATTR *testroid;
 #include "btn_t_l.h"
 extern OBJ_ATTR *btn_t_l;
 #include "btn_t_r.h"
@@ -32,65 +32,40 @@ extern OBJ_ATTR *btn_d_r;
 extern OBJ_ATTR *button_yes;
 #include "button_no.h"
 extern OBJ_ATTR *button_no;
-#include "button_blank_left.h"
-extern OBJ_ATTR *button_blank_left;
-extern OBJ_ATTR *button_blank_right;
-extern OBJ_ATTR *button_blank_left_2;
-extern OBJ_ATTR *button_blank_right_2;
-
-#define SPRITE_BATCH_LANG 0
-#include "btn_lang_jpn.h"
-extern OBJ_ATTR *btn_lang_jpn;
-#include "btn_lang_eng.h"
-extern OBJ_ATTR *btn_lang_eng;
-#include "btn_lang_fre.h"
-extern OBJ_ATTR *btn_lang_fre;
-#include "btn_lang_ita.h"
-extern OBJ_ATTR *btn_lang_ita;
-#include "btn_lang_ger.h"
-extern OBJ_ATTR *btn_lang_ger;
-#include "btn_lang_spa.h"
-extern OBJ_ATTR *btn_lang_spa;
-#include "btn_lang_kor.h"
-extern OBJ_ATTR *btn_lang_kor;
-
-#define SPRITE_BATCH_GAMES 1
-#include "button_green_left.h"
-extern OBJ_ATTR *button_green_left;
-extern OBJ_ATTR *button_green_right;
-#include "button_blue_left.h"
-extern OBJ_ATTR *button_blue_left;
-extern OBJ_ATTR *button_blue_right;
-#include "button_red_left.h"
-extern OBJ_ATTR *button_red_left;
-extern OBJ_ATTR *button_red_right;
-#include "button_yellow_left.h"
-extern OBJ_ATTR *button_yellow_left;
-extern OBJ_ATTR *button_yellow_right;
-#include "button_gold_left.h"
-extern OBJ_ATTR *button_gold_left;
-extern OBJ_ATTR *button_gold_right;
-#include "button_silver_left.h"
-extern OBJ_ATTR *button_silver_left;
-extern OBJ_ATTR *button_silver_right;
-#include "button_crystal_left.h"
-extern OBJ_ATTR *button_crystal_left;
-extern OBJ_ATTR *button_crystal_right;
 #include "button_game_select_edge.h"
 
-#define SPRITE_BATCH_DEX 2
 #include "types.h"
 extern OBJ_ATTR *type_sprites[14];
+
+#include "flag_jpn.h"
+#include "flag_eng.h"
+#include "flag_fre.h"
+#include "flag_ita.h"
+#include "flag_ger.h"
+#include "flag_spa.h"
+#include "flag_kor.h"
+extern OBJ_ATTR *flag;
+#include "Label_Green.h"
+#include "Label_Red.h"
+#include "Label_Blue.h"
+#include "Label_Yellow.h"
+#include "Label_Gold.h"
+#include "Label_Silver.h"
+#include "Label_Crystal.h"
+extern OBJ_ATTR *cart_label;
+#include "GB_Shell.h"
+#include "GBC_Shell.h"
+#include "GBS_Shell.h"
+#include "GBCS_Shell.h"
+extern OBJ_ATTR *cart_shell;
+
 #include "arrows.h"
 extern OBJ_ATTR *up_arrow;
 extern OBJ_ATTR *down_arrow;
 extern OBJ_ATTR *point_arrow;
 
-
 #include "duel_frame_menu_sprites.h"
 extern OBJ_ATTR *party_sprites[30];
-extern const unsigned short frame_one_pal[16];
-extern const unsigned short frame_two_pal[16];
 #include "box_select.h"
 extern OBJ_ATTR *box_select;
 #include "button_cancel_left.h"
@@ -105,8 +80,6 @@ extern OBJ_ATTR *ptgb_logo_l;
 #include "ptgb_logo_r.h"
 extern OBJ_ATTR *ptgb_logo_r;
 
-#include "lookerFRLG.h"
-
 #define BG2VOF_SMALL_TEXTBOX 96
 #define BG2VOF_LARGE_TEXTBOX 0
 
@@ -118,6 +91,8 @@ extern OBJ_ATTR *ptgb_logo_r;
 #define LOGO_PAL 5
 #define TYPES_PAL1 6
 #define TYPES_PAL2 7
+#define CART_PAL 8
+#define FLAG_PAL 9
 
 #define BG_OPENING 0
 #define BG_FENNEL 1
@@ -130,8 +105,11 @@ void modify_background_pal(bool dark);
 void load_textbox_background();
 void load_flex_background(int background_id, int layer);
 void load_eternal_sprites();
-void load_temp_sprites(int sprite_batch_id);
 void load_temp_box_sprites(Pokemon_Party party_data);
 void load_type_sprites(int pkmn_index, int dex_offset, bool is_caught);
+void add_menu_box(int options);
+void reload_textbox_background();
+void load_cart(int game_id, int lang);
+void load_flag(int lang_id);
 
 #endif

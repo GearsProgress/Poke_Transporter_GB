@@ -104,7 +104,7 @@ void load_graphics()
 	main_menu.clear_vector();
 	main_menu.add_button(Button(btn_t_l, btn_t_r, 48), BTN_TRANSFER);
 	main_menu.add_button(Button(btn_p_l, btn_p_r, 48), BTN_POKEDEX);
-	//main_menu.add_button(Button(btn_d_l, btn_d_r, 48), BTN_EVENTS);
+	// main_menu.add_button(Button(btn_d_l, btn_d_r, 48), BTN_EVENTS);
 	main_menu.add_button(Button(btn_c_l, btn_c_r, 48), BTN_CREDITS);
 	main_menu.set_xy_min_max(0, H_MAX, 48, V_MAX);
 
@@ -117,7 +117,7 @@ void load_graphics()
 void initalization_script(void)
 {
 	// Initalizations
-	REG_DISPCNT = DCNT_MODE0 | DCNT_BG0 | DCNT_BG1 | DCNT_BG2 | DCNT_BG3 | DCNT_OBJ | DCNT_OBJ_1D;
+	REG_DISPCNT = DCNT_BLANK | DCNT_MODE0 | DCNT_BG0 | DCNT_BG1 | DCNT_BG2 | DCNT_BG3 | DCNT_OBJ | DCNT_OBJ_1D;
 	irq_init(NULL);
 	irq_enable(II_VBLANK);
 
@@ -143,6 +143,9 @@ void initalization_script(void)
 
 	// Set the random seed
 	rand_set_seed(0x1216);
+	
+	VBlankIntrWait();
+	REG_DISPCNT &= ~DCNT_BLANK;
 };
 
 void game_load_error(void)
@@ -237,7 +240,7 @@ int credits()
 
 			bool tutorial = get_tutorial_flag();
 			int def_lang = get_def_lang_num();
-			
+
 			set_textbox_large();
 			tte_write("Debug info:\n\nG: ");
 			std::string lang;
@@ -292,7 +295,7 @@ int main(void)
 {
 	initalization_script();
 
-	// Check if the game has been loaded correctly.
+	//  Check if the game has been loaded correctly.
 	while (!curr_rom.load_rom())
 	{
 		game_load_error();
@@ -364,7 +367,6 @@ int main(void)
 			{
 				load_flex_background(BG_DEX, 2);
 				modify_background_pal(true);
-				load_temp_sprites(SPRITE_BATCH_DEX);
 				obj_hide_multi(ptgb_logo_l, 2);
 				pokedex_loop();
 				load_flex_background(BG_DEX, 3);

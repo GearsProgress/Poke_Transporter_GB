@@ -675,16 +675,15 @@ u32 Pokemon::generate_pid_save_iv(byte pid_species_index, byte nature, byte *pid
 {
     // Set Unown Letter
     u32 new_pid = 0;
-    byte letter = 0;
     if (pid_species_index == 0xC9) // Checks if the Pokemon is Unown
     {
-        letter |= ((pid_dvs[0] >> 5) & 0b11) << 6;
-        letter |= ((pid_dvs[0] >> 1) & 0b11) << 4;
-        letter |= ((pid_dvs[1] >> 5) & 0b11) << 2;
-        letter |= ((pid_dvs[1] >> 1) & 0b11);
-        letter = letter / 10;
+        unown_letter |= ((pid_dvs[0] >> 5) & 0b11) << 6;
+        unown_letter |= ((pid_dvs[0] >> 1) & 0b11) << 4;
+        unown_letter |= ((pid_dvs[1] >> 5) & 0b11) << 2;
+        unown_letter |= ((pid_dvs[1] >> 1) & 0b11);
+        unown_letter = unown_letter / 10;
 
-        byte letter_mod = rand_reverse_mod(28, letter);
+        byte letter_mod = rand_reverse_mod(28, unown_letter);
         for (int i = 0; i < 4; i++)
         {
             new_pid |= ((letter_mod >> (i * 2)) & 0b11) << (8 * i);
@@ -932,3 +931,4 @@ void Pokemon::set_to_event(byte nature)
     alocate_data_chunks(data_section_G, data_section_A, data_section_E, data_section_M);
     return;
 }
+

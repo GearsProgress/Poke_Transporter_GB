@@ -24,7 +24,45 @@
 
 #include "gb_rom_values/base_gb_rom_struct.h"
 
-const struct GB_ROM ENG_RED_BLUE = {
+const struct GB_ROM ENG_RED = {
+    .language = ENG_ID,
+    .version = RED_ID,
+    .generation = 1,
+    .method = METHOD_NEWLINE,
+    .payload_size = 637,
+    .box_data_size = 0x462,
+
+    .print_string_start = 0xC456,
+    .stack_overwrite_location = 0xDFDD,
+    .short_pkmn_name = 0xE3,
+    .pointer_pkmn_name = 0xFC,
+
+    .enter_vector_location = 0xC5D6,
+
+    .clearScreen = 0x190F,
+    .CableClub_TextBoxBorder = 0x5AB3,
+    .placeString = 0x1955,
+    .Serial_ExchangeBytes = 0x216F,
+    ._RemovePokemon = 0x7B68,
+    .SaveSAVtoSRAM1 = 0x1C77E2,
+    .SaveSAVtoSRAM2 = 0x1C780F,
+    .Bankswitch = 0x35D6,
+    .SoftReset = 0x1F49,
+    .garbageDataLocation = 0x0316,
+
+    .wRemoveMonFromBox = 0xCF95,
+    .wBoxCount = 0xDA80,
+    .wWhichPokemon = 0xCF92,
+    .hSerialConnectionStatus = 0xFFAA,
+    .wBoxDataStart = 0xDA80,
+    .wBoxDataEnd = 0xDEE2,
+
+    .transferStringLocation = 0xC443,
+    .textBorderUppLeft = 0xC42E,
+    .textBorderWidth = 3,
+    .textBorderHeight = 14,
+};
+const struct GB_ROM ENG_BLUE = {
     .language = ENG_ID,
     .version = RED_ID,
     .generation = 1,

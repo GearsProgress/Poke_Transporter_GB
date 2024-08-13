@@ -31,6 +31,7 @@ public:
     int ot_size = 0;
     int nickname_size = 0;
     int nature_mod = 0;
+    byte unown_letter = -1;
     Pokemon();
     void load_data(int index, byte *party_data, int game, int lang);
     void convert_to_gen_three(bool simplified, bool stabilize_mythical);
