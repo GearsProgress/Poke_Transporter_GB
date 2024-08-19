@@ -20,40 +20,48 @@ int Select_Menu::select_menu_main()
 
     key_poll(); // Reset the buttons
 
+    bool update = true;
+
     while (true)
     {
         obj_set_pos(point_arrow, 19 * 8, (2 + curr_selection) * 8);
-        if (return_values[curr_selection] == -1)
+        if (update)
         {
-            switch (menu_type)
+            if (return_values[curr_selection] == -1)
             {
-            case CART_MENU:
-                obj_hide(cart_shell);
-                obj_hide(cart_label);
-                break;
-            case LANG_MENU:
-                obj_hide(flag);
-                break;
+                switch (menu_type)
+                {
+                case CART_MENU:
+                    obj_hide(cart_shell);
+                    obj_hide(cart_label);
+                    break;
+                case LANG_MENU:
+                    obj_hide(flag);
+                    break;
+                }
             }
-        }
-        else
-        {
-            switch (menu_type)
+            else
             {
-            case CART_MENU:
-                load_cart(return_values[curr_selection], lang);
-                break;
-            case LANG_MENU:
-                load_flag(return_values[curr_selection]);
-                break;
+                switch (menu_type)
+                {
+                case CART_MENU:
+                    load_select_sprites(return_values[curr_selection], lang);
+                    obj_unhide(cart_shell, 0);
+                    obj_unhide(cart_label, 0);
+                    break;
+                case LANG_MENU:
+                    load_select_sprites(0, return_values[curr_selection]);
+                    obj_unhide(flag, 0);
+                    break;
+                }
             }
         }
 
+        update = true;
         if (key_hit(KEY_DOWN))
         {
             curr_selection = ((curr_selection + 1) % menu_options.size());
         }
-
         else if (key_hit(KEY_UP))
         {
             curr_selection = ((curr_selection + (menu_options.size() - 1)) % menu_options.size());
@@ -67,6 +75,10 @@ int Select_Menu::select_menu_main()
         {
             hide_menu();
             return -1;
+        }
+        else
+        {
+            update = false;
         }
 
         global_next_frame();

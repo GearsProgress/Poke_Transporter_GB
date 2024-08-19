@@ -5,7 +5,7 @@
 #include "save_data_manager.h"
 #include "debug_mode.h"
 
-Pokemon::Pokemon(){};
+Pokemon::Pokemon() {};
 
 // TODO: Rewrite this with two different classes/structs that have arrays as input/output
 // GBpkmn and GBApkmn
@@ -212,6 +212,26 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
         *(vu32 *)exp = get_max_exp(species_index_struct);
     }
 
+    // Check if shiny
+    is_shiny =
+        ((dvs[1] == 0b10101010) &&      // Checks if the Speed and Special DVs equal 10
+         ((dvs[0] & 0xF) == 0b1010) &&  // Checks if the Defense DVs equal 10
+         ((dvs[0] & 0b00100000) >> 5)); // Checks if the second bit of the Attack DV is true
+
+    if (species_index_struct == 201) // Checks if the Pokemon is Unown
+    {
+        unown_letter = 0;
+        unown_letter |= ((dvs[0] >> 5) & 0b11) << 6;
+        unown_letter |= ((dvs[0] >> 1) & 0b11) << 4;
+        unown_letter |= ((dvs[1] >> 5) & 0b11) << 2;
+        unown_letter |= ((dvs[1] >> 1) & 0b11);
+        unown_letter = unown_letter / 10;
+    }
+    else
+    {
+        unown_letter = -1;
+    }
+
     if (simplified)
     {
         if ((species_index_struct == 151 || species_index_struct == 251) && *(vu32 *)exp < 560) // Minimum EXP for level 10
@@ -353,10 +373,7 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
     copy_from_to(&trainer_id[0], &gen_3_pkmn[4], 2, true);
 
     // Check if the Pokemon is shiny
-    if (                                // Is shiny
-        ((dvs[1] == 0b10101010) &&      // Checks if the Speed and Special DVs equal 10
-         ((dvs[0] & 0xF) == 0b1010) &&  // Checks if the Defense DVs equal 10
-         ((dvs[0] & 0b00100000) >> 5))) // Checks if the second bit of the Attack DV is true
+    if (is_shiny)
     {
         secret_id[0] = trainer_id[1] ^ pid[0] ^ pid[2] ^ 0x0; // This value at the end should be random between 0 - 15, if that is to be implemented
         secret_id[1] = trainer_id[0] ^ pid[1] ^ pid[3] ^ 0x0;
@@ -628,24 +645,15 @@ byte *Pokemon::convert_text(byte *text_array, int size, int gen, int lang)
 u32 Pokemon::generate_pid_iv_match(byte pid_species_index, byte nature, byte *pid_dvs)
 {
     u32 new_pid = 0;
-    int letter = -1;
     int gen2_gender_threshold = get_gender_threshold(pid_species_index, false);
     int gen3_gender_threshold = get_gender_threshold(pid_species_index, true);
     bool gender = (((pid_dvs[0] >> 4) & 0b1111) < gen2_gender_threshold);
-    if (pid_species_index == 0xC9) // Checks if the Pokemon is Unown
-    {
-        letter |= ((pid_dvs[0] >> 5) & 0b11) << 6;
-        letter |= ((pid_dvs[0] >> 1) & 0b11) << 4;
-        letter |= ((pid_dvs[1] >> 5) & 0b11) << 2;
-        letter |= ((pid_dvs[1] >> 1) & 0b11);
-        letter = letter / 10;
-    }
 
     do
     {
         new_pid = get_rand_u16() | (get_rand_u16() << 16);
     } while (!(
-        (letter != -1 ? get_letter_from_pid(new_pid) == letter : true) &&
+        (unown_letter != -1 ? get_letter_from_pid(new_pid) == unown_letter : true) &&
         get_nature_from_pid(new_pid) == nature &&
         (gen2_gender_threshold != -1
              ? ((get_gender_from_pid(new_pid) < gen3_gender_threshold) == gender)
@@ -677,12 +685,6 @@ u32 Pokemon::generate_pid_save_iv(byte pid_species_index, byte nature, byte *pid
     u32 new_pid = 0;
     if (pid_species_index == 0xC9) // Checks if the Pokemon is Unown
     {
-        unown_letter |= ((pid_dvs[0] >> 5) & 0b11) << 6;
-        unown_letter |= ((pid_dvs[0] >> 1) & 0b11) << 4;
-        unown_letter |= ((pid_dvs[1] >> 5) & 0b11) << 2;
-        unown_letter |= ((pid_dvs[1] >> 1) & 0b11);
-        unown_letter = unown_letter / 10;
-
         byte letter_mod = rand_reverse_mod(28, unown_letter);
         for (int i = 0; i < 4; i++)
         {
@@ -751,6 +753,11 @@ bool Pokemon::get_validity()
     return is_valid;
 }
 
+bool Pokemon::get_is_shiny()
+{
+    return is_shiny;
+}
+
 bool Pokemon::get_is_new()
 {
     return (is_valid ? is_new : false);
@@ -767,6 +774,8 @@ Simplified_Pokemon Pokemon::get_simple_pkmn()
     }
     curr_pkmn.is_valid = get_validity();
     curr_pkmn.is_transferred = false;
+    curr_pkmn.is_shiny = get_is_shiny();
+    curr_pkmn.unown_letter = unown_letter;
     return curr_pkmn;
 }
 
@@ -931,4 +940,3 @@ void Pokemon::set_to_event(byte nature)
     alocate_data_chunks(data_section_G, data_section_A, data_section_E, data_section_M);
     return;
 }
-

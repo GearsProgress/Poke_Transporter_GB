@@ -60,22 +60,22 @@ int zero_count;
 int state;
 int mosi_delay = 4; // inital delay, speeds up once sending PKMN
 
-std::string out_array[10];
+std::string spi_text_out_array[10];
 
 void print(std::string str)
 {
   for (int i = 10; i > 0; i--)
   {
-    out_array[i] = out_array[i - 1];
+    spi_text_out_array[i] = spi_text_out_array[i - 1];
   }
-  out_array[0] = str + "\n";
+  spi_text_out_array[0] = str + "\n";
 
   tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
   tte_set_pos(LEFT, 0);
   for (int j = 0; j < 10; j++)
   {
     tte_write("#{cx:0xE000}");
-    tte_write(out_array[j].c_str());
+    tte_write(spi_text_out_array[j].c_str());
   }
 }
 
@@ -167,6 +167,7 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
       tte_erase_screen();
       tte_set_pos(40, 24);
       tte_write("\n\n\nLink was successful!\n\n  Waiting for trade");
+      link_animation_state(STATE_NO_ANIM);
       state = pretrade;
       data_counter = 0;
       return in;
@@ -200,6 +201,7 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
       tte_erase_screen();
       tte_set_pos(40, 24);
       tte_write("\n\n\nTransferring data...\n    please wait!");
+      link_animation_state(STATE_TRANSFER);
       mosi_delay = 1;
       state = party_preamble;
     }
@@ -229,6 +231,7 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
         tte_erase_screen();
         tte_set_pos(40, 24);
         tte_write("\n\nPlease press A or B\n twice on the other\n   GameBoy system");
+        link_animation_state(STATE_NO_ANIM);
         mosi_delay = 3;
         state = wait_to_resend;
       }
@@ -267,6 +270,7 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
       tte_erase_screen();
       tte_set_pos(40, 24);
       tte_write("\n\n\nTransferring data...\n    please wait!");
+      link_animation_state(STATE_TRANSFER);
       state = resend_payload;
       data_counter = 0x1B4;
     }
@@ -334,13 +338,13 @@ int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, Simpli
     }
     out_data = handleIncomingByte(in_data, box_data_storage, curr_payload, curr_gb_rom, curr_simple_array, cancel_connection);
 
-    if (FF_count > (5 * 60))
+    if (FF_count > (15 * 60))
     {
       return COND_ERROR_DISCONNECT;
     }
     if (zero_count > (5 * 60))
     {
-      //return COND_ERROR_COM_ENDED;
+      // return COND_ERROR_COM_ENDED;
     }
     if (connection_state == COLOSSEUM)
     {

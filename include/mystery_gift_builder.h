@@ -266,7 +266,7 @@ class mystery_gift_script
 public:
     mystery_gift_script();
     void build_script(Pokemon_Party &incoming_box_data);
-    void build_script_old(Pokemon_Party &incoming_box_data);
+    //void build_script_old(Pokemon_Party &incoming_box_data);
     u8 get_script_value_at(int index);
     u8 get_section30_value_at(int index);
     u32 calc_checksum32();

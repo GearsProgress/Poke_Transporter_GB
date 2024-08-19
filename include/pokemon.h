@@ -21,6 +21,8 @@ struct Simplified_Pokemon
     byte nickname[10];
     bool is_valid;
     bool is_transferred;
+    bool is_shiny;
+    int unown_letter;
 };
 
 class Pokemon
@@ -31,7 +33,7 @@ public:
     int ot_size = 0;
     int nickname_size = 0;
     int nature_mod = 0;
-    byte unown_letter = -1;
+    int unown_letter = -1;
     Pokemon();
     void load_data(int index, byte *party_data, int game, int lang);
     void convert_to_gen_three(bool simplified, bool stabilize_mythical);
@@ -49,6 +51,7 @@ public:
     byte get_dex_number();
     bool get_validity();
     bool get_is_new();
+    bool get_is_shiny();
     Simplified_Pokemon get_simple_pkmn();
     u8 get_letter_from_pid(u32 pid);
     u8 get_nature_from_pid(u32 pid);

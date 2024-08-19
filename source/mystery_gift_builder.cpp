@@ -133,7 +133,7 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     {
         if (is_caught(i))
         {
-            // first_time = false;
+            first_time = false;
             break;
         }
     }
@@ -152,35 +152,35 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     switch (curr_rom.gamecode)
     {
     case RUBY_ID:
-        textGreet.set_text(u"When I was young, I traveled the worldŇas a POKéMON TRAINER.");
-        textMoveBox.set_text(u"ȆÀËOh, of course, I have to unlockŇthe door. Silly me!");
-        textWeHere.set_text(u"ȆÀËLOOKER: I am here in Hoenn to findŇthe leader MAXIE.ȼHowever, in the meantime, I amŇhelping my friend Professor FENNEL.ȼThis is why you are here, no?ȼI shall contact her and tell herŇyou are ready.ŞCome! Allons y!");
+        textGreet.set_text(u8"When I was young, I traveled the worldŇas a POKéMON TRAINER.");
+        textMoveBox.set_text(u8"ȆÀËOh, of course, I have to unlockŇthe door. Silly me!");
+        textWeHere.set_text(u8"ȆÀËLOOKER: I am here in Hoenn to findŇthe leader MAXIE.ȼHowever, in the meantime, I amŇhelping my friend Professor FENNEL.ȼThis is why you are here, no?ȼI shall contact her and tell herŇyou are ready.ŞCome! Allons y!");
         break;
     case SAPPHIRE_ID:
-        textGreet.set_text(u"When I was young, I traveled the worldŇas a POKéMON TRAINER.");
-        textMoveBox.set_text(u"ȆÀËOh, of course, I have to unlockŇthe door. Silly me!");
-        textWeHere.set_text(u"ȆÀËLOOKER: I am here in Hoenn to findŇthe leader ARCHIE.ȼHowever, in the meantime, I amŇhelping my friend Professor FENNEL.ȼThis is why you are here, no?ȼI shall contact her and tell herŇyou are ready.ŞCome! Allons y!");
+        textGreet.set_text(u8"When I was young, I traveled the worldŇas a POKéMON TRAINER.");
+        textMoveBox.set_text(u8"ȆÀËOh, of course, I have to unlockŇthe door. Silly me!");
+        textWeHere.set_text(u8"ȆÀËLOOKER: I am here in Hoenn to findŇthe leader ARCHIE.ȼHowever, in the meantime, I amŇhelping my friend Professor FENNEL.ȼThis is why you are here, no?ȼI shall contact her and tell herŇyou are ready.ŞCome! Allons y!");
         break;
     case FIRERED_ID:
     case LEAFGREEN_ID:
-        textGreet.set_text(u"I may not look like much now,Ňbut when I was younger…");
-        textMoveBox.set_text(u"ȆÀËOh, of course, I have to moveŇthe boxes. Silly me!");
-        textWeHere.set_text(u"ȆÀËLOOKER: I am here in the Sevii IslandsŇto find the leader GIOVANNI.ȼHowever, in the meantime, I amŇhelping my friend Professor FENNEL.ȼThis is why you are here, no?ȼI shall contact her and tell herŇyou are ready.ŞCome! Allons y!");
+        textGreet.set_text(u8"I may not look like much now,Ňbut when I was younger…");
+        textMoveBox.set_text(u8"ȆÀËOh, of course, I have to moveŇthe boxes. Silly me!");
+        textWeHere.set_text(u8"ȆÀËLOOKER: I am here in the Sevii IslandsŇto find the leader GIOVANNI.ȼHowever, in the meantime, I amŇhelping my friend Professor FENNEL.ȼThis is why you are here, no?ȼI shall contact her and tell herŇyou are ready.ŞCome! Allons y!");
         break;
     case EMERALD_ID:
-        textGreet.set_text(u"When I was young, I traveled the worldŇas a POKéMON TRAINER.");
-        textMoveBox.set_text(u"ȆÀËOh, of course, I have to moveŇthe plants. Silly me!");
-        textWeHere.set_text(u"ȆÀËLOOKER: I am here in Hoenn to findŇthe leaders MAXIE and ARCHIE.ȼHowever, in the meantime, I amŇhelping my friend Professor FENNEL.ȼThis is why you are here, no?ȼI shall contact her and tell herŇyou are ready.ŞCome! Allons y!");
+        textGreet.set_text(u8"When I was young, I traveled the worldŇas a POKéMON TRAINER.");
+        textMoveBox.set_text(u8"ȆÀËOh, of course, I have to moveŇthe plants. Silly me!");
+        textWeHere.set_text(u8"ȆÀËLOOKER: I am here in Hoenn to findŇthe leaders MAXIE and ARCHIE.ȼHowever, in the meantime, I amŇhelping my friend Professor FENNEL.ȼThis is why you are here, no?ȼI shall contact her and tell herŇyou are ready.ŞCome! Allons y!");
         break;
     }
-    textReceived.set_text(u"ȆÀÁƲÀ’S POKéMON were sent to theŇPC!");
-    textYouMustBe.set_text(first_time ? u"Ah! You must be ƲÀ!ŇI was told you’d be coming.ȼOh! I still wear my disguise! Pardon!ŇOr, rather, let me introduce myself." : u"Ah, ƲÀ! Welcome back!ŇGood to see you again!ȼOh! I still wear my disguise! Pardon!");
-    textIAm.set_text(first_time ? u"ȆÀËI am a globe-trotting elite of theŇInternational Police.ȼMy name…ŞAh, no, I shall inform you of myŇcode name only.ȼMy code name, it is LOOKER.ŇIt is how I am called!" : u"ȆÀËIt is I, globe-trotting elite of theŇInternational Police.ȼMy code name, it is LOOKER.ŇIt is how I am called!");
-    textPCConvo.set_text(u"ȆÀÉFENNEL: Ah, LOOKER! Good to hear fromŇyou! I take it ƲÀ has arrived?ȼȆÀËLOOKER: Indeed! They’re here andŇready to receive their POKéMON!ȼȆÀÉFENNEL: Excellent! I’ll be sending themŇover momentarily… stand by!"); // ȼDon’t worry ƲÀ,Ňyou won’t have to do a thing!");
-    textPCThanks.set_text(u"ȆÀÉFENNEL: It looks like everything wasŇsent to your PC successfully!ȼThanks again for your help ƲÀ!ŇSee you around, LOOKER!");
-    textThank.set_text(u"ȆÀËThanks for stopping by, ƲÀ!ȼIf you’ll excuse me, I need toŇreturn to my disguise.ŞUntil our paths cross again!");
-    textPCFull.set_text(u"ȆÀÉFENNEL: Hm, it seems like the PC is full!ȼGo make some room, and I can sendŇover the rest of your POKéMON.");
-    textLookerFull.set_text(u"ȆÀËLOOKER: Speak to me again afterŇyou’ve made room, ƲÀ!ȼIn the meantime, I will return toŇmy disguise.");
+    textReceived.set_text(u8"ȆÀÁƲÀ’S POKéMON were sent to theŇPC!");
+    textYouMustBe.set_text(first_time ? u8"Ah! You must be ƲÀ!ŇI was told you’d be coming.ȼOh! I still wear my disguise! Pardon!ŇOr, rather, let me introduce myself." : u8"Ah, ƲÀ! Welcome back!ŇGood to see you again!ȼOh! I still wear my disguise! Pardon!");
+    textIAm.set_text(first_time ? u8"ȆÀËI am a globe-trotting elite of theŇInternational Police.ȼMy name…ŞAh, no, I shall inform you of myŇcode name only.ȼMy code name, it is LOOKER.ŇIt is how I am called!" : u8"ȆÀËIt is I, globe-trotting elite of theŇInternational Police.ȼMy code name, it is LOOKER.ŇIt is how I am called!");
+    textPCConvo.set_text(u8"ȆÀÉFENNEL: Ah, LOOKER! Good to hear fromŇyou! I take it ƲÀ has arrived?ȼȆÀËLOOKER: Indeed! They’re here andŇready to receive their POKéMON!ȼȆÀÉFENNEL: Excellent! I’ll be sending themŇover momentarily… stand by!"); // ȼDon’t worry ƲÀ,Ňyou won’t have to do a thing!");
+    textPCThanks.set_text(u8"ȆÀÉFENNEL: It looks like everything wasŇsent to your PC successfully!ȼThanks again for your help ƲÀ!ŇSee you around, LOOKER!");
+    textThank.set_text(u8"ȆÀËThanks for stopping by, ƲÀ!ȼIf you’ll excuse me, I need toŇreturn to my disguise.ŞUntil our paths cross again!");
+    textPCFull.set_text(u8"ȆÀÉFENNEL: Hm, it seems like the PC is full!ȼGo make some room, and I can sendŇover the rest of your POKéMON.");
+    textLookerFull.set_text(u8"ȆÀËLOOKER: Speak to me again afterŇyou’ve made room, ƲÀ!ȼIn the meantime, I will return toŇmy disguise.");
 
     const int movementSlowSpinArray[16] = {
         MOVEMENT_ACTION_FACE_LEFT,
@@ -782,6 +782,7 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     }
 };
 
+/*
 void mystery_gift_script::build_script_old(Pokemon_Party &incoming_box_data)
 {
     std::vector<script_var *> asm_variable_list;
@@ -996,7 +997,7 @@ void mystery_gift_script::build_script_old(Pokemon_Party &incoming_box_data)
         }
     }
 };
-
+*/
 u8 mystery_gift_script::get_script_value_at(int i)
 {
     return mg_script[i];
@@ -1410,6 +1411,7 @@ void mystery_gift_script::changePaletteMacro(u8 npcId, u8 palNum)
  *
  * @param register_list Is the list of registers to be stored, separated by commas and surrounded by { and }. The list is encoded in the register_list field of the instruction, by setting bit[i] to 1 if register Ri is included in the list and to 0 otherwise, for each of i=0 to 7. The R bit (bit[8]) is set to 1 if the LR is in the list and to 0 otherwise.
  */
+
 void mystery_gift_script::push(u16 register_list)
 {
     add_asm((0b1011010 << 9) | register_list);

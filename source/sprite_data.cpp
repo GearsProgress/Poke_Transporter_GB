@@ -1,46 +1,17 @@
 #include <tonc.h>
 #include <cstring>
-#include <cmath>
 #include "sprite_data.h"
 #include "debug_mode.h"
+#include "gba_rom_values/base_gba_rom_struct.h"
 
 #define SPRITE_CHAR_BLOCK 4
 
 OBJ_ATTR obj_buffer[128];
 OBJ_AFFINE *obj_aff_buffer = (OBJ_AFFINE *)obj_buffer;
-
-// These are the two pallets used by the menu sprites,
-// it's easier to set them up this way instead of through grit
-// (R + G*32 + B*1024)
-#define RGB(r, g, b) (r + g * 32 + b * 1024)
-#define WHITE RGB(31, 31, 31)
-#define YELLOW RGB(31, 19, 10)
-#define RED RGB(31, 7, 4)
-#define BLACK RGB(0, 0, 0)
-const unsigned short frame_one_pal[16] = {
-    WHITE, WHITE, WHITE, WHITE,
-    YELLOW, YELLOW, YELLOW, YELLOW,
-    RED, RED, RED, RED,
-    BLACK, BLACK, BLACK, BLACK};
-const unsigned short frame_two_pal[16] = {
-    WHITE,
-    YELLOW,
-    RED,
-    BLACK,
-    WHITE,
-    YELLOW,
-    RED,
-    BLACK,
-    WHITE,
-    YELLOW,
-    RED,
-    BLACK,
-    WHITE,
-    YELLOW,
-    RED,
-    BLACK,
-};
-
+int curr_flex_background;
+int y_offset = 0;
+int y_offset_timer = 0;
+int y_offset_direction = 1;
 // BACKGROUNDS
 
 #include "background.h"
@@ -58,21 +29,54 @@ void load_background()
     REG_BG0CNT = BG_CBB(CBB) | BG_SBB(SBB) | BG_4BPP | BG_REG_32x32 | BG_PRIO(3);
 }
 
-void modify_background_pal(bool dark)
+void set_background_pal(int curr_rom_id, bool dark)
 {
-    if (dark)
+    switch (curr_rom_id)
     {
-        memcpy(pal_bg_mem, &backgroundPal[4], 16);
+    case RUBY_ID:
+        pal_bg_mem[1] = (!dark ? RGB15(12, 3, 9) : RGB15(8, 2, 6));
+        pal_bg_mem[2] = (!dark ? RGB15(18, 6, 11) : RGB15(12, 4, 7));
+        pal_bg_mem[3] = (!dark ? RGB15(26, 12, 15) : RGB15(16, 8, 9));
+        pal_bg_mem[4] = (!dark ? RGB15(28, 19, 21) : RGB15(18, 12, 13));
+        break;
+    case SAPPHIRE_ID:
+        pal_bg_mem[1] = (!dark ? RGB15(7, 6, 13) : RGB15(4, 4, 8));
+        pal_bg_mem[2] = (!dark ? RGB15(7, 9, 21) : RGB15(4, 6, 13));
+        pal_bg_mem[3] = (!dark ? RGB15(13, 15, 28) : RGB15(8, 10, 18));
+        pal_bg_mem[4] = (!dark ? RGB15(20, 21, 28) : RGB15(13, 13, 18));
+        break;
+    case FIRERED_ID:
+        pal_bg_mem[1] = (!dark ? RGB15(15, 4, 4) : RGB15(9, 3, 3));
+        pal_bg_mem[2] = (!dark ? RGB15(19, 8, 6) : RGB15(12, 5, 4));
+        pal_bg_mem[3] = (!dark ? RGB15(24, 13, 10) : RGB15(15, 8, 6));
+        pal_bg_mem[4] = (!dark ? RGB15(28, 23, 21) : RGB15(17, 14, 13));
+        break;
+    case LEAFGREEN_ID:
+        pal_bg_mem[1] = (!dark ? RGB15(5, 11, 5) : RGB15(3, 7, 3));
+        pal_bg_mem[2] = (!dark ? RGB15(9, 17, 7) : RGB15(6, 11, 4));
+        pal_bg_mem[3] = (!dark ? RGB15(17, 22, 11) : RGB15(10, 14, 7));
+        pal_bg_mem[4] = (!dark ? RGB15(24, 26, 19) : RGB15(15, 16, 12));
+        break;
+    case EMERALD_ID:
+        pal_bg_mem[1] = (!dark ? RGB15(5, 10, 10) : RGB15(3, 6, 6));
+        pal_bg_mem[2] = (!dark ? RGB15(7, 15, 13) : RGB15(5, 9, 8));
+        pal_bg_mem[3] = (!dark ? RGB15(11, 22, 13) : RGB15(7, 14, 8));
+        pal_bg_mem[4] = (!dark ? RGB15(20, 26, 20) : RGB15(12, 16, 13));
+        break;
+    default:
+        memcpy(pal_bg_mem, &backgroundPal[dark ? 8 : 0], backgroundPalLen);
+        break;
     }
-    else
-    {
-        memcpy(pal_bg_mem, backgroundPal, backgroundPalLen);
-    }
+    (pal_obj_mem + (BTN_LIT_PAL * 16))[7] = pal_bg_mem[1];
+    (pal_obj_mem + (BTN_LIT_PAL * 16))[8] = pal_bg_mem[1];
+    (pal_obj_mem + (BTN_LIT_PAL * 16))[9] = pal_bg_mem[1];
+    (pal_obj_mem + (BTN_LIT_PAL * 16))[10] = pal_bg_mem[3];
 }
 
 #include "openingBG.h"
 #include "fennelBG.h"
 #include "dexBG.h"
+#include "menu_bars.h"
 void load_flex_background(int background_id, int layer)
 {
     int CBB = 1;  // CBB is the tiles that make up the sprite
@@ -95,7 +99,7 @@ void load_flex_background(int background_id, int layer)
         memcpy(&tile_mem[CBB][0], fennelBGTiles, fennelBGTilesLen);
         // Load map into SBB 0
         memcpy(&se_mem[SBB][0], fennelBGMap, fennelBGMapLen);
-        REG_BG1VOFS = 0;
+        REG_BG1VOFS = FENNEL_SHIFT;
         break;
     case (BG_DEX):
         // Load palette
@@ -106,11 +110,19 @@ void load_flex_background(int background_id, int layer)
         memcpy(&se_mem[SBB][0], dexBGMap, dexBGMapLen);
         REG_BG1VOFS = 0;
         break;
+    case (BG_MAIN_MENU):
+        // Load palette
+        memcpy(pal_bg_mem + 32, pal_bg_mem, backgroundPalLen);
+        // Load tiles into CBB 0
+        memcpy(&tile_mem[CBB][0], menu_barsTiles, menu_barsTilesLen);
+        // Load map into SBB 0
+        memcpy(&se_mem[SBB][0], menu_barsMap, menu_barsMapLen);
+        REG_BG1VOFS = 0;
+        break;
     }
-
     REG_BG1CNT = BG_CBB(CBB) | BG_SBB(SBB) | BG_4BPP | BG_REG_32x32 | BG_PRIO(layer);
+    curr_flex_background = background_id;
 }
-
 #include "textboxBG.h"
 void load_textbox_background()
 {
@@ -258,35 +270,44 @@ OBJ_ATTR *button_cancel_right = &obj_buffer[num_sprites++];
 OBJ_ATTR *button_confirm_left = &obj_buffer[num_sprites++];
 OBJ_ATTR *button_confirm_right = &obj_buffer[num_sprites++];
 
+OBJ_ATTR *gba_cart = &obj_buffer[num_sprites++];
+OBJ_ATTR *link_frame1 = &obj_buffer[num_sprites++];
+OBJ_ATTR *link_frame2 = &obj_buffer[num_sprites++];
+OBJ_ATTR *link_frame3 = &obj_buffer[num_sprites++];
+OBJ_ATTR *link_blob1 = &obj_buffer[num_sprites++];
+OBJ_ATTR *link_blob2 = &obj_buffer[num_sprites++];
+OBJ_ATTR *link_blob3 = &obj_buffer[num_sprites++];
+
 u32 global_tile_id_end = 0;
 
 void load_eternal_sprites()
 {
-    memcpy(pal_obj_mem + (BTN_PAL * 16), btn_t_lPal, btn_t_lPalLen);
-    memcpy(pal_obj_mem + (BTN_LIT_PAL * 16), btn_t_rPal, btn_t_rPalLen);
+    memcpy(pal_obj_mem + (BTN_PAL * 16), button_noPal, button_noPalLen);
+    memcpy(pal_obj_mem + (BTN_LIT_PAL * 16), button_yesPal, button_yesPalLen);
     memcpy(pal_obj_mem + (LOGO_PAL * 16), ptgb_logo_lPal, ptgb_logo_lPalLen);
     memcpy(pal_obj_mem + (TYPES_PAL1 * 16), typesPal, typesPalLen);
+    memcpy(pal_obj_mem + (LINK_CABLE_PAL * 16), link_frame1Pal, link_frame1PalLen);
 
     u32 curr_tile_id = 0;
     load_sprite(ptgb_logo_l, ptgb_logo_lTiles, ptgb_logo_lTilesLen, curr_tile_id, LOGO_PAL, ATTR0_SQUARE, ATTR1_SIZE_64x64, 1);
     load_sprite(ptgb_logo_r, ptgb_logo_rTiles, ptgb_logo_rTilesLen, curr_tile_id, LOGO_PAL, ATTR0_SQUARE, ATTR1_SIZE_64x64, 1);
-    load_sprite(btn_t_l, btn_t_lTiles, btn_t_lTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-    load_sprite(btn_t_r, btn_t_rTiles, btn_t_rTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-    load_sprite(btn_p_l, btn_p_lTiles, btn_p_lTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-    load_sprite(btn_p_r, btn_p_rTiles, btn_p_rTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-    load_sprite(btn_c_l, btn_c_lTiles, btn_c_lTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-    load_sprite(btn_c_r, btn_c_rTiles, btn_c_rTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-    load_sprite(btn_d_l, btn_d_lTiles, btn_d_lTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-    load_sprite(btn_d_r, btn_d_rTiles, btn_d_rTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
     load_sprite(button_yes, button_yesTiles, button_yesTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
     load_sprite(button_no, button_noTiles, button_noTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-    load_sprite(cart_label, &Label_GreenTiles[8], Label_GreenTilesLen - 32, curr_tile_id, CART_PAL, ATTR0_SQUARE, ATTR1_SIZE_32x32, 1);
+    load_sprite(cart_label, &Label_GreenTiles[8], Label_GreenTilesLen - 32, curr_tile_id, GB_CART_PAL, ATTR0_SQUARE, ATTR1_SIZE_32x32, 1);
     load_sprite(point_arrow, &arrowsTiles[32], 32, curr_tile_id, BTN_PAL, ATTR0_SQUARE, ATTR1_SIZE_8x8, 1);
     load_sprite(down_arrow, &arrowsTiles[0], 64, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_16x8, 1);
     load_sprite(up_arrow, &arrowsTiles[16], 64, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_16x8, 1);
+    load_sprite(link_frame1, link_frame1Tiles, link_frame1TilesLen, curr_tile_id, LINK_CABLE_PAL, ATTR0_SQUARE, ATTR1_SIZE_32x32, 1);
+    load_sprite(link_frame2, link_frame2Tiles, link_frame2TilesLen, curr_tile_id, LINK_CABLE_PAL, ATTR0_WIDE, ATTR1_SIZE_8x32, 1);
+    load_sprite(link_frame3, link_frame3Tiles, link_frame3TilesLen, curr_tile_id, LINK_CABLE_PAL, ATTR0_WIDE, ATTR1_SIZE_16x32, 1);
+    load_sprite(link_blob1, &link_blobsTiles[0], 32, curr_tile_id, LINK_CABLE_PAL, ATTR0_SQUARE, ATTR1_SIZE_8x8, 1);
+    load_sprite(link_blob2, &link_blobsTiles[8], 32, curr_tile_id, LINK_CABLE_PAL, ATTR0_SQUARE, ATTR1_SIZE_8x8, 1);
+    load_sprite(link_blob3, &link_blobsTiles[16], 32, curr_tile_id, LINK_CABLE_PAL, ATTR0_SQUARE, ATTR1_SIZE_8x8, 1);
+
+    global_tile_id_end = curr_tile_id;
+
     obj_set_pos(down_arrow, 14 * 8, 17 * 8);
     obj_set_pos(up_arrow, 14 * 8, 3 * 8);
-    global_tile_id_end = curr_tile_id;
 }
 
 void load_temp_box_sprites(Pokemon_Party party_data)
@@ -296,16 +317,23 @@ void load_temp_box_sprites(Pokemon_Party party_data)
     {
         if (party_data.get_simple_pkmn(i).is_valid || SHOW_INVALID_PKMN)
         {
-            load_sprite(party_sprites[i], &duel_frame_menu_spritesTiles[(MENU_SPRITES[party_data.get_simple_pkmn(i).dex_number] - 1) * 32], 256, curr_tile_id, MENU_SPRITE_PAL, ATTR0_SQUARE, ATTR1_SIZE_16x16, 1);
+            Simplified_Pokemon curr_pkmn = party_data.get_simple_pkmn(i);
+            int dex_num = curr_pkmn.dex_number;
+            if (dex_num == 201)
+            {
+                dex_num = 252 + curr_pkmn.unown_letter;
+            }
+            load_sprite(party_sprites[i], &unique_duel_frame_menu_spritesTiles[dex_num * 32], 256, curr_tile_id, MENU_SPRITE_PALS[dex_num][curr_pkmn.is_shiny] + MENU_PAL_START, ATTR0_SQUARE, ATTR1_SIZE_16x16, 1);
             obj_set_pos(party_sprites[i], (16 * (i % 10)) + 40, (16 * (i / 10)) + 24);
+            obj_unhide(party_sprites[i], 0);
         }
         curr_tile_id += 4;
     }
     load_sprite(box_select, box_selectTiles, box_selectTilesLen, curr_tile_id, BTN_PAL, ATTR0_SQUARE, ATTR1_SIZE_16x16, 0);
     load_sprite(button_cancel_left, button_cancel_leftTiles, button_cancel_leftTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-    load_sprite(button_cancel_right, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
+    load_sprite(button_cancel_right, button_edgeTiles, button_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
     load_sprite(button_confirm_left, button_confirm_leftTiles, button_confirm_leftTilesLen, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
-    load_sprite(button_confirm_right, button_game_select_edgeTiles, button_game_select_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
+    load_sprite(button_confirm_right, button_edgeTiles, button_edgeTilesLen, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
 }
 
 void load_type_sprites(int pkmn_index, int dex_offset, bool is_caught)
@@ -345,18 +373,19 @@ void load_sprite(OBJ_ATTR *sprite, const unsigned int objTiles[], int objTilesLe
     obj_hide(sprite);
 };
 
-void load_cart(int game_id, int lang)
+void load_select_sprites(int game_id, int lang)
 {
+    u32 curr_tile_id = global_tile_id_end;
     //                                    Alpha         Shadow          Main Color       Grey             Black         Mid
-    const unsigned short jpn_gb_pal[6] = {RGB(0, 0, 0), RGB(10, 9, 10), RGB(17, 17, 17), RGB(22, 22, 22), RGB(0, 0, 0), RGB(14, 13, 14)};
-    const unsigned short eng_red_pal[6] = {RGB(0, 0, 0), RGB(16, 1, 0), RGB(27, 6, 5), RGB(22, 22, 22), RGB(0, 0, 0), RGB(23, 3, 2)};
-    const unsigned short eng_blue_pal[6] = {RGB(0, 0, 0), RGB(0, 4, 16), RGB(5, 10, 24), RGB(22, 22, 22), RGB(0, 0, 0), RGB(1, 6, 20)};
-    const unsigned short eng_yellow_pal[6] = {RGB(0, 0, 0), RGB(18, 12, 0), RGB(27, 21, 5), RGB(22, 22, 22), RGB(0, 0, 0), RGB(22, 16, 1)};
-    const unsigned short eng_gold_pal[6] = {RGB(0, 0, 0), RGB(13, 10, 2), RGB(22, 18, 8), RGB(22, 22, 22), RGB(0, 0, 0), RGB(17, 14, 4)};
-    const unsigned short eng_silver_pal[6] = {RGB(0, 0, 0), RGB(11, 12, 14), RGB(20, 22, 23), RGB(22, 22, 22), RGB(0, 0, 0), RGB(15, 16, 19)};
-    const unsigned short crystal_pal[6] = {RGB(0, 0, 0), RGB(9, 13, 17), RGB(16, 21, 25), RGB(22, 22, 22), RGB(0, 0, 0), RGB(12, 17, 22)};
-    const unsigned short jpn_gold_pal[6] = {RGB(0, 0, 0), RGB(0, 0, 0), RGB(5, 7, 12), RGB(22, 22, 22), RGB(0, 0, 0), RGB(3, 4, 8)};
-    const unsigned short jpn_silver_pal[6] = {RGB(0, 0, 0), RGB(5, 4, 5), RGB(11, 10, 10), RGB(22, 22, 22), RGB(0, 0, 0), RGB(8, 7, 7)};
+    const unsigned short jpn_gb_pal[6] = {RGB15(0, 0, 0), RGB15(10, 9, 10), RGB15(17, 17, 17), RGB15(22, 22, 22), RGB15(0, 0, 0), RGB15(14, 13, 14)};
+    const unsigned short eng_red_pal[6] = {RGB15(0, 0, 0), RGB15(16, 1, 0), RGB15(27, 6, 5), RGB15(22, 22, 22), RGB15(0, 0, 0), RGB15(23, 3, 2)};
+    const unsigned short eng_blue_pal[6] = {RGB15(0, 0, 0), RGB15(0, 4, 16), RGB15(5, 10, 24), RGB15(22, 22, 22), RGB15(0, 0, 0), RGB15(1, 6, 20)};
+    const unsigned short eng_yellow_pal[6] = {RGB15(0, 0, 0), RGB15(18, 12, 0), RGB15(27, 21, 5), RGB15(22, 22, 22), RGB15(0, 0, 0), RGB15(22, 16, 1)};
+    const unsigned short eng_gold_pal[6] = {RGB15(0, 0, 0), RGB15(13, 10, 2), RGB15(22, 18, 8), RGB15(22, 22, 22), RGB15(0, 0, 0), RGB15(17, 14, 4)};
+    const unsigned short eng_silver_pal[6] = {RGB15(0, 0, 0), RGB15(11, 12, 14), RGB15(20, 22, 23), RGB15(22, 22, 22), RGB15(0, 0, 0), RGB15(15, 16, 19)};
+    const unsigned short crystal_pal[6] = {RGB15(0, 0, 0), RGB15(9, 13, 17), RGB15(16, 21, 25), RGB15(22, 22, 22), RGB15(0, 0, 0), RGB15(12, 17, 22)};
+    const unsigned short jpn_gold_pal[6] = {RGB15(0, 0, 0), RGB15(0, 0, 0), RGB15(5, 7, 12), RGB15(22, 22, 22), RGB15(0, 0, 0), RGB15(3, 4, 8)};
+    const unsigned short jpn_silver_pal[6] = {RGB15(0, 0, 0), RGB15(5, 4, 5), RGB15(11, 10, 10), RGB15(22, 22, 22), RGB15(0, 0, 0), RGB15(8, 7, 7)};
 
     const unsigned int *label_tiles = 0;
     const unsigned short *label_palette = 0;
@@ -460,26 +489,17 @@ void load_cart(int game_id, int lang)
         cart_palette = crystal_pal;
         break;
     }
-    u32 curr_tile_id = global_tile_id_end;
 
-    memcpy(pal_obj_mem + (CART_PAL * 16), cart_palette, 12);
-    memcpy(pal_obj_mem + (CART_PAL * 16) + 6, label_palette + 6, 20);
-    load_sprite(cart_shell, cart_tiles, GB_ShellTilesLen, curr_tile_id, CART_PAL, ATTR0_SQUARE, ATTR1_SIZE_64x64, 1);
-    load_sprite(cart_label, &label_tiles[8], Label_GreenTilesLen - 32, curr_tile_id, CART_PAL, ATTR0_SQUARE, ATTR1_SIZE_32x32, 1);
-    int y_offset = sin((get_frame_count() * 4) % 360 * (3.1415 / 180)) * 5;
+    memcpy(pal_obj_mem + (GB_CART_PAL * 16), cart_palette, 12);
+    memcpy(pal_obj_mem + (GB_CART_PAL * 16) + 6, label_palette + 6, 20);
+    load_sprite(cart_shell, cart_tiles, GB_ShellTilesLen, curr_tile_id, GB_CART_PAL, ATTR0_SQUARE, ATTR1_SIZE_64x64, 1);
+    load_sprite(cart_label, &label_tiles[8], Label_GreenTilesLen - 32, curr_tile_id, GB_CART_PAL, ATTR0_SQUARE, ATTR1_SIZE_32x32, 1);
     obj_set_pos(cart_shell, (8 * 12) + 4, (8 * 4) + 11 + y_offset);
     obj_set_pos(cart_label, (8 * 12) + 4 + 8, (8 * 4) + 11 + 13 + y_offset);
-    obj_unhide(cart_shell, 0);
-    obj_unhide(cart_label, 0);
-}
-
-void load_flag(int lang_id)
-{
-    u32 curr_tile_id = global_tile_id_end;
 
     const unsigned int *flag_tiles = 0;
     const unsigned short *flag_palette = 0;
-    switch (lang_id)
+    switch (lang)
     {
     case JPN_ID:
         flag_tiles = flag_jpnTiles;
@@ -513,7 +533,133 @@ void load_flag(int lang_id)
 
     load_sprite(flag, flag_tiles, flag_jpnTilesLen, curr_tile_id, FLAG_PAL, ATTR0_WIDE, ATTR1_SIZE_32x64, 1);
     memcpy(pal_obj_mem + (FLAG_PAL * 16), flag_palette, 16); // Grit is being stupid.
-    int y_offset = sin((get_frame_count() * 4) % 360 * (3.1415 / 180)) * 5;
     obj_set_pos(flag, (8 * 12) + 4, (8 * 4) + 19 + y_offset);
-    obj_unhide(flag, 0);
+
+    const unsigned int *gba_cart_tiles = 0;
+    const unsigned short *gba_cart_palette = 0;
+    switch (curr_rom.gamecode)
+    {
+
+    case RUBY_ID:
+        gba_cart_tiles = ruby_cartTiles;
+        gba_cart_palette = ruby_cartPal;
+        break;
+    case SAPPHIRE_ID:
+        gba_cart_tiles = sapphire_cartTiles;
+        gba_cart_palette = sapphire_cartPal;
+        break;
+    case FIRERED_ID:
+        gba_cart_tiles = fr_cartTiles;
+        gba_cart_palette = fr_cartPal;
+        break;
+    case LEAFGREEN_ID:
+        gba_cart_tiles = lg_cartTiles;
+        gba_cart_palette = lg_cartPal;
+        break;
+    case EMERALD_ID:
+        gba_cart_tiles = lg_cartTiles;
+        gba_cart_palette = lg_cartPal;
+        break;
+    }
+
+    load_sprite(gba_cart, gba_cart_tiles, 1024, curr_tile_id, GBA_CART_PAL, ATTR0_WIDE, ATTR1_SIZE_32x64, 1);
+    memcpy(pal_obj_mem + (GBA_CART_PAL * 16), gba_cart_palette, 32);
+}
+// tile ID, VH Flip, Palette Bank
+#define FEN_BLI_L00 (34 | (0b00 << 0xA) | (2 << 0xC))
+#define FEN_BLI_L01 (35 | (0b00 << 0xA) | (2 << 0xC))
+#define FEN_BLI_L10 (140 | (0b00 << 0xA) | (2 << 0xC))
+#define FEN_BLI_L11 (141 | (0b00 << 0xA) | (2 << 0xC))
+#define FEN_BLI_L20 (143 | (0b00 << 0xA) | (2 << 0xC))
+#define FEN_BLI_L21 (144 | (0b00 << 0xA) | (2 << 0xC))
+#define FEN_BLI_R0 (37 | (0b00 << 0xA) | (2 << 0xC))
+#define FEN_BLI_R1 (142 | (0b00 << 0xA) | (2 << 0xC))
+#define FEN_BLI_R2 (145 | (0b00 << 0xA) | (2 << 0xC))
+void fennel_blink(int frame)
+{
+    int SBB = 15; // SSB is the array of which tile goes where
+    switch (frame)
+    {
+    case 0:
+        se_mem[SBB][12 + (5 * 32)] = FEN_BLI_L20;
+        se_mem[SBB][13 + (5 * 32)] = FEN_BLI_L21;
+        se_mem[SBB][15 + (5 * 32)] = FEN_BLI_R2;
+        break;
+    case 1:
+    case 3:
+        se_mem[SBB][12 + (5 * 32)] = FEN_BLI_L10;
+        se_mem[SBB][13 + (5 * 32)] = FEN_BLI_L11;
+        se_mem[SBB][15 + (5 * 32)] = FEN_BLI_R1;
+        break;
+    case 2:
+        se_mem[SBB][12 + (5 * 32)] = FEN_BLI_L00;
+        se_mem[SBB][13 + (5 * 32)] = FEN_BLI_L01;
+        se_mem[SBB][15 + (5 * 32)] = FEN_BLI_R0;
+        break;
+    }
+}
+// tile ID, VH Flip, Palette Bank
+#define FEN_SPE_00 (46 | (0b00 << 0xA) | (2 << 0xC))
+#define FEN_SPE_01 (56 | (0b00 << 0xA) | (2 << 0xC))
+#define FEN_SPE_10 (146 | (0b00 << 0xA) | (2 << 0xC))
+#define FEN_SPE_11 (56 | (0b00 << 0xA) | (2 << 0xC))
+#define FEN_SPE_20 (147 | (0b00 << 0xA) | (2 << 0xC))
+#define FEN_SPE_21 (149 | (0b00 << 0xA) | (2 << 0xC))
+#define FEN_SPE_30 (148 | (0b00 << 0xA) | (2 << 0xC))
+#define FEN_SPE_31 (150 | (0b00 << 0xA) | (2 << 0xC))
+
+void fennel_speak(int frame)
+{
+    int SBB = 15; // SSB is the array of which tile goes where
+    switch (frame)
+    {
+    case 0:
+        se_mem[SBB][14 + (6 * 32)] = FEN_SPE_00;
+        se_mem[SBB][14 + (7 * 32)] = FEN_SPE_01;
+        break;
+    case 1:
+        se_mem[SBB][14 + (6 * 32)] = FEN_SPE_10;
+        se_mem[SBB][14 + (7 * 32)] = FEN_SPE_11;
+        break;
+    case 2:
+    case 4:
+        se_mem[SBB][14 + (6 * 32)] = FEN_SPE_20;
+        se_mem[SBB][14 + (7 * 32)] = FEN_SPE_21;
+        break;
+    case 3:
+        se_mem[SBB][14 + (6 * 32)] = FEN_SPE_30;
+        se_mem[SBB][14 + (7 * 32)] = FEN_SPE_31;
+        break;
+    }
+}
+
+int get_curr_flex_background()
+{
+    return curr_flex_background;
+}
+
+void update_y_offset()
+{
+    if (y_offset_timer == 0)
+    {
+        y_offset += y_offset_direction;
+        if (y_offset == 6 || y_offset == 2)
+        {
+            y_offset_timer = 6;
+        }
+        else
+        {
+            y_offset_timer = 4;
+        }
+    }
+    if (y_offset == 8 || y_offset == 0)
+    {
+        y_offset_direction *= -1;
+        y_offset += y_offset_direction;
+        y_offset_timer = 12;
+    }
+    y_offset_timer--;
+    obj_set_pos(cart_shell, (8 * 12) + 4, (8 * 4) + 11 + y_offset);
+    obj_set_pos(cart_label, (8 * 12) + 4 + 8, (8 * 4) + 11 + 13 + y_offset);
+    obj_set_pos(flag, (8 * 12) + 4, (8 * 4) + 19 + y_offset);
 }

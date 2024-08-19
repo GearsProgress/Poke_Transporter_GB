@@ -5130,259 +5130,291 @@ const u8 POWER_POINTS[252]{
     10, // Beat-up
 };
 
-const u8 MENU_SPRITES[252] = {
-    0,  // Offset the list to remove "off by one" errors
-    22, // Bulbasaur
-    22, // Ivysaur
-    22, // Venusaur
-    23, // Charmander
-    23, // Charmeleon
-    38, // Charizard
-    21, // Squirtle
-    21, // Wartortle
-    21, // Blastoise
-    24, // Caterpie
-    24, // Metapod
-    30, // Butterfree
-    24, // Weedle
-    24, // Kakuna
-    11, // Beedrill
-    7,  // Pidgey
-    7,  // Pidgeotto
-    7,  // Pidgeot
-    15, // Rattata
-    15, // Raticate
-    7,  // Spearow
-    7,  // Fearow
-    19, // Ekans
-    19, // Arbok
-    4,  // Pikachu
-    4,  // Raichu
-    8,  // Sandshrew
-    8,  // Sandslash
-    15, // Nidoran♀
-    15, // Nidorina
-    8,  // Nidoqueen
-    15, // Nidoran♂
-    15, // Nidorino
-    8,  // Nidoking
-    9,  // Clefairy
-    9,  // Clefable
-    15, // Vulpix
-    15, // Ninetales
-    2,  // Jigglypuff
-    2,  // Wigglytuff
-    31, // Zubat
-    31, // Golbat
-    10, // Oddish
-    10, // Gloom
-    10, // Vileplume
-    11, // Paras
-    11, // Parasect
-    24, // Venonat
-    30, // Venomoth
-    3,  // Diglett
-    3,  // Dugtrio
-    15, // Meowth
-    15, // Persian
-    8,  // Psyduck
-    8,  // Golduck
-    27, // Mankey
-    27, // Primeape
-    15, // Growlithe
-    15, // Arcanine
-    1,  // Poliwag
-    1,  // Poliwhirl
-    1,  // Poliwrath
-    14, // Abra
-    14, // Kadabra
-    14, // Alakazam
-    27, // Machop
-    27, // Machoke
-    27, // Machamp
-    10, // Bellsprout
-    10, // Weepinbell
-    10, // Victreebel
-    29, // Tentacool
-    29, // Tentacruel
-    26, // Geodude
-    26, // Graveler
-    26, // Golem
-    16, // Ponyta
-    16, // Rapidash
-    36, // Slowpoke
-    36, // Slowbro
-    20, // Magnemite
-    20, // Magneton
-    7,  // Farfetch'd
-    7,  // Doduo
-    7,  // Dodrio
-    13, // Seel
-    13, // Dewgong
-    18, // Grimer
-    18, // Muk
-    37, // Shellder
-    37, // Cloyster
-    12, // Gastly
-    12, // Haunter
-    12, // Gengar
-    19, // Onix
-    14, // Drowzee
-    14, // Hypno
-    17, // Krabby
-    17, // Kingler
-    20, // Voltorb
-    20, // Electrode
-    10, // Exeggcute
-    10, // Exeggutor
-    8,  // Cubone
-    8,  // Marowak
-    27, // Hitmonlee
-    27, // Hitmonchan
-    8,  // Lickitung
-    18, // Koffing
-    18, // Weezing
-    16, // Rhyhorn
-    8,  // Rhydon
-    9,  // Chansey
-    10, // Tangela
-    8,  // Kangaskhan
-    6,  // Horsea
-    6,  // Seadra
-    6,  // Goldeen
-    6,  // Seaking
-    5,  // Staryu
-    5,  // Starmie
-    14, // Mr. Mime
-    11, // Scyther
-    14, // Jynx
-    14, // Electabuzz
-    14, // Magmar
-    11, // Pinsir
-    16, // Tauros
-    6,  // Magikarp
-    35, // Gyarados
-    13, // Lapras
-    18, // Ditto
-    15, // Eevee
-    15, // Vaporeon
-    15, // Jolteon
-    15, // Flareon
-    20, // Porygon
-    17, // Omanyte
-    17, // Omastar
-    17, // Kabuto
-    17, // Kabutops
-    7,  // Aerodactyl
-    32, // Snorlax
-    7,  // Articuno
-    7,  // Zapdos
-    7,  // Moltres
-    19, // Dratini
-    19, // Dragonair
-    38, // Dragonite
-    14, // Mewtwo
-    14, // Mew
-    10, // Chikorita
-    10, // Bayleef
-    10, // Meganium
-    15, // Cyndaquil
-    15, // Quilava
-    15, // Typhlosion
-    8,  // Totodile
-    8,  // Croconaw
-    8,  // Feraligatr
-    15, // Sentret
-    15, // Furret
-    7,  // Hoothoot
-    7,  // Noctowl
-    11, // Ledyba
-    11, // Ledian
-    11, // Spinarak
-    11, // Ariados
-    31, // Crobat
-    6,  // Chinchou
-    6,  // Lanturn
-    4,  // Pichu
-    9,  // Cleffa
-    2,  // Igglybuff
-    9,  // Togepi
-    7,  // Togetic
-    7,  // Natu
-    7,  // Xatu
-    15, // Mareep
-    8,  // Flaaffy
-    8,  // Ampharos
-    10, // Bellossom
-    2,  // Marill
-    2,  // Azumarill
-    27, // Sudowoodo
-    1,  // Politoed
-    10, // Hoppip
-    10, // Skiploom
-    10, // Jumpluff
-    8,  // Aipom
-    10, // Sunkern
-    10, // Sunflora
-    11, // Yanma
-    8,  // Wooper
-    8,  // Quagsire
-    15, // Espeon
-    15, // Umbreon
-    7,  // Murkrow
-    36, // Slowking
-    12, // Misdreavus
-    25, // Unown
-    12, // Wobbuffet
-    16, // Girafarig
-    11, // Pineco
-    11, // Forretress
-    19, // Dunsparce
-    11, // Gligar
-    19, // Steelix
-    8,  // Snubbull
-    8,  // Granbull
-    6,  // Qwilfish
-    11, // Scizor
-    11, // Shuckle
-    11, // Heracross
-    15, // Sneasel
-    8,  // Teddiursa
-    8,  // Ursaring
-    18, // Slugma
-    18, // Magcargo
-    16, // Swinub
-    16, // Piloswine
-    17, // Corsola
-    6,  // Remoraid
-    6,  // Octillery
-    8,  // Delibird
-    6,  // Mantine
-    7,  // Skarmory
-    15, // Houndour
-    15, // Houndoom
-    38, // Kingdra
-    16, // Phanpy
-    16, // Donphan
-    20, // Porygon2
-    16, // Stantler
-    8,  // Smeargle
-    27, // Tyrogue
-    27, // Hitmontop
-    14, // Smoochum
-    14, // Elekid
-    14, // Magby
-    16, // Miltank
-    9,  // Blissey
-    15, // Raikou
-    15, // Entei
-    15, // Suicune
-    8,  // Larvitar
-    8,  // Pupitar
-    8,  // Tyranitar
-    34, // Lugia
-    33, // Ho-Oh
-    14, // Celebi
+#define ICON_RED 0
+#define ICON_BLU 1
+#define ICON_GRN 2
+#define ICON_BRN 3
+#define ICON_PNK 4
+
+const u8 MENU_SPRITE_PALS[252 + 26][2] = {
+    {ICON_BLU, ICON_RED}, // MISSINGNO
+    {ICON_GRN, ICON_GRN}, // BULBASAUR
+    {ICON_GRN, ICON_GRN}, // IVYSAUR
+    {ICON_GRN, ICON_GRN}, // VENUSAUR
+    {ICON_RED, ICON_BRN}, // CHARMANDER
+    {ICON_RED, ICON_PNK}, // CHARMELEON
+    {ICON_RED, ICON_BLU}, // CHARIZARD
+    {ICON_BLU, ICON_GRN}, // SQUIRTLE
+    {ICON_BLU, ICON_GRN}, // WARTORTLE
+    {ICON_BLU, ICON_GRN}, // BLASTOISE
+    {ICON_GRN, ICON_BRN}, // CATERPIE
+    {ICON_GRN, ICON_BRN}, // METAPOD
+    {ICON_PNK, ICON_GRN}, // BUTTERFREE
+    {ICON_RED, ICON_PNK}, // WEEDLE
+    {ICON_BRN, ICON_GRN}, // KAKUNA
+    {ICON_RED, ICON_GRN}, // BEEDRILL
+    {ICON_BRN, ICON_GRN}, // PIDGEY
+    {ICON_BRN, ICON_GRN}, // PIDGEOTTO
+    {ICON_RED, ICON_GRN}, // PIDGEOT
+    {ICON_PNK, ICON_GRN}, // RATTATA
+    {ICON_BRN, ICON_RED}, // RATICATE
+    {ICON_BRN, ICON_GRN}, // SPEAROW
+    {ICON_BRN, ICON_GRN}, // FEAROW
+    {ICON_PNK, ICON_GRN}, // EKANS
+    {ICON_PNK, ICON_BRN}, // ARBOK
+    {ICON_RED, ICON_PNK}, // PIKACHU
+    {ICON_RED, ICON_BRN}, // RAICHU
+    {ICON_BRN, ICON_GRN}, // SANDSHREW
+    {ICON_BRN, ICON_RED}, // SANDSLASH
+    {ICON_BLU, ICON_PNK}, // NIDORAN_F
+    {ICON_BLU, ICON_PNK}, // NIDORINA
+    {ICON_BLU, ICON_GRN}, // NIDOQUEEN
+    {ICON_PNK, ICON_BLU}, // NIDORAN_M
+    {ICON_PNK, ICON_BLU}, // NIDORINO
+    {ICON_PNK, ICON_BLU}, // NIDOKING
+    {ICON_PNK, ICON_GRN}, // CLEFAIRY
+    {ICON_PNK, ICON_GRN}, // CLEFABLE
+    {ICON_RED, ICON_BRN}, // VULPIX
+    {ICON_BRN, ICON_BLU}, // NINETALES
+    {ICON_PNK, ICON_GRN}, // JIGGLYPUFF
+    {ICON_PNK, ICON_GRN}, // WIGGLYTUFF
+    {ICON_BLU, ICON_GRN}, // ZUBAT
+    {ICON_BLU, ICON_GRN}, // GOLBAT
+    {ICON_GRN, ICON_BRN}, // ODDISH
+    {ICON_RED, ICON_BRN}, // GLOOM
+    {ICON_RED, ICON_BRN}, // VILEPLUME
+    {ICON_RED, ICON_GRN}, // PARAS
+    {ICON_RED, ICON_GRN}, // PARASECT
+    {ICON_PNK, ICON_BLU}, // VENONAT
+    {ICON_PNK, ICON_BLU}, // VENOMOTH
+    {ICON_BRN, ICON_BLU}, // DIGLETT
+    {ICON_BRN, ICON_BLU}, // DUGTRIO
+    {ICON_BRN, ICON_PNK}, // MEOWTH
+    {ICON_BRN, ICON_PNK}, // PERSIAN
+    {ICON_BRN, ICON_BLU}, // PSYDUCK
+    {ICON_BLU, ICON_BLU}, // GOLDUCK
+    {ICON_BRN, ICON_GRN}, // MANKEY
+    {ICON_BRN, ICON_GRN}, // PRIMEAPE
+    {ICON_RED, ICON_GRN}, // GROWLITHE
+    {ICON_RED, ICON_GRN}, // ARCANINE
+    {ICON_BLU, ICON_BLU}, // POLIWAG
+    {ICON_BLU, ICON_BLU}, // POLIWHIRL
+    {ICON_BLU, ICON_GRN}, // POLIWRATH
+    {ICON_BRN, ICON_PNK}, // ABRA
+    {ICON_BRN, ICON_PNK}, // KADABRA
+    {ICON_BRN, ICON_PNK}, // ALAKAZAM
+    {ICON_BLU, ICON_BRN}, // MACHOP
+    {ICON_BLU, ICON_GRN}, // MACHOKE
+    {ICON_BLU, ICON_GRN}, // MACHAMP
+    {ICON_GRN, ICON_BRN}, // BELLSPROUT
+    {ICON_GRN, ICON_BRN}, // WEEPINBELL
+    {ICON_GRN, ICON_BRN}, // VICTREEBEL
+    {ICON_BLU, ICON_GRN}, // TENTACOOL
+    {ICON_BLU, ICON_GRN}, // TENTACRUEL
+    {ICON_BRN, ICON_RED}, // GEODUDE
+    {ICON_BRN, ICON_RED}, // GRAVELER
+    {ICON_BRN, ICON_RED}, // GOLEM
+    {ICON_RED, ICON_PNK}, // PONYTA
+    {ICON_RED, ICON_PNK}, // RAPIDASH
+    {ICON_PNK, ICON_BLU}, // SLOWPOKE
+    {ICON_PNK, ICON_BLU}, // SLOWBRO
+    {ICON_BLU, ICON_BRN}, // MAGNEMITE
+    {ICON_BLU, ICON_BRN}, // MAGNETON
+    {ICON_BRN, ICON_GRN}, // FARFETCH_D
+    {ICON_BRN, ICON_GRN}, // DODUO
+    {ICON_BRN, ICON_GRN}, // DODRIO
+    {ICON_RED, ICON_PNK}, // SEEL
+    {ICON_RED, ICON_PNK}, // DEWGONG
+    {ICON_PNK, ICON_GRN}, // GRIMER
+    {ICON_PNK, ICON_GRN}, // MUK
+    {ICON_PNK, ICON_BRN}, // SHELLDER
+    {ICON_PNK, ICON_BLU}, // CLOYSTER
+    {ICON_PNK, ICON_BLU}, // GASTLY
+    {ICON_PNK, ICON_BLU}, // HAUNTER
+    {ICON_RED, ICON_BLU}, // GENGAR
+    {ICON_BRN, ICON_GRN}, // ONIX
+    {ICON_BRN, ICON_PNK}, // DROWZEE
+    {ICON_BRN, ICON_PNK}, // HYPNO
+    {ICON_RED, ICON_GRN}, // KRABBY
+    {ICON_RED, ICON_GRN}, // KINGLER
+    {ICON_RED, ICON_BLU}, // VOLTORB
+    {ICON_RED, ICON_BLU}, // ELECTRODE
+    {ICON_PNK, ICON_GRN}, // EXEGGCUTE
+    {ICON_GRN, ICON_BRN}, // EXEGGUTOR
+    {ICON_BRN, ICON_GRN}, // CUBONE
+    {ICON_BRN, ICON_GRN}, // MAROWAK
+    {ICON_BRN, ICON_GRN}, // HITMONLEE
+    {ICON_BRN, ICON_GRN}, // HITMONCHAN
+    {ICON_PNK, ICON_GRN}, // LICKITUNG
+    {ICON_PNK, ICON_BLU}, // KOFFING
+    {ICON_PNK, ICON_BLU}, // WEEZING
+    {ICON_BLU, ICON_BRN}, // RHYHORN
+    {ICON_BLU, ICON_BLU}, // RHYDON
+    {ICON_PNK, ICON_GRN}, // CHANSEY
+    {ICON_BLU, ICON_GRN}, // TANGELA
+    {ICON_BRN, ICON_GRN}, // KANGASKHAN
+    {ICON_BLU, ICON_PNK}, // HORSEA
+    {ICON_BLU, ICON_PNK}, // SEADRA
+    {ICON_RED, ICON_BRN}, // GOLDEEN
+    {ICON_RED, ICON_BRN}, // SEAKING
+    {ICON_BRN, ICON_BLU}, // STARYU
+    {ICON_PNK, ICON_BLU}, // STARMIE
+    {ICON_PNK, ICON_GRN}, // MR__MIME
+    {ICON_GRN, ICON_GRN}, // SCYTHER
+    {ICON_RED, ICON_PNK}, // JYNX
+    {ICON_BRN, ICON_GRN}, // ELECTABUZZ
+    {ICON_RED, ICON_PNK}, // MAGMAR
+    {ICON_BRN, ICON_BLU}, // PINSIR
+    {ICON_BRN, ICON_GRN}, // TAUROS
+    {ICON_RED, ICON_GRN}, // MAGIKARP
+    {ICON_BLU, ICON_RED}, // GYARADOS
+    {ICON_BLU, ICON_PNK}, // LAPRAS
+    {ICON_PNK, ICON_BLU}, // DITTO
+    {ICON_BRN, ICON_BLU}, // EEVEE
+    {ICON_BLU, ICON_PNK}, // VAPOREON
+    {ICON_BRN, ICON_GRN}, // JOLTEON
+    {ICON_RED, ICON_BRN}, // FLAREON
+    {ICON_PNK, ICON_BLU}, // PORYGON
+    {ICON_BLU, ICON_BRN}, // OMANYTE
+    {ICON_BLU, ICON_BRN}, // OMASTAR
+    {ICON_BRN, ICON_GRN}, // KABUTO
+    {ICON_BRN, ICON_GRN}, // KABUTOPS
+    {ICON_PNK, ICON_BLU}, // AERODACTYL
+    {ICON_RED, ICON_BLU}, // SNORLAX
+    {ICON_BLU, ICON_BLU}, // ARTICUNO
+    {ICON_BRN, ICON_RED}, // ZAPDOS
+    {ICON_RED, ICON_PNK}, // MOLTRES
+    {ICON_BLU, ICON_PNK}, // DRATINI
+    {ICON_BLU, ICON_PNK}, // DRAGONAIR
+    {ICON_RED, ICON_GRN}, // DRAGONITE
+    {ICON_PNK, ICON_GRN}, // MEWTWO
+    {ICON_PNK, ICON_BLU}, // MEW
+    {ICON_GRN, ICON_BRN}, // CHIKORITA
+    {ICON_GRN, ICON_BRN}, // BAYLEEF
+    {ICON_GRN, ICON_BRN}, // MEGANIUM
+    {ICON_RED, ICON_PNK}, // CYNDAQUIL
+    {ICON_RED, ICON_PNK}, // QUILAVA
+    {ICON_RED, ICON_PNK}, // TYPHLOSION
+    {ICON_BLU, ICON_GRN}, // TOTODILE
+    {ICON_BLU, ICON_GRN}, // CROCONAW
+    {ICON_BLU, ICON_GRN}, // FERALIGATR
+    {ICON_BRN, ICON_PNK}, // SENTRET
+    {ICON_BRN, ICON_PNK}, // FURRET
+    {ICON_BRN, ICON_GRN}, // HOOTHOOT
+    {ICON_BRN, ICON_GRN}, // NOCTOWL
+    {ICON_RED, ICON_BRN}, // LEDYBA
+    {ICON_RED, ICON_BRN}, // LEDIAN
+    {ICON_GRN, ICON_PNK}, // SPINARAK
+    {ICON_RED, ICON_PNK}, // ARIADOS
+    {ICON_PNK, ICON_PNK}, // CROBAT
+    {ICON_BLU, ICON_BLU}, // CHINCHOU
+    {ICON_BLU, ICON_PNK}, // LANTURN
+    {ICON_RED, ICON_BRN}, // PICHU
+    {ICON_PNK, ICON_GRN}, // CLEFFA
+    {ICON_PNK, ICON_GRN}, // IGGLYBUFF
+    {ICON_RED, ICON_BLU}, // TOGEPI
+    {ICON_RED, ICON_BLU}, // TOGETIC
+    {ICON_GRN, ICON_GRN}, // NATU
+    {ICON_GRN, ICON_GRN}, // XATU
+    {ICON_BLU, ICON_BLU}, // MAREEP
+    {ICON_PNK, ICON_PNK}, // FLAAFFY
+    {ICON_BRN, ICON_BLU}, // AMPHAROS
+    {ICON_GRN, ICON_BLU}, // BELLOSSOM
+    {ICON_BLU, ICON_GRN}, // MARILL
+    {ICON_BLU, ICON_BRN}, // AZUMARILL
+    {ICON_GRN, ICON_PNK}, // SUDOWOODO
+    {ICON_GRN, ICON_BLU}, // POLITOED
+    {ICON_PNK, ICON_GRN}, // HOPPIP
+    {ICON_GRN, ICON_PNK}, // SKIPLOOM
+    {ICON_BLU, ICON_PNK}, // JUMPLUFF
+    {ICON_PNK, ICON_PNK}, // AIPOM
+    {ICON_GRN, ICON_BRN}, // SUNKERN
+    {ICON_GRN, ICON_BRN}, // SUNFLORA
+    {ICON_RED, ICON_BLU}, // YANMA
+    {ICON_BLU, ICON_PNK}, // WOOPER
+    {ICON_BLU, ICON_PNK}, // QUAGSIRE
+    {ICON_PNK, ICON_GRN}, // ESPEON
+    {ICON_BRN, ICON_BLU}, // UMBREON
+    {ICON_BLU, ICON_PNK}, // MURKROW
+    {ICON_PNK, ICON_BLU}, // SLOWKING
+    {ICON_BLU, ICON_BRN}, // MISDREAVUS
+    {ICON_BRN, ICON_BLU}, // UNOWN
+    {ICON_BLU, ICON_PNK}, // WOBBUFFET
+    {ICON_PNK, ICON_BLU}, // GIRAFARIG
+    {ICON_GRN, ICON_RED}, // PINECO
+    {ICON_RED, ICON_GRN}, // FORRETRESS
+    {ICON_BLU, ICON_PNK}, // DUNSPARCE
+    {ICON_PNK, ICON_BLU}, // GLIGAR
+    {ICON_BLU, ICON_BRN}, // STEELIX
+    {ICON_PNK, ICON_BLU}, // SNUBBULL
+    {ICON_PNK, ICON_BLU}, // GRANBULL
+    {ICON_BLU, ICON_PNK}, // QWILFISH
+    {ICON_RED, ICON_GRN}, // SCIZOR
+    {ICON_RED, ICON_BLU}, // SHUCKLE
+    {ICON_BLU, ICON_PNK}, // HERACROSS
+    {ICON_BLU, ICON_PNK}, // SNEASEL
+    {ICON_BRN, ICON_GRN}, // TEDDIURSA
+    {ICON_BRN, ICON_GRN}, // URSARING
+    {ICON_RED, ICON_BLU}, // SLUGMA
+    {ICON_RED, ICON_BLU}, // MAGCARGO
+    {ICON_BRN, ICON_BLU}, // SWINUB
+    {ICON_BRN, ICON_GRN}, // PILOSWINE
+    {ICON_PNK, ICON_BLU}, // CORSOLA
+    {ICON_BLU, ICON_BLU}, // REMORAID
+    {ICON_RED, ICON_GRN}, // OCTILLERY
+    {ICON_RED, ICON_PNK}, // DELIBIRD
+    {ICON_BLU, ICON_BLU}, // MANTINE
+    {ICON_RED, ICON_GRN}, // SKARMORY
+    {ICON_RED, ICON_BLU}, // HOUNDOUR
+    {ICON_RED, ICON_BLU}, // HOUNDOOM
+    {ICON_BLU, ICON_PNK}, // KINGDRA
+    {ICON_BLU, ICON_BLU}, // PHANPY
+    {ICON_BLU, ICON_RED}, // DONPHAN
+    {ICON_PNK, ICON_BLU}, // PORYGON2
+    {ICON_BRN, ICON_GRN}, // STANTLER
+    {ICON_GRN, ICON_PNK}, // SMEARGLE
+    {ICON_PNK, ICON_BLU}, // TYROGUE
+    {ICON_BRN, ICON_BLU}, // HITMONTOP
+    {ICON_PNK, ICON_PNK}, // SMOOCHUM
+    {ICON_BRN, ICON_BRN}, // ELEKID
+    {ICON_RED, ICON_BRN}, // MAGBY
+    {ICON_PNK, ICON_BLU}, // MILTANK
+    {ICON_PNK, ICON_PNK}, // BLISSEY
+    {ICON_BRN, ICON_BRN}, // RAIKOU
+    {ICON_RED, ICON_RED}, // ENTEI
+    {ICON_BLU, ICON_BLU}, // SUICUNE
+    {ICON_GRN, ICON_GRN}, // LARVITAR
+    {ICON_BLU, ICON_PNK}, // PUPITAR
+    {ICON_GRN, ICON_PNK}, // TYRANITAR
+    {ICON_BLU, ICON_PNK}, // LUGIA
+    {ICON_RED, ICON_BRN}, // HO_OH
+    {ICON_GRN, ICON_PNK}, // CELEBI
+    {ICON_BRN, ICON_BLU}, // UNOWN
+    {ICON_BRN, ICON_BLU}, // UNOWN
+    {ICON_BRN, ICON_BLU}, // UNOWN
+    {ICON_BRN, ICON_BLU}, // UNOWN
+    {ICON_BRN, ICON_BLU}, // UNOWN
+    {ICON_BRN, ICON_BLU}, // UNOWN
+    {ICON_BRN, ICON_BLU}, // UNOWN
+    {ICON_BRN, ICON_BLU}, // UNOWN
+    {ICON_BRN, ICON_BLU}, // UNOWN
+    {ICON_BRN, ICON_BLU}, // UNOWN
+    {ICON_BRN, ICON_BLU}, // UNOWN
+    {ICON_BRN, ICON_BLU}, // UNOWN
+    {ICON_BRN, ICON_BLU}, // UNOWN
+    {ICON_BRN, ICON_BLU}, // UNOWN
+    {ICON_BRN, ICON_BLU}, // UNOWN
+    {ICON_BRN, ICON_BLU}, // UNOWN
+    {ICON_BRN, ICON_BLU}, // UNOWN
+    {ICON_BRN, ICON_BLU}, // UNOWN
+    {ICON_BRN, ICON_BLU}, // UNOWN
+    {ICON_BRN, ICON_BLU}, // UNOWN
+    {ICON_BRN, ICON_BLU}, // UNOWN
+    {ICON_BRN, ICON_BLU}, // UNOWN
+    {ICON_BRN, ICON_BLU}, // UNOWN
+    {ICON_BRN, ICON_BLU}, // UNOWN
+    {ICON_BRN, ICON_BLU}, // UNOWN
+    {ICON_BRN, ICON_BLU}, // UNOWN
 };
 
 extern const byte EVENT_PKMN[8][80]{

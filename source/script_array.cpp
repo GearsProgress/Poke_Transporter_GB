@@ -1,5 +1,5 @@
 #include "script_array.h"
-#include "main_menu.h"
+#include "button_menu.h"
 #include "text_engine.h"
 #include "mystery_gift_injector.h"
 #include "sprite_data.h"
@@ -279,9 +279,11 @@ bool run_conditional(int index)
 
     case CMD_START_LINK:
         load_flex_background(BG_FENNEL, 3);
+        link_animation_state(STATE_CONNECTION);
         party_data.start_link();
         set_textbox_small();
         load_flex_background(BG_FENNEL, 2);
+        link_animation_state(0);
         return true;
 
     case CMD_IMPORT_POKEMON:
@@ -333,7 +335,7 @@ bool run_conditional(int index)
     case CMD_SLIDE_PROF_LEFT:
         for (int i = 0; i <= (8 * 7); i += 2)
         {
-            REG_BG1HOFS = i;
+            REG_BG1HOFS = i + FENNEL_SHIFT;
             if (!DEBUG_MODE)
             {
                 global_next_frame();
@@ -344,7 +346,7 @@ bool run_conditional(int index)
     case CMD_SLIDE_PROF_RIGHT:
         for (int i = (8 * 7); i >= 0; i -= 2)
         {
-            REG_BG1HOFS = i;
+            REG_BG1HOFS = i + FENNEL_SHIFT;
             if (!DEBUG_MODE)
             {
                 global_next_frame();

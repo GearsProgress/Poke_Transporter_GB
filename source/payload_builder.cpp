@@ -204,11 +204,11 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
         // our final code is.
 
         // Update all the pointers
-        for (int i = 0; i < var_vector.size(); i++)
+        for (unsigned int i = 0; i < var_vector.size(); i++)
         {
             var_vector.at(i)->update_ptrs();
         }
-        for (int i = 0; i < jump_vector.size(); i++)
+        for (unsigned int i = 0; i < jump_vector.size(); i++)
         {
             jump_vector.at(i)->update_jumps();
         }
@@ -436,11 +436,11 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
             // our final code is.
 
             // Update all the pointers
-            for (int i = 0; i < var_vector.size(); i++)
+            for (unsigned int i = 0; i < var_vector.size(); i++)
             {
                 var_vector.at(i)->update_ptrs();
             }
-            for (int i = 0; i < jump_vector.size(); i++)
+            for (unsigned int i = 0; i < jump_vector.size(); i++)
             {
                 jump_vector.at(i)->update_jumps();
             }
@@ -719,11 +719,11 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
         // our final code is.
 
         // Update all the pointers
-        for (int i = 0; i < var_vector.size(); i++)
+        for (unsigned int i = 0; i < var_vector.size(); i++)
         {
             var_vector.at(i)->update_ptrs();
         }
-        for (int i = 0; i < jump_vector.size(); i++)
+        for (unsigned int i = 0; i < jump_vector.size(); i++)
         {
             jump_vector.at(i)->update_jumps();
         }
@@ -744,6 +744,7 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
         // which is the rival's name. This code fixes the stack and jumps to the patchlist, which is where
         // our final code is.
     }
+    return nullptr;
 };
 
 int test_main() // Rename to "main" to send the payload to test_payload.txt

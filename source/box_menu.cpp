@@ -1,5 +1,5 @@
 #include <tonc.h>
-#include "main_menu.h"
+#include "button_menu.h"
 #include "button_handler.h"
 #include "save_data_manager.h"
 #include "global_frame_controller.h"
@@ -8,7 +8,7 @@
 #include "box_menu.h"
 #include "pokemon_data.h"
 
-Box_Menu::Box_Menu(){};
+Box_Menu::Box_Menu() {};
 
 int Box_Menu::box_main(Pokemon_Party party_data)
 {
@@ -17,10 +17,6 @@ int Box_Menu::box_main(Pokemon_Party party_data)
     REG_BG2VOFS = BG2VOF_LARGE_TEXTBOX;
     REG_BG2VOFS = 0;
     load_temp_box_sprites(party_data);
-    for (int i = 0; i < 30; i++)
-    {
-        obj_unhide(party_sprites[i], 0);
-    }
     Button cancel_button(button_cancel_left, button_cancel_right, 64);
     Button confirm_button(button_confirm_left, button_confirm_right, 64);
     cancel_button.set_location(32, 112);
@@ -115,20 +111,26 @@ int Box_Menu::box_main(Pokemon_Party party_data)
             int index = x + (y * 10);
             obj_set_pos(box_select, 40 + (x * 16), 24 + (y * 16));
             tte_erase_rect(40, 72, 220, 88);
-            if (party_data.get_simple_pkmn(index).is_valid)
+            Simplified_Pokemon curr_pkmn = party_data.get_simple_pkmn(index);
+            if (curr_pkmn.is_valid)
             {
-                char nickname[10] = {};
+                char nickname[11] = {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\0'};
                 for (int i = 0; i < 10; i++)
                 {
-                    nickname[i] = gen_3_Intern_char_array[party_data.get_simple_pkmn(index).nickname[i]];
+                    nickname[i] = gen_3_Intern_char_array[curr_pkmn.nickname[i]];
                 }
                 tte_set_pos(40, 72);
                 tte_write(nickname);
+                if (curr_pkmn.is_shiny)
+                {
+                    tte_set_pos(40, 80);
+                    tte_write("*");
+                }
                 tte_set_pos(48, 80);
-                tte_write(NAMES[party_data.get_simple_pkmn(index).dex_number].data());
+                tte_write(NAMES[curr_pkmn.dex_number].data());
                 tte_set_pos(146, 80);
                 tte_write("Lv: ");
-                tte_write(std::to_string(party_data.get_simple_pkmn(index).met_level).c_str());
+                tte_write(std::to_string(curr_pkmn.met_level).c_str());
                 update_pos = false;
             }
         }

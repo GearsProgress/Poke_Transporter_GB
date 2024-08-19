@@ -49,7 +49,7 @@ extern const std::string_view NAMES[252];
 extern const u16 JPN_NAMES[252][6];
 extern const u8 EVOLUTIONS[252];
 extern const u8 POWER_POINTS[252];
-extern const u8 MENU_SPRITES[252];
+extern const u8 MENU_SPRITE_PALS[252 + 26][2];
 extern const byte gen_1_index_array[191];
 extern const u16 gen_1_Jpn_char_array[256];
 extern const u16 gen_1_Eng_char_array[256];

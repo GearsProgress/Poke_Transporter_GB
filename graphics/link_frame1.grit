@@ -1,0 +1,5 @@
+#
+# 64x64t, 4bpp, SBB-layout, not compressed. 
+# Pallet bank 1
+#
+-gB4 -ps0 -pe16

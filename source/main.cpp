@@ -15,10 +15,10 @@
 #include "script_array.h"
 #include "sprite_data.h"
 #include "button_handler.h"
-#include "main_menu.h"
+#include "button_menu.h"
 #include "debug_mode.h"
-#include "soundbank.h"
-#include "soundbank_bin.h"
+// #include "soundbank.h"
+// #include "soundbank_bin.h"
 #include "dex_handler.h"
 #include "pokedex.h"
 #include "global_frame_controller.h"
@@ -46,9 +46,9 @@ TODO:
 */
 
 int delay_counter = 0;
+int curr_selection = 0;
 bool skip = true;
 rom_data curr_rom;
-Button_Menu main_menu(2, 2, 96, 32, false);
 Button_Menu yes_no_menu(1, 2, 40, 24, false);
 
 /*
@@ -81,6 +81,9 @@ int test_main(void) Music
 }
 */
 
+// (R + G*32 + B*1024)
+#define RGB(r, g, b) (r + (g * 32) + (b * 1024))
+
 template <typename I>
 std::string n2hexstr(I w, size_t hex_len = sizeof(I) << 1)
 {
@@ -99,14 +102,6 @@ void load_graphics()
 	load_background();
 	load_textbox_background();
 	load_eternal_sprites();
-
-	// Set up main menu
-	main_menu.clear_vector();
-	main_menu.add_button(Button(btn_t_l, btn_t_r, 48), BTN_TRANSFER);
-	main_menu.add_button(Button(btn_p_l, btn_p_r, 48), BTN_POKEDEX);
-	// main_menu.add_button(Button(btn_d_l, btn_d_r, 48), BTN_EVENTS);
-	main_menu.add_button(Button(btn_c_l, btn_c_r, 48), BTN_CREDITS);
-	main_menu.set_xy_min_max(0, H_MAX, 48, V_MAX);
 
 	// Set up global yes no button
 	yes_no_menu.clear_vector();
@@ -143,7 +138,7 @@ void initalization_script(void)
 
 	// Set the random seed
 	rand_set_seed(0x1216);
-	
+
 	VBlankIntrWait();
 	REG_DISPCNT &= ~DCNT_BLANK;
 };
@@ -177,7 +172,7 @@ void first_load_message(void)
 {
 	tte_set_pos(8, 0);
 	tte_set_ink(10);
-	tte_write("#{cx:0xE000}\n\nHello! Thank you for using\nPok@ Transporter GB!\n\nJust as a word of caution- \nPok@ Transporter GB WILL\nmodify both the GameBoy and GameBoy Advance save files.\n\nPlease note that Pok@\nTransporter GB is still in\nbeta, so save file backups\nare HIGHLY recommended\nbefore using. With that all\nbeing said, please enjoy!\n\n      -The Gears of Progress");
+	tte_write("#{cx:0xD000}\n\nHello! Thank you for using\nPok@ Transporter GB!\n\nJust as a word of caution- \nPok@ Transporter GB WILL\nmodify both the GameBoy and GameBoy Advance save files.\n\nPlease note that Pok@\nTransporter GB is still in\nbeta, so save file backups\nare HIGHLY recommended\nbefore using. With that all\nbeing said, please enjoy!\n\n      -The Gears of Progress");
 	while (!key_hit(KEY_A))
 	{
 		global_next_frame();
@@ -291,6 +286,57 @@ int credits()
 	}
 };
 
+#define NUM_MENU_OPTIONS 3
+
+int main_menu_loop()
+{
+	bool update = true;
+	std::string_view menu_options[NUM_MENU_OPTIONS] = {"Transfer Pok@mon", "Dream Dex", "Credits"};
+	int return_values[NUM_MENU_OPTIONS] = {BTN_TRANSFER, BTN_POKEDEX, BTN_CREDITS};
+	while (true)
+	{
+		if (update)
+		{
+			for (int i = 0; i < NUM_MENU_OPTIONS; i++)
+			{
+				int x = (6 + ((18 - menu_options[i].length()) / 2)) * 8;
+				tte_set_pos(x, ((i * 2) + 10) * 8);
+				if (i == curr_selection)
+				{
+					tte_write("#{cx:0xD000}");
+				}
+				else
+				{
+					tte_write("#{cx:0xE000}");
+				}
+				tte_write(menu_options[i].data());
+			}
+		}
+
+		update = true;
+		if (key_hit(KEY_DOWN))
+		{
+			curr_selection = ((curr_selection + 1) % NUM_MENU_OPTIONS);
+		}
+		else if (key_hit(KEY_UP))
+		{
+			curr_selection = ((curr_selection + (NUM_MENU_OPTIONS - 1)) % NUM_MENU_OPTIONS);
+		}
+		else if (key_hit(KEY_A))
+		{
+			tte_erase_rect(0, 0, H_MAX, V_MAX);
+			tte_write("#{cx:0xF000}");
+			return return_values[curr_selection];
+		}
+		else
+		{
+			update = false;
+		}
+
+		global_next_frame();
+	}
+}
+
 int main(void)
 {
 	initalization_script();
@@ -313,17 +359,21 @@ int main(void)
 		initalize_save_data();
 	}
 
+	// Set colors based on current ROM
+	set_background_pal(curr_rom.gamecode, false);
+	pal_bg_bank[14][15] = pal_bg_mem[3];
+
 	// Legal mumbo jumbo
 	tte_set_pos(8, 0);
-	tte_write("#{cx:0xE000}\n\nPok@ Transporter GB was made\nout of love and appreciation\nfor the Pokemon franchise\nwith no profit in mind.\nIt will ALWAYS be free.\n\nPlease support the original developers-\nNintendo and GAME FREAK.\n\nAll Pokemon names, sprites, and music are owned by \nNintendo, Creatures Inc, and\nGAME FREAK Inc.");
+	tte_write("#{cx:0xE000}\n\nPok@ Transporter GB was made\nout of love and appreciation\nfor the Pokemon franchise\nwith no profit in mind.\nIt will ALWAYS be free.\n\nPlease support the original developers-\nNintendo and GAME FREAK.\n\nAll Pokemon names, sprites, and music are owned by \nNintendo, Creatures Inc, and\nGAME FREAK Inc.\n\n\n         Press A to continue");
 	tte_write("#{cx:0xF000}"); // Set the color to grey
-	while (delay_counter < (15 * 60))
+	bool wait = true;
+	while (wait)
 	{
 		global_next_frame();
-		delay_counter++;
 		if (key_hit(KEY_A))
 		{
-			delay_counter = (15 * 60);
+			wait = false;
 		}
 	}
 
@@ -355,7 +405,8 @@ int main(void)
 		obj_set_pos(ptgb_logo_l, 56, 12);
 		obj_set_pos(ptgb_logo_r, 56 + 64, 12);
 		obj_unhide_multi(ptgb_logo_l, 1, 2);
-		switch (main_menu.button_main())
+		load_flex_background(BG_MAIN_MENU, 2);
+		switch (main_menu_loop())
 		{
 		case (BTN_TRANSFER):
 			obj_hide_multi(ptgb_logo_l, 2);
@@ -366,11 +417,11 @@ int main(void)
 			if (IGNORE_MG_E4_FLAGS || read_flag(curr_rom.e4_flag))
 			{
 				load_flex_background(BG_DEX, 2);
-				modify_background_pal(true);
+				set_background_pal(curr_rom.gamecode, true);
 				obj_hide_multi(ptgb_logo_l, 2);
 				pokedex_loop();
 				load_flex_background(BG_DEX, 3);
-				modify_background_pal(false);
+				set_background_pal(curr_rom.gamecode, false);
 			}
 			break;
 		case (BTN_CREDITS):

@@ -7,7 +7,8 @@
 #include "pkmn_font.h"
 #include "script_array.h"
 #include "debug_mode.h"
-#include "main_menu.h"
+#include "button_menu.h"
+#include "sprite_data.h"
 
 #define TEXT_CBB 3
 #define TEXT_SBB 28
@@ -26,8 +27,7 @@ void init_text_engine()
     tte_set_pos(LEFT, TOP);
 
     pal_bg_bank[13][15] = CLR_WHITE;
-    pal_bg_bank[14][15] = 0b0000001001111111;
-    pal_bg_bank[15][15] = 0b0001100011100110;
+    pal_bg_bank[15][15] = 0b0000110001100010;
 
     // Set default variables
     char_index = 0;
@@ -71,6 +71,10 @@ int text_loop(int script)
                 }
                 tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
                 tte_write(curr_text.substr(0, char_index).c_str());
+                if (get_curr_flex_background() == BG_FENNEL)
+                {
+                    fennel_speak(((char_index / 4) % 4) + 1);
+                }
             }
         }
         else
@@ -98,6 +102,10 @@ int text_loop(int script)
                     curr_text = curr_line.get_text();
                 }
                 char_index = 0;
+            }
+            if (get_curr_flex_background() == BG_FENNEL)
+            {
+                fennel_speak(0);
             }
         }
         if (text_exit)

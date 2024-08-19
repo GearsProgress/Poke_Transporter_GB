@@ -136,7 +136,7 @@ u32 xse_var::get_loc_in_sec30()
 
 // TEXTBOX VAR
 
-void textbox_var::set_text(std::u16string_view nText)
+void textbox_var::set_text(std::u8string_view nText)
 {
     text = nText;
 }

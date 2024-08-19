@@ -17,7 +17,7 @@ bool inject_mystery(Pokemon_Party &incoming_box_data)
         mystery_gift_script script;
         if (ENABLE_OLD_EVENT)
         {
-            script.build_script_old(incoming_box_data);
+            //script.build_script_old(incoming_box_data);
         }
         else
         {

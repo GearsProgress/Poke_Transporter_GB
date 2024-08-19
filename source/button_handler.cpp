@@ -1,4 +1,5 @@
 #include "button_handler.h"
+#include "sprite_data.h"
 
 Button::Button(){
     
@@ -33,12 +34,12 @@ void Button::set_location(int nx, int ny)
 void Button::set_highlight(bool highlight)
 {
     button_L->attr2 &= ~ATTR2_PALBANK_MASK;
-    button_L->attr2 |= ATTR2_PALBANK(highlight ? 3 : 2);
+    button_L->attr2 |= ATTR2_PALBANK(highlight ? BTN_LIT_PAL : BTN_PAL);
 
     if (isWide)
     {
         button_R->attr2 &= ~ATTR2_PALBANK_MASK;
-        button_R->attr2 |= ATTR2_PALBANK(highlight ? 3 : 2);
+        button_R->attr2 |= ATTR2_PALBANK(highlight ? BTN_LIT_PAL : BTN_PAL);
     }
 }
 void Button::hide()
