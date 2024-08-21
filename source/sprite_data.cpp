@@ -29,48 +29,83 @@ void load_background()
     REG_BG0CNT = BG_CBB(CBB) | BG_SBB(SBB) | BG_4BPP | BG_REG_32x32 | BG_PRIO(3);
 }
 
-void set_background_pal(int curr_rom_id, bool dark)
+void set_background_pal(int curr_rom_id, bool dark, bool fade)
 {
+    COLOR new_pal_bg[8];
+    new_pal_bg[0] = (!dark ? RGB15(0, 24, 16) : RGB15(0, 24, 16));
     switch (curr_rom_id)
     {
     case RUBY_ID:
-        pal_bg_mem[1] = (!dark ? RGB15(12, 3, 9) : RGB15(8, 2, 6));
-        pal_bg_mem[2] = (!dark ? RGB15(18, 6, 11) : RGB15(12, 4, 7));
-        pal_bg_mem[3] = (!dark ? RGB15(26, 12, 15) : RGB15(16, 8, 9));
-        pal_bg_mem[4] = (!dark ? RGB15(28, 19, 21) : RGB15(18, 12, 13));
+        new_pal_bg[1] = (!dark ? RGB15(12, 3, 9) : RGB15(8, 2, 6));
+        new_pal_bg[2] = (!dark ? RGB15(18, 6, 11) : RGB15(12, 4, 7));
+        new_pal_bg[3] = (!dark ? RGB15(26, 12, 15) : RGB15(16, 8, 9));
+        new_pal_bg[4] = (!dark ? RGB15(28, 19, 21) : RGB15(18, 12, 13));
         break;
     case SAPPHIRE_ID:
-        pal_bg_mem[1] = (!dark ? RGB15(7, 6, 13) : RGB15(4, 4, 8));
-        pal_bg_mem[2] = (!dark ? RGB15(7, 9, 21) : RGB15(4, 6, 13));
-        pal_bg_mem[3] = (!dark ? RGB15(13, 15, 28) : RGB15(8, 10, 18));
-        pal_bg_mem[4] = (!dark ? RGB15(20, 21, 28) : RGB15(13, 13, 18));
+        new_pal_bg[1] = (!dark ? RGB15(7, 6, 13) : RGB15(4, 4, 8));
+        new_pal_bg[2] = (!dark ? RGB15(7, 9, 21) : RGB15(4, 6, 13));
+        new_pal_bg[3] = (!dark ? RGB15(13, 15, 28) : RGB15(8, 10, 18));
+        new_pal_bg[4] = (!dark ? RGB15(20, 21, 28) : RGB15(13, 13, 18));
         break;
     case FIRERED_ID:
-        pal_bg_mem[1] = (!dark ? RGB15(15, 4, 4) : RGB15(9, 3, 3));
-        pal_bg_mem[2] = (!dark ? RGB15(19, 8, 6) : RGB15(12, 5, 4));
-        pal_bg_mem[3] = (!dark ? RGB15(24, 13, 10) : RGB15(15, 8, 6));
-        pal_bg_mem[4] = (!dark ? RGB15(28, 23, 21) : RGB15(17, 14, 13));
+        new_pal_bg[1] = (!dark ? RGB15(15, 4, 4) : RGB15(9, 3, 3));
+        new_pal_bg[2] = (!dark ? RGB15(19, 8, 6) : RGB15(12, 5, 4));
+        new_pal_bg[3] = (!dark ? RGB15(24, 13, 10) : RGB15(15, 8, 6));
+        new_pal_bg[4] = (!dark ? RGB15(28, 23, 21) : RGB15(17, 14, 13));
         break;
     case LEAFGREEN_ID:
-        pal_bg_mem[1] = (!dark ? RGB15(5, 11, 5) : RGB15(3, 7, 3));
-        pal_bg_mem[2] = (!dark ? RGB15(9, 17, 7) : RGB15(6, 11, 4));
-        pal_bg_mem[3] = (!dark ? RGB15(17, 22, 11) : RGB15(10, 14, 7));
-        pal_bg_mem[4] = (!dark ? RGB15(24, 26, 19) : RGB15(15, 16, 12));
+        new_pal_bg[1] = (!dark ? RGB15(5, 11, 5) : RGB15(3, 7, 3));
+        new_pal_bg[2] = (!dark ? RGB15(9, 17, 7) : RGB15(6, 11, 4));
+        new_pal_bg[3] = (!dark ? RGB15(17, 22, 11) : RGB15(10, 14, 7));
+        new_pal_bg[4] = (!dark ? RGB15(24, 26, 19) : RGB15(15, 16, 12));
         break;
     case EMERALD_ID:
-        pal_bg_mem[1] = (!dark ? RGB15(5, 10, 10) : RGB15(3, 6, 6));
-        pal_bg_mem[2] = (!dark ? RGB15(7, 15, 13) : RGB15(5, 9, 8));
-        pal_bg_mem[3] = (!dark ? RGB15(11, 22, 13) : RGB15(7, 14, 8));
-        pal_bg_mem[4] = (!dark ? RGB15(20, 26, 20) : RGB15(12, 16, 13));
+        new_pal_bg[1] = (!dark ? RGB15(5, 10, 10) : RGB15(3, 6, 6));
+        new_pal_bg[2] = (!dark ? RGB15(7, 15, 13) : RGB15(5, 9, 8));
+        new_pal_bg[3] = (!dark ? RGB15(11, 22, 13) : RGB15(7, 14, 8));
+        new_pal_bg[4] = (!dark ? RGB15(20, 26, 20) : RGB15(12, 16, 13));
         break;
     default:
-        memcpy(pal_bg_mem, &backgroundPal[dark ? 8 : 0], backgroundPalLen);
+        new_pal_bg[1] = (!dark ? RGB15(7, 7, 11) : RGB15(0, 0, 0));
+        new_pal_bg[2] = (!dark ? RGB15(13, 13, 16) : RGB15(0, 0, 0));
+        new_pal_bg[3] = (!dark ? RGB15(18, 18, 20) : RGB15(0, 0, 0));
+        new_pal_bg[4] = (!dark ? RGB15(21, 21, 23) : RGB15(0, 0, 0));
         break;
+    }
+    if (fade)
+    {
+#define NUM_CYCLES 30.0
+        COLOR curr_pal_bg[8];
+        COLOR old_pal[3];
+        COLOR new_pal[3];
+        memcpy(curr_pal_bg, &pal_bg_mem[0], 16);
+        for (int n = 0; n <= NUM_CYCLES; n++)
+        {
+            for (int i = 1; i < 5; i++)
+            {
+                for (int b = 0; b < 3; b++)
+                {
+                    old_pal[b] = (curr_pal_bg[i] >> (b * 5)) & 0b11111;
+                    new_pal[b] = (new_pal_bg[i] >> (b * 5)) & 0b11111;
+                }
+                pal_bg_mem[i] = RGB15(
+                    (((NUM_CYCLES - n) / NUM_CYCLES) * old_pal[0]) + ((n / NUM_CYCLES) * new_pal[0]),
+                    (((NUM_CYCLES - n) / NUM_CYCLES) * old_pal[1]) + ((n / NUM_CYCLES) * new_pal[1]),
+                    (((NUM_CYCLES - n) / NUM_CYCLES) * old_pal[2]) + ((n / NUM_CYCLES) * new_pal[2]));
+            }
+            global_next_frame();
+        }
+    }
+    else
+    {
+        memcpy(pal_bg_mem, &new_pal_bg[0], 16);
+        // memcpy(&pal_bg_mem[4], &new_pal_bg[4], 2);
     }
     (pal_obj_mem + (BTN_LIT_PAL * 16))[7] = pal_bg_mem[1];
     (pal_obj_mem + (BTN_LIT_PAL * 16))[8] = pal_bg_mem[1];
     (pal_obj_mem + (BTN_LIT_PAL * 16))[9] = pal_bg_mem[1];
     (pal_obj_mem + (BTN_LIT_PAL * 16))[10] = pal_bg_mem[3];
+    pal_bg_bank[14][15] = pal_bg_mem[3];
 }
 
 #include "openingBG.h"
@@ -494,8 +529,6 @@ void load_select_sprites(int game_id, int lang)
     memcpy(pal_obj_mem + (GB_CART_PAL * 16) + 6, label_palette + 6, 20);
     load_sprite(cart_shell, cart_tiles, GB_ShellTilesLen, curr_tile_id, GB_CART_PAL, ATTR0_SQUARE, ATTR1_SIZE_64x64, 1);
     load_sprite(cart_label, &label_tiles[8], Label_GreenTilesLen - 32, curr_tile_id, GB_CART_PAL, ATTR0_SQUARE, ATTR1_SIZE_32x32, 1);
-    obj_set_pos(cart_shell, (8 * 12) + 4, (8 * 4) + 11 + y_offset);
-    obj_set_pos(cart_label, (8 * 12) + 4 + 8, (8 * 4) + 11 + 13 + y_offset);
 
     const unsigned int *flag_tiles = 0;
     const unsigned short *flag_palette = 0;
@@ -533,7 +566,6 @@ void load_select_sprites(int game_id, int lang)
 
     load_sprite(flag, flag_tiles, flag_jpnTilesLen, curr_tile_id, FLAG_PAL, ATTR0_WIDE, ATTR1_SIZE_32x64, 1);
     memcpy(pal_obj_mem + (FLAG_PAL * 16), flag_palette, 16); // Grit is being stupid.
-    obj_set_pos(flag, (8 * 12) + 4, (8 * 4) + 19 + y_offset);
 
     const unsigned int *gba_cart_tiles = 0;
     const unsigned short *gba_cart_palette = 0;
@@ -659,7 +691,7 @@ void update_y_offset()
         y_offset_timer = 12;
     }
     y_offset_timer--;
-    obj_set_pos(cart_shell, (8 * 12) + 4, (8 * 4) + 11 + y_offset);
-    obj_set_pos(cart_label, (8 * 12) + 4 + 8, (8 * 4) + 11 + 13 + y_offset);
-    obj_set_pos(flag, (8 * 12) + 4, (8 * 4) + 19 + y_offset);
+    obj_set_pos(cart_shell, (8 * 11) + 4, (8 * 4) + 11 + y_offset);
+    obj_set_pos(cart_label, (8 * 11) + 4 + 8, (8 * 4) + 11 + 13 + y_offset);
+    obj_set_pos(flag, (8 * 11) + 4, (8 * 4) + 19 + y_offset);
 }

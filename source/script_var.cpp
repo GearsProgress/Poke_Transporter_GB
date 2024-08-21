@@ -76,7 +76,7 @@ void asm_var::fill_refrences(u8 mg_array[])
         {
             for (int j = 0; j < 4; j++)
             {
-                mg_array[location_list[i] + j] += (start_location_in_script + curr_rom.loc_gSaveBlock1 + curr_rom.offset_ramscript + 7)  >> (j * 8);
+                mg_array[location_list[i] + j] += (start_location_in_script + curr_rom.loc_gSaveBlock1 + curr_rom.offset_ramscript + 7) >> (j * 8);
             }
         }
         else
@@ -136,7 +136,7 @@ u32 xse_var::get_loc_in_sec30()
 
 // TEXTBOX VAR
 
-void textbox_var::set_text(std::u8string_view nText)
+void textbox_var::set_text(std::u16string_view nText)
 {
     text = nText;
 }
@@ -272,6 +272,10 @@ void music_var::insert_music_data(u8 mg_array[], u8 blockCount, u8 priority, u8 
         }
     }
 
+    while ((*curr_loc_ptr) % 4 != 0)
+    {
+        (*curr_loc_ptr)++;
+    }
     set_start();
     mg_array[(*curr_loc_ptr)++] = trackArrays.size();
     mg_array[(*curr_loc_ptr)++] = blockCount;

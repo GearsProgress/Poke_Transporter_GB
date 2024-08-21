@@ -18,7 +18,7 @@
 #define DIA_TRANS_GOOD              9    
 #define DIA_NEW_DEX                 10
 #define DIA_NO_NEW_DEX              11
-#define DIA_SEND_FRIEND_HOENN       12
+#define DIA_SEND_FRIEND_HOENN_RS    12
 #define DIA_SEND_FRIEND_KANTO       13
 #define DIA_THANK                   14
 #define DIA_GET_MON                 15
@@ -42,8 +42,10 @@
 #define DIA_K_DEX_NOT_FULL          33
 #define DIA_J_DEX_NOT_FULL          34
 #define DIA_SOME_INVALID_PKMN       35
+#define DIA_MENU_BACK               36
+#define DIA_SEND_FRIEND_HOENN_E     37
 
-#define                    DIA_SIZE 36
+#define                    DIA_SIZE 38
 #define DIA_END DIA_SIZE
 
 // Commands
@@ -79,7 +81,7 @@
 #define COND_MG_ENABLED             CMDS_END + 6
 #define COND_TUTORIAL_COMPLETE      CMDS_END + 7
 #define COND_NEW_POKEMON            CMDS_END + 8
-#define COND_IS_HOENN               CMDS_END + 9
+#define COND_IS_HOENN_RS            CMDS_END + 9
 #define COND_IS_FRLGE               CMDS_END + 10
 #define COND_MG_OTHER_EVENT         CMDS_END + 11
 #define COND_PKMN_TO_COLLECT        CMDS_END + 12
@@ -88,8 +90,9 @@
 #define COND_CHECK_DEX              CMDS_END + 15
 #define COND_CHECK_KANTO            CMDS_END + 16
 #define COND_SOME_INVALID_PKMN      CMDS_END + 17
+#define COND_IS_HOENN_E             CMDS_END + 18
 
-#define                             COND_SIZE  18
+#define                             COND_SIZE  19
 #define COND_END CMDS_END + COND_SIZE
 
 // Ends

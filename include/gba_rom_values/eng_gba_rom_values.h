@@ -26,7 +26,7 @@ const struct ROM_DATA ENG_RUBY_v0 = {
     .loc_sFanfareCounter = 0x030006DA,
     .loc_gPlttBufferFaded = 0x0202EEC8,
     .loc_gSprites = 0x02020004,
-    .loc_voicegroup = 0x08451F90,
+    .loc_voicegroup = 0x084401E8,
     .loc_sPicTable_NPC = 0x0836E788,
 
     // The following should be consistant across languages and revisions.
@@ -75,7 +75,7 @@ const struct ROM_DATA ENG_SAPPHIRE_v0 = {
     .loc_sFanfareCounter = 0x030006DA,
     .loc_gPlttBufferFaded = 0x0202EEC8,
     .loc_gSprites = 0x02020004,
-    .loc_voicegroup = 0x08451FEC,
+    .loc_voicegroup = 0x08445644,
     .loc_sPicTable_NPC = 0x0836E718,
 
     // The following should be consistant across languages and revisions.
@@ -124,7 +124,7 @@ const struct ROM_DATA ENG_RUBY_v1 = {
     .loc_sFanfareCounter = 0x030006DA,
     .loc_gPlttBufferFaded = 0x0202EEC8,
     .loc_gSprites = 0x02020004,
-    .loc_voicegroup = 0x08451FA4,
+    .loc_voicegroup = 0x084401FC,
     .loc_sPicTable_NPC = 0x0836E7A0,
 
     // The following should be consistant across languages and revisions.
@@ -173,7 +173,7 @@ const struct ROM_DATA ENG_SAPPHIRE_v1 = {
     .loc_sFanfareCounter = 0x030006DA,
     .loc_gPlttBufferFaded = 0x0202EEC8,
     .loc_gSprites = 0x02020004,
-    .loc_voicegroup = 0x08452004,
+    .loc_voicegroup = 0x0844025C,
     .loc_sPicTable_NPC = 0x0836E730,
 
     // The following should be consistant across languages and revisions.
@@ -222,7 +222,7 @@ const struct ROM_DATA ENG_RUBY_v2 = {
     .loc_sFanfareCounter = 0x030006DA,
     .loc_gPlttBufferFaded = 0x0202EEC8,
     .loc_gSprites = 0x02020004,
-    .loc_voicegroup = 0x08451FA4,
+    .loc_voicegroup = 0x084401FC,
     .loc_sPicTable_NPC = 0x0836E7A0,
 
     // The following should be consistant across languages and revisions.
@@ -271,7 +271,7 @@ const struct ROM_DATA ENG_SAPPHIRE_v2 = {
     .loc_sFanfareCounter = 0x030006DA,
     .loc_gPlttBufferFaded = 0x0202EEC8,
     .loc_gSprites = 0x02020004,
-    .loc_voicegroup = 0x08452004,
+    .loc_voicegroup = 0x0844025C,
     .loc_sPicTable_NPC = 0x0836E730,
 
     // The following should be consistant across languages and revisions.
@@ -320,7 +320,7 @@ const struct ROM_DATA ENG_FIRERED_v0 = {
     .loc_sFanfareCounter = 0x03000FC6,
     .loc_gPlttBufferFaded = 0x020375F8,
     .loc_gSprites = 0x0202063C,
-    .loc_voicegroup = 0x084957A0,
+    .loc_voicegroup = 0x08498878,
     .loc_sPicTable_NPC = 0x083A0AB8,
 
     // The following should be consistant across languages and revisions.
@@ -372,7 +372,7 @@ const struct ROM_DATA ENG_LEAFGREEN_v0 = {
     .loc_sFanfareCounter = 0x03000FC6,
     .loc_gPlttBufferFaded = 0x020375F8,
     .loc_gSprites = 0x0202063C,
-    .loc_voicegroup = 0x0849507C,
+    .loc_voicegroup = 0x08498154,
     .loc_sPicTable_NPC = 0x083A0A98,
 
     // The following should be consistant across languages and revisions.
@@ -424,7 +424,7 @@ const struct ROM_DATA ENG_FIRERED_v1 = {
     .loc_sFanfareCounter = 0x03000FC6,
     .loc_gPlttBufferFaded = 0x020375F8,
     .loc_gSprites = 0x0202063C,
-    .loc_voicegroup = 0x08495800,
+    .loc_voicegroup = 0x084988D8,
     .loc_sPicTable_NPC = 0x083A0B28,
 
     // The following should be consistant across languages and revisions.
@@ -476,7 +476,7 @@ const struct ROM_DATA ENG_LEAFGREEN_v1 = {
     .loc_sFanfareCounter = 0x03000FC6,
     .loc_gPlttBufferFaded = 0x020375F8,
     .loc_gSprites = 0x0202063C,
-    .loc_voicegroup = 0x084950EC,
+    .loc_voicegroup = 0x084981C4,
     .loc_sPicTable_NPC = 0x083A0B08,
 
     // The following should be consistant across languages and revisions.
@@ -528,7 +528,7 @@ const struct ROM_DATA ENG_EMERALD_v0 = {
     .loc_sFanfareCounter = 0x03000F4E,
     .loc_gPlttBufferFaded = 0x02037B14,
     .loc_gSprites = 0x02020630,
-    .loc_voicegroup = 0x086A6DE4,
+    .loc_voicegroup = 0x08686A74,
     .loc_sPicTable_NPC = 0x08506404,
 
     // The following should be consistant across languages and revisions.

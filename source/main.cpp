@@ -145,8 +145,8 @@ void initalization_script(void)
 
 void game_load_error(void)
 {
-	REG_BG0CNT = (REG_BG0CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
-	REG_BG1CNT = (REG_BG1CNT & ~BG_PRIO_MASK) | BG_PRIO(2);
+	// EG_BG0CNT = (REG_BG0CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
+	// REG_BG1CNT = (REG_BG1CNT & ~BG_PRIO_MASK) | BG_PRIO(2);
 	REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(1);
 	REG_BG2VOFS = 0;
 	tte_set_pos(40, 24);
@@ -182,10 +182,13 @@ void first_load_message(void)
 
 int credits()
 {
-#define CREDITS_ARRAY_SIZE 16
+#define CREDITS_ARRAY_SIZE 18
 	int curr_credits_num = 0;
 	std::string credits_array[CREDITS_ARRAY_SIZE] = {
-		"Lead developer:\n\nThe Gears of\nProgress\n\nLead graphic design:\n\nJome",
+		"Lead developer:\n\nThe Gears of\nProgress",
+		"Logo and co-ideator:\n\n-Jome\n\nSpritework:\n\n-LJ Birdman\n\n",
+		"Icon Sprites: \n\n-LuigiTKO\n-GuiAbel\n-SourApple\n & the artists from\nPok@mon Showdown and\nCrystal Clear",
+		"Remote and Arbitrary\nCode Execution\nassistance:\n\n\n-TimoVM",
 		"Development\nassistance:\n\n-im a blisy\n-rileyk64\n-Shao",
 		"Built using:\n\n\n-DevkitPro\n-LibTonc\n-LibGBA",
 		"Inspired by the\nworks of:\n\n-Goppier\n-Lorenzooone\n-im a blisy\n-RETIRE",
@@ -196,7 +199,6 @@ int credits()
 		"Pok@mon data\nobtained from:\n\n-Bulbapedia\n-Serebii\n-PokeAPI.com",
 		"Discord community\nassistance:\n\n-Hex Maniac Advance\n Development\n-gbadev\n-pret",
 		"Writing assistance:\n\n\n-Mad",
-		"Remote and Arbitrary\nCode Execution\nassistance:\n\n\n-TimoVM",
 		"An immense thanks to\nLorenzooone for\ntheir assistance in\nreading/writing save\ndata. Without them,\nthis project would\nnot have been\npossible.",
 		"Special thanks to\nEnn, roku, Sleepy,\nEza, sarahtonin,\nBasabi, Mad, and\neveryone who has\nlistened to me talk\nabout this for\nmonths!",
 		"All Pok@mon names,\nsprites, and names\nof related resources\nare copyright\nNintendo,\nCreatures Inc.,\nand GAME FREAK Inc.",
@@ -341,27 +343,8 @@ int main(void)
 {
 	initalization_script();
 
-	//  Check if the game has been loaded correctly.
-	while (!curr_rom.load_rom())
-	{
-		game_load_error();
-		initalization_script();
-	}
-
-	// Initalize memory and save data after loading the game
-	init_bank();
-	initalize_memory_locations();
-	load_custom_save_data();
-
-	if (!IGNORE_MG_E4_FLAGS && (!get_tutorial_flag() || !read_flag(curr_rom.e4_flag) || FORCE_TUTORIAL))
-	{
-		first_load_message();
-		initalize_save_data();
-	}
-
 	// Set colors based on current ROM
-	set_background_pal(curr_rom.gamecode, false);
-	pal_bg_bank[14][15] = pal_bg_mem[3];
+	set_background_pal(0, false, false);
 
 	// Legal mumbo jumbo
 	tte_set_pos(8, 0);
@@ -394,18 +377,63 @@ int main(void)
 
 	key_poll(); // Reset the keys
 	curr_rom.load_rom();
+
+	obj_set_pos(ptgb_logo_l, 56, 12);
+	obj_set_pos(ptgb_logo_r, 56 + 64, 12);
+	obj_unhide_multi(ptgb_logo_l, 1, 2);
+	bool start_pressed = false;
+	REG_BLDCNT = BLD_BUILD(BLD_BG3, BLD_BG0, 1);
+	tte_set_pos(6 * 8, 12 * 8);
+	tte_write("#{cx:0xF000}Push Start Button!");
+	int fade = 0;
+	while (!start_pressed)
+	{
+		fade = abs(((get_frame_count() / 6) % 24) - 12);
+		global_next_frame();
+		start_pressed = key_hit(KEY_START) | key_hit(KEY_A);
+		REG_BLDALPHA = BLDA_BUILD(0b10000, fade);
+	};
+	key_poll();
+	tte_erase_rect(0, 0, H_MAX, V_MAX);
+
+	//  Check if the game has been loaded correctly.
+	while (!curr_rom.load_rom())
+	{
+		obj_hide_multi(ptgb_logo_l, 2);
+		game_load_error();
+		// initalization_script();
+	}
+
+	// Initalize memory and save data after loading the game
+	init_bank();
+	initalize_memory_locations();
+	load_custom_save_data();
+
+	set_background_pal(curr_rom.gamecode, false, true);
+
+	if (!IGNORE_MG_E4_FLAGS && (!get_tutorial_flag() || FORCE_TUTORIAL))
+	{
+		obj_hide_multi(ptgb_logo_l, 2);
+		text_loop(BTN_TRANSFER);
+		initalize_save_data();
+	}
+
+	obj_unhide_multi(ptgb_logo_l, 1, 2);
+
 	// MAIN LOOP
-	while (1)
+	while (true)
 	{
 		if (DEBUG_MODE)
 		{
 			print_mem_section();
 			curr_rom.print_rom_info();
 		}
+		load_flex_background(BG_MAIN_MENU, 2);
+
+		obj_unhide_multi(ptgb_logo_l, 1, 2);
 		obj_set_pos(ptgb_logo_l, 56, 12);
 		obj_set_pos(ptgb_logo_r, 56 + 64, 12);
-		obj_unhide_multi(ptgb_logo_l, 1, 2);
-		load_flex_background(BG_MAIN_MENU, 2);
+
 		switch (main_menu_loop())
 		{
 		case (BTN_TRANSFER):
@@ -414,19 +442,17 @@ int main(void)
 			text_loop(BTN_TRANSFER);
 			break;
 		case (BTN_POKEDEX):
-			if (IGNORE_MG_E4_FLAGS || read_flag(curr_rom.e4_flag))
-			{
-				load_flex_background(BG_DEX, 2);
-				set_background_pal(curr_rom.gamecode, true);
-				obj_hide_multi(ptgb_logo_l, 2);
-				pokedex_loop();
-				load_flex_background(BG_DEX, 3);
-				set_background_pal(curr_rom.gamecode, false);
-			}
+			load_flex_background(BG_DEX, 2);
+			set_background_pal(curr_rom.gamecode, true, false);
+			obj_hide_multi(ptgb_logo_l, 2);
+			pokedex_loop();
+			load_flex_background(BG_DEX, 3);
+			set_background_pal(curr_rom.gamecode, false, false);
 			break;
 		case (BTN_CREDITS):
 			set_textbox_large();
 			show_text_box();
+			REG_BG1CNT = (REG_BG1CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
 			obj_set_pos(ptgb_logo_l, 56, 108);
 			obj_set_pos(ptgb_logo_r, 56 + 64, 108);
 			credits();

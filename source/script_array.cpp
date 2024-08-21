@@ -25,17 +25,18 @@ std::string_view dialogue[DIA_SIZE];
 
 void populate_dialogue()
 {
-    dialogue[DIA_OPEN] = "Hey there! I'm Professor\nFennel. As you can see, I'm\na scientist.|In fact, the subject I'm \nresearching is Trainers!|My dream is to collect save files of various trainers, \nbut I haven't had any \nbreakthroughs yet...|So in the meantime, I've\nbeen working on a different\nproject with one of my old\nfriends!|In my home region, there's a\nlocation that can make a\nPok@mon's dreams into\nreality.|This means that any other\nPok@mon they meet in their\ndreams become real!|That's fantastic, but my\ngoal is to do the same-\njust with a trainer's dream\ninstead!|That's why I need your help!\nI want to bring as many\nPok@mon out of your dreams\nas possible!|There's just over 250\nPok@mon I want to catalogue\nin my Dream Pok@Dex-\nor Dream Dex for short.|But I'll let you keep any\nPok@mon- they're from your\ndreams after all!|I think that's everything...\nwhenever you're ready to\nstart, just let me know!";
+    dialogue[DIA_OPEN] = "Hey there! I'm Professor\nFennel. As you can see, I'm\na scientist.|In fact, the subject I'm \nresearching is Trainers!|My dream is to collect save files of various trainers, \nbut I haven't had any \nbreakthroughs yet...|So in the meantime, I've\nbeen working on a different\nproject with one of my old\nfriends!|In my home region, there's a\nlocation that can make a\nPok@mon's dreams into\nreality.|This means that any other\nPok@mon they meet in their\ndreams become real!|That's fantastic, but my\ngoal is to do the same-\njust with a trainer's dream\ninstead!|That's why I need your help!\nI want to bring as many\nPok@mon out of your dreams\nas possible!|There's just over 250\nPok@mon I want to catalogue\nin my Dream Pok@Dex-\nor Dream Dex for short.|But I'll let you keep any\nPok@mon- they're from your\ndreams after all!|One last note, save data\nbackups are recommended-\njust on the off chance that\nsomething goes wrong!|I think that's everything...\nwhenever you're ready to\nstart, just let me know!";
     dialogue[DIA_E4] = "Hi trainer! I'm thrilled\nyou've decided to help with our research, but we need\nthe best of the best!|Come back after you've\nbeaten the Elite Four and\nbecome the Champion!";
     dialogue[DIA_MG_FRLGE] = "Sorry trainer, one more\nthing to take care of before\nwe can begin- you need to\nenable MYSTERY GIFT!|Head to the nearest Pok@\nMart and fill out the\nquestionnaire as follows:\nLINK TOGETHER WITH ALL|After that, you should be\nall set to go!|See you soon!";
     dialogue[DIA_MG_RS] = "Sorry trainer, one more\nthing to take care of before\nwe can begin- you need to\nenable MYSTERY EVENT!|Head to the PETALBURG\nPok@mon Center and tell the\nman next to the PC:\nMYSTERY EVENT IS EXCITING|After that, you should be\nall set to go!|See you soon!";
     dialogue[DIA_LETS_START] = "Perfect, that's all the\ninformation I need! Let's\nget started!";
     dialogue[DIA_START] = "On a second Game Boy family\nsystem, please load the Game\nBoy Pok@mon game you wish to\ntransfer from.|In your Game Boy Pok@mon\ngame, make your current box\nthe one you want to transfer\nfrom.|Then connect this Game Boy\nAdvance to the other Game\nBoy family system using a\nGame Boy Color link cable.|Once you're ready, press A\non this device, talk to the Cable Club attendant, and\nthen initiate a trade.";
-    dialogue[DIA_TRANS_GOOD] = "Amazing! Fantastic!\nEverything went perfectly!|You may now turn off your\nother Game Boy family\nsystem.";
+    dialogue[DIA_TRANS_GOOD] = "Amazing! Fantastic!\nEverything went perfectly!";
     dialogue[DIA_NEW_DEX] = "It looks like there's at\nleast one new Pok@mon here\nthat isn't in the Dream Dex!|I'll give them something\nextra sweet as a reward for you both.";
     dialogue[DIA_NO_NEW_DEX] = "It doesn't look like there's\nanything new for your Dream\nDex, but that's okay!|It's important to confirm\nresearch results with\nmultiple tests!";
-    dialogue[DIA_SEND_FRIEND_KANTO] = "I'm going to send these\nPok@mon to my friend BILL so\nthat you can pick them up.\nThey live on Route 25!|Did you know they developed the Storage System for the\nKanto region?|My younger sister developed a version of the Storage\nSystem too, so BILL is a\ngood friend of ours!";
-    dialogue[DIA_SEND_FRIEND_HOENN] = "I'm going to send these\nPok@mon to my friend LANNETE\nso that you can pick them\nup. They live on route 114!|Did you know they developed the Storage System for the\nHoenn region?|My younger sister developed a version of the Storage\nSystem too, so LANNETE is a\ngood friend of ours!";
+    dialogue[DIA_SEND_FRIEND_KANTO] = "I'm going to send these\nPok@mon to one of my friends\nso that you can pick them\nup!|They live just south of the Pok@mon center on Seven\nIsland!";
+    dialogue[DIA_SEND_FRIEND_HOENN_RS] = "I'm going to send these\nPok@mon to one of my friends\nso that you can pick them\nup!|They live just southeast of the Pok@mon center in\nMossdeep City!";
+    dialogue[DIA_SEND_FRIEND_HOENN_E] = "I'm going to send these\nPok@mon to one of my friends\nso that you can pick them\nup!|They live just southeast of the Pok@mon center in\nSootopolis City!";
     dialogue[DIA_THANK] = "Thank you so much for your\nhelp! Whenever you want to\ntransfer more Pok@mon, just\nlet me know!|See you around!";
     dialogue[DIA_GET_MON] = "Let's get started! Please connect Load the Game Boy Pok@mon game you want to transfer from, and put the Pok@mon you want to transfer into your party. ";
     dialogue[DIA_MG_OTHER_EVENT] = "Hi Trainer! It looks like\nyou have a different event\ncurrently loaded.|That's no problem, but it\nwill be overwritten if you\ncontinue.|Turn off the system now if\nyou want to experience your\ncurrent event,\nbut otherwise-";
@@ -49,6 +50,7 @@ void populate_dialogue()
     dialogue[DIA_MYTHIC_CONVERT] = "It looks like you have a\nrare Mythical Pok@mon!|Due to their rarity, it\nseems they've overloaded the\nmachine.|I can stablize them if you'd\nlike, but it'll change some\nthings like met location,\nOT, TID, and Shininess.|Otherwise I can leave them\nas is, but there's no\nguarentee that they'll be\ntransferrable in the future.|Do you want me to stablize\nthem? This will apply to\nall of the Mythical Pok@mon\ncurrently in your box.";
     dialogue[DIA_CANCEL] = "No worries! Feel free to\ncome back if you change your\nmind!|See you around!";
     dialogue[DIA_SOME_INVALID_PKMN] = "I see there is at least one\nPok@mon that cannot be\ntransferred from your\ncurrent box.|Pok@mon holding items or\nmodified incorrectly through\nunintended means cannot\nbe transferred.|The other Pok@mon will\ntransfer just fine though!";
+    dialogue[DIA_MENU_BACK] = "No worries! Feel free to\ncome back any time!";
 
     dialogue[DIA_ERROR_COLOSSEUM] = "It looks like you went to\nthe colosseum instead of the\ntrading room!|Let's try that again!";
     dialogue[DIA_ERROR_COM_ENDED] = "Communication with the other\ndevice was terminated.|Let's try that again!";
@@ -66,16 +68,16 @@ void populate_script()
 {
     // -------- TRANSFER SCRIPT --------
     // Check that the conditions are set for the transfer
-    transfer_script[T_SCRIPT_START] = script_obj(CMD_SHOW_PROF, COND_BEAT_E4);
+    transfer_script[T_SCRIPT_START] = script_obj(CMD_SHOW_PROF, COND_TUTORIAL_COMPLETE);
+    transfer_script[COND_TUTORIAL_COMPLETE] = script_obj(COND_TUTORIAL_COMPLETE, COND_BEAT_E4, DIA_OPEN);
+    transfer_script[DIA_OPEN] = script_obj(dialogue[DIA_OPEN], CMD_SET_TUTOR_TRUE);
+    transfer_script[CMD_SET_TUTOR_TRUE] = script_obj(CMD_SET_TUTOR_TRUE, CMD_END_SCRIPT);
     transfer_script[COND_BEAT_E4] = script_obj(COND_BEAT_E4, COND_MG_ENABLED, DIA_E4);
     transfer_script[DIA_E4] = script_obj(dialogue[DIA_E4], CMD_END_SCRIPT);
-    transfer_script[COND_MG_ENABLED] = script_obj(COND_MG_ENABLED, COND_TUTORIAL_COMPLETE, COND_IS_FRLGE);
+    transfer_script[COND_MG_ENABLED] = script_obj(COND_MG_ENABLED, COND_MG_OTHER_EVENT, COND_IS_FRLGE);
     transfer_script[COND_IS_FRLGE] = script_obj(COND_IS_FRLGE, DIA_MG_FRLGE, DIA_MG_RS);
     transfer_script[DIA_MG_FRLGE] = script_obj(dialogue[DIA_MG_FRLGE], CMD_END_SCRIPT);
     transfer_script[DIA_MG_RS] = script_obj(dialogue[DIA_MG_RS], CMD_END_SCRIPT);
-    transfer_script[COND_TUTORIAL_COMPLETE] = script_obj(COND_TUTORIAL_COMPLETE, COND_MG_OTHER_EVENT, DIA_OPEN);
-    transfer_script[DIA_OPEN] = script_obj(dialogue[DIA_OPEN], CMD_SET_TUTOR_TRUE);
-    transfer_script[CMD_SET_TUTOR_TRUE] = script_obj(CMD_SET_TUTOR_TRUE, CMD_END_SCRIPT);
     transfer_script[COND_MG_OTHER_EVENT] = script_obj(COND_MG_OTHER_EVENT, DIA_MG_OTHER_EVENT, COND_PKMN_TO_COLLECT);
     transfer_script[COND_PKMN_TO_COLLECT] = script_obj(COND_PKMN_TO_COLLECT, DIA_PKMN_TO_COLLECT, DIA_ASK_QUEST);
     transfer_script[DIA_MG_OTHER_EVENT] = script_obj(dialogue[DIA_MG_OTHER_EVENT], DIA_ASK_QUEST);
@@ -85,12 +87,13 @@ void populate_script()
     transfer_script[DIA_WHAT_GAME_TRANS] = script_obj(dialogue[DIA_WHAT_GAME_TRANS], CMD_GAME_MENU);
     transfer_script[CMD_GAME_MENU] = script_obj(CMD_GAME_MENU, COND_GB_ROM_EXISTS, DIA_WHAT_LANG_TRANS);
     transfer_script[DIA_WHAT_LANG_TRANS] = script_obj(dialogue[DIA_WHAT_LANG_TRANS], CMD_LANG_MENU);
-    transfer_script[CMD_LANG_MENU] = script_obj(CMD_LANG_MENU, DIA_WHAT_GAME_TRANS, DIA_CANCEL);
+    transfer_script[CMD_LANG_MENU] = script_obj(CMD_LANG_MENU, DIA_WHAT_GAME_TRANS, DIA_MENU_BACK);
     transfer_script[DIA_ASK_QUEST] = script_obj(dialogue[DIA_ASK_QUEST], CMD_SLIDE_PROF_LEFT);
     transfer_script[CMD_SLIDE_PROF_LEFT] = script_obj(CMD_SLIDE_PROF_LEFT, DIA_WHAT_LANG_TRANS);
     transfer_script[CMD_SLIDE_PROF_RIGHT] = script_obj(CMD_SLIDE_PROF_RIGHT, DIA_LETS_START);
     transfer_script[COND_GB_ROM_EXISTS] = script_obj(COND_GB_ROM_EXISTS, CMD_SLIDE_PROF_RIGHT, DIA_NO_GB_ROM);
     transfer_script[DIA_NO_GB_ROM] = script_obj(dialogue[DIA_NO_GB_ROM], DIA_WHAT_LANG_TRANS);
+    transfer_script[DIA_MENU_BACK] = script_obj(dialogue[DIA_MENU_BACK], CMD_END_SCRIPT);
 
     // Initiate the transfer and check for errors
     transfer_script[DIA_LETS_START] = script_obj(dialogue[DIA_LETS_START], DIA_START);
@@ -125,10 +128,12 @@ void populate_script()
     // Complete the transfer and give messages based on the transfered Pokemon
     transfer_script[DIA_TRANS_GOOD] = script_obj(dialogue[DIA_TRANS_GOOD], COND_NEW_POKEMON);
     transfer_script[COND_NEW_POKEMON] = script_obj(COND_NEW_POKEMON, DIA_NEW_DEX, DIA_NO_NEW_DEX);
-    transfer_script[DIA_NEW_DEX] = script_obj(dialogue[DIA_NEW_DEX], COND_IS_HOENN);
-    transfer_script[DIA_NO_NEW_DEX] = script_obj(dialogue[DIA_NO_NEW_DEX], COND_IS_HOENN);
-    transfer_script[COND_IS_HOENN] = script_obj(COND_IS_HOENN, DIA_SEND_FRIEND_HOENN, DIA_SEND_FRIEND_KANTO);
-    transfer_script[DIA_SEND_FRIEND_HOENN] = script_obj(dialogue[DIA_SEND_FRIEND_HOENN], DIA_THANK);
+    transfer_script[DIA_NEW_DEX] = script_obj(dialogue[DIA_NEW_DEX], COND_IS_HOENN_RS);
+    transfer_script[DIA_NO_NEW_DEX] = script_obj(dialogue[DIA_NO_NEW_DEX], COND_IS_HOENN_RS);
+    transfer_script[COND_IS_HOENN_RS] = script_obj(COND_IS_HOENN_RS, DIA_SEND_FRIEND_HOENN_RS, COND_IS_HOENN_E);
+    transfer_script[COND_IS_HOENN_E] = script_obj(COND_IS_HOENN_E, DIA_SEND_FRIEND_HOENN_E, DIA_SEND_FRIEND_KANTO);
+    transfer_script[DIA_SEND_FRIEND_HOENN_RS] = script_obj(dialogue[DIA_SEND_FRIEND_HOENN_RS], DIA_THANK);
+    transfer_script[DIA_SEND_FRIEND_HOENN_E] = script_obj(dialogue[DIA_SEND_FRIEND_HOENN_E], DIA_THANK);
     transfer_script[DIA_SEND_FRIEND_KANTO] = script_obj(dialogue[DIA_SEND_FRIEND_KANTO], DIA_THANK);
     transfer_script[DIA_THANK] = script_obj(dialogue[DIA_THANK], CMD_END_SCRIPT);
 
@@ -243,8 +248,8 @@ bool run_conditional(int index)
     case COND_NEW_POKEMON:
         return party_data.get_has_new_pkmn();
 
-    case COND_IS_HOENN:
-        return curr_rom.is_hoenn();
+    case COND_IS_HOENN_RS:
+        return curr_rom.is_ruby_sapphire();
 
     case COND_IS_FRLGE:
         return !curr_rom.is_ruby_sapphire();
@@ -276,6 +281,9 @@ bool run_conditional(int index)
 
     case COND_SOME_INVALID_PKMN:
         return party_data.get_contains_invalid();
+
+    case COND_IS_HOENN_E:
+        return curr_rom.gamecode == EMERALD_ID;
 
     case CMD_START_LINK:
         load_flex_background(BG_FENNEL, 3);

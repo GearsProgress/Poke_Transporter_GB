@@ -66,6 +66,7 @@ void initalize_save_data()
     {
         save_data_array[i] = 0;
     }
+    set_tutorial_flag(true);
     write_custom_save_data();
 }
 
