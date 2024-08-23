@@ -405,6 +405,8 @@ int main(void)
 	}
 
 	// Initalize memory and save data after loading the game
+	set_textbox_small();
+	REG_BG2CNT = REG_BG2CNT | BG_PRIO(3);
 	init_bank();
 	initalize_memory_locations();
 	load_custom_save_data();

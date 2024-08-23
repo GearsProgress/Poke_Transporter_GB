@@ -118,6 +118,9 @@ int Box_Menu::box_main(Pokemon_Party party_data)
                 for (int i = 0; i < 10; i++)
                 {
                     nickname[i] = gen_3_Intern_char_array[curr_pkmn.nickname[i]];
+                    if (curr_pkmn.nickname[i] == 0xFF){
+                        i = 10;
+                    }
                 }
                 tte_set_pos(40, 72);
                 tte_write(nickname);

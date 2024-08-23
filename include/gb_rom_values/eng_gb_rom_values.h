@@ -64,7 +64,7 @@ const struct GB_ROM ENG_RED = {
 };
 const struct GB_ROM ENG_BLUE = {
     .language = ENG_ID,
-    .version = RED_ID,
+    .version = BLUE_ID,
     .generation = 1,
     .method = METHOD_NEWLINE,
     .payload_size = 637,

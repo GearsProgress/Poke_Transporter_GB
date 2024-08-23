@@ -21,10 +21,36 @@ int Select_Menu::select_menu_main()
     key_poll(); // Reset the buttons
 
     bool update = true;
-
+    bool first = true;
     while (true)
     {
+        update = true;
+        if (key_hit(KEY_DOWN))
+        {
+            curr_selection = ((curr_selection + 1) % menu_options.size());
+        }
+        else if (key_hit(KEY_UP))
+        {
+            curr_selection = ((curr_selection + (menu_options.size() - 1)) % menu_options.size());
+        }
+        else if (key_hit(KEY_A))
+        {
+            hide_menu();
+            return return_values[curr_selection];
+        }
+        else if (cancel_enabled && key_hit(KEY_B))
+        {
+            hide_menu();
+            return -1;
+        }
+        else if (!first)
+        {
+            update = false;
+        }
+        update_y_offset();
         obj_set_pos(point_arrow, 19 * 8, (2 + curr_selection) * 8);
+        global_next_frame();
+
         if (update)
         {
             if (return_values[curr_selection] == -1)
@@ -56,32 +82,6 @@ int Select_Menu::select_menu_main()
                 }
             }
         }
-
-        update = true;
-        if (key_hit(KEY_DOWN))
-        {
-            curr_selection = ((curr_selection + 1) % menu_options.size());
-        }
-        else if (key_hit(KEY_UP))
-        {
-            curr_selection = ((curr_selection + (menu_options.size() - 1)) % menu_options.size());
-        }
-        else if (key_hit(KEY_A))
-        {
-            hide_menu();
-            return return_values[curr_selection];
-        }
-        else if (cancel_enabled && key_hit(KEY_B))
-        {
-            hide_menu();
-            return -1;
-        }
-        else
-        {
-            update = false;
-        }
-
-        global_next_frame();
     }
     return 0;
 }

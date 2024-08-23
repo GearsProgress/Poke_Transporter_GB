@@ -22,7 +22,6 @@ void global_next_frame()
     // tte_write(std::to_string(get_rand_u32()).c_str());
     background_frame(global_frame_count);
     determine_fennel_blink();
-    update_y_offset();
     oam_copy(oam_mem, obj_buffer, num_sprites);
     VBlankIntrWait();
     // mmFrame(); //Music
