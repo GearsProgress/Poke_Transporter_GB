@@ -3,7 +3,7 @@ Poké Transporter GB is a transfer tool for created to transfer Pokémon from Po
 
 _Poké Transporter GB WILL modify both your generation 3 and generation 1/2 save file. The program is designed to not corrupt anything, but if you do not wish to modify your save file then you should bypass this experience._
 
-_**Please note that Poké Transporter GB is still in beta, so save file backups of both games are HIGHLY recommended before using**._
+_**Please note that although Poké Transporter GB is no longer in beta, save file backups of both games are still recommended before using... just in case!**._
 
 ## Notes
 Pokémon Transfered using Poké Transporter GB *will* be removed from Red, Blue, Yellow, Gold, Silver, or Crystal.
@@ -99,6 +99,18 @@ One of my favorite aspects of the Pokémon franchise is the ability to send Pok�
 - [GBAdev](https://discord.gg/ctGSNxRkg2)
 - [PRET](https://discordapp.com/invite/vdTW48Q)
 - [Glitch City Research Institute](https://discord.com/invite/EA7jxJ6)
+
+# Custom Graphics:
+- [LJ Birdman](https://x.com/LJSTAR_)
+
+# Gen 2 Icon Sprite Artists:
+- [LuigiTKO](https://x.com/LuigiTKO)
+- [GuiAbel](https://x.com/guiabel/)
+- [SourApple](https://github.com/SoupPotato)
+
+# Arbitrary Code Execution Assistance:
+- [TimoVM](https://x.com/Timo_VM)
+- [MrCheeze](https://x.com/mrcheeze_)
 
 ## License
 All Pokémon names, sprites, names of related resources are © Nintendo/Creatures Inc./GAME FREAK Inc.
