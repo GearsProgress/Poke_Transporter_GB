@@ -39,16 +39,17 @@ Due to Mew and Celebi being illegal, an option is given to the player to "stabil
 A full list of modifications made to transfered Pokémon can be found [here](https://github.com/Starport75/Pokemon_Mirror/blob/master/modifications.md)!
 
 ## Screenshots and Video
-![Poke_Transporter_GB_mb-2](https://github.com/GearsProgress/Poke_Transporter_GB/assets/23065741/6fdfd9dc-e287-4fd9-ba0a-2a82b6e66364)
-![Poke_Transporter_GB_mb-0](https://github.com/GearsProgress/Poke_Transporter_GB/assets/23065741/bda4699b-9d02-4bd4-a031-28e5c999ce67)
-![Poke_Transporter_GB_mb-1](https://github.com/GearsProgress/Poke_Transporter_GB/assets/23065741/0feaba14-e1f7-4a81-9230-8588b660a923)
+
+![Poke_Transporter_GB_mb-0](https://github.com/user-attachments/assets/d80083ec-3e30-416a-ac0d-5f4e61084e59)
+![Poke_Transporter_GB_mb-1](https://github.com/user-attachments/assets/5df1e697-8549-4cac-8e1b-324eff987a29)
+![Poke_Transporter_GB_mb-5](https://github.com/user-attachments/assets/e7893a65-5f9f-4a50-95ba-8499c78794aa)
+
+![Poke_Transporter_GB_mb-2](https://github.com/user-attachments/assets/f548df32-ce87-48f1-ab01-3ae488e6a789)
+![Poke_Transporter_GB_mb-4](https://github.com/user-attachments/assets/502685b1-ea63-42c1-81d9-e5848bbc5716)
+![Poke_Transporter_GB_mb-7](https://github.com/user-attachments/assets/141acf23-c330-498b-811a-8d611df01a72)
 
 
-![Pokemon_Mirror_mb-3](https://github.com/Starport75/Pokemon_Mirror/assets/23065741/481bac72-0d57-475c-940f-a53876eaaa3b)
-![Pokemon_Mirror_mb-4](https://github.com/Starport75/Pokemon_Mirror/assets/23065741/3b5df6f8-c76e-466b-8dbd-351d7d4676d1)
-![Pokemon_Mirror_mb-5](https://github.com/Starport75/Pokemon_Mirror/assets/23065741/5c98426d-9717-4c1d-89b9-4fd6bfe13b4e)
-
-A video of Poké Transporter GB in action can be found [here](https://www.youtube.com/watch?v=6Gg6xPq_ZV4)!
+A video of Poké Transporter GB in action can be found [here](https://youtu.be/V0B3Mxm9Y1E)!
 
 ## Why?
 One of my favorite aspects of the Pokémon franchise is the ability to send Pokémon forward into the most recent generation. Of course, this isn't possible from the Gameboy games into the Gameboy Advance era- and I wanted to fix that. A handful of Poeople have bridged the gap before, but Poké Transporter GB is the first tool designed to transfer Pokémon like the Pal Park, PokéTransport Lab, and PokéTransporter for Generation 1 and 2 to Generation 3. Documentation detailing the design process of Poké Transporter GB can be found [here](https://www.austinthomasweber.com/poke-transporter-gb)!
