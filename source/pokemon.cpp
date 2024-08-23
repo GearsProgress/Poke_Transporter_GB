@@ -645,6 +645,9 @@ byte *Pokemon::convert_text(byte *text_array, int size, int gen, int lang)
 u32 Pokemon::generate_pid_iv_match(byte pid_species_index, byte nature, byte *pid_dvs)
 {
     u32 new_pid = 0;
+    byte new_nature = 0;
+    byte new_gender = 0;
+    byte new_letter = 0;
     int gen2_gender_threshold = get_gender_threshold(pid_species_index, false);
     int gen3_gender_threshold = get_gender_threshold(pid_species_index, true);
     bool gender = (((pid_dvs[0] >> 4) & 0b1111) < gen2_gender_threshold);
@@ -652,11 +655,14 @@ u32 Pokemon::generate_pid_iv_match(byte pid_species_index, byte nature, byte *pi
     do
     {
         new_pid = get_rand_u16() | (get_rand_u16() << 16);
+        new_nature = get_nature_from_pid(new_pid);
+        new_gender = get_gender_from_pid(new_pid);
+        new_letter = get_letter_from_pid(new_pid);
     } while (!(
-        (unown_letter != -1 ? get_letter_from_pid(new_pid) == unown_letter : true) &&
-        get_nature_from_pid(new_pid) == nature &&
+        (unown_letter != -1 ? new_letter == unown_letter : true) &&
+        new_nature == nature &&
         (gen2_gender_threshold != -1
-             ? ((get_gender_from_pid(new_pid) < gen3_gender_threshold) == gender)
+             ? ((new_gender < gen3_gender_threshold) == gender)
              : true)));
 
     return new_pid;
@@ -664,11 +670,11 @@ u32 Pokemon::generate_pid_iv_match(byte pid_species_index, byte nature, byte *pi
 
 u8 Pokemon::get_letter_from_pid(u32 pid)
 {
-    return (((pid & 0x3000) >> 18) |
-            ((pid & 0x0300) >> 12) |
-            ((pid & 0x0030) >> 6) |
-            ((pid & 0x0003) >> 0)) %
-           28;
+    return (
+               ((pid & 0x03000000) >> 18) +
+               ((pid & 0x00030000) >> 12) +
+               ((pid & 0x00000300) >> 6) +
+               ((pid & 0x00000003) >> 0)) % 28;
 };
 u8 Pokemon::get_nature_from_pid(u32 pid)
 {
