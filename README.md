@@ -49,7 +49,7 @@ A full list of modifications made to transfered Pokémon can be found [here](htt
 ![Poke_Transporter_GB_mb-7](https://github.com/user-attachments/assets/141acf23-c330-498b-811a-8d611df01a72)
 
 
-A video of Poké Transporter GB in action can be found [here](https://youtu.be/V0B3Mxm9Y1E)!
+A video showcasing Poké Transporter GB can be found [here](https://youtu.be/9mSkGhEYBkg)!
 
 ## Why?
 One of my favorite aspects of the Pokémon franchise is the ability to send Pokémon forward into the most recent generation. Of course, this isn't possible from the Gameboy games into the Gameboy Advance era- and I wanted to fix that. A handful of Poeople have bridged the gap before, but Poké Transporter GB is the first tool designed to transfer Pokémon like the Pal Park, PokéTransport Lab, and PokéTransporter for Generation 1 and 2 to Generation 3. Documentation detailing the design process of Poké Transporter GB can be found [here](https://www.austinthomasweber.com/poke-transporter-gb)!
