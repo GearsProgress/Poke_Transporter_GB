@@ -140,7 +140,7 @@ const struct GB_ROM ENG_YELLOW = {
 };
 const struct GB_ROM ENG_GOLD = {
     .language = ENG_ID,
-    .version = GOLD_ID,
+    .version = -1,
     .generation = 2,
     .method = METHOD_GEN2,
     .payload_size = 672,
