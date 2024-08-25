@@ -15,7 +15,7 @@
 - Pokérus is retained
 - the OT gender will be set to Female if the player is playing as Kris in Pokémon Crystal
 - The transfered Pokémon will be caught in a Pokéball
-- IVs are generated based on the Pokémon's DVs. Each DV is multiplied by two and increased by one, which is simmilar to how Pokémon HOME converts IVs when transfering from Pokémon GO
+- IVs are randomly generated based on Gen 3's pseudo-random generation
 - Met level is set to the Pokémon's current level, and met location is set to "Fateful Encounter". This value is invisible to the palyer, and when transfered to Diamond, Pearl, Platinum, HeartGold, or SoulSilver this will be replaced by "Met at Pal Park"
 - Game of Origin is set to FireRed/LeafGreen for Pokémon transfered from Red, Blue, and Yellow. Pokémon from Gold, Silver, and Crystal will have their Game of Origin set to HeartGold/SoulSilver. This will display as "A far off land" in Ruby, Sapphire, FireRed, LeafGreen, and Emerald- much like how a Game of Origin of FireRed/LeafGreen displays in Ruby and Sapphire
-- All Pokémon are set as Fateful Encounters. This is especially important for Mew and Celebi, as otherwise they will not obey the player
+- Mew will be given a Fateful Encounter flag, so that it obeys the player.
