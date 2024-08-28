@@ -37,8 +37,6 @@ const struct GB_ROM ENG_RED = {
     .short_pkmn_name = 0xE3,
     .pointer_pkmn_name = 0xFC,
 
-    .enter_vector_location = 0xC5D6,
-
     .clearScreen = 0x190F,
     .CableClub_TextBoxBorder = 0x5AB3,
     .placeString = 0x1955,
@@ -56,6 +54,9 @@ const struct GB_ROM ENG_RED = {
     .hSerialConnectionStatus = 0xFFAA,
     .wBoxDataStart = 0xDA80,
     .wBoxDataEnd = 0xDEE2,
+    .wSerialOtherGameboyRandomNumberListBlock = 0xCD81,
+    .wSerialEnemyDataBlock = 0xD893,
+    .wSerialEnemyMonsPatchList = 0xC5D0,
 
     .transferStringLocation = 0xC443,
     .textBorderUppLeft = 0xC42E,
@@ -75,8 +76,6 @@ const struct GB_ROM ENG_BLUE = {
     .short_pkmn_name = 0xE3,
     .pointer_pkmn_name = 0xFC,
 
-    .enter_vector_location = 0xC5D6,
-
     .clearScreen = 0x190F,
     .CableClub_TextBoxBorder = 0x5AB3,
     .placeString = 0x1955,
@@ -94,6 +93,9 @@ const struct GB_ROM ENG_BLUE = {
     .hSerialConnectionStatus = 0xFFAA,
     .wBoxDataStart = 0xDA80,
     .wBoxDataEnd = 0xDEE2,
+    .wSerialOtherGameboyRandomNumberListBlock = 0xCD81,
+    .wSerialEnemyDataBlock = 0xD893,
+    .wSerialEnemyMonsPatchList = 0xC5D0,
 
     .transferStringLocation = 0xC443,
     .textBorderUppLeft = 0xC42E,
@@ -129,9 +131,11 @@ const struct GB_ROM ENG_YELLOW = {
     .wBoxCount = 0xDA7F,
     .wWhichPokemon = 0xCF91,
     .hSerialConnectionStatus = 0xFFAA,
-
     .wBoxDataStart = 0xDA7F,
     .wBoxDataEnd = 0xDEE1,
+    .wSerialOtherGameboyRandomNumberListBlock = 0xCD81,
+    .wSerialEnemyDataBlock = 0xD893,
+    .wSerialEnemyMonsPatchList = 0xC5D0,
 
     .transferStringLocation = 0xC443,
     .textBorderUppLeft = 0xC42E,
@@ -140,7 +144,7 @@ const struct GB_ROM ENG_YELLOW = {
 };
 const struct GB_ROM ENG_GOLD = {
     .language = ENG_ID,
-    .version = -1,
+    .version = GOLD_ID,
     .generation = 2,
     .method = METHOD_GEN2,
     .payload_size = 672,
@@ -149,9 +153,6 @@ const struct GB_ROM ENG_GOLD = {
     .print_string_start = 0xC442,
     .stack_overwrite_location = 0xDFCB, // Found by seeing where 772C is stored in the stack, 772C is the code that calls PlaceString
     .short_pkmn_name = 0x4E,
-
-    .jump_vector_location = 0xC7B4,
-    .enter_vector_location = 0xC5D6,
 
     .clearScreen = 0x000EE2,
     .CableClub_TextBoxBorder = 0x0A4D88, // LinkTextboxAtHL
@@ -167,8 +168,11 @@ const struct GB_ROM ENG_GOLD = {
     .wBoxCount = 0x01AD6C,         // sBoxCount
     .wWhichPokemon = 0x01D005,     // wCurPartyMon
     .hSerialConnectionStatus = 0xFFCD,
-    .wBoxDataStart = 0xAD6C, // sBoxStart
-    .wBoxDataEnd = 0xB1BA,   // sBoxEnd
+    .wBoxDataStart = 0xAD6C,                            // sBoxStart
+    .wBoxDataEnd = 0xB1BA,                              // sBoxEnd
+    .wSerialOtherGameboyRandomNumberListBlock = 0xD0EF, // wOTLinkBattleRNData
+    .wSerialEnemyDataBlock = 0xDD40,                    // wOTPartyData
+    .wSerialEnemyMonsPatchList = 0xC5D0,                // wOTPatchLists
 
     .transferStringLocation = 0xC443,
     .textBorderUppLeft = 0xC42E,
@@ -187,9 +191,6 @@ const struct GB_ROM ENG_SILVER = {
     .stack_overwrite_location = 0xDFCB, // Found by seeing where 772C is stored in the stack, 772C is the code that calls PlaceString
     .short_pkmn_name = 0x4E,
 
-    .jump_vector_location = 0xC7B4,
-    .enter_vector_location = 0xC5D6,
-
     .clearScreen = 0x000EE2,
     .CableClub_TextBoxBorder = 0x0A4D88, // LinkTextboxAtHL
     .placeString = 0x000F74,
@@ -204,8 +205,11 @@ const struct GB_ROM ENG_SILVER = {
     .wBoxCount = 0x01AD6C,         // sBoxCount
     .wWhichPokemon = 0x01D005,     // wCurPartyMon
     .hSerialConnectionStatus = 0xFFCD,
-    .wBoxDataStart = 0xAD6C, // sBoxStart
-    .wBoxDataEnd = 0xB1BA,   // sBoxEnd
+    .wBoxDataStart = 0xAD6C,                            // sBoxStart
+    .wBoxDataEnd = 0xB1BA,                              // sBoxEnd
+    .wSerialOtherGameboyRandomNumberListBlock = 0xD0EF, // wOTLinkBattleRNData
+    .wSerialEnemyDataBlock = 0xDD40,                    // wOTPartyData
+    .wSerialEnemyMonsPatchList = 0xC5D0,                // wOTPatchLists
 
     .transferStringLocation = 0xC443,
     .textBorderUppLeft = 0xC42E,
@@ -224,9 +228,6 @@ const struct GB_ROM ENG_CRYSTAL = {
     .stack_overwrite_location = 0xE0BB, // Found by seeing where 7622 is stored in the stack, 7622 is the code that calls PlaceString (PlaceTradePartnerNamesAndParty)
     .short_pkmn_name = 0x4E,
 
-    .jump_vector_location = 0xD33C,
-    .enter_vector_location = 0xC6D6, // wOTPatchLists, plus preamble
-
     .clearScreen = 0x000FDB,
     .CableClub_TextBoxBorder = 0x0A4EEF, // LinkTextboxAtHL
     .placeString = 0x001078,
@@ -241,8 +242,11 @@ const struct GB_ROM ENG_CRYSTAL = {
     .wBoxCount = 0x01AD10,         // sBoxCount
     .wWhichPokemon = 0x01D109,     // wCurPartyMon
     .hSerialConnectionStatus = 0xFFCB,
-    .wBoxDataStart = 0x01AD10, // sBox
-    .wBoxDataEnd = 0x01B15E,   // sBoxEnd
+    .wBoxDataStart = 0x01AD10,                          // sBox
+    .wBoxDataEnd = 0x01B15E,                            // sBoxEnd
+    .wSerialOtherGameboyRandomNumberListBlock = 0xD206, // wOTLinkBattleRNData
+    .wSerialEnemyDataBlock = 0xD26B,                    // wOTPartyData
+    .wSerialEnemyMonsPatchList = 0xC6D0,                // wOTPatchLists
 
     .transferStringLocation = 0xC543,
     .textBorderUppLeft = 0xC52E,

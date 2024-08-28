@@ -26,9 +26,9 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
         std::vector<z80_jump *> jump_vector;
         std::vector<z80_variable *> var_vector;
 
-        z80_asm_handler z80_rng_seed(0x0A, 0xCD89);
-        z80_asm_handler z80_payload(0x1AA, 0xD892);
-        z80_asm_handler z80_patchlist(0xEC, 0xC5D0);
+        z80_asm_handler z80_rng_seed(0x0A, curr_rom.wSerialOtherGameboyRandomNumberListBlock + 8);
+        z80_asm_handler z80_payload(0x1AA, curr_rom.wSerialEnemyDataBlock);
+        z80_asm_handler z80_patchlist(0xEC, curr_rom.wSerialEnemyMonsPatchList);
 
         z80_jump asm_start(&jump_vector);
         z80_jump save_box(&jump_vector);
@@ -62,30 +62,30 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
         z80_rng_seed.JP(asm_start.place_direct_jump(&z80_rng_seed) | T_U16);
 
         // Preamble
-        // At 0x00, 0x08 in length
+        // At 0x00, 0x07 in length
         // Must be filled with 0xFD
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < 7; i++)
         {
             z80_payload.add_byte(0xFD);
         }
 
         // Rival name
-        // At 0x08, 0x0B in length
+        // At 0x07, 0x0B in length
         // Set to stored name
-        z80_payload.index = 0x08;
+        z80_payload.index = 0x07;
         custom_name.insert_variable(&z80_payload);
 
         // Number of Pokemon
-        // At 0x13, 0x01 in length
+        // At 0x12, 0x01 in length
         // Does not need to be set
-        z80_payload.index = 0x13;
+        z80_payload.index = 0x12;
         z80_payload.add_byte(0x06);
 
         // Pokemon list
-        // At 0x14, can be up to 0x1A2 / 0x1B9 bytes in length.
+        // At 0x13, can be up to 0x1A2 / 0x1B9 bytes in length.
         // Calculate the number of Pokemon names that need to be printed,
         // and add them to the list. Then terminate the list.
-        z80_payload.index = 0x14;
+        z80_payload.index = 0x13;
         int distance = curr_rom.stack_overwrite_location - curr_rom.print_string_start;
         distance /= 20; // Automatically truncated, so it won't overshoot
 
@@ -230,9 +230,9 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
         std::vector<z80_jump *> jump_vector;
         std::vector<z80_variable *> var_vector;
 
-        z80_asm_handler z80_rng_seed(0x0A, 0xCD89);
-        z80_asm_handler z80_payload(0x1AA, 0xD892);
-        z80_asm_handler z80_patchlist(0xEC, 0xC5D0);
+        z80_asm_handler z80_rng_seed(0x0A, curr_rom.wSerialOtherGameboyRandomNumberListBlock + 8);
+        z80_asm_handler z80_payload(0x1AA, curr_rom.wSerialEnemyDataBlock);
+        z80_asm_handler z80_patchlist(0xEC, curr_rom.wSerialEnemyMonsPatchList);
 
         z80_jump asm_start(&jump_vector);
         z80_jump save_box(&jump_vector);
@@ -266,34 +266,34 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
         // Does not need to be set
 
         // Preamble
-        // At 0x00, 0x08 in length
+        // At 0x00, 0x07 in length
         // Must be filled with 0xFD
-        for (int i = 0; i < 8; i++)
+        for (int i = 0; i < 7; i++)
         {
             z80_payload.add_byte(0xFD);
         }
 
         // Rival name
-        // At 0x08, 0x0B in length
+        // At 0x07, 0x0B in length
         // Set to stored name
-        z80_payload.index = 0x08;
+        z80_payload.index = 0x07;
         custom_name.insert_variable(&z80_payload);
 
         // Number of Pokemon
-        // At 0x13, 0x01 in length
+        // At 0x12, 0x01 in length
         // Does not need to be set
-        z80_payload.index = 0x13;
+        z80_payload.index = 0x12;
         z80_payload.add_byte(0x06);
 
         // Pokemon list
-        // At 0x14, can be up to 0x1A2 / 0x1B9 bytes in length.
+        // At 0x13, can be up to 0x1A2 / 0x1B9 bytes in length.
         // Calculate the number of Pokemon names that need to be printed,
         // and add them to the list. Then terminate the list.
 
         int distance = curr_rom.stack_overwrite_location - curr_rom.print_string_start;
         distance /= 20; // Automatically truncated, so it won't overshoot
 
-        z80_payload.index = 0x14;
+        z80_payload.index = 0x13;
         for (int i = 0; i < distance; i++)
         {
             z80_payload.add_byte(i != 277 ? curr_rom.short_pkmn_name : 0xC8);
@@ -519,13 +519,12 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
 
     else if (curr_rom.generation == 2)
     {
-
         std::vector<z80_jump *> jump_vector;
         std::vector<z80_variable *> var_vector;
 
-        z80_asm_handler z80_rng_seed(0x0A, 0xCD89);
-        z80_asm_handler z80_payload(0x1CD, 0xD26B);
-        z80_asm_handler z80_patchlist(0xEC, 0xC6D0);
+        z80_asm_handler z80_rng_seed(0x0A, curr_rom.wSerialOtherGameboyRandomNumberListBlock);
+        z80_asm_handler z80_payload(0x1CD, curr_rom.wSerialEnemyDataBlock);      // wOTPartyData
+        z80_asm_handler z80_patchlist(0xEC, curr_rom.wSerialEnemyMonsPatchList); // wOTPatchLists
 
         /*
         Initally the entire wLinkData is copied into the data section at D26B.
@@ -543,6 +542,7 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
         z80_jump save_box(&jump_vector);
         z80_jump remove_array_loop(&jump_vector);
         z80_jump jump_to_party(&jump_vector);
+        z80_jump jump_to_payload(&jump_vector);
 
         z80_variable array_counter(&var_vector, 1, 0x00); // 1 byte to store the current array counter
         z80_variable removal_array(&var_vector);          // 40 byte storage for list of Pokemon to remove, plus a permanent array terminator
@@ -586,7 +586,6 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
         distance /= 40; // Automatically truncated, so it won't overshoot
         distance -= 8;  // There will be 8 extra bytes due to how the copy functions work.
 
-
         for (int i = 0; i < distance; i++)
         {
             z80_payload.add_byte(curr_rom.short_pkmn_name);
@@ -596,8 +595,9 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
             z80_payload.add_byte(0x80);
         }
 
-        z80_payload.add_byte(curr_rom.enter_vector_location >> 0);
-        z80_payload.add_byte(curr_rom.enter_vector_location >> 8);
+        z80_payload.index -= 1; // Prep for the direct jump, since it usually has to jump forward one for the ASM call
+        jump_to_payload.place_direct_jump(&z80_payload);
+        z80_payload.index += 3;
         z80_payload.add_byte(0x50); // String terminator
 
         // Saving the box overwrites our code, so we need to move it here.
@@ -623,6 +623,7 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
 
         // Write transferring message to screen:
         // call ClearScreen
+        jump_to_payload.set_start(&z80_patchlist);
         z80_patchlist.CALL(curr_rom.clearScreen | T_U16);
 
         z80_patchlist.LD(HL, curr_rom.textBorderUppLeft | T_U16);
@@ -671,7 +672,7 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
         }
         else
         {
-            z80_payload.CALL(curr_rom.Serial_ExchangeBytes | T_U16);
+            z80_patchlist.CALL(curr_rom.Serial_ExchangeBytes | T_U16);
         }
 
         // Remove the transfered Pokemon
@@ -751,7 +752,7 @@ int test_main() // Rename to "main" to send the payload to test_payload.txt
 {
     freopen("test_payload.txt", "w", stdout);
     std::cout << std::endl;
-    byte *payload = generate_payload(ENG_CRYSTAL, TRANSFER, true);
+    byte *payload = generate_payload(ENG_YELLOW, TRANSFER, true);
     if (true)
     {
         for (int i = 0; i < 0x2A0; i++)

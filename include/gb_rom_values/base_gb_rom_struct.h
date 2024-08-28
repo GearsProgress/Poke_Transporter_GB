@@ -26,15 +26,6 @@ public:
     hword stack_overwrite_location; // The part of the stack that we're overwriting
     byte short_pkmn_name;           // The name of the Pokemon that moves us through RAM
     byte pointer_pkmn_name;         // The name of the Pokemon that overwrites the stack
-    hword jump_vector_location;     // Where we should jump to in gen 2 to save the box and reset the game
-    hword enter_vector_location;    // Where we should jump to from the enter vector
-                                    // This can be a few different places:
-                                    // wSerialOtherGameboyRandomNumberListBlock:
-                                    //      0xCD81 to 0xCD8A
-                                    // wLinkEnemyTrainerName:
-                                    //      0xD887 to 0xDA2F
-                                    // wSerialEnemyMonsPatchList:
-                                    //      0xC5D0 to 0xC6E8
 
     word clearScreen;             // location of the clearScreen function in the ROM
     word CableClub_TextBoxBorder; // location of the CableClub_TextBoxBorder function in the ROM
@@ -50,12 +41,15 @@ public:
     word garbageDataLocation;     // location of random data starting with 0xFD in the ROM
     word CloseSRAM;               // location of the OpenSRAM function in the ROM
 
-    word wRemoveMonFromBox;       // location of wRemoveMonFromBox in RAM
-    word wBoxCount;               // location of wBoxCount in RAM
-    word wWhichPokemon;           // location of wWhichPokemon in RAM
-    word hSerialConnectionStatus; // location of hSerialConnectionStatus in RAM
-    word wBoxDataStart;           // location of wBoxDataStart in RAM
-    word wBoxDataEnd;             // location of wBoxDataEnd in RAM
+    word wRemoveMonFromBox;                        // location of wRemoveMonFromBox in RAM
+    word wBoxCount;                                // location of wBoxCount in RAM
+    word wWhichPokemon;                            // location of wWhichPokemon in RAM
+    word hSerialConnectionStatus;                  // location of hSerialConnectionStatus in RAM
+    word wBoxDataStart;                            // location of wBoxDataStart in RAM
+    word wBoxDataEnd;                              // location of wBoxDataEnd in RAM
+    word wSerialOtherGameboyRandomNumberListBlock; // location of wSerialOtherGameboyRandomNumberListBlock in RAM
+    word wSerialEnemyDataBlock;                    // location of wSerialEnemyDataBlock in RAM
+    word wSerialEnemyMonsPatchList;                // location of wSerialEnemyMonsPatchList in RAM
 
     hword transferStringLocation; // location in VRAM to start writing the transfer string to
     hword textBorderUppLeft;      // location in VRAM to put the upper left corner of the border
