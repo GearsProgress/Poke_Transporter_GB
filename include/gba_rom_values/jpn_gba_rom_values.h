@@ -1,34 +1,32 @@
-#ifndef ROM_VALUES_ENG_H
-#define ROM_VALUES_ENG_H
+#ifndef ROM_VALUES_JPN_H
+#define ROM_VALUES_JPN_H
 
 #include "gba_rom_values/base_gba_rom_struct.h"
 
-//const struct ROM_DATA test = {.is_valid = true};
-
-const struct ROM_DATA ENG_RUBY_v0 = {
+const struct ROM_DATA JPN_RUBY_v0 = {
     .is_valid = true,
 
     .gamecode = RUBY_ID,
     .version = VERS_1_0,
-    .language = LANG_ENG,
+    .language = LANG_JPN,
 
-    .loc_copyMonToPC = 0x0803D998, // Known as "SendMonToPC"
-    .loc_getSetPokedexFlag = 0x08090D90,
-    .loc_readFlashSector = 0x08125BF8, // Known as "DoReadFlashWholeSection" in RS
-    .loc_m4aMPlayStop = 0x081DE740,
-    .loc_MPlayStart = 0x081DE65C,
-    .loc_CreateFanfareTask = 0x08074F48,
-    .loc_voicegroup = 0x084401E8,
-    .loc_sPicTable_NPC = 0x0836E788,
+    .loc_copyMonToPC = 0x803ad14, // Known as "SendMonToPC"
+    .loc_getSetPokedexFlag = 0x808d884,
+    .loc_readFlashSector = 0x8120a34, // Known as "DoReadFlashWholeSection" in RS
+    .loc_m4aMPlayStop = 0x81af1d8,
+    .loc_MPlayStart = 0x81af0f4,
+    .loc_CreateFanfareTask = 0x8071f80,
+    .loc_voicegroup = 0x8402498,
+    .loc_sPicTable_NPC = 0x8346c28,
 
     // The following should be consistant across languages and revisions.
-    .loc_gSaveBlock1 = 0x02025734,
+    .loc_gSaveBlock1 = 0x02025734 - 0x2A0,
     .loc_gSaveDataBuffer = 0x02000000, // Known as "gSharedMem" in RS
-    .loc_gSpecialVar_0x8000 = 0x0202E8C4,
-    .loc_gMPlayInfo_BGM = 0x03007380,
-    .loc_gMPlayInfo_SE2 = 0x03007400,
-    .loc_sFanfareCounter = 0x030006DA,
-    .loc_gPlttBufferFaded = 0x0202EEC8,
+    .loc_gSpecialVar_0x8000 = 0x0202E8C4 - 0x2AC,
+    .loc_gMPlayInfo_BGM = 0x03007380 - 0x120,
+    .loc_gMPlayInfo_SE2 = 0x03007400 - 0x120,
+    .loc_sFanfareCounter = 0x030006DA - 0x98,
+    .loc_gPlttBufferFaded = 0x0202EEC8 - 0x2E0,
     .loc_gSprites = 0x02020004,
 
     .offset_ramscript = 0x3690, // Ramscript offset as found within the SaveBlock1 struct in global.h
@@ -55,30 +53,30 @@ const struct ROM_DATA ENG_RUBY_v0 = {
     .old_map_id = 2,
     .old_npc_id = 1,
 };
-const struct ROM_DATA ENG_SAPPHIRE_v0 = {
+const struct ROM_DATA JPN_SAPPHIRE_v0 = {
     .is_valid = true,
 
     .gamecode = SAPPHIRE_ID,
     .version = VERS_1_0,
-    .language = LANG_ENG,
+    .language = LANG_JPN,
 
-    .loc_copyMonToPC = 0x0803D998, // Known as "SendMonToPC"
-    .loc_getSetPokedexFlag = 0x08090D90,
-    .loc_readFlashSector = 0x08125BF8, // Known as "DoReadFlashWholeSection" in RS
-    .loc_m4aMPlayStop = 0x081DE6D0,
-    .loc_MPlayStart = 0x081DE5EC,
-    .loc_CreateFanfareTask = 0x08074F4C,
-    .loc_voicegroup = 0x08445644,
-    .loc_sPicTable_NPC = 0x0836E718,
+    .loc_copyMonToPC = 0x803ad14, // Known as "SendMonToPC"
+    .loc_getSetPokedexFlag = 0x808d884,
+    .loc_readFlashSector = 0x8120a34, // Known as "DoReadFlashWholeSection" in RS
+    .loc_m4aMPlayStop = 0x81af168,
+    .loc_MPlayStart = 0x81af084,
+    .loc_CreateFanfareTask = 0x8071f84,
+    .loc_voicegroup = 0x8402480,
+    .loc_sPicTable_NPC = 0x8346bb8,
 
     // The following should be consistant across languages and revisions.
-    .loc_gSaveBlock1 = 0x02025734,
+    .loc_gSaveBlock1 = 0x02025734 - 0x2A0,
     .loc_gSaveDataBuffer = 0x02000000, // Known as "gSharedMem" in RS
-    .loc_gSpecialVar_0x8000 = 0x0202E8C4,
-    .loc_gMPlayInfo_BGM = 0x03007380,
-    .loc_gMPlayInfo_SE2 = 0x03007400,
-    .loc_sFanfareCounter = 0x030006DA,
-    .loc_gPlttBufferFaded = 0x0202EEC8,
+    .loc_gSpecialVar_0x8000 = 0x0202E8C4 - 0x2AC,
+    .loc_gMPlayInfo_BGM = 0x03007380 - 0x120,
+    .loc_gMPlayInfo_SE2 = 0x03007400 - 0x120,
+    .loc_sFanfareCounter = 0x030006DA - 0x98,
+    .loc_gPlttBufferFaded = 0x0202EEC8 - 0x2E0,
     .loc_gSprites = 0x02020004,
 
     .offset_ramscript = 0x3690, // Ramscript offset as found within the SaveBlock1 struct in global.h
@@ -105,30 +103,30 @@ const struct ROM_DATA ENG_SAPPHIRE_v0 = {
     .old_map_id = 2,
     .old_npc_id = 1,
 };
-const struct ROM_DATA ENG_RUBY_v1 = {
+const struct ROM_DATA JPN_RUBY_v1 = {
     .is_valid = true,
 
     .gamecode = RUBY_ID,
     .version = VERS_1_1,
-    .language = LANG_ENG,
+    .language = LANG_JPN,
 
-    .loc_copyMonToPC = 0x0803D998, // Known as "SendMonToPC"
-    .loc_getSetPokedexFlag = 0x08090DB0,
-    .loc_readFlashSector = 0x08125C18, // Known as "DoReadFlashWholeSection" in RS
-    .loc_m4aMPlayStop = 0x081DE758,
-    .loc_MPlayStart = 0x081DE674,
-    .loc_CreateFanfareTask = 0x08074F68,
-    .loc_voicegroup = 0x084401FC,
-    .loc_sPicTable_NPC = 0x0836E7A0,
+    .loc_copyMonToPC = 0x803ad14, // Known as "SendMonToPC"
+    .loc_getSetPokedexFlag = 0x808d884,
+    .loc_readFlashSector = 0x8120a34, // Known as "DoReadFlashWholeSection" in RS
+    .loc_m4aMPlayStop = 0x81af1d8,
+    .loc_MPlayStart = 0x81af0f4,
+    .loc_CreateFanfareTask = 0x8071f80,
+    .loc_voicegroup = 0x8402498,
+    .loc_sPicTable_NPC = 0x8346c28,
 
     // The following should be consistant across languages and revisions.
-    .loc_gSaveBlock1 = 0x02025734,
+    .loc_gSaveBlock1 = 0x02025734 - 0x2A0,
     .loc_gSaveDataBuffer = 0x02000000, // Known as "gSharedMem" in RS
-    .loc_gSpecialVar_0x8000 = 0x0202E8C4,
-    .loc_gMPlayInfo_BGM = 0x03007380,
-    .loc_gMPlayInfo_SE2 = 0x03007400,
-    .loc_sFanfareCounter = 0x030006DA,
-    .loc_gPlttBufferFaded = 0x0202EEC8,
+    .loc_gSpecialVar_0x8000 = 0x0202E8C4 - 0x2AC,
+    .loc_gMPlayInfo_BGM = 0x03007380 - 0x120,
+    .loc_gMPlayInfo_SE2 = 0x03007400 - 0x120,
+    .loc_sFanfareCounter = 0x030006DA - 0x98,
+    .loc_gPlttBufferFaded = 0x0202EEC8 - 0x2E0,
     .loc_gSprites = 0x02020004,
 
     .offset_ramscript = 0x3690, // Ramscript offset as found within the SaveBlock1 struct in global.h
@@ -155,30 +153,30 @@ const struct ROM_DATA ENG_RUBY_v1 = {
     .old_map_id = 2,
     .old_npc_id = 1,
 };
-const struct ROM_DATA ENG_SAPPHIRE_v1 = {
+const struct ROM_DATA JPN_SAPPHIRE_v1 = {
     .is_valid = true,
 
     .gamecode = SAPPHIRE_ID,
     .version = VERS_1_1,
-    .language = LANG_ENG,
+    .language = LANG_JPN,
 
-    .loc_copyMonToPC = 0x0803D998, // Known as "SendMonToPC"
-    .loc_getSetPokedexFlag = 0x08090DB0,
-    .loc_readFlashSector = 0x08125C18, // Known as "DoReadFlashWholeSection" in RS
-    .loc_m4aMPlayStop = 0x081DE6E8,
-    .loc_MPlayStart = 0x081DE604,
-    .loc_CreateFanfareTask = 0x08074F6C,
-    .loc_voicegroup = 0x0844025C,
-    .loc_sPicTable_NPC = 0x0836E730,
+    .loc_copyMonToPC = 0x803ad14, // Known as "SendMonToPC"
+    .loc_getSetPokedexFlag = 0x808d884,
+    .loc_readFlashSector = 0x8120a34, // Known as "DoReadFlashWholeSection" in RS
+    .loc_m4aMPlayStop = 0x81af168,
+    .loc_MPlayStart = 0x81af084,
+    .loc_CreateFanfareTask = 0x8071f84,
+    .loc_voicegroup = 0x8402480,
+    .loc_sPicTable_NPC = 0x8346bb8,
 
     // The following should be consistant across languages and revisions.
-    .loc_gSaveBlock1 = 0x02025734,
+    .loc_gSaveBlock1 = 0x02025734 - 0x2A0,
     .loc_gSaveDataBuffer = 0x02000000, // Known as "gSharedMem" in RS
-    .loc_gSpecialVar_0x8000 = 0x0202E8C4,
-    .loc_gMPlayInfo_BGM = 0x03007380,
-    .loc_gMPlayInfo_SE2 = 0x03007400,
-    .loc_sFanfareCounter = 0x030006DA,
-    .loc_gPlttBufferFaded = 0x0202EEC8,
+    .loc_gSpecialVar_0x8000 = 0x0202E8C4 - 0x2AC,
+    .loc_gMPlayInfo_BGM = 0x03007380 - 0x120,
+    .loc_gMPlayInfo_SE2 = 0x03007400 - 0x120,
+    .loc_sFanfareCounter = 0x030006DA - 0x98,
+    .loc_gPlttBufferFaded = 0x0202EEC8 - 0x2E0,
     .loc_gSprites = 0x02020004,
 
     .offset_ramscript = 0x3690, // Ramscript offset as found within the SaveBlock1 struct in global.h
@@ -205,131 +203,31 @@ const struct ROM_DATA ENG_SAPPHIRE_v1 = {
     .old_map_id = 2,
     .old_npc_id = 1,
 };
-const struct ROM_DATA ENG_RUBY_v2 = {
-    .is_valid = true,
-
-    .gamecode = RUBY_ID,
-    .version = VERS_1_2,
-    .language = LANG_ENG,
-
-    .loc_copyMonToPC = 0x0803D998, // Known as "SendMonToPC"
-    .loc_getSetPokedexFlag = 0x08090DB0,
-    .loc_readFlashSector = 0x08125C18, // Known as "DoReadFlashWholeSection" in RS
-    .loc_m4aMPlayStop = 0x081DE758,
-    .loc_MPlayStart = 0x081DE674,
-    .loc_CreateFanfareTask = 0x08074F68,
-    .loc_voicegroup = 0x084401FC,
-    .loc_sPicTable_NPC = 0x0836E7A0,
-
-    // The following should be consistant across languages and revisions.
-    .loc_gSaveBlock1 = 0x02025734,
-    .loc_gSaveDataBuffer = 0x02000000, // Known as "gSharedMem" in RS
-    .loc_gSpecialVar_0x8000 = 0x0202E8C4,
-    .loc_gMPlayInfo_BGM = 0x03007380,
-    .loc_gMPlayInfo_SE2 = 0x03007400,
-    .loc_sFanfareCounter = 0x030006DA,
-    .loc_gPlttBufferFaded = 0x0202EEC8,
-    .loc_gSprites = 0x02020004,
-
-    .offset_ramscript = 0x3690, // Ramscript offset as found within the SaveBlock1 struct in global.h
-    .offset_flags = 0x1220,     // Flag offset as found within the SaveBlock1 struct in global.h
-    .offset_script = 0x0810,
-    .text_region = TEXT_HOENN,
-    .special_DrawWholeMapView = 0x8E,
-
-    // PKHeX's list of flags is useful for making sure the detection is accurate: https://github.com/kwsch/PKHeX/blob/78a557c3cdaa6f48b42cc96df8ccb4d20b897937/PKHeX.Core/Resources/text/other/flags_rs.txt
-    .e4_flag = 0x800 + 0x04,   // The flag that is set when you become champion. Often listed as "GAME_CLEAR"
-    .mg_flag = 0x800 + 0x4C,   // The flag that is set when you enable Mystery Gift. Known as "EXDATA_ENABLE" in RS
-    .unused_flag_start = 0x21, // The start of the unused flags and must have 31 open flags in a row
-
-    .map_bank = 14,
-    .map_id = 11,
-    .npc_id = 1,
-    .npc_palette = 5,
-
-    .def_map_bank = 8,
-    .def_map_id = 1,
-    .def_npc_id = 1,
-
-    .old_map_bank = 20,
-    .old_map_id = 2,
-    .old_npc_id = 1,
-};
-const struct ROM_DATA ENG_SAPPHIRE_v2 = {
-    .is_valid = true,
-
-    .gamecode = SAPPHIRE_ID,
-    .version = VERS_1_2,
-    .language = LANG_ENG,
-
-    .loc_copyMonToPC = 0x0803D998, // Known as "SendMonToPC"
-    .loc_getSetPokedexFlag = 0x08090DB0,
-    .loc_readFlashSector = 0x08125C18, // Known as "DoReadFlashWholeSection" in RS
-    .loc_m4aMPlayStop = 0x081DE6E8,
-    .loc_MPlayStart = 0x081DE604,
-    .loc_CreateFanfareTask = 0x08074F6C,
-    .loc_voicegroup = 0x0844025C,
-    .loc_sPicTable_NPC = 0x0836E730,
-
-    // The following should be consistant across languages and revisions.
-    .loc_gSaveBlock1 = 0x02025734,
-    .loc_gSaveDataBuffer = 0x02000000, // Known as "gSharedMem" in RS
-    .loc_gSpecialVar_0x8000 = 0x0202E8C4,
-    .loc_gMPlayInfo_BGM = 0x03007380,
-    .loc_gMPlayInfo_SE2 = 0x03007400,
-    .loc_sFanfareCounter = 0x030006DA,
-    .loc_gPlttBufferFaded = 0x0202EEC8,
-    .loc_gSprites = 0x02020004,
-
-    .offset_ramscript = 0x3690, // Ramscript offset as found within the SaveBlock1 struct in global.h
-    .offset_flags = 0x1220,     // Flag offset as found within the SaveBlock1 struct in global.h
-    .offset_script = 0x0810,
-    .text_region = TEXT_HOENN,
-    .special_DrawWholeMapView = 0x8E,
-
-    // PKHeX's list of flags is useful for making sure the detection is accurate: https://github.com/kwsch/PKHeX/blob/78a557c3cdaa6f48b42cc96df8ccb4d20b897937/PKHeX.Core/Resources/text/other/flags_rs.txt
-    .e4_flag = 0x800 + 0x04,   // The flag that is set when you become champion. Often listed as "GAME_CLEAR"
-    .mg_flag = 0x800 + 0x4C,   // The flag that is set when you enable Mystery Gift. Known as "EXDATA_ENABLE" in RS
-    .unused_flag_start = 0x21, // The start of the unused flags and must have 31 open flags in a row
-
-    .map_bank = 14,
-    .map_id = 11,
-    .npc_id = 1,
-    .npc_palette = 5,
-
-    .def_map_bank = 8,
-    .def_map_id = 1,
-    .def_npc_id = 1,
-
-    .old_map_bank = 20,
-    .old_map_id = 2,
-    .old_npc_id = 1,
-};
-const struct ROM_DATA ENG_FIRERED_v0 = {
+const struct ROM_DATA JPN_FIRERED_v0 = {
     .is_valid = true,
 
     .gamecode = FIRERED_ID,
     .version = VERS_1_0,
-    .language = LANG_ENG,
+    .language = LANG_JPN,
 
-    .loc_copyMonToPC = 0x08040B90, // Known as "SendMonToPC"
-    .loc_getSetPokedexFlag = 0x08088E74,
-    .loc_readFlashSector = 0x080DA190,
-    .loc_loadSaveSection30 = 0x0815D7BC, // The location of the function that loads save section 30: CEReaderTool_LoadTrainerTower_r in FRLG, TryReadTrainerHill_Internal in Emerald
-    .loc_m4aMPlayStop = 0x081DD93C,
-    .loc_MPlayStart = 0x081DD858,
-    .loc_CreateFanfareTask = 0x08071CEC,
-    .loc_voicegroup = 0x08498878,
-    .loc_sPicTable_NPC = 0x083A0AB8,
+    .loc_copyMonToPC = 0x8040284, // Known as "SendMonToPC"
+    .loc_getSetPokedexFlag = 0x8088a50,
+    .loc_readFlashSector = 0x810586c,
+    .loc_loadSaveSection30 = 0x8160a4c, // The location of the function that loads save section 30: CEReaderTool_LoadTrainerTower_r in FRLG, TryReadTrainerHill_Internal in Emerald
+    .loc_m4aMPlayStop = 0x81c18f8,
+    .loc_MPlayStart = 0x81c1814,
+    .loc_CreateFanfareTask = 0x8071490,
+    .loc_voicegroup = 0x845d4b8,
+    .loc_sPicTable_NPC = 0x8364b40,
 
     // The following should be consistant across languages and revisions.
-    .loc_gSaveDataBuffer = 0x02039A38, // The location of the saveDataBuffer
-    .loc_gSpecialVar_0x8000 = 0x020370B8,
-    .loc_gMPlayInfo_BGM = 0x03007300,
-    .loc_gMPlayInfo_SE2 = 0x03007380,
+    .loc_gSaveDataBuffer = 0x02039A38 - 0x88, // The location of the saveDataBuffer
+    .loc_gSpecialVar_0x8000 = 0x020370B8 - 0xCC,
+    .loc_gMPlayInfo_BGM = 0x03007300 + 0x50,
+    .loc_gMPlayInfo_SE2 = 0x03007380 + 0x50,
     .loc_sFanfareCounter = 0x03000FC6,
-    .loc_gPlttBufferFaded = 0x020375F8,
-    .loc_gSprites = 0x0202063C,
+    .loc_gPlttBufferFaded = 0x020375F8 - 0xCC,
+    .loc_gSprites = 0x0202063C - 0x84,
 
     .offset_ramscript = 0x361C, // Ramscript offset as found within the SaveBlock1 struct in global.h
     .offset_flags = 0x0EE0,     // Flag offset as found within the SaveBlock1 struct in global.h
@@ -358,31 +256,31 @@ const struct ROM_DATA ENG_FIRERED_v0 = {
 
     .loc_gSaveBlock1PTR = 0x03005008, // TODO: Only used for old script, can be removed later
 };
-const struct ROM_DATA ENG_LEAFGREEN_v0 = {
+const struct ROM_DATA JPN_LEAFGREEN_v0 = {
     .is_valid = true,
 
     .gamecode = LEAFGREEN_ID,
     .version = VERS_1_0,
-    .language = LANG_ENG,
+    .language = LANG_JPN,
 
-    .loc_copyMonToPC = 0x08040B90,
-    .loc_getSetPokedexFlag = 0x08088E48,
-    .loc_readFlashSector = 0x080DA164,
-    .loc_loadSaveSection30 = 0x0815D798, // The location of the function that loads save section 30: CEReaderTool_LoadTrainerTower_r in FRLG, TryReadTrainerHill_Internal in Emerald
-    .loc_m4aMPlayStop = 0x081DD918,
-    .loc_MPlayStart = 0x081DD834,
-    .loc_CreateFanfareTask = 0x08071CEC,
-    .loc_voicegroup = 0x08498154,
-    .loc_sPicTable_NPC = 0x083A0A98,
+    .loc_copyMonToPC = 0x8040284,
+    .loc_getSetPokedexFlag = 0x8088a24,
+    .loc_readFlashSector = 0x8105844,
+    .loc_loadSaveSection30 = 0x8160a28, // The location of the function that loads save section 30: CEReaderTool_LoadTrainerTower_r in FRLG, TryReadTrainerHill_Internal in Emerald
+    .loc_m4aMPlayStop = 0x81c18d4,
+    .loc_MPlayStart = 0x81c17f0,
+    .loc_CreateFanfareTask = 0x8071490,
+    .loc_voicegroup = 0x845d2fc,
+    .loc_sPicTable_NPC = 0x8364b20,
 
     // The following should be consistant across languages and revisions.
-    .loc_gSaveDataBuffer = 0x02039A38, // The location of the saveDataBuffer
-    .loc_gSpecialVar_0x8000 = 0x020370B8,
-    .loc_gMPlayInfo_BGM = 0x03007300,
-    .loc_gMPlayInfo_SE2 = 0x03007380,
+    .loc_gSaveDataBuffer = 0x02039A38 - 0x88, // The location of the saveDataBuffer
+    .loc_gSpecialVar_0x8000 = 0x020370B8 - 0xCC,
+    .loc_gMPlayInfo_BGM = 0x03007300 + 0x50,
+    .loc_gMPlayInfo_SE2 = 0x03007380 + 0x50,
     .loc_sFanfareCounter = 0x03000FC6,
-    .loc_gPlttBufferFaded = 0x020375F8,
-    .loc_gSprites = 0x0202063C,
+    .loc_gPlttBufferFaded = 0x020375F8 - 0xCC,
+    .loc_gSprites = 0x0202063C - 0x84,
 
     .offset_ramscript = 0x361C, // Ramscript offset as found within the SaveBlock1 struct in global.h
     .offset_flags = 0x0EE0,     // Flag offset as found within the SaveBlock1 struct in global.h
@@ -411,31 +309,31 @@ const struct ROM_DATA ENG_LEAFGREEN_v0 = {
 
     .loc_gSaveBlock1PTR = 0x03005008, // TODO: Only used for old script, can be removed later
 };
-const struct ROM_DATA ENG_FIRERED_v1 = {
+const struct ROM_DATA JPN_FIRERED_v1 = {
     .is_valid = true,
 
     .gamecode = FIRERED_ID,
     .version = VERS_1_1,
-    .language = LANG_ENG,
+    .language = LANG_JPN,
 
-    .loc_copyMonToPC = 0x08040BA4,
-    .loc_getSetPokedexFlag = 0x08088E88,
-    .loc_readFlashSector = 0x080DA1A4,
-    .loc_loadSaveSection30 = 0x0815D834, // The location of the function that loads save section 30: CEReaderTool_LoadTrainerTower_r in FRLG, TryReadTrainerHill_Internal in Emerald
-    .loc_m4aMPlayStop = 0x081DD9AC,
-    .loc_MPlayStart = 0x081DD8C8,
-    .loc_CreateFanfareTask = 0x08071D00,
-    .loc_voicegroup = 0x084988D8,
-    .loc_sPicTable_NPC = 0x083A0B28,
+    .loc_copyMonToPC = 0x80401f0,
+    .loc_getSetPokedexFlag = 0x80889e0,
+    .loc_readFlashSector = 0x8105870,
+    .loc_loadSaveSection30 = 0x81605c8, // The location of the function that loads save section 30: CEReaderTool_LoadTrainerTower_r in FRLG, TryReadTrainerHill_Internal in Emerald
+    .loc_m4aMPlayStop = 0x81c14b4,
+    .loc_MPlayStart = 0x81c13d0,
+    .loc_CreateFanfareTask = 0x8071408,
+    .loc_voicegroup = 0x8458cb4,
+    .loc_sPicTable_NPC = 0x8360320,
 
     // The following should be consistant across languages and revisions.
-    .loc_gSaveDataBuffer = 0x02039A38, // The location of the saveDataBuffer
-    .loc_gSpecialVar_0x8000 = 0x020370B8,
-    .loc_gMPlayInfo_BGM = 0x03007300,
-    .loc_gMPlayInfo_SE2 = 0x03007380,
+    .loc_gSaveDataBuffer = 0x02039A38 - 0x88, // The location of the saveDataBuffer
+    .loc_gSpecialVar_0x8000 = 0x020370B8 - 0xCC,
+    .loc_gMPlayInfo_BGM = 0x03007300 - 0x50,
+    .loc_gMPlayInfo_SE2 = 0x03007380 - 0x50,
     .loc_sFanfareCounter = 0x03000FC6,
-    .loc_gPlttBufferFaded = 0x020375F8,
-    .loc_gSprites = 0x0202063C,
+    .loc_gPlttBufferFaded = 0x020375F8 - 0xCC,
+    .loc_gSprites = 0x0202063C - 0x84,
 
     .offset_ramscript = 0x361C, // Ramscript offset as found within the SaveBlock1 struct in global.h
     .offset_flags = 0x0EE0,     // Flag offset as found within the SaveBlock1 struct in global.h
@@ -464,31 +362,31 @@ const struct ROM_DATA ENG_FIRERED_v1 = {
 
     .loc_gSaveBlock1PTR = 0x03005008, // TODO: Only used for old script, can be removed later
 };
-const struct ROM_DATA ENG_LEAFGREEN_v1 = {
+const struct ROM_DATA JPN_LEAFGREEN_v1 = {
     .is_valid = true,
 
     .gamecode = LEAFGREEN_ID,
     .version = VERS_1_1,
-    .language = LANG_ENG,
+    .language = LANG_JPN,
 
-    .loc_copyMonToPC = 0x08040BA4,
-    .loc_getSetPokedexFlag = 0x08088E5C,
-    .loc_readFlashSector = 0x080DA178,
-    .loc_loadSaveSection30 = 0x0815D810, // The location of the function that loads save section 30: CEReaderTool_LoadTrainerTower_r in FRLG, TryReadTrainerHill_Internal in Emerald
-    .loc_m4aMPlayStop = 0x081DD988,
-    .loc_MPlayStart = 0x081DD8A4,
-    .loc_CreateFanfareTask = 0x08071D00,
-    .loc_voicegroup = 0x084981C4,
-    .loc_sPicTable_NPC = 0x083A0B08,
+    .loc_copyMonToPC = 0x80401f0,
+    .loc_getSetPokedexFlag = 0x80889b4,
+    .loc_readFlashSector = 0x8105848,
+    .loc_loadSaveSection30 = 0x81605a4, // The location of the function that loads save section 30: CEReaderTool_LoadTrainerTower_r in FRLG, TryReadTrainerHill_Internal in Emerald
+    .loc_m4aMPlayStop = 0x81c1490,
+    .loc_MPlayStart = 0x81c13ac,
+    .loc_CreateFanfareTask = 0x8071408,
+    .loc_voicegroup = 0x8458af8,
+    .loc_sPicTable_NPC = 0x8360300,
 
     // The following should be consistant across languages and revisions.
-    .loc_gSaveDataBuffer = 0x02039A38, // The location of the saveDataBuffer
-    .loc_gSpecialVar_0x8000 = 0x020370B8,
-    .loc_gMPlayInfo_BGM = 0x03007300,
-    .loc_gMPlayInfo_SE2 = 0x03007380,
+    .loc_gSaveDataBuffer = 0x02039A38 - 0x88, // The location of the saveDataBuffer
+    .loc_gSpecialVar_0x8000 = 0x020370B8 - 0xCC,
+    .loc_gMPlayInfo_BGM = 0x03007300 - 0x50,
+    .loc_gMPlayInfo_SE2 = 0x03007380 - 0x50,
     .loc_sFanfareCounter = 0x03000FC6,
-    .loc_gPlttBufferFaded = 0x020375F8,
-    .loc_gSprites = 0x0202063C,
+    .loc_gPlttBufferFaded = 0x020375F8 - 0xCC,
+    .loc_gSprites = 0x0202063C - 0x84,
 
     .offset_ramscript = 0x361C, // Ramscript offset as found within the SaveBlock1 struct in global.h
     .offset_flags = 0x0EE0,     // Flag offset as found within the SaveBlock1 struct in global.h
@@ -517,31 +415,31 @@ const struct ROM_DATA ENG_LEAFGREEN_v1 = {
 
     .loc_gSaveBlock1PTR = 0x03005008, // TODO: Only used for old script, can be removed later
 };
-const struct ROM_DATA ENG_EMERALD_v0 = {
+const struct ROM_DATA JPN_EMERALD_v0 = {
     .is_valid = true,
 
     .gamecode = EMERALD_ID,
     .version = VERS_1_0,
-    .language = LANG_ENG,
+    .language = LANG_JPN,
 
-    .loc_copyMonToPC = 0x0806B490,
-    .loc_getSetPokedexFlag = 0x080C0664,
-    .loc_readFlashSector = 0x0815314C,
-    .loc_loadSaveSection30 = 0x081D3AD8, // The location of the function that loads save section 30: CEReaderTool_LoadTrainerTower_r in FRLG, TryReadTrainerHill_Internal in Emerald
-    .loc_m4aMPlayStop = 0x082E0978,
-    .loc_MPlayStart = 0x082E0894,
-    .loc_CreateFanfareTask = 0x080A3170,
-    .loc_voicegroup = 0x08686A74,
-    .loc_sPicTable_NPC = 0x08506404,
+    .loc_copyMonToPC = 0x806af58,
+    .loc_getSetPokedexFlag = 0x80bfbbc,
+    .loc_readFlashSector = 0x815309c,
+    .loc_loadSaveSection30 = 0x81d3158, // The location of the function that loads save section 30: CEReaderTool_LoadTrainerTower_r in FRLG, TryReadTrainerHill_Internal in Emerald
+    .loc_m4aMPlayStop = 0x828ef00,
+    .loc_MPlayStart = 0x828ee1c,
+    .loc_CreateFanfareTask = 0x80a2a38,
+    .loc_voicegroup = 0x860e594,
+    .loc_sPicTable_NPC = 0x84de858,
 
     // The following should be consistant across languages and revisions.
-    .loc_gSaveDataBuffer = 0x0203ABBC, // The location of the saveDataBuffer
-    .loc_gSpecialVar_0x8000 = 0x020375D8,
-    .loc_gMPlayInfo_BGM = 0x03007420,
-    .loc_gMPlayInfo_SE2 = 0x03007630,
+    .loc_gSaveDataBuffer = 0x0203ABBC - 0x334, // The location of the saveDataBuffer
+    .loc_gSpecialVar_0x8000 = 0x020375D8 - 0x360,
+    .loc_gMPlayInfo_BGM = 0x03007420 + 0xB0,
+    .loc_gMPlayInfo_SE2 = 0x03007630 - 0xE0,
     .loc_sFanfareCounter = 0x03000F4E,
-    .loc_gPlttBufferFaded = 0x02037B14,
-    .loc_gSprites = 0x02020630,
+    .loc_gPlttBufferFaded = 0x02037B14 - 0x360,
+    .loc_gSprites = 0x02020630 - 0x84,
 
     .offset_ramscript = 0x3728, // Ramscript offset as found within the SaveBlock1 struct in global.h
     .offset_flags = 0x1270,     // Flag offset as found within the SaveBlock1 struct in global.h

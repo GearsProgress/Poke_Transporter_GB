@@ -3,6 +3,11 @@
 #include "pokemon_party.h"
 #include "pokemon_data.h"
 #include "gba_rom_values/eng_gba_rom_values.h"
+#include "gba_rom_values/jpn_gba_rom_values.h"
+#include "gba_rom_values/fre_gba_rom_values.h"
+#include "gba_rom_values/ger_gba_rom_values.h"
+#include "gba_rom_values/ita_gba_rom_values.h"
+#include "gba_rom_values/spa_gba_rom_values.h"
 
 extern rom_data curr_rom;
 
@@ -21,6 +26,48 @@ bool rom_data::load_rom()
         &ENG_FIRERED_v1,
         &ENG_LEAFGREEN_v1,
         &ENG_EMERALD_v0,
+
+        &JPN_RUBY_v0,
+        &JPN_SAPPHIRE_v0,
+        &JPN_RUBY_v1,
+        &JPN_SAPPHIRE_v1,
+        &JPN_FIRERED_v0,
+        &JPN_LEAFGREEN_v0,
+        &JPN_FIRERED_v1,
+        &JPN_LEAFGREEN_v1,
+        &JPN_EMERALD_v0,
+
+        &FRE_RUBY_v0,
+        &FRE_SAPPHIRE_v0,
+        &FRE_RUBY_v1,
+        &FRE_SAPPHIRE_v1,
+        &FRE_FIRERED_v0,
+        &FRE_LEAFGREEN_v0,
+        &FRE_EMERALD_v0,
+
+        &GER_RUBY_v0,
+        &GER_SAPPHIRE_v0,
+        &GER_RUBY_v1,
+        &GER_SAPPHIRE_v1,
+        &GER_FIRERED_v0,
+        &GER_LEAFGREEN_v0,
+        &GER_EMERALD_v0,
+
+        &ITA_RUBY_v0,
+        &ITA_SAPPHIRE_v0,
+        &ITA_RUBY_v1,
+        &ITA_SAPPHIRE_v1,
+        &ITA_FIRERED_v0,
+        &ITA_LEAFGREEN_v0,
+        &ITA_EMERALD_v0,
+
+        &SPA_RUBY_v0,
+        &SPA_SAPPHIRE_v0,
+        &SPA_RUBY_v1,
+        &SPA_SAPPHIRE_v1,
+        &SPA_FIRERED_v0,
+        &SPA_LEAFGREEN_v0,
+        &SPA_EMERALD_v0,
     };
 
     if (IGNORE_GAME_PAK)
@@ -42,7 +89,8 @@ bool rom_data::load_rom()
     {
         if (gamecode == list_of_roms[i]->gamecode &&
             language == list_of_roms[i]->language &&
-            version == list_of_roms[i]->version)
+            version == list_of_roms[i]->version &&
+            list_of_roms[i]->is_valid)
         {
             fill_values(list_of_roms[i]);
             rom_loaded = true;

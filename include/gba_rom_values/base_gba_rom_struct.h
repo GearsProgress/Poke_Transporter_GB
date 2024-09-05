@@ -23,7 +23,7 @@
 #define TEXT_KANTO 0
 #define TEXT_HOENN 1
 
-#define NUM_ROMS 11
+#define NUM_ROMS 48
 
 struct ROM_DATA
 {
@@ -34,22 +34,24 @@ struct ROM_DATA
     int language;
 
     int loc_copyMonToPC;
-    int loc_gSpecialVar_0x8000;
-    int loc_gSaveBlock1;    // Only used in R/S
     int loc_getSetPokedexFlag;
-    int loc_gSaveDataBuffer; // The location of the saveDataBuffer
     int loc_readFlashSector;
     int loc_loadSaveSection30; // The location of the function that loads save section 30: CEReaderTool_LoadTrainerTower_r in FRLG, TryReadTrainerHill_Internal in Emerald
     int loc_m4aMPlayStop;
-    int loc_gMPlayInfo_BGM;
-    int loc_gMPlayInfo_SE2;
     int loc_MPlayStart;
     int loc_CreateFanfareTask;
+    int loc_voicegroup;
+    int loc_sPicTable_NPC; // sPicTable_OldWoman in FRLG
+
+    int loc_gSaveBlock1; // Only used in R/S
+    int loc_gSaveDataBuffer; // The location of the saveDataBuffer
+    int loc_gSpecialVar_0x8000;
+    int loc_gMPlayInfo_BGM;
+    int loc_gMPlayInfo_SE2;
     int loc_sFanfareCounter;
     int loc_gPlttBufferFaded;
     int loc_gSprites;
-    int loc_voicegroup;
-    int loc_sPicTable_NPC; // sPicTable_OldWoman in FRLG
+
     int offset_ramscript; // Ramscript offset as found within the SaveBlock1 struct in global.h
     int offset_flags;     // Flag offset as found within the SaveBlock1 struct in global.h
     int offset_wondercard;
