@@ -156,7 +156,7 @@ byte gen2_debug_box_data[0x44E] = {
 	0x92, 0x87, 0x94, 0x82, 0x8A, 0x8B, 0x84, 0x50, 0x50, 0x50, 0x50,
 	0x92, 0x87, 0x94, 0x82, 0x8A, 0x8B, 0x84, 0x50, 0x50, 0x50, 0x50};
 
-Pokemon_Party::Pokemon_Party(){};
+Pokemon_Party::Pokemon_Party() {};
 
 void Pokemon_Party::start_link()
 {
@@ -180,6 +180,10 @@ void Pokemon_Party::start_link()
 	else
 	{
 		setup();
+		for (int i = 0; i < 1122; i++)
+		{
+			box_data_array[i] = 0;
+		}
 		last_error = loop(&box_data_array[0], generate_payload(curr_gb_rom, TRANSFER, false), &curr_gb_rom, simple_pkmn_array, false);
 	}
 }

@@ -589,8 +589,8 @@ void load_select_sprites(int game_id, int lang)
         gba_cart_palette = lg_cartPal;
         break;
     case EMERALD_ID:
-        gba_cart_tiles = lg_cartTiles;
-        gba_cart_palette = lg_cartPal;
+        gba_cart_tiles = emerald_cartTiles;
+        gba_cart_palette = emerald_cartPal;
         break;
     }
 

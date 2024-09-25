@@ -1,5 +1,5 @@
 # Build configuration (set to either 'debug' or 'release')
-BUILD_TYPE := release
+BUILD_TYPE := debug
 
 #---------------------------------------------------------------------------------
 .SUFFIXES:
