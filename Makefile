@@ -1,3 +1,6 @@
+# Build configuration (set to either 'debug' or 'release')
+BUILD_TYPE := release
+
 #---------------------------------------------------------------------------------
 .SUFFIXES:
 #---------------------------------------------------------------------------------
@@ -42,17 +45,27 @@ CFLAGS	:=	-g -Wall -O2\
 		-mcpu=arm7tdmi -mtune=arm7tdmi -masm-syntax-unified\
 		$(ARCH) 
 
-CFLAGS	+=	$(INCLUDE) -ffunction-sections -fdata-sections
+CFLAGS	+=	$(INCLUDE) -ffunction-sections -fdata-sections -Os -Wall -mthumb -mcpu=arm7tdmi -mtune=arm7tdmi
+CXXFLAGS	:=	$(CFLAGS) -g0 -fno-rtti -fno-exceptions -std=c++20 -Wno-volatile -D_GLIBCXX_USE_CXX20_ABI=0
 
-CXXFLAGS	:=	$(CFLAGS) -fno-rtti -fno-exceptions -std=c++20 -Wno-volatile -D_GLIBCXX_USE_CXX20_ABI=0
+ifeq ($(BUILD_TYPE), debug)
+	CFLAGS += -g -DDEBUG
+	CXXFLAGS += -g -DDEBUG
+else ifeq ($(BUILD_TYPE), release)
+
+
+endif
 
 ASFLAGS	:=	-g $(ARCH)
-LDFLAGS	=	-g $(ARCH) -Wl,-Map,$(notdir $*.map) -Wl,--gc-sections
+LDFLAGS	=	-Os -g $(ARCH) -Wl,-Map,$(notdir $*.map) -Wl,--gc-sections -mthumb -mcpu=arm7tdmi -mtune=arm7tdmi
+
+CFLAGS += -flto
+LDFLAGS += -flto
 
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
-LIBS	:= -lmm -ltonc -lgba
+LIBS	:= -lmm -ltonc -lgba -lc -lgcc
 
 
 #---------------------------------------------------------------------------------

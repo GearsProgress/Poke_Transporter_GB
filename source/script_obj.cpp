@@ -30,11 +30,11 @@ script_obj::script_obj(int nRun, int nNext_if_true, int nNext_if_false)
     next_false_index = nNext_if_false;
 }
 
-std::string script_obj::get_text()
+std::string_view script_obj::get_text()
 {
     if (has_text)
     {
-        return std::string(text).data();
+        return text;
     }
     else
     {

@@ -12,7 +12,7 @@ public:
     script_obj(int nRun, int nNext);                             // For commands
     script_obj(int nRun, int nNext_if_true, int nNext_if_false); // for conditionals
 
-    std::string get_text();
+    std::string_view get_text();
     int get_true_index();
     int get_false_index();
     int get_cond_id();

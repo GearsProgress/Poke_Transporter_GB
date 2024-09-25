@@ -1,5 +1,4 @@
 #include <tonc.h>
-#include <cstring>
 
 #include "sprite_data.h"
 #include "text_engine.h"
