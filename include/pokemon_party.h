@@ -30,9 +30,9 @@ public:
     int get_game_gen();
     int get_num_pkmn();
     bool get_contains_invalid();
+    byte box_data_array[0x462];
 
 private:
-    byte box_data_array[0x462];
     int last_error;
     bool has_new_pkmn = false;
     bool contains_mythical = false;

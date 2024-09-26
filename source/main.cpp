@@ -273,6 +273,9 @@ int credits()
 			tte_write(std::to_string(tutorial).c_str());
 			tte_write("-");
 			tte_write((n2hexstr(def_lang)).c_str());
+
+			tte_write("\n\n");
+			tte_write(VERSION);
 			while (true)
 			{
 				if (key_hit(KEY_B))
