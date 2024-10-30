@@ -12,7 +12,7 @@ Pokemon::Pokemon() {};
 // A lot of the event Pokemon script is reused. Really should be split into many different functions
 // Endian-ness too is all over the place... :/
 
-void Pokemon::load_data(int index, byte *party_data, int game, int lang)
+void Pokemon::load_data(int index, const byte *party_data, int game, int lang)
 {
     language = lang;
     if (lang == JPN_ID)
@@ -127,6 +127,27 @@ void Pokemon::load_data(int index, byte *party_data, int game, int lang)
         copy_from_to(&party_data[ot_offset + 0x00], &trainer_name[0], 7, false);
         break;
     }
+
+    // box_struct_offset = 0;
+    if (SHOW_DATA_PACKETS)
+    {
+        tte_set_pos(8, 120);
+        tte_write("struct offset: ");
+        tte_write(std::to_string(box_struct_offset).c_str());
+        tte_write("\nbox_size: ");
+        tte_write(std::to_string(box_size).c_str());
+        tte_write("\npkmn_size: ");
+        tte_write(std::to_string(pkmn_size).c_str());
+        tte_write("\nindex: ");
+        tte_write(std::to_string(index).c_str());
+        tte_write(", game: ");
+        tte_write(std::to_string(game).c_str());
+        while (!key_hit(KEY_A))
+        {
+            global_next_frame();
+        }
+        global_next_frame();
+    }
 }
 void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
 {
@@ -143,8 +164,11 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
         index_in_box >= num_in_box ||                  // Checks that we're not reading beyond the Pokemon in the box
         item != 0)                                     // Checks that the Pokemon doesn't have an item
     {
-        is_valid = false;
-        return;
+        if (!SHOW_INVALID_PKMN)
+        {
+            is_valid = false;
+            return;
+        }
     }
     is_valid = true;
 
@@ -466,7 +490,7 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
     global_next_frame();
 }
 
-void Pokemon::copy_from_to(byte *source, byte *destination, int size, bool reverse_endian)
+void Pokemon::copy_from_to(const byte *source, byte *destination, int size, bool reverse_endian)
 {
     if (reverse_endian)
     {
@@ -674,7 +698,8 @@ u8 Pokemon::get_letter_from_pid(u32 pid)
                ((pid & 0x03000000) >> 18) +
                ((pid & 0x00030000) >> 12) +
                ((pid & 0x00000300) >> 6) +
-               ((pid & 0x00000003) >> 0)) % 28;
+               ((pid & 0x00000003) >> 0)) %
+           28;
 };
 u8 Pokemon::get_nature_from_pid(u32 pid)
 {

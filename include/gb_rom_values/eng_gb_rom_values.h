@@ -58,10 +58,10 @@ const struct GB_ROM ENG_RED = {
     .wSerialEnemyDataBlock = 0xD893,
     .wSerialEnemyMonsPatchList = 0xC5D0,
 
-    .transferStringLocation = 0xC443,
-    .textBorderUppLeft = 0xC42E,
-    .textBorderWidth = 3,
-    .textBorderHeight = 14,
+    .transferStringLocation = 0xC444,
+    .textBorderUppLeft = 0xC42F,
+    .textBorderWidth = 12,
+    .textBorderHeight = 1,
 };
 const struct GB_ROM ENG_BLUE = {
     .language = ENG_ID,
@@ -97,10 +97,10 @@ const struct GB_ROM ENG_BLUE = {
     .wSerialEnemyDataBlock = 0xD893,
     .wSerialEnemyMonsPatchList = 0xC5D0,
 
-    .transferStringLocation = 0xC443,
-    .textBorderUppLeft = 0xC42E,
-    .textBorderWidth = 3,
-    .textBorderHeight = 14,
+    .transferStringLocation = 0xC444,
+    .textBorderUppLeft = 0xC42F,
+    .textBorderWidth = 12,
+    .textBorderHeight = 1,
 };
 const struct GB_ROM ENG_YELLOW = {
     .language = ENG_ID,
@@ -137,10 +137,10 @@ const struct GB_ROM ENG_YELLOW = {
     .wSerialEnemyDataBlock = 0xD893,
     .wSerialEnemyMonsPatchList = 0xC5D0,
 
-    .transferStringLocation = 0xC443,
-    .textBorderUppLeft = 0xC42E,
-    .textBorderWidth = 3,
-    .textBorderHeight = 14,
+    .transferStringLocation = 0xC444,
+    .textBorderUppLeft = 0xC42F,
+    .textBorderWidth = 12,
+    .textBorderHeight = 1,
 };
 const struct GB_ROM ENG_GOLD = {
     .language = ENG_ID,
@@ -174,10 +174,10 @@ const struct GB_ROM ENG_GOLD = {
     .wSerialEnemyDataBlock = 0xDD40,                    // wOTPartyData
     .wSerialEnemyMonsPatchList = 0xC5D0,                // wOTPatchLists
 
-    .transferStringLocation = 0xC443,
-    .textBorderUppLeft = 0xC42E,
-    .textBorderWidth = 3,
-    .textBorderHeight = 14,
+    .transferStringLocation = 0xC444,
+    .textBorderUppLeft = 0xC42F,
+    .textBorderWidth = 12,
+    .textBorderHeight = 1,
 };
 const struct GB_ROM ENG_SILVER = {
     .language = ENG_ID,
@@ -211,10 +211,10 @@ const struct GB_ROM ENG_SILVER = {
     .wSerialEnemyDataBlock = 0xDD40,                    // wOTPartyData
     .wSerialEnemyMonsPatchList = 0xC5D0,                // wOTPatchLists
 
-    .transferStringLocation = 0xC443,
-    .textBorderUppLeft = 0xC42E,
-    .textBorderWidth = 3,
-    .textBorderHeight = 14,
+    .transferStringLocation = 0xC444,
+    .textBorderUppLeft = 0xC42F,
+    .textBorderWidth = 12,
+    .textBorderHeight = 1,
 };
 const struct GB_ROM ENG_CRYSTAL = {
     .language = ENG_ID,
@@ -248,10 +248,10 @@ const struct GB_ROM ENG_CRYSTAL = {
     .wSerialEnemyDataBlock = 0xD26B,                    // wOTPartyData
     .wSerialEnemyMonsPatchList = 0xC6D0,                // wOTPatchLists
 
-    .transferStringLocation = 0xC543,
-    .textBorderUppLeft = 0xC52E,
-    .textBorderWidth = 3,
-    .textBorderHeight = 14,
+    .transferStringLocation = 0xC544,
+    .textBorderUppLeft = 0xC52F,
+    .textBorderWidth = 12,
+    .textBorderHeight = 1,
 };
 
 #endif

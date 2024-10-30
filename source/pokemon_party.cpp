@@ -180,7 +180,7 @@ void Pokemon_Party::start_link()
 	else
 	{
 		setup();
-		for (int i = 0; i < 1122; i++)
+		for (int i = 0; i < curr_gb_rom.box_data_size; i++)
 		{
 			box_data_array[i] = 0;
 		}

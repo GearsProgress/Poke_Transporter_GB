@@ -8,6 +8,9 @@
 #include <fstream>
 #include <iomanip>
 
+#define DATA_LOC 0xCFD8                 // 0xC454
+#define PACKET_SIZE (1 + 8 + 1 + 1 + 2) // 0xFD, 8 data bytes, the checksum, the flag bytes, and two location bytes
+
 byte out_array[PAYLOAD_SIZE] = {};
 
 byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
@@ -33,9 +36,13 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
         z80_jump asm_start(&jump_vector);
         z80_jump save_box(&jump_vector);
         z80_jump remove_array_loop(&jump_vector);
+        z80_jump packet_loop(&jump_vector);
+        z80_jump fe_bypass(&jump_vector);
+        z80_jump send_packet_loop(&jump_vector);
 
         z80_variable array_counter(&var_vector, 1, 0x00); // 1 byte to store the current array counter
         z80_variable removal_array(&var_vector);          // 40 byte storage for list of Pokemon to remove, plus a permanent array terminator
+
         byte removal_array_data[41];
         for (int i = 0; i < 41; i++)
         {
@@ -49,10 +56,8 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
             }
         }
         removal_array.load_data(41, removal_array_data);
-        z80_variable transfer_wait_string(&var_vector, 30, // TRANSFERRING..\n
-                                                           //  PLEASE WAIT!
-                                          0x93, 0x91, 0x80, 0x8D, 0x92, 0x85, 0x84, 0x91, 0x91, 0x88, 0x8D, 0x86, 0xF2, 0xF2, 0x4E,
-                                          0x7F, 0x8F, 0x8B, 0x84, 0x80, 0x92, 0x84, 0x7F, 0x96, 0x80, 0x88, 0x93, 0xE7, 0x7F, 0x50);
+        z80_variable transfer_wait_string(&var_vector, 13, // SENDING DATA
+                                          0x92, 0x84, 0x8D, 0x83, 0x88, 0x8D, 0x86, 0x7F, 0x83, 0x80, 0x93, 0x80, 0x50);
         z80_variable custom_name(&var_vector, 11, // FENNEL
                                  0x85, 0x84, 0x8D, 0x8D, 0x84, 0x8B, 0x50, 0x50, 0x50, 0x50, 0x50);
 
@@ -114,20 +119,76 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
         // call ClearScreen
         z80_patchlist.CALL(curr_rom.clearScreen | T_U16);
         z80_patchlist.LD(HL, curr_rom.textBorderUppLeft | T_U16);
-        z80_patchlist.LD(B, curr_rom.textBorderWidth | T_U8);
-        z80_patchlist.LD(C, curr_rom.textBorderHeight | T_U8);
+        z80_patchlist.LD(C, curr_rom.textBorderWidth | T_U8);
+        z80_patchlist.LD(B, curr_rom.textBorderHeight | T_U8);
         z80_patchlist.CALL(curr_rom.CableClub_TextBoxBorder | T_U16);
         z80_patchlist.LD(HL, curr_rom.transferStringLocation | T_U16);
         z80_patchlist.LD(DE, transfer_wait_string.place_ptr(&z80_patchlist) | T_U16);
         z80_patchlist.CALL(curr_rom.placeString | T_U16);
 
-        /* Transfer box data: */
+        /* Build the packet */
+        //      HL is the current data pointer
+        //      DE is the destination pointer
+        //      A is the checksum
+        //      B is the 0xFE flag byte
+        //      C is the counter
+        send_packet_loop.set_start(&z80_patchlist);
+
+        // Theoretically this could be changed to just take the direct address instead of adding the offset to it, if space is needed
+        z80_patchlist.LD(HL, (DATA_LOC + PACKET_SIZE + 3) | T_U16);
+        z80_patchlist.LD(E, HL_PTR);
+        z80_patchlist.INC(HL);
+        z80_patchlist.LD(D, HL_PTR);
+        z80_patchlist.LD(HL, curr_rom.wBoxDataStart | T_U16);
+        z80_patchlist.ADD(HL, DE);
+
+        z80_patchlist.LD(DE, (DATA_LOC + 1) | T_U16); // Enemy Pokemon data, should be unused
+        z80_patchlist.XOR(A, A);                      // Clear the register
+        z80_patchlist.LD(B, A);                       // Clear B as well
+        z80_patchlist.LD(C, A);                       // Clear C as well
+        z80_patchlist.PUSH(AF);
+        packet_loop.set_start(&z80_patchlist);
+        z80_patchlist.SLA(B); // Shift flag over
+        z80_patchlist.POP(AF);
+        z80_patchlist.ADD(A, HL_PTR); // Add the current data to the checksum
+        z80_patchlist.PUSH(AF);
+        z80_patchlist.LD(A, 0xFE);
+        z80_patchlist.CP(A, HL_PTR);  // Compare the current data to 0xFE
+        z80_patchlist.LD(A, HLI_PTR); // Load HL's data into A for modification (if need be)
+
+        // If HL's data is 0xFE
+        z80_patchlist.JR(NZ_F, fe_bypass.place_relative_jump(&z80_patchlist) | T_I8);
+        z80_patchlist.DEC(A);
+        z80_patchlist.INC(B); // Set flag
+        fe_bypass.set_start(&z80_patchlist);
+
+        z80_patchlist.LD(DE_PTR, A);
+        z80_patchlist.INC(DE);
+        z80_patchlist.INC(C);
+        z80_patchlist.LD(A, 0x07);
+        z80_patchlist.CP(A, C);
+        z80_patchlist.JR(NC_F, packet_loop.place_relative_jump(&z80_patchlist) | T_I8);
+        z80_patchlist.POP(AF);
+        z80_patchlist.LD(DE_PTR, A);
+        z80_patchlist.INC(DE);
+        z80_patchlist.LD(A, B);
+        z80_patchlist.LD(DE_PTR, A);
+        z80_patchlist.INC(DE);
+        z80_patchlist.LD(A, H);
+        z80_patchlist.LD(DE_PTR, A);
+        z80_patchlist.INC(DE);
+        z80_patchlist.LD(A, L);
+        z80_patchlist.LD(DE_PTR, A);
+
+        // z80_patchlist.LD(HL, curr_rom.garbageDataLocation | T_U16);
+
+        /* Transfer box data packet: */
         z80_patchlist.LD(HL, curr_rom.hSerialConnectionStatus | T_U16); // Can be shortened since it is 0xFFxx
         z80_patchlist.LD(HL_PTR, (debug ? 0x02 : 0x01) | T_U8);         // Make sure GB is the slave, master if debug
-        z80_patchlist.LD(HL, (curr_rom.wBoxDataStart - 1) | T_U16);
-        z80_patchlist.LD(HL_PTR, 0xFD | T_U8);                                    // set the start of the data to 0xFD so Serial_ExchangeBytes is happy
-        z80_patchlist.LD(DE, (curr_rom.wBoxDataStart - (debug ? 2 : 3)) | T_U16); // location to put stored data
-        z80_patchlist.LD(BC, ((curr_rom.wBoxDataEnd - curr_rom.wBoxDataStart) + 2) | T_U16);
+        z80_patchlist.LD(HL, DATA_LOC | T_U16);
+        z80_patchlist.LD(HL_PTR, 0xFD | T_U8);                  // set the start of the data to 0xFD so Serial_ExchangeBytes is happy
+        z80_patchlist.LD(DE, (DATA_LOC + PACKET_SIZE) | T_U16); // location to put stored data
+        z80_patchlist.LD(BC, PACKET_SIZE | T_U16);
         if (debug) // Don't call serialExchangeBytes if debug is enabled
         {
             z80_patchlist.index += 3;
@@ -136,6 +197,10 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
         {
             z80_patchlist.CALL(curr_rom.Serial_ExchangeBytes | T_U16);
         }
+
+        z80_patchlist.LD(A, (DATA_LOC + PACKET_SIZE + 3 + 1) | T_U16);
+        z80_patchlist.CP(A, 0xFF);
+        z80_patchlist.JR(NZ_F, send_packet_loop.place_relative_jump(&z80_patchlist) | T_I8);
 
         /* Recieve the Pokemon to remove */
         z80_patchlist.LD(HL, curr_rom.hSerialConnectionStatus | T_U16); // This can also be shortened
@@ -195,7 +260,7 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
         // z80_patchlist.index += 5;
 
         array_counter.insert_variable(&z80_patchlist);
-        removal_array.insert_variable(&z80_patchlist);
+        removal_array.insert_variable(&z80_payload);
         transfer_wait_string.insert_variable(&z80_patchlist);
 
         // This payload works by placing Pokemon ID 0xFC's name in the stack, and causing a return to CD8E,
@@ -347,8 +412,8 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
             // Write transferring message to screen:
             z80_patchlist.CALL(curr_rom.clearScreen | T_U16);
             z80_patchlist.LD(HL, curr_rom.textBorderUppLeft | T_U16);
-            z80_patchlist.LD(B, curr_rom.textBorderWidth | T_U8);
-            z80_patchlist.LD(C, curr_rom.textBorderHeight | T_U8);
+            z80_patchlist.LD(C, curr_rom.textBorderWidth | T_U8);
+            z80_patchlist.LD(B, curr_rom.textBorderHeight | T_U8);
             z80_patchlist.CALL(curr_rom.CableClub_TextBoxBorder | T_U16);
             z80_patchlist.LD(HL, curr_rom.transferStringLocation | T_U16);
             z80_patchlist.LD(DE, (transfer_wait_string.place_ptr(&z80_patchlist)) | T_U16);
@@ -627,8 +692,8 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
         z80_patchlist.CALL(curr_rom.clearScreen | T_U16);
 
         z80_patchlist.LD(HL, curr_rom.textBorderUppLeft | T_U16);
-        z80_patchlist.LD(B, curr_rom.textBorderWidth | T_U8);
-        z80_patchlist.LD(C, curr_rom.textBorderHeight | T_U8);
+        z80_patchlist.LD(C, curr_rom.textBorderWidth | T_U8);
+        z80_patchlist.LD(B, curr_rom.textBorderHeight | T_U8);
         z80_patchlist.LD(A, curr_rom.CableClub_TextBoxBorder >> 16 | T_U8);
         z80_patchlist.RST(0x10); // Bank switch
         z80_patchlist.CALL(curr_rom.CableClub_TextBoxBorder | T_U16);
@@ -752,7 +817,7 @@ int test_main() // Rename to "main" to send the payload to test_payload.txt
 {
     freopen("test_payload.txt", "w", stdout);
     std::cout << std::endl;
-    byte *payload = generate_payload(ENG_YELLOW, TRANSFER, true);
+    byte *payload = generate_payload(ENG_RED, TRANSFER, true);
     if (true)
     {
         for (int i = 0; i < 0x2A0; i++)

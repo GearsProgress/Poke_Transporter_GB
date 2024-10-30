@@ -59,6 +59,16 @@ int zero_count;
 
 int state;
 int mosi_delay = 4; // inital delay, speeds up once sending PKMN
+int received_offset = 0;
+int next_offset = 0;
+int packet_index = 0;
+
+bool failed_packet;
+bool init_packet;
+
+bool test_packet_fail = false;
+
+byte data_packet[13];
 
 std::string spi_text_out_array[10];
 
@@ -103,8 +113,14 @@ void setup()
 
   FF_count = 0;
   zero_count = 0;
+  next_offset = 0;
+  received_offset = 0;
+  packet_index = 0;
 
-  if (DEBUG_MODE)
+  failed_packet = false;
+  init_packet = true;
+
+  if (DEBUG_MODE && false)
   {
     tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
     tte_set_pos(0, 0);
@@ -225,6 +241,7 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
       if (in == 0xFD)
       {
         state = box_preamble;
+        init_packet = true;
       }
       else if ((curr_gb_rom->method == METHOD_MEW) && (in == 0xFE))
       {
@@ -248,19 +265,14 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
     if (in != 0xFD)
     {
       state = box_data;
-      data_counter = 0;
-      return exchange_boxes(in, box_data_storage);
+      return exchange_boxes(in, box_data_storage, curr_gb_rom);
     }
     return in;
   }
 
   else if (state == box_data)
   {
-    if (data_counter >= curr_gb_rom->box_data_size)
-    {
-      state = end1;
-    }
-    return exchange_boxes(in, box_data_storage);
+    return exchange_boxes(in, box_data_storage, curr_gb_rom);
   }
 
   else if (state == wait_to_resend)
@@ -326,7 +338,7 @@ int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, Simpli
     // TODO: Restore Errors
     in_data = linkSPI->transfer(out_data);
 
-    if (DEBUG_MODE)
+    if (DEBUG_MODE && false)
     {
       tte_set_margins(0, 0, H_MAX, V_MAX);
       print(
@@ -388,11 +400,113 @@ byte exchange_parties(byte curr_in, byte *curr_payload)
   return ret;
 };
 
-byte exchange_boxes(byte curr_in, byte *box_data_storage)
+byte exchange_boxes(byte curr_in, byte *box_data_storage, GB_ROM *curr_gb_rom)
 {
-  box_data_storage[data_counter] = curr_in;
-  data_counter += 1;
-  return curr_in;
+  if (SHOW_DATA_PACKETS)
+  {
+    tte_erase_rect(0, 0, H_MAX, V_MAX);
+    tte_set_pos(8, 8);
+  }
+  data_packet[packet_index] = curr_in;
+  if (packet_index == 12)
+  {
+    byte checksum = 0;
+    for (int i = 0; i < 8; i++)
+    {
+      if (((data_packet[10] >> (7 - i)) & 0x1) == 1)
+        data_packet[i + 1] = 0xFE;
+      {
+        checksum += data_packet[i + 1];
+      }
+    }
+    if (!init_packet)
+    {
+      received_offset = (data_packet[12] | (data_packet[11] << 8)) - (curr_gb_rom->wBoxDataStart + 8);
+    }
+    if (SHOW_DATA_PACKETS)
+    {
+      for (int i = 0; i < 13; i++)
+      {
+        tte_write(std::to_string(i).c_str());
+        tte_write(": ");
+        tte_write(std::to_string(data_packet[i]).c_str());
+        tte_write("\n");
+      }
+      tte_write(std::to_string(checksum).c_str());
+      tte_write(" = ");
+      tte_write(std::to_string(data_packet[9]).c_str());
+    }
+
+    if (checksum == data_packet[9] && !init_packet && !(test_packet_fail && received_offset == 128)) // Verify if the data matches the checksum
+    {
+      for (int i = 0; i < 8; i++)
+      {
+        if (received_offset + i <= curr_gb_rom->box_data_size)
+        {
+          box_data_storage[received_offset + i] = data_packet[i + 1];
+        }
+      }
+    }
+    else if (!init_packet)
+    {
+      failed_packet = true;
+      if (test_packet_fail)
+      {
+        test_packet_fail = false;
+      }
+    }
+    state = (received_offset > curr_gb_rom->box_data_size + 8 ? end1 : box_preamble);
+    if (SHOW_DATA_PACKETS)
+    {
+      tte_write("\nNO: ");
+      tte_write(std::to_string(next_offset).c_str());
+      tte_write("\nFP: ");
+      tte_write(std::to_string(failed_packet).c_str());
+    }
+
+    if (!init_packet)
+    {
+      if (failed_packet)
+      {
+        next_offset -= 8;
+        failed_packet = false;
+      }
+      else
+      {
+        next_offset += 8;
+      }
+    }
+
+    if (SHOW_DATA_PACKETS)
+    {
+      tte_write("\nRO: ");
+      tte_write(std::to_string(received_offset).c_str());
+      tte_write("\nIP: ");
+      tte_write(std::to_string(init_packet).c_str());
+
+      while (!key_held(KEY_A))
+      {
+        global_next_frame();
+      }
+      global_next_frame();
+    }
+    packet_index = 0;
+    init_packet = false;
+  }
+  packet_index += 1;
+  switch (packet_index)
+  {
+  case 3:
+    if (received_offset > 0x462)
+    {
+      return 0xFF;
+    }
+    return next_offset >> 8;
+  case 2:
+    return (next_offset >> 0);
+  default:
+    return 0;
+  }
 };
 
 byte exchange_remove_array(byte curr_in, Simplified_Pokemon *curr_simple_array, bool cancel_connection)

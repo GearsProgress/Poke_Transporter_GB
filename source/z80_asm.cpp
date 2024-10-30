@@ -408,7 +408,7 @@ void z80_asm_handler::PUSH(int source)
 {
     if (TYPE(source) == T_16BIT_REG)
     {
-        add_byte(0b11000001 | (source << 4));
+        add_byte(0b11000101 | (source << 4));
     }
     else
     {
@@ -419,7 +419,7 @@ void z80_asm_handler::POP(int destination)
 {
     if (TYPE(destination) == T_16BIT_REG)
     {
-        add_byte(0b11000101 | (destination << 4));
+        add_byte(0b11000001 | (destination << 4));
     }
     else
     {

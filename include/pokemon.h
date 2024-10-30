@@ -35,9 +35,9 @@ public:
     int nature_mod = 0;
     int unown_letter = -1;
     Pokemon();
-    void load_data(int index, byte *party_data, int game, int lang);
+    void load_data(int index, const byte *party_data, int game, int lang);
     void convert_to_gen_three(bool simplified, bool stabilize_mythical);
-    void copy_from_to(byte *source, byte *destination, int size, bool reverse_endian);
+    void copy_from_to(const byte *source, byte *destination, int size, bool reverse_endian);
     void alocate_data_chunks(byte *G, byte *A, byte *E, byte *M);
     void insert_data(byte *first, byte *second, byte *third, byte *fourth);
     byte get_gen_3_data(int index);
