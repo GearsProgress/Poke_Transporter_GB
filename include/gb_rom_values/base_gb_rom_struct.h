@@ -50,11 +50,12 @@ public:
     word wSerialOtherGameboyRandomNumberListBlock; // location of wSerialOtherGameboyRandomNumberListBlock in RAM
     word wSerialEnemyDataBlock;                    // location of wSerialEnemyDataBlock in RAM
     word wSerialEnemyMonsPatchList;                // location of wSerialEnemyMonsPatchList in RAM
-
-    hword transferStringLocation; // location in VRAM to start writing the transfer string to
-    hword textBorderUppLeft;      // location in VRAM to put the upper left corner of the border
-    byte textBorderWidth;         // the width of the text box border
-    byte textBorderHeight;        // the height of the text box border
+    word wEnemyMonSpecies;                         // location of wEnemyMonSpecies in RAM
+    
+    hword transferStringLocation;                  // location in VRAM to start writing the transfer string to
+    hword textBorderUppLeft;                       // location in VRAM to put the upper left corner of the border
+    byte textBorderWidth;                          // the width of the text box border
+    byte textBorderHeight;                         // the height of the text box border
 };
 
 #endif

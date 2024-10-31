@@ -158,13 +158,14 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
         species_index_struct = gen_1_index_array[species_index_struct];
     }
 
-    if (species_index_struct > 251 ||                  // Checks if the Pokemon is beyond Celebi
+    if (index_in_box % 4 == 0 ||
+        species_index_struct > 251 ||                  // Checks if the Pokemon is beyond Celebi
         species_index_struct == 0 ||                   // Checks that the Pokemon isn't a blank party space
         species_index_struct != species_index_party || // Checks that the Pokemon isn't a hybrid or an egg
         index_in_box >= num_in_box ||                  // Checks that we're not reading beyond the Pokemon in the box
         item != 0)                                     // Checks that the Pokemon doesn't have an item
     {
-        if (!SHOW_INVALID_PKMN)
+        if (!NO_INVALID_PKMN)
         {
             is_valid = false;
             return;

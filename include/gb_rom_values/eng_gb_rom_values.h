@@ -57,6 +57,7 @@ const struct GB_ROM ENG_RED = {
     .wSerialOtherGameboyRandomNumberListBlock = 0xCD81,
     .wSerialEnemyDataBlock = 0xD893,
     .wSerialEnemyMonsPatchList = 0xC5D0,
+    .wEnemyMonSpecies = 0xCFE5,
 
     .transferStringLocation = 0xC444,
     .textBorderUppLeft = 0xC42F,
@@ -96,6 +97,7 @@ const struct GB_ROM ENG_BLUE = {
     .wSerialOtherGameboyRandomNumberListBlock = 0xCD81,
     .wSerialEnemyDataBlock = 0xD893,
     .wSerialEnemyMonsPatchList = 0xC5D0,
+    .wEnemyMonSpecies = 0xCFE5,
 
     .transferStringLocation = 0xC444,
     .textBorderUppLeft = 0xC42F,
@@ -136,6 +138,7 @@ const struct GB_ROM ENG_YELLOW = {
     .wSerialOtherGameboyRandomNumberListBlock = 0xCD81,
     .wSerialEnemyDataBlock = 0xD893,
     .wSerialEnemyMonsPatchList = 0xC5D0,
+    .wEnemyMonSpecies = 0xCFE4,
 
     .transferStringLocation = 0xC444,
     .textBorderUppLeft = 0xC42F,
@@ -173,6 +176,7 @@ const struct GB_ROM ENG_GOLD = {
     .wSerialOtherGameboyRandomNumberListBlock = 0xD0EF, // wOTLinkBattleRNData
     .wSerialEnemyDataBlock = 0xDD40,                    // wOTPartyData
     .wSerialEnemyMonsPatchList = 0xC5D0,                // wOTPatchLists
+    .wEnemyMonSpecies = 0x01D0EF,
 
     .transferStringLocation = 0xC444,
     .textBorderUppLeft = 0xC42F,
@@ -210,6 +214,7 @@ const struct GB_ROM ENG_SILVER = {
     .wSerialOtherGameboyRandomNumberListBlock = 0xD0EF, // wOTLinkBattleRNData
     .wSerialEnemyDataBlock = 0xDD40,                    // wOTPartyData
     .wSerialEnemyMonsPatchList = 0xC5D0,                // wOTPatchLists
+    .wEnemyMonSpecies = 0x01D0EF,
 
     .transferStringLocation = 0xC444,
     .textBorderUppLeft = 0xC42F,
@@ -247,6 +252,7 @@ const struct GB_ROM ENG_CRYSTAL = {
     .wSerialOtherGameboyRandomNumberListBlock = 0xD206, // wOTLinkBattleRNData
     .wSerialEnemyDataBlock = 0xD26B,                    // wOTPartyData
     .wSerialEnemyMonsPatchList = 0xC6D0,                // wOTPatchLists
+    .wEnemyMonSpecies = 0x01D206,
 
     .transferStringLocation = 0xC544,
     .textBorderUppLeft = 0xC52F,

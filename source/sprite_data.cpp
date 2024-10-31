@@ -350,7 +350,7 @@ void load_temp_box_sprites(Pokemon_Party party_data)
     u32 curr_tile_id = global_tile_id_end;
     for (int i = 0; i < 30; i++)
     {
-        if (party_data.get_simple_pkmn(i).is_valid || SHOW_INVALID_PKMN)
+        if (party_data.get_simple_pkmn(i).is_valid || NO_INVALID_PKMN)
         {
             Simplified_Pokemon curr_pkmn = party_data.get_simple_pkmn(i);
             int dex_num = curr_pkmn.dex_number;

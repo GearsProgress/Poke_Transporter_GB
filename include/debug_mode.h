@@ -9,11 +9,11 @@
 #define IGNORE_MG_E4_FLAGS true
 #define IGNORE_UNRECEIVED_PKMN true
 #define FORCE_TUTORIAL false
-#define DONT_REMOVE_PKMN true
-#define SHOW_INVALID_PKMN false
+#define DONT_REMOVE_PKMN false
+#define NO_INVALID_PKMN false
 #define IGNORE_DEX_COMPLETION false
-#define WRITE_CABLE_DATA_TO_SAVE true
-#define SHOW_DATA_PACKETS false
+#define WRITE_CABLE_DATA_TO_SAVE false
+#define SHOW_DATA_PACKETS true
 
 #define DEBUG_GAME EMERALD_ID
 #define DEBUG_VERS VERS_1_0

@@ -68,6 +68,8 @@ bool init_packet;
 
 bool test_packet_fail = false;
 
+bool end_of_data;
+
 byte data_packet[13];
 
 std::string spi_text_out_array[10];
@@ -119,6 +121,7 @@ void setup()
 
   failed_packet = false;
   init_packet = true;
+  end_of_data = false;
 
   if (DEBUG_MODE && false)
   {
@@ -421,7 +424,7 @@ byte exchange_boxes(byte curr_in, byte *box_data_storage, GB_ROM *curr_gb_rom)
     }
     if (!init_packet)
     {
-      received_offset = (data_packet[12] | (data_packet[11] << 8)) - (curr_gb_rom->wBoxDataStart + 8);
+      received_offset = (data_packet[12] | (data_packet[11] << 8)) - ((curr_gb_rom->wBoxDataStart & 0xFFFF) + 8);
     }
     if (SHOW_DATA_PACKETS)
     {
@@ -455,7 +458,21 @@ byte exchange_boxes(byte curr_in, byte *box_data_storage, GB_ROM *curr_gb_rom)
         test_packet_fail = false;
       }
     }
-    state = (received_offset > curr_gb_rom->box_data_size + 8 ? end1 : box_preamble);
+
+    if (end_of_data)
+    {
+      state = end1;
+    }
+    else
+    {
+      state = box_preamble;
+    }
+
+    if (received_offset > curr_gb_rom->box_data_size + 8)
+    {
+      end_of_data = true;
+    }
+
     if (SHOW_DATA_PACKETS)
     {
       tte_write("\nNO: ");
@@ -497,7 +514,7 @@ byte exchange_boxes(byte curr_in, byte *box_data_storage, GB_ROM *curr_gb_rom)
   switch (packet_index)
   {
   case 3:
-    if (received_offset > 0x462)
+    if (end_of_data)
     {
       return 0xFF;
     }
