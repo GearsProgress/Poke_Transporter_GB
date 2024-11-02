@@ -44,8 +44,9 @@
 #define DIA_SOME_INVALID_PKMN       35
 #define DIA_MENU_BACK               36
 #define DIA_SEND_FRIEND_HOENN_E     37
+#define DIA_IS_MISSINGNO            38
 
-#define                    DIA_SIZE 38
+#define                    DIA_SIZE 39
 #define DIA_END DIA_SIZE
 
 // Commands
@@ -67,8 +68,9 @@
 #define CMD_MYTHIC_MENU         DIA_END + 15
 #define CMD_LOAD_SIMP           DIA_END + 16
 #define CMD_CANCEL_LINK         DIA_END + 17
+#define CMD_END_MISSINGNO       DIA_END + 18
 
-#define                         CMD_SIZE  18
+#define                         CMD_SIZE  19
 #define CMDS_END DIA_END + CMD_SIZE
 
 // Conditionals
@@ -91,8 +93,9 @@
 #define COND_CHECK_KANTO            CMDS_END + 16
 #define COND_SOME_INVALID_PKMN      CMDS_END + 17
 #define COND_IS_HOENN_E             CMDS_END + 18
+#define COND_CHECK_MISSINGNO        CMDS_END + 19
 
-#define                             COND_SIZE  19
+#define                             COND_SIZE  20
 #define COND_END CMDS_END + COND_SIZE
 
 // Ends

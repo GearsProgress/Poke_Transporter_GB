@@ -65,6 +65,12 @@ void set_background_pal(int curr_rom_id, bool dark, bool fade)
         new_pal_bg[3] = (!dark ? RGB15(11, 22, 13) : RGB15(7, 14, 8));
         new_pal_bg[4] = (!dark ? RGB15(20, 26, 20) : RGB15(12, 16, 13));
         break;
+    case 0xFF: // MissingNo
+        new_pal_bg[1] = RGB15(3, 2, 2);
+        new_pal_bg[2] = RGB15(31, 31, 30);
+        new_pal_bg[3] = RGB15(29, 22, 17);
+        new_pal_bg[4] = RGB15(15, 14, 18);
+        break;
     default:
         new_pal_bg[1] = (!dark ? RGB15(7, 7, 11) : RGB15(0, 0, 0));
         new_pal_bg[2] = (!dark ? RGB15(13, 13, 16) : RGB15(0, 0, 0));
@@ -358,6 +364,10 @@ void load_temp_box_sprites(Pokemon_Party party_data)
             {
                 dex_num = 252 + curr_pkmn.unown_letter;
             }
+            else if (curr_pkmn.is_missingno)
+            {
+                dex_num = 0;
+            }
             load_sprite(party_sprites[i], &unique_duel_frame_menu_spritesTiles[dex_num * 32], 256, curr_tile_id, MENU_SPRITE_PALS[dex_num][curr_pkmn.is_shiny] + MENU_PAL_START, ATTR0_SQUARE, ATTR1_SIZE_16x16, 1);
             obj_set_pos(party_sprites[i], (16 * (i % 10)) + 40, (16 * (i / 10)) + 24);
             obj_unhide(party_sprites[i], 0);
@@ -607,29 +617,7 @@ void load_select_sprites(int game_id, int lang)
 #define FEN_BLI_R0 (37 | (0b00 << 0xA) | (2 << 0xC))
 #define FEN_BLI_R1 (142 | (0b00 << 0xA) | (2 << 0xC))
 #define FEN_BLI_R2 (145 | (0b00 << 0xA) | (2 << 0xC))
-void fennel_blink(int frame)
-{
-    int SBB = 15; // SSB is the array of which tile goes where
-    switch (frame)
-    {
-    case 0:
-        se_mem[SBB][12 + (5 * 32)] = FEN_BLI_L20;
-        se_mem[SBB][13 + (5 * 32)] = FEN_BLI_L21;
-        se_mem[SBB][15 + (5 * 32)] = FEN_BLI_R2;
-        break;
-    case 1:
-    case 3:
-        se_mem[SBB][12 + (5 * 32)] = FEN_BLI_L10;
-        se_mem[SBB][13 + (5 * 32)] = FEN_BLI_L11;
-        se_mem[SBB][15 + (5 * 32)] = FEN_BLI_R1;
-        break;
-    case 2:
-        se_mem[SBB][12 + (5 * 32)] = FEN_BLI_L00;
-        se_mem[SBB][13 + (5 * 32)] = FEN_BLI_L01;
-        se_mem[SBB][15 + (5 * 32)] = FEN_BLI_R0;
-        break;
-    }
-}
+
 // tile ID, VH Flip, Palette Bank
 #define FEN_SPE_00 (46 | (0b00 << 0xA) | (2 << 0xC))
 #define FEN_SPE_01 (56 | (0b00 << 0xA) | (2 << 0xC))
@@ -640,27 +628,53 @@ void fennel_blink(int frame)
 #define FEN_SPE_30 (148 | (0b00 << 0xA) | (2 << 0xC))
 #define FEN_SPE_31 (150 | (0b00 << 0xA) | (2 << 0xC))
 
-void fennel_speak(int frame)
+void fennel_blink(int frame)
 {
+    bool missingno = get_missingno_enabled();
     int SBB = 15; // SSB is the array of which tile goes where
     switch (frame)
     {
     case 0:
-        se_mem[SBB][14 + (6 * 32)] = FEN_SPE_00;
-        se_mem[SBB][14 + (7 * 32)] = FEN_SPE_01;
+        se_mem[SBB][12 + (5 * 32)] = missingno ? FEN_SPE_00 | FEN_BLI_L20 : FEN_BLI_L20;
+        se_mem[SBB][13 + (5 * 32)] = missingno ? FEN_SPE_01 | FEN_BLI_L21 : FEN_BLI_L21;
+        se_mem[SBB][15 + (5 * 32)] = missingno ? FEN_SPE_10 | FEN_BLI_R2 : FEN_BLI_R2;
         break;
     case 1:
-        se_mem[SBB][14 + (6 * 32)] = FEN_SPE_10;
-        se_mem[SBB][14 + (7 * 32)] = FEN_SPE_11;
+    case 3:
+        se_mem[SBB][12 + (5 * 32)] = missingno ? FEN_SPE_11 | FEN_BLI_L10 : FEN_BLI_L10;
+        se_mem[SBB][13 + (5 * 32)] = missingno ? FEN_SPE_20 | FEN_BLI_L11 : FEN_BLI_L11;
+        se_mem[SBB][15 + (5 * 32)] = missingno ? FEN_SPE_21 | FEN_BLI_R1 : FEN_BLI_R1;
+        break;
+    case 2:
+        se_mem[SBB][12 + (5 * 32)] = missingno ? FEN_SPE_30 | FEN_BLI_L00 : FEN_BLI_L00;
+        se_mem[SBB][13 + (5 * 32)] = missingno ? FEN_SPE_31 | FEN_BLI_L01 : FEN_BLI_L01;
+        se_mem[SBB][15 + (5 * 32)] = missingno ? FEN_SPE_00 | FEN_BLI_R0 : FEN_BLI_R0;
+        break;
+    }
+}
+
+void fennel_speak(int frame)
+{
+    bool missingno = get_missingno_enabled();
+    int SBB = 15; // SSB is the array of which tile goes where
+    switch (frame)
+    {
+    case 0:
+        se_mem[SBB][14 + (6 * 32)] = missingno ? FEN_SPE_00 | FEN_BLI_L20 : FEN_SPE_00;
+        se_mem[SBB][14 + (7 * 32)] = missingno ? FEN_SPE_01 | FEN_BLI_L21 : FEN_SPE_01;
+        break;
+    case 1:
+        se_mem[SBB][14 + (6 * 32)] = missingno ? FEN_SPE_10 | FEN_BLI_R2 : FEN_SPE_10;
+        se_mem[SBB][14 + (7 * 32)] = missingno ? FEN_SPE_11 | FEN_BLI_L10 : FEN_SPE_11;
         break;
     case 2:
     case 4:
-        se_mem[SBB][14 + (6 * 32)] = FEN_SPE_20;
-        se_mem[SBB][14 + (7 * 32)] = FEN_SPE_21;
+        se_mem[SBB][14 + (6 * 32)] = missingno ? FEN_SPE_01 | FEN_BLI_L21 : FEN_SPE_20;
+        se_mem[SBB][14 + (7 * 32)] = missingno ? FEN_SPE_01 | FEN_BLI_L21 : FEN_SPE_21;
         break;
     case 3:
-        se_mem[SBB][14 + (6 * 32)] = FEN_SPE_30;
-        se_mem[SBB][14 + (7 * 32)] = FEN_SPE_31;
+        se_mem[SBB][14 + (6 * 32)] = missingno ? FEN_SPE_30 | FEN_BLI_L00 : FEN_SPE_30;
+        se_mem[SBB][14 + (7 * 32)] = missingno ? FEN_SPE_31 | FEN_BLI_L01 : FEN_SPE_31;
         break;
     }
 }

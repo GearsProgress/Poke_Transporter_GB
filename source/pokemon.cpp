@@ -154,11 +154,23 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
     // Convert the species indexes
     if (gen == 1)
     {
-        species_index_party = gen_1_index_array[species_index_party];
-        species_index_struct = gen_1_index_array[species_index_struct];
+        if (species_index_struct > 190)
+        {
+            species_index_struct = 0;
+        }
+        else
+        {
+            species_index_struct = gen_1_index_array[species_index_struct];
+            if (species_index_struct == 0xFF)
+            {
+                is_missingno = true;
+                species_index_struct = 0x89; // Porygon
+            }
+        }
+        species_index_party = species_index_struct;
     }
 
-    if (index_in_box % 4 == 0 ||
+    if (                                               // index_in_box % 4 == 0 ||
         species_index_struct > 251 ||                  // Checks if the Pokemon is beyond Celebi
         species_index_struct == 0 ||                   // Checks that the Pokemon isn't a blank party space
         species_index_struct != species_index_party || // Checks that the Pokemon isn't a hybrid or an egg
@@ -274,7 +286,18 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
     }
 
     // Check that the moves are valid
-    if (species_index_struct != 0xEB) // Ignore Smeargle due to Sketch
+    if (is_missingno)
+    {
+        moves[0] = 55;  // Water Gun
+        moves[1] = 143; // Sky Attack
+        moves[2] = 6;   // Pay Day
+        moves[3] = 20;  // Bind
+        for (int i = 0; i < 4; i++)
+        {
+            pp_bonus[i] = 0;
+        }
+    }
+    else if (species_index_struct != 0xEB) // Ignore Smeargle due to Sketch
     {
         for (int i = 0; i < 4; i++)
         {
@@ -382,15 +405,27 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
 
     // Origin info
     origin_info |= ((caught_data[1] & 0b10000000) << 8); // OT gender - We would shift left 15 bits, but the bit is already shifted over 7
-    origin_info |= (4 << 11);                            // Ball
-    origin_info |= (((gen == 1) ? 4 : 7) << 7);          // Game
-    origin_info |= met_level;                            // Level met
+    if (is_missingno)
+    {
+        origin_info |= (1 << 11); // Master Ball
+    }
+    else
+    {
+        origin_info |= (4 << 11); // Ball
+    }
+    origin_info |= (((gen == 1) ? 4 : 7) << 7); // Game
+    origin_info |= met_level;                   // Level met
 
     // Ribbons and Obedience
     // ribbons[2] |= 0b00000100; // Artist Ribbon
     if (species_index_struct == 151 || species_index_struct == 251) // Pokemon is Mew or Celebi
     {
         ribbons[3] |= 0b10000000; // Fateful Encounter flag
+    }
+    else if (is_missingno)
+    {
+        ribbons[3] |= 0b10000000; // Fateful Encounter flag
+        // ribbons[3] |= 0b00000100; // World Ribbon
     }
     // Personality Value
     copy_from_to(&pid[0], &gen_3_pkmn[0], 4, false);
@@ -808,6 +843,7 @@ Simplified_Pokemon Pokemon::get_simple_pkmn()
     curr_pkmn.is_transferred = false;
     curr_pkmn.is_shiny = get_is_shiny();
     curr_pkmn.unown_letter = unown_letter;
+    curr_pkmn.is_missingno = is_missingno;
     return curr_pkmn;
 }
 

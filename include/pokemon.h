@@ -23,6 +23,7 @@ struct Simplified_Pokemon
     bool is_transferred;
     bool is_shiny;
     int unown_letter;
+    bool is_missingno;
 };
 
 class Pokemon
@@ -59,6 +60,7 @@ public:
     void set_to_event(byte nature);
     int num_in_box;
     int index_in_box;
+    bool is_missingno = false;
 
 private:
     byte gen = 2;

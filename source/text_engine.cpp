@@ -105,7 +105,15 @@ int text_loop(int script)
             }
             if (get_curr_flex_background() == BG_FENNEL)
             {
-                fennel_speak(0);
+                if (get_missingno_enabled())
+                {
+                    fennel_speak(0);
+                    fennel_blink(4);
+                }
+                else
+                {
+                    fennel_speak(0);
+                }
             }
         }
         if (text_exit)

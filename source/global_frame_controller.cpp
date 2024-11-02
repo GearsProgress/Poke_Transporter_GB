@@ -13,6 +13,7 @@ int cable_frame = 0;
 int curr_link_animation_state = 0;
 int fennel_blink_timer = 0;
 int fennel_blink_state = 0;
+bool missingno_enabled = false;
 
 void global_next_frame()
 {
@@ -22,6 +23,10 @@ void global_next_frame()
     // tte_write(std::to_string(get_rand_u32()).c_str());
     background_frame(global_frame_count);
     determine_fennel_blink();
+    if (missingno_enabled)
+    {
+        set_background_pal(0xFF, false, false);
+    }
     oam_copy(oam_mem, obj_buffer, num_sprites);
     VBlankIntrWait();
     // mmFrame(); //Music
@@ -219,4 +224,18 @@ void determine_fennel_blink()
     {
         fennel_blink_timer = get_rand_range(4 * 60, 8 * 60);
     }
+}
+
+void set_missingno(bool val)
+{
+    missingno_enabled = val;
+    if (val == false){
+        set_background_pal(curr_rom.gamecode, false, false);
+        fennel_blink_timer = 0;
+    }
+}
+
+bool get_missingno_enabled()
+{
+    return missingno_enabled;
 }

@@ -51,6 +51,7 @@ void populate_dialogue()
     dialogue[DIA_CANCEL] = "No worries! Feel free to\ncome back if you change your\nmind!|See you around!";
     dialogue[DIA_SOME_INVALID_PKMN] = "I see there is at least one\nPok@mon that cannot be\ntransferred from your\ncurrent box.|Pok@mon holding items or\nmodified incorrectly through\nunintended means cannot\nbe transferred.|The other Pok@mon will\ntransfer just fine though!";
     dialogue[DIA_MENU_BACK] = "No worries! Feel free to\ncome back any time!";
+    dialogue[DIA_IS_MISSINGNO] = "...It seems like one of your Pok@mon is messing with the machine...|It looks to only be graphical though, so we can continue!";
 
     dialogue[DIA_ERROR_COLOSSEUM] = "It looks like you went to\nthe colosseum instead of the\ntrading room!|Let's try that again!";
     dialogue[DIA_ERROR_COM_ENDED] = "Communication with the other\ndevice was terminated.|Let's try that again!";
@@ -115,15 +116,18 @@ void populate_script()
     transfer_script[DIA_NO_VALID_PKMN] = script_obj(dialogue[DIA_NO_VALID_PKMN], CMD_CANCEL_LINK);
     transfer_script[COND_SOME_INVALID_PKMN] = script_obj(COND_SOME_INVALID_PKMN, DIA_SOME_INVALID_PKMN, COND_CHECK_MYTHIC);
     transfer_script[DIA_SOME_INVALID_PKMN] = script_obj(dialogue[DIA_SOME_INVALID_PKMN], COND_CHECK_MYTHIC);
-    transfer_script[COND_CHECK_MYTHIC] = script_obj(COND_CHECK_MYTHIC, DIA_MYTHIC_CONVERT, DIA_IN_BOX);
+    transfer_script[COND_CHECK_MYTHIC] = script_obj(COND_CHECK_MYTHIC, DIA_MYTHIC_CONVERT, COND_CHECK_MISSINGNO);
     transfer_script[DIA_MYTHIC_CONVERT] = script_obj(dialogue[DIA_MYTHIC_CONVERT], CMD_MYTHIC_MENU);
-    transfer_script[CMD_MYTHIC_MENU] = script_obj(CMD_MYTHIC_MENU, DIA_IN_BOX);
+    transfer_script[CMD_MYTHIC_MENU] = script_obj(CMD_MYTHIC_MENU, COND_CHECK_MISSINGNO);
+    transfer_script[COND_CHECK_MISSINGNO] = script_obj(COND_CHECK_MISSINGNO, DIA_IS_MISSINGNO, DIA_IN_BOX);
+    transfer_script[DIA_IS_MISSINGNO] = script_obj(dialogue[DIA_IS_MISSINGNO], DIA_IN_BOX);
     transfer_script[DIA_IN_BOX] = script_obj(dialogue[DIA_IN_BOX], CMD_BOX_MENU);
     transfer_script[CMD_BOX_MENU] = script_obj(CMD_BOX_MENU, CMD_IMPORT_POKEMON, DIA_CANCEL);
     transfer_script[DIA_CANCEL] = script_obj(dialogue[DIA_CANCEL], CMD_CANCEL_LINK);
     transfer_script[CMD_IMPORT_POKEMON] = script_obj(CMD_IMPORT_POKEMON, CMD_CONTINUE_LINK);
-    transfer_script[CMD_CONTINUE_LINK] = script_obj(CMD_CONTINUE_LINK, DIA_TRANS_GOOD);
+    transfer_script[CMD_CONTINUE_LINK] = script_obj(CMD_CONTINUE_LINK, CMD_END_MISSINGNO);
     transfer_script[CMD_CANCEL_LINK] = script_obj(CMD_CANCEL_LINK, CMD_END_SCRIPT);
+    transfer_script[CMD_END_MISSINGNO] = script_obj(CMD_END_MISSINGNO, DIA_TRANS_GOOD);
 
     // Complete the transfer and give messages based on the transfered Pokemon
     transfer_script[DIA_TRANS_GOOD] = script_obj(dialogue[DIA_TRANS_GOOD], COND_NEW_POKEMON);
@@ -285,6 +289,14 @@ bool run_conditional(int index)
     case COND_IS_HOENN_E:
         return curr_rom.gamecode == EMERALD_ID;
 
+    case COND_CHECK_MISSINGNO:
+        if (party_data.get_contains_missingno())
+        {
+            set_missingno(true);
+            return true;
+        }
+        return false;
+
     case CMD_START_LINK:
         load_flex_background(BG_FENNEL, 3);
         link_animation_state(STATE_CONNECTION);
@@ -317,6 +329,10 @@ bool run_conditional(int index)
         return true;
 
     case CMD_END_SCRIPT:
+        if (get_missingno_enabled())
+        {
+            set_missingno(false);
+        }
         return true;
 
     case CMD_LANG_MENU:
@@ -378,6 +394,13 @@ bool run_conditional(int index)
 
     case CMD_CANCEL_LINK:
         party_data.continue_link(true);
+        return true;
+
+    case CMD_END_MISSINGNO:
+        if (get_missingno_enabled())
+        {
+            set_missingno(false);
+        }
         return true;
 
     default:

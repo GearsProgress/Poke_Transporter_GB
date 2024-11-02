@@ -11,5 +11,7 @@ void set_menu_sprite_pal(int frame);
 void run_link_cable_animation(int frame);
 void link_animation_state(int state);
 void determine_fennel_blink();
+void set_missingno(bool val);
+bool get_missingno_enabled();
 
 #endif

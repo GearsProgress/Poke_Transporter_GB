@@ -9,11 +9,14 @@ int x, y;
 
 void background_frame(int global_frame_count)
 {
+        if (!get_missingno_enabled())
+        {
                 x++;
                 y++;
 
                 REG_BG0HOFS = x;
                 REG_BG0VOFS = y;
+        }
 }
 
 void set_textbox_large()

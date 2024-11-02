@@ -30,6 +30,7 @@ public:
     int get_game_gen();
     int get_num_pkmn();
     bool get_contains_invalid();
+    bool get_contains_missingno();
     byte box_data_array[0x462];
 
 private:
@@ -37,6 +38,7 @@ private:
     bool has_new_pkmn = false;
     bool contains_mythical = false;
     bool stabilize_mythic = false;
+    bool contains_missingno = false;
     int game;
     char lang;
 };

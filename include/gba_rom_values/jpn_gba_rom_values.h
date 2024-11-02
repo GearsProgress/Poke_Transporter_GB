@@ -4,7 +4,7 @@
 #include "gba_rom_values/base_gba_rom_struct.h"
 
 const struct ROM_DATA JPN_RUBY_v0 = {
-    .is_valid = true,
+    .is_valid = false,
 
     .gamecode = RUBY_ID,
     .version = VERS_1_0,
@@ -54,7 +54,7 @@ const struct ROM_DATA JPN_RUBY_v0 = {
     .old_npc_id = 1,
 };
 const struct ROM_DATA JPN_SAPPHIRE_v0 = {
-    .is_valid = true,
+    .is_valid = false,
 
     .gamecode = SAPPHIRE_ID,
     .version = VERS_1_0,
@@ -104,7 +104,7 @@ const struct ROM_DATA JPN_SAPPHIRE_v0 = {
     .old_npc_id = 1,
 };
 const struct ROM_DATA JPN_RUBY_v1 = {
-    .is_valid = true,
+    .is_valid = false,
 
     .gamecode = RUBY_ID,
     .version = VERS_1_1,
@@ -154,7 +154,7 @@ const struct ROM_DATA JPN_RUBY_v1 = {
     .old_npc_id = 1,
 };
 const struct ROM_DATA JPN_SAPPHIRE_v1 = {
-    .is_valid = true,
+    .is_valid = false,
 
     .gamecode = SAPPHIRE_ID,
     .version = VERS_1_1,
@@ -204,7 +204,7 @@ const struct ROM_DATA JPN_SAPPHIRE_v1 = {
     .old_npc_id = 1,
 };
 const struct ROM_DATA JPN_FIRERED_v0 = {
-    .is_valid = true,
+    .is_valid = false,
 
     .gamecode = FIRERED_ID,
     .version = VERS_1_0,
@@ -257,7 +257,7 @@ const struct ROM_DATA JPN_FIRERED_v0 = {
     .loc_gSaveBlock1PTR = 0x03005008, // TODO: Only used for old script, can be removed later
 };
 const struct ROM_DATA JPN_LEAFGREEN_v0 = {
-    .is_valid = true,
+    .is_valid = false,
 
     .gamecode = LEAFGREEN_ID,
     .version = VERS_1_0,
@@ -310,7 +310,7 @@ const struct ROM_DATA JPN_LEAFGREEN_v0 = {
     .loc_gSaveBlock1PTR = 0x03005008, // TODO: Only used for old script, can be removed later
 };
 const struct ROM_DATA JPN_FIRERED_v1 = {
-    .is_valid = true,
+    .is_valid = false,
 
     .gamecode = FIRERED_ID,
     .version = VERS_1_1,
@@ -363,7 +363,7 @@ const struct ROM_DATA JPN_FIRERED_v1 = {
     .loc_gSaveBlock1PTR = 0x03005008, // TODO: Only used for old script, can be removed later
 };
 const struct ROM_DATA JPN_LEAFGREEN_v1 = {
-    .is_valid = true,
+    .is_valid = false,
 
     .gamecode = LEAFGREEN_ID,
     .version = VERS_1_1,
@@ -416,7 +416,7 @@ const struct ROM_DATA JPN_LEAFGREEN_v1 = {
     .loc_gSaveBlock1PTR = 0x03005008, // TODO: Only used for old script, can be removed later
 };
 const struct ROM_DATA JPN_EMERALD_v0 = {
-    .is_valid = true,
+    .is_valid = false,
 
     .gamecode = EMERALD_ID,
     .version = VERS_1_0,
