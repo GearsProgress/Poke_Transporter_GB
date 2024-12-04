@@ -164,7 +164,7 @@ void load_flex_background(int background_id, int layer)
     REG_BG1CNT = BG_CBB(CBB) | BG_SBB(SBB) | BG_4BPP | BG_REG_32x32 | BG_PRIO(layer);
     curr_flex_background = background_id;
 }
-#include "textboxBG.h"
+#include "textBoxBG.h"
 void load_textbox_background()
 {
     int CBB = 2;
