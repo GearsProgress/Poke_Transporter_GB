@@ -118,14 +118,14 @@ const struct GB_ROM ENG_YELLOW = {
     .pointer_pkmn_name = 0xE3,
 
     .clearScreen = 0x16DD,
-    .CableClub_TextBoxBorder = 0x5B67,
+    .CableClub_TextBoxBorder = 0x16F0, // TextBoxBoarder, since the Cable Club isn't loaded
     .placeString = 0x1723,
     .Serial_ExchangeBytes = 0x1FCB,
     ._RemovePokemon = 0x7A0F,
     .SaveSAVtoSRAM1 = 0x1C7B32,
     .SaveSAVtoSRAM2 = 0x1C7B56,
     .OpenSRAM = 0x3E99,
-    .Bankswitch = 0x3E7E,
+    .Bankswitch = 0x3E7E, // BankswitchCommon
     .SoftReset = 0x1D05,
     .garbageDataLocation = 0x0161,
     .CloseSRAM = 0x3EA9,
@@ -136,7 +136,7 @@ const struct GB_ROM ENG_YELLOW = {
     .wBoxDataStart = 0xDA7F,
     .wBoxDataEnd = 0xDEE1,
     .wSerialOtherGameboyRandomNumberListBlock = 0xCD81,
-    .wSerialEnemyDataBlock = 0xD893,
+    .wSerialEnemyDataBlock = 0xD892,
     .wSerialEnemyMonsPatchList = 0xC5D0,
     .wEnemyMonSpecies = 0xCFE4,
 

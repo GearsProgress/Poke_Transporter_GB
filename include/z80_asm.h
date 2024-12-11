@@ -49,6 +49,7 @@ u16 values pointing to a byte have 0x2, sans HL_PTR
 
 typedef unsigned char u8;   // Issues with including Tonc again with the test payload script
 typedef unsigned char byte; // Issues with including Tonc again with the test payload script
+typedef unsigned short u16; // Issues with including Tonc again with the test payload script
 
 class z80_asm_handler
 {
@@ -59,6 +60,8 @@ public:
 
     z80_asm_handler(int data_size, int mem_offset);
     void add_byte(u8 value);
+    void add_bytes(int num_bytes, ...);
+    void generate_patchlist(z80_asm_handler *bytes_to_patch);
     void LD(int destination, int source);
     void HALT();
     void ADD(int destination, int source);
@@ -134,6 +137,7 @@ public:
     z80_jump(std::vector<z80_jump*> *jump_vec);
     int place_relative_jump(z80_asm_handler *z80_instance);
     int place_direct_jump(z80_asm_handler *z80_instance);
+    int place_pointer(z80_asm_handler *z80_instance);
     void set_start(z80_asm_handler *var);
     void update_jumps();
 

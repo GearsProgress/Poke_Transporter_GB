@@ -13,6 +13,7 @@
 #include "gb_rom_values/eng_gb_rom_values.h"
 #include "background_engine.h"
 #include "sprite_data.h"
+#include "payload_builder.h"
 
 #define TIMEOUT 2
 #define TIMEOUT_ONE_LENGTH 1000000 // Maybe keep a 10:1 ratio between ONE and TWO?
@@ -34,8 +35,6 @@
 #define remove_array_preamble 13
 #define send_remove_array 14
 #define end2 15
-#define wait_to_resend 16
-#define resend_payload 17
 
 const int MODE = 1; // mode=0 will transfer pokemon data from pokemon.h
                     // mode=1 will copy pokemon party data being received
@@ -70,7 +69,7 @@ bool test_packet_fail = false;
 
 bool end_of_data;
 
-byte data_packet[13];
+byte data_packet[PACKET_SIZE];
 
 std::string spi_text_out_array[10];
 
@@ -210,7 +209,18 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
       state = trade;
     }
     data_counter++;
-    return (curr_gb_rom->generation == 1 ? 0xD4 : 0x61);
+    if (curr_gb_rom->generation == 2)
+    {
+      return 0x61;
+    }
+    else if (curr_gb_rom->generation == 1 && curr_gb_rom->version == YELLOW_ID)
+    {
+      return 0xD5;
+    }
+    else
+    {
+      return 0xD4;
+    }
   }
 
   else if (state == trade)
@@ -246,15 +256,6 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
         state = box_preamble;
         init_packet = true;
       }
-      else if ((curr_gb_rom->method == METHOD_MEW) && (in == 0xFE))
-      {
-        tte_erase_screen();
-        tte_set_pos(40, 24);
-        tte_write("\n\nPlease press A or B\n twice on the other\n   GameBoy system");
-        link_animation_state(STATE_NO_ANIM);
-        mosi_delay = 3;
-        state = wait_to_resend;
-      }
       else
       {
         return 0x00;
@@ -276,31 +277,6 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
   else if (state == box_data)
   {
     return exchange_boxes(in, box_data_storage, curr_gb_rom);
-  }
-
-  else if (state == wait_to_resend)
-  {
-    if (in != 0xFE)
-    {
-      tte_erase_screen();
-      tte_set_pos(40, 24);
-      tte_write("\n\n\nTransferring data...\n    please wait!");
-      link_animation_state(STATE_TRANSFER);
-      state = resend_payload;
-      data_counter = 0x1B4;
-    }
-    return 0x00;
-  }
-
-  else if (state == resend_payload)
-  {
-    if (data_counter >= (0x1B4 + 0xC2 + 0x07)) // Offset + size + preamble
-    {
-      state = box_preamble;
-      data_counter = curr_gb_rom->payload_size;
-      mosi_delay = 1;
-    }
-    return exchange_parties(in, curr_payload);
   }
 
   else if (state == reboot)
@@ -411,42 +387,48 @@ byte exchange_boxes(byte curr_in, byte *box_data_storage, GB_ROM *curr_gb_rom)
     tte_set_pos(8, 8);
   }
   data_packet[packet_index] = curr_in;
-  if (packet_index == 12)
+  if (packet_index == PACKET_SIZE - 1)
   {
     byte checksum = 0;
-    for (int i = 0; i < 8; i++)
+    for (int i = 0; i < DATA_PER_PACKET; i++)
     {
-      if (((data_packet[10] >> (7 - i)) & 0x1) == 1)
-        data_packet[i + 1] = 0xFE;
+      if (data_packet[PACKET_FLAG_AT(i)] == 1)
       {
-        checksum += data_packet[i + 1];
+        data_packet[PACKET_DATA_AT(i)] = 0xFE;
       }
+      checksum += data_packet[PACKET_DATA_AT(i)];
     }
+    checksum &= 0b01111111; // Reset the top bit so it matches the recieved range
     if (!init_packet)
     {
-      received_offset = (data_packet[12] | (data_packet[11] << 8)) - ((curr_gb_rom->wBoxDataStart & 0xFFFF) + 8);
+      received_offset = (data_packet[PACKET_LOCATION_LOWER] | (data_packet[PACKET_LOCATION_UPPER] << 8)) - ((curr_gb_rom->wBoxDataStart & 0xFFFF) + DATA_PER_PACKET);
     }
     if (SHOW_DATA_PACKETS)
     {
-      for (int i = 0; i < 13; i++)
+        tte_write("P: ");
+        tte_write(std::to_string(data_packet[0]).c_str());
+        tte_write("\n");
+      for (int i = 0; i < DATA_PER_PACKET; i++)
       {
         tte_write(std::to_string(i).c_str());
         tte_write(": ");
-        tte_write(std::to_string(data_packet[i]).c_str());
-        tte_write("\n");
+        tte_write(std::to_string(data_packet[PACKET_DATA_AT(i)]).c_str());
+        tte_write(" [");
+        tte_write(std::to_string(data_packet[PACKET_FLAG_AT(i)]).c_str());
+        tte_write("]\n");
       }
       tte_write(std::to_string(checksum).c_str());
       tte_write(" = ");
-      tte_write(std::to_string(data_packet[9]).c_str());
+      tte_write(std::to_string(data_packet[PACKET_CHECKSUM]).c_str());
     }
 
-    if (checksum == data_packet[9] && !init_packet && !(test_packet_fail && received_offset == 128)) // Verify if the data matches the checksum
+    if (checksum == data_packet[PACKET_CHECKSUM] && !init_packet && !(test_packet_fail && received_offset == 128)) // Verify if the data matches the checksum
     {
-      for (int i = 0; i < 8; i++)
+      for (int i = 0; i < DATA_PER_PACKET; i++)
       {
         if (received_offset + i <= curr_gb_rom->box_data_size)
         {
-          box_data_storage[received_offset + i] = data_packet[i + 1];
+          box_data_storage[received_offset + i] = data_packet[PACKET_DATA_AT(i)];
         }
       }
     }
@@ -468,7 +450,7 @@ byte exchange_boxes(byte curr_in, byte *box_data_storage, GB_ROM *curr_gb_rom)
       state = box_preamble;
     }
 
-    if (received_offset > curr_gb_rom->box_data_size + 8)
+    if (received_offset > curr_gb_rom->box_data_size + DATA_PER_PACKET)
     {
       end_of_data = true;
     }
@@ -485,12 +467,12 @@ byte exchange_boxes(byte curr_in, byte *box_data_storage, GB_ROM *curr_gb_rom)
     {
       if (failed_packet)
       {
-        next_offset -= 8;
+        next_offset -= DATA_PER_PACKET;
         failed_packet = false;
       }
       else
       {
-        next_offset += 8;
+        next_offset += DATA_PER_PACKET;
       }
     }
 

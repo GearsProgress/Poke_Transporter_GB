@@ -12,13 +12,13 @@
 const GB_ROM *list_of_gb_roms[NUM_GB_ROMS] = {
 	&ENG_RED,
 	&ENG_BLUE,
-	//&ENG_YELLOW,
+	&ENG_YELLOW,
 	&ENG_GOLD,
 	&ENG_SILVER,
 	&ENG_CRYSTAL,
 };
 
-byte gen1_debug_box_data[0x462] = {
+byte gen1_rb_debug_box_data[0x462] = {
 	// Num of Pokemon
 	0x14,
 	// Pokemon 1-20
@@ -86,6 +86,10 @@ byte gen1_debug_box_data[0x462] = {
 	0x8F, 0x88, 0x83, 0x86, 0x84, 0x98, 0x50, 0x50, 0x50, 0x50, 0x50,
 	0x91, 0x80, 0x93, 0x93, 0x80, 0x93, 0x80, 0x50, 0x50, 0x50, 0x50,
 	0x8F, 0x88, 0x83, 0x86, 0x84, 0x98, 0x50, 0x50, 0x50, 0x50, 0x50};
+
+byte gen1_y_debug_box_data[0x462] = {
+
+};
 
 byte gen2_debug_box_data[0x44E] = {
 	// Num of Pokemon
@@ -162,11 +166,18 @@ void Pokemon_Party::start_link()
 {
 	if (IGNORE_LINK_CABLE)
 	{
-		if (curr_gb_rom.generation == 1)
+		if (curr_gb_rom.generation == 1 && curr_gb_rom.version != YELLOW_ID)
 		{
 			for (int i = 0; i < 0x462; i++)
 			{
-				box_data_array[i] = gen1_debug_box_data[i];
+				box_data_array[i] = gen1_rb_debug_box_data[i];
+			}
+		}
+		else if (curr_gb_rom.generation == 1 && curr_gb_rom.version == YELLOW_ID)
+		{
+			for (int i = 0; i < 0x462; i++)
+			{
+				box_data_array[i] = gen1_y_debug_box_data[i];
 			}
 		}
 		else
@@ -294,7 +305,7 @@ bool Pokemon_Party::fill_simple_pkmn_array()
 		contains_invalid |= !converted_mon.get_validity();
 		contains_missingno |= converted_mon.is_missingno;
 	}
-	return contains_valid;
+	return contains_valid || NO_INVALID_PKMN;
 }
 
 int Pokemon_Party::get_num_pkmn()
@@ -307,6 +318,7 @@ bool Pokemon_Party::get_contains_invalid()
 	return contains_invalid;
 }
 
-bool Pokemon_Party::get_contains_missingno(){
+bool Pokemon_Party::get_contains_missingno()
+{
 	return contains_missingno;
 }

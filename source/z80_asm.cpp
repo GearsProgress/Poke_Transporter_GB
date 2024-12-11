@@ -13,9 +13,35 @@ z80_asm_handler::z80_asm_handler(int data_size, int mem_offset)
     memory_offset = mem_offset;
 }
 
+void z80_asm_handler::add_bytes(int num_bytes, ...)
+{
+    va_list pargs;
+    va_start(pargs, num_bytes);
+    for (int i = 0; i < num_bytes; i++)
+    {
+        add_byte(va_arg(pargs, int));
+    }
+    va_end(pargs);
+}
+
 void z80_asm_handler::add_byte(u8 value)
 {
     data_vector.at(index++) = value;
+}
+
+void z80_asm_handler::generate_patchlist(z80_asm_handler *bytes_to_patch){
+    bool higher_than_FC = false;
+    for (int i = 0; i < bytes_to_patch->data_vector.size(); i++){
+        if (i - 19 == 0x100 && !higher_than_FC){
+            add_byte(0xFF); // This tells the system that the byte is further than 0xFF away
+            higher_than_FC = true;
+        }
+        if (bytes_to_patch->data_vector[i] == 0xFE){
+            add_byte(i - (0x19 + (higher_than_FC * 0xFC))); // 0x19 brings us to right after the Pokemon list (0xD8A2)
+            bytes_to_patch->data_vector[i] = 0xFF;
+        }
+    }
+    add_byte(0xFF);
 }
 
 void z80_asm_handler::throw_error(std::string message)
@@ -633,12 +659,12 @@ void z80_asm_handler::SET(int bit, int reg)
     }
 }
 
-z80_variable::z80_variable(std::vector<z80_variable*> *var_vec)
+z80_variable::z80_variable(std::vector<z80_variable *> *var_vec)
 {
     var_vec->push_back(this);
 }
 
-z80_variable::z80_variable(std::vector<z80_variable*> *var_vec, int data_size, ...)
+z80_variable::z80_variable(std::vector<z80_variable *> *var_vec, int data_size, ...)
 {
     var_vec->push_back(this);
     data.resize(data_size);
@@ -687,7 +713,7 @@ void z80_variable::update_ptrs()
     }
 }
 
-z80_jump::z80_jump(std::vector<z80_jump*> *jump_vec)
+z80_jump::z80_jump(std::vector<z80_jump *> *jump_vec)
 {
     jump_vec->push_back(this);
 }
@@ -710,6 +736,13 @@ int z80_jump::place_relative_jump(z80_asm_handler *z80_instance)
     ptr_locations.push_back(z80_instance->index + 1);
     asm_handlers.push_back(z80_instance);
     jump_types.push_back(RELATIVE);
+    return 0x0000;
+}
+
+int z80_jump::place_pointer(z80_asm_handler *z80_instance){
+    ptr_locations.push_back(z80_instance->index);
+    asm_handlers.push_back(z80_instance);
+    jump_types.push_back(DIRECT); // This *really* isn't the most accurate way to do this, but it works... bleh
     return 0x0000;
 }
 
