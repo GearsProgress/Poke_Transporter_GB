@@ -58,7 +58,7 @@ int text_loop(int script)
         {
             if (get_frame_count() % 2 == 0 || key_held(KEY_B) || key_held(KEY_A))
             {
-                if (DEBUG_MODE)
+                if (INSTANT_TEXT_SPEED)
                 {
                     while (char_index < curr_text.length() && curr_text.substr(char_index, 1) != "|")
                     {

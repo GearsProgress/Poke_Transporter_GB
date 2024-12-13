@@ -122,12 +122,6 @@ void setup()
   init_packet = true;
   end_of_data = false;
 
-  if (DEBUG_MODE && false)
-  {
-    tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
-    tte_set_pos(0, 0);
-    tte_write("FEED ME POKEMON, I HUNGER!\n");
-  }
   set_textbox_large();
   tte_erase_screen();
   tte_set_pos(40, 24);
@@ -184,7 +178,7 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
     {
       tte_erase_screen();
       tte_set_pos(40, 24);
-      tte_write("\n\n\nLink was successful!\n\n  Waiting for trade");
+      tte_write(curr_gb_rom->version != YELLOW_ID ? "\n\n\nLink was successful!\n\n  Waiting for trade" : "\n\n\nLink was successful!\n\n Waiting for battle");
       link_animation_state(STATE_NO_ANIM);
       state = pretrade;
       data_counter = 0;
@@ -317,7 +311,7 @@ int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, Simpli
     // TODO: Restore Errors
     in_data = linkSPI->transfer(out_data);
 
-    if (DEBUG_MODE && false)
+    if (PRINT_LINK_DATA && false)
     {
       tte_set_margins(0, 0, H_MAX, V_MAX);
       print(
@@ -353,7 +347,7 @@ int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, Simpli
       return 0;
     }
 
-    if (DEBUG_MODE && key_hit(KEY_SELECT))
+    if (key_held(KEY_SELECT)) // Forces a disconnect... not sure why it would need to be locked behind debug mode
     {
       return COND_ERROR_DISCONNECT;
     }
@@ -405,9 +399,9 @@ byte exchange_boxes(byte curr_in, byte *box_data_storage, GB_ROM *curr_gb_rom)
     }
     if (SHOW_DATA_PACKETS)
     {
-        tte_write("P: ");
-        tte_write(std::to_string(data_packet[0]).c_str());
-        tte_write("\n");
+      tte_write("P: ");
+      tte_write(std::to_string(data_packet[0]).c_str());
+      tte_write("\n");
       for (int i = 0; i < DATA_PER_PACKET; i++)
       {
         tte_write(std::to_string(i).c_str());
@@ -474,6 +468,10 @@ byte exchange_boxes(byte curr_in, byte *box_data_storage, GB_ROM *curr_gb_rom)
       {
         next_offset += DATA_PER_PACKET;
       }
+    }
+    if (((next_offset + curr_gb_rom->wBoxDataStart) & 0xFF) == 0xFE)
+    {
+      next_offset -= 1; // Set back the offset if the byte sent would be 0xFE, since that would break the system
     }
 
     if (SHOW_DATA_PACKETS)

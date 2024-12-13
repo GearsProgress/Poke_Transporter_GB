@@ -360,7 +360,7 @@ bool run_conditional(int index)
         for (int i = 0; i <= (8 * 7); i += 2)
         {
             REG_BG1HOFS = i + FENNEL_SHIFT;
-            if (!DEBUG_MODE)
+            if (!INSTANT_TEXT_SPEED)
             {
                 global_next_frame();
             }
@@ -371,7 +371,7 @@ bool run_conditional(int index)
         for (int i = (8 * 7); i >= 0; i -= 2)
         {
             REG_BG1HOFS = i + FENNEL_SHIFT;
-            if (!DEBUG_MODE)
+            if (!INSTANT_TEXT_SPEED)
             {
                 global_next_frame();
             }

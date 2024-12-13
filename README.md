@@ -10,7 +10,7 @@ Pokémon Transfered using Poké Transporter GB *will* be removed from Red, Blue,
 
 Currently the only release is in English. Releases supporting other languages is planned for the near future.
 
-Only English copies of Red, Blue, Yellow, Gold, Silver, Crystal, Ruby, Sapphire, FireRed, LeafGreen, and Emerald are supported at this time. Compatibility for other languages will be added in the near future.
+Currently English versions of Red, Blue, Yellow, Gold, Silver, Crystal are supported- plus English, Spanish, German, Italian, French versions of Ruby, Sapphire, FireRed, LeafGreen, and Emerald. Compatibility for other languages is currently in development and will be added in the near future.
 
 ## Usage
 Poké Transporter GB is a Multiboot program for the Game Boy Advance. There are two main ways to run the Poké Transporter GB ROM on a Game Boy Advance:
@@ -52,7 +52,7 @@ A full list of modifications made to transfered Pokémon can be found [here](htt
 A video showcasing Poké Transporter GB can be found [here](https://www.youtube.com/watch?v=47A6p2hH2gU), and a video detailing some of the development process can be found [here](https://youtu.be/9mSkGhEYBkg)!
 
 ## Why?
-One of my favorite aspects of the Pokémon franchise is the ability to send Pokémon forward into the most recent generation. Of course, this isn't possible from the Gameboy games into the Gameboy Advance era- and I wanted to fix that. A handful of Poeople have bridged the gap before, but Poké Transporter GB is the first tool designed to transfer Pokémon like the Pal Park, PokéTransport Lab, and PokéTransporter for Generation 1 and 2 to Generation 3. Documentation detailing the design process of Poké Transporter GB can be found [here](https://www.austinthomasweber.com/poke-transporter-gb)!
+One of my favorite aspects of the Pokémon franchise is the ability to send Pokémon forward into the most recent generation. Of course, this isn't possible from the Gameboy games into the Gameboy Advance era- and I wanted to fix that. A handful of people have bridged the gap before, but Poké Transporter GB is the first tool designed to transfer Pokémon like the Pal Park, PokéTransport Lab, and PokéTransporter for Generation 1 and 2 to Generation 3. Documentation detailing the design process of Poké Transporter GB can be found [here](https://www.austinthomasweber.com/poke-transporter-gb)!
 
 # Credits
 ## Inspired by the works of:
@@ -121,4 +121,4 @@ Everything else, and the programming code, is governed by the MIT license
 _This project is not endorsed or supported by GameFreak or Nintendo. Please support the original developers._
 
 ## Special Mentions
-A huge thank you to Goppier for being the first one to bridge the gap between generation 2 and generation 3 and for provide extremely useful documentation about both versions of the Link Cable, and a huge thank you to Lorenzooone for being the direct inspiration for this project, as well as answering questions I had during development. This project would never have happened without either of them, and I cannot thank them enough.
+A huge thank you to Goppier for being the first one to bridge the gap between generation 2 and generation 3 and for providing extremely useful documentation about both versions of the Link Cable, and a huge thank you to Lorenzooone for being the direct inspiration for this project, as well as answering questions I had during development. This project would never have happened without either of them, and I cannot thank them enough.
