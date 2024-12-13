@@ -6,7 +6,7 @@
 #define DEBUG_MODE false // This is currently broken... not sure why
 #define INSTANT_TEXT_SPEED true
 #define IGNORE_GAME_PAK true
-#define IGNORE_LINK_CABLE true
+#define IGNORE_LINK_CABLE false
 #define IGNORE_MG_E4_FLAGS true
 #define IGNORE_UNRECEIVED_PKMN true
 #define FORCE_TUTORIAL false

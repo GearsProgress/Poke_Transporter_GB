@@ -500,9 +500,9 @@ byte exchange_boxes(byte curr_in, byte *box_data_storage, GB_ROM *curr_gb_rom)
     {
       return 0xFF;
     }
-    return next_offset >> 8;
+    return (curr_gb_rom->wBoxDataStart + next_offset) >> 8;
   case 2:
-    return (next_offset >> 0);
+    return (curr_gb_rom->wBoxDataStart + next_offset) >> 0;
   default:
     return 0;
   }

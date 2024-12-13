@@ -133,14 +133,10 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
         //      C is the counter
         send_packet_loop.set_start(&z80_patchlist);
 
-        // Theoretically this could be changed to just take the direct address instead of adding the offset to it, if space is needed
-        z80_patchlist.LD(HL, (DATA_LOC + PACKET_SIZE + 3) | T_U16);
-        z80_patchlist.LD(E, HL_PTR);
-        z80_patchlist.INC(HL);
-        z80_patchlist.LD(D, HL_PTR);
-        z80_patchlist.LD(HL, curr_rom.wBoxDataStart | T_U16);
-        z80_patchlist.ADD(HL, DE);
-
+        z80_patchlist.LD(HL, (DATA_LOC + PACKET_SIZE + 3) | T_U16); // Load the next data location into HL
+        z80_patchlist.LD(A, HLI_PTR);
+        z80_patchlist.LD(H, HL_PTR);
+        z80_patchlist.LD(L, A);
         z80_patchlist.LD(DE, (DATA_LOC + 2) | T_U16); // Enemy Pokemon data, should be unused
         z80_patchlist.XOR(A, A);                      // Clear the register
         z80_patchlist.LD(B, A);                       // Clear B as well
@@ -185,13 +181,13 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
         // z80_patchlist.LD(HL, curr_rom.garbageDataLocation | T_U16);
 
         /* Transfer box data packet: */
-        z80_patchlist.LD(A, (debug ? 0x02 : 0x01) | T_U8);         // Make sure GB is the slave, master if debug
+        z80_patchlist.LD(A, (debug ? 0x02 : 0x01) | T_U8);                      // Make sure GB is the slave, master if debug
         z80_patchlist.LDH((curr_rom.hSerialConnectionStatus & 0xFF) | T_U8, A); // Since hSerialConnectionStatus is at 0xFFxx we can use this method instead
         z80_patchlist.LD(HL, DATA_LOC | T_U16);
-        z80_patchlist.LD(HL_PTR, 0xFD | T_U8);                  // set the start of the data to 0xFD so Serial_ExchangeBytes is happy
+        z80_patchlist.LD(HL_PTR, 0xFD | T_U8); // set the start of the data to 0xFD so Serial_ExchangeBytes is happy
         z80_patchlist.INC(HL);
-        z80_patchlist.LD(HL_PTR, 0x00 | T_U8); // add a 0x00 after the 0xFD to prevent further 0xFDs from being interpreted as part of the preamble
-        z80_patchlist.DEC(HL); // Reset HL back so it points to 0xFD
+        z80_patchlist.LD(HL_PTR, 0x00 | T_U8);                  // add a 0x00 after the 0xFD to prevent further 0xFDs from being interpreted as part of the preamble
+        z80_patchlist.DEC(HL);                                  // Reset HL back so it points to 0xFD
         z80_patchlist.LD(DE, (DATA_LOC + PACKET_SIZE) | T_U16); // location to put stored data
         z80_patchlist.LD(BC, PACKET_SIZE | T_U16);
         if (debug) // Don't call serialExchangeBytes if debug is enabled
@@ -411,6 +407,8 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
 
         asm_start.set_start(&z80_payload);
 
+        z80_payload.CALL(0x2233 | T_U16); // Stop the battle music
+
         /* Write transferring message to screen: */
         // call ClearScreen
         z80_payload.CALL(curr_rom.clearScreen | T_U16);
@@ -430,7 +428,7 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
         // Reload the save data to remove any data that was overwritten during exploit entry
         z80_payload.LD(A, (curr_rom.SaveSAVtoSRAM1 >> 16) | T_U8);
         z80_payload.CALL(curr_rom.Bankswitch | T_U16);
-        z80_payload.CALL(0x79FC | T_U16); // Call LoadSAV1
+        z80_payload.CALL(0x79FC | T_U16); // Call LoadSAV1 TODO FIX THIS BAD BAD NO BAD
 
         /* Build the packet */
         //      HL is the current data pointer
@@ -440,21 +438,17 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
         //      C is the counter
         send_packet_loop.set_start(&z80_payload);
 
-        // Theoretically this could be changed to just take the direct address instead of adding the offset to it, if space is needed
-        z80_payload.LD(HL, (DATA_LOC + PACKET_SIZE + 3) | T_U16);
-        z80_payload.LD(E, HL_PTR);
-        z80_payload.INC(HL);
-        z80_payload.LD(D, HL_PTR);
-        z80_payload.LD(HL, curr_rom.wBoxDataStart | T_U16);
-        z80_payload.ADD(HL, DE);
-
-        z80_payload.LD(DE, (DATA_LOC + 1) | T_U16); // Enemy Pokemon data, should be unused
-        z80_payload.XOR(A, A);                      // Clear the register
-        z80_payload.LD(B, A);                       // Clear B as well
-        z80_payload.LD(C, A);                       // Clear C as well
+        z80_payload.LD(HL, (DATA_LOC + PACKET_SIZE + 3) | T_U16); // Load the next data location into HL
+        z80_payload.LD(A, HLI_PTR);
+        z80_payload.LD(H, HL_PTR);
+        z80_payload.LD(L, A);
+        z80_payload.LD(DE, (DATA_LOC + 2) | T_U16); // Enemy Pokemon data, should be unused
+        z80_payload.XOR(A, A);                        // Clear the register
+        z80_payload.LD(B, A);                         // Clear B as well
+        z80_payload.LD(C, A);                         // Clear C as well
         z80_payload.PUSH(AF);
         packet_loop.set_start(&z80_payload);
-        z80_payload.SLA(B); // Shift flag over
+        z80_payload.LD(B, 0x00 | T_U8); // Reset the flag byte
         z80_payload.POP(AF);
         z80_payload.ADD(A, HL_PTR); // Add the current data to the checksum
         z80_payload.PUSH(AF);
@@ -466,18 +460,21 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
         z80_payload.JR(NZ_F, fe_bypass.place_relative_jump(&z80_payload) | T_I8);
         z80_payload.DEC(A);
         z80_payload.INC(B); // Set flag
-        fe_bypass.set_start(&z80_payload);
 
-        z80_payload.LD(DE_PTR, A);
+        fe_bypass.set_start(&z80_payload);
+        z80_payload.LD(DE_PTR, A); // Place the data in
+        z80_payload.INC(DE);
+        z80_payload.PUSH(AF);
+        z80_payload.LD(A, B);
+        z80_payload.LD(DE_PTR, A); // Place the flag in as well
+        z80_payload.POP(AF);
         z80_payload.INC(DE);
         z80_payload.INC(C);
-        z80_payload.LD(A, 0x07);
+        z80_payload.LD(A, DATA_PER_PACKET - 1);
         z80_payload.CP(A, C);
-        z80_payload.JR(NC_F, packet_loop.place_relative_jump(&z80_payload) | T_I8);
+        z80_payload.JR(NC_F, packet_loop.place_relative_jump(&z80_payload) | T_I8); // If all the data has been set, send the rest of the data
         z80_payload.POP(AF);
-        z80_payload.LD(DE_PTR, A);
-        z80_payload.INC(DE);
-        z80_payload.LD(A, B);
+        z80_payload.RES(7 | T_BIT, A); // Reset bit 7 of the checksum, guaranteeing that it will never be 0xFE
         z80_payload.LD(DE_PTR, A);
         z80_payload.INC(DE);
         z80_payload.LD(A, H);
@@ -488,10 +485,13 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
         z80_payload.LD(DE_PTR, A);
 
         /* Transfer box data packet: */
-        z80_payload.LD(HL, curr_rom.hSerialConnectionStatus | T_U16); // Can be shortened since it is 0xFFxx
-        z80_payload.LD(HL_PTR, (debug ? 0x02 : 0x01) | T_U8);         // Make sure GB is the slave, master if debug
+        z80_payload.LD(A, (debug ? 0x02 : 0x01) | T_U8);                      // Make sure GB is the slave, master if debug
+        z80_payload.LDH((curr_rom.hSerialConnectionStatus & 0xFF) | T_U8, A); // Since hSerialConnectionStatus is at 0xFFxx we can use this method instead
         z80_payload.LD(HL, DATA_LOC | T_U16);
-        z80_payload.LD(HL_PTR, 0xFD | T_U8);                  // set the start of the data to 0xFD so Serial_ExchangeBytes is happy
+        z80_payload.LD(HL_PTR, 0xFD | T_U8); // set the start of the data to 0xFD so Serial_ExchangeBytes is happy
+        z80_payload.INC(HL);
+        z80_payload.LD(HL_PTR, 0x00 | T_U8);                  // add a 0x00 after the 0xFD to prevent further 0xFDs from being interpreted as part of the preamble
+        z80_payload.DEC(HL);                                  // Reset HL back so it points to 0xFD
         z80_payload.LD(DE, (DATA_LOC + PACKET_SIZE) | T_U16); // location to put stored data
         z80_payload.LD(BC, PACKET_SIZE | T_U16);
         if (debug) // Don't call serialExchangeBytes if debug is enabled
@@ -846,9 +846,9 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
         z80_patchlist.LD(HL, curr_rom.hSerialConnectionStatus | T_U16); // Can be shortened since it is 0xFFxx
         z80_patchlist.LD(HL_PTR, (debug ? 0x02 : 0x01) | T_U8);         // Make sure GB is the slave, master if debug
         z80_patchlist.LD(HL, DATA_LOC | T_U16);
-        z80_patchlist.LD(HL_PTR, 0xFD | T_U8);                  // set the start of the data to 0xFD so Serial_ExchangeBytes is happy
+        z80_patchlist.LD(HL_PTR, 0xFD | T_U8); // set the start of the data to 0xFD so Serial_ExchangeBytes is happy
         z80_patchlist.INC(HL);
-        z80_patchlist.LD(HL_PTR, 0xFF | T_U8); // add a value after the 0xFD to prevent further 0xFDs from being interpreted as part of the preamble
+        z80_patchlist.LD(HL_PTR, 0xFF | T_U8);                  // add a value after the 0xFD to prevent further 0xFDs from being interpreted as part of the preamble
         z80_patchlist.LD(DE, (DATA_LOC + PACKET_SIZE) | T_U16); // location to put stored data
         z80_patchlist.LD(BC, PACKET_SIZE | T_U16);
         if (debug) // Don't call serialExchangeBytes if debug is enabled
@@ -956,7 +956,7 @@ int test_main() // Rename to "main" to send the payload to test_payload.txt
 {
     freopen("test_payload.txt", "w", stdout);
     std::cout << std::endl;
-    byte *payload = generate_payload(ENG_RED, TRANSFER, true);
+    byte *payload = generate_payload(ENG_YELLOW, TRANSFER, true);
     if (true)
     {
         for (int i = 0; i < 0x2A0; i++)
