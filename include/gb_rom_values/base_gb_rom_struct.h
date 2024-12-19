@@ -51,11 +51,38 @@ public:
     word wSerialEnemyDataBlock;                    // location of wSerialEnemyDataBlock in RAM
     word wSerialEnemyMonsPatchList;                // location of wSerialEnemyMonsPatchList in RAM
     word wEnemyMonSpecies;                         // location of wEnemyMonSpecies in RAM
-    
-    hword transferStringLocation;                  // location in VRAM to start writing the transfer string to
-    hword textBorderUppLeft;                       // location in VRAM to put the upper left corner of the border
-    byte textBorderWidth;                          // the width of the text box border
-    byte textBorderHeight;                         // the height of the text box border
+
+    hword transferStringLocation; // location in VRAM to start writing the transfer string to
+    hword textBorderUppLeft;      // location in VRAM to put the upper left corner of the border
+    byte textBorderWidth;         // the width of the text box border
+    byte textBorderHeight;        // the height of the text box border
+};
+
+struct BASE_OFFSETS_STRUCT
+{
+    // This data is used to help determine where a Pokemon starts in the box data
+    int pkmn_size;
+    int ot_and_party;
+    int ot_size;
+    int nickname_size;
+    int box_size;
+
+    // This is data for both gens:
+    u8 species_index;
+    u8 level;
+    u8 moves[4];
+    u8 OT_ID;
+    u8 exp;
+    // HP, Atk, Def, Spe, Spc
+    u8 evs[5];
+    u8 dvs;
+    u8 pp_values[4];
+
+    // The rest of these are gen 2 only:
+    u8 item;
+    u8 friendship;
+    u8 pokerus;
+    u8 caught_data;
 };
 
 #endif
