@@ -4,12 +4,12 @@
 #include <tonc.h>
 #include <string>
 
-#define erratic_max 600000
-#define fast_max 800000
-#define med_fast_max 1000000
-#define med_slow_max 1059860
-#define slow_max 1250000
-#define flux_max 1640000
+#define erratic_max (u32)600000
+#define fast_max (u32)800000
+#define med_fast_max (u32)1000000
+#define med_slow_max (u32)1059860
+#define slow_max (u32)1250000
+#define flux_max (u32)1640000
 
 #define JPN_ID 1
 #define ENG_ID 2
@@ -38,8 +38,8 @@
 
 #define MAX_PKMN_IN_BOX 30
 
-extern const u8 EXP_MAX[252];
-extern const u32 EXP_TYPES[6];
+extern const u8 EXP_GROUPS[252];
+extern const u32 EXP_MAXIMUMS[6];
 extern const int GENDER_THRESHOLDS[2][8];
 extern const u8 GENDER_RATIO[252];
 extern const bool NUM_ABILITIES[252];

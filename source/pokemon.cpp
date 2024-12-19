@@ -244,9 +244,10 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
     }
 
     // Make sure Level is not over 100 based on EXP
-    if (*(vu32 *)exp > get_max_exp(species_index_struct))
+    u32 max_exp = get_max_exp(species_index_struct);
+    if (*(vu32 *)exp > max_exp)
     {
-        *(vu32 *)exp = get_max_exp(species_index_struct);
+        *(vu32 *)exp = max_exp;
     }
 
     // Check if shiny
