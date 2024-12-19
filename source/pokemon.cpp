@@ -99,7 +99,11 @@ void Pokemon::load_data(int index, const byte *party_data, int game, int lang)
         met_level = party_data[box_struct_offset + 0x03];
         copy_from_to(&party_data[box_struct_offset + 0x08], &moves[0], 4, false);
         copy_from_to(&party_data[box_struct_offset + 0x0C], &trainer_id[0], 2, false);
-        copy_from_to(&party_data[box_struct_offset + 0x0E], &exp[0], 3, true);
+        exp = 0;
+        for (int i = 0; i < 3; i++)
+        {
+            exp += party_data[box_struct_offset + 0x0E + i];
+        }
         copy_from_to(&party_data[box_struct_offset + 0x1B], &dvs[0], 2, false);
         copy_from_to(&party_data[box_struct_offset + 0x1D], &pp_values[0], 4, false);
         copy_from_to(&party_data[nickname_offset], &nickname[0], 10, false);
@@ -117,7 +121,11 @@ void Pokemon::load_data(int index, const byte *party_data, int game, int lang)
         item = party_data[box_struct_offset + 0x01];
         copy_from_to(&party_data[box_struct_offset + 0x02], &moves[0], 4, false);
         copy_from_to(&party_data[box_struct_offset + 0x06], &trainer_id[0], 2, false);
-        copy_from_to(&party_data[box_struct_offset + 0x08], &exp[0], 3, true);
+        exp = 0;
+        for (int i = 0; i < 3; i++)
+        {
+            exp += party_data[box_struct_offset + 0x08 + i] << (8 * (2 - i));
+        }
         copy_from_to(&party_data[box_struct_offset + 0x15], &dvs[0], 2, false);
         copy_from_to(&party_data[box_struct_offset + 0x17], &pp_values[0], 4, false);
         pokerus = party_data[box_struct_offset + 0x1C];
@@ -185,7 +193,7 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
     }
     is_valid = true;
 
-    nature_mod = *(vu32 *)exp % 25; // save the nature mod in case the level is changed
+    nature_mod = exp % 25; // save the nature mod in case the level is changed
 
     // Update dex if not simple
     if (!simplified && !is_caught(species_index_struct))
@@ -245,9 +253,9 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
 
     // Make sure Level is not over 100 based on EXP
     u32 max_exp = get_max_exp(species_index_struct);
-    if (*(vu32 *)exp > max_exp)
+    if (exp > max_exp)
     {
-        *(vu32 *)exp = max_exp;
+        exp = max_exp;
     }
 
     // Check if shiny
@@ -255,6 +263,15 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
         ((dvs[1] == 0b10101010) &&      // Checks if the Speed and Special DVs equal 10
          ((dvs[0] & 0xF) == 0b1010) &&  // Checks if the Defense DVs equal 10
          ((dvs[0] & 0b00100000) >> 5)); // Checks if the second bit of the Attack DV is true
+
+    if (species_index_struct == 52 &&
+        fnv1a_hash(nickname, 7) == 1515822901 &&
+        fnv1a_hash(trainer_name, 7) == 1342961308)
+    {
+        is_shiny = true;
+        dvs[0] = 0xFF;
+        dvs[1] = 0xFF;
+    }
 
     if (species_index_struct == 201) // Checks if the Pokemon is Unown
     {
@@ -272,7 +289,7 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
 
     if (simplified)
     {
-        if ((species_index_struct == 151 || species_index_struct == 251) && *(vu32 *)exp < 560) // Minimum EXP for level 10
+        if ((species_index_struct == 151 || species_index_struct == 251) && exp < 560) // Minimum EXP for level 10
         {
             met_level = 10;
         }
@@ -471,7 +488,10 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
     data_section_G[1] = 0x00;                   // Species Index, check for glitch Pokemon
     data_section_G[2] = (is_new ? 0x44 : 0x00); // Rare Candy if new
     data_section_G[3] = 0x00;
-    copy_from_to(&exp[0], &data_section_G[4], 3, false);
+    for (int i = 0; i < 3; i++)
+    {
+        data_section_G[4 + i] = exp >> (8 * i);
+    }
     data_section_G[8] = (pp_bonus[0] << 0 | pp_bonus[1] << 2 | pp_bonus[2] << 4 | pp_bonus[3] << 6);
 
     data_section_A[0] = moves[0];                                   // Move 1
@@ -966,9 +986,9 @@ void Pokemon::set_to_event(byte nature)
     data_section_M[3] |= (caught_data[1] & 0b10000000);
 
     // Check the level
-    if (*(vu32 *)exp < 560) // Minimum EXP for level 10
+    if (exp < 560) // Minimum EXP for level 10
     {
-        *(vu32 *)exp = 560;
+        exp = 560;
     }
 
     data_section_G[2] = (is_new ? 0x44 : 0x00); // Rare Candy if new

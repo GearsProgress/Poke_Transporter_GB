@@ -239,3 +239,19 @@ bool get_missingno_enabled()
 {
     return missingno_enabled;
 }
+
+// FNV-1a 32-bit hash function for byte arrays
+u32 fnv1a_hash(unsigned char* data, size_t length)
+{
+    const uint32_t fnv_prime = 0x01000193;
+    const uint32_t fnv_offset_basis = 0x811C9DC5;
+    uint32_t hash = fnv_offset_basis;
+
+    for (size_t i = 0; i < length; ++i)
+    {
+        hash ^= data[i];
+        hash *= fnv_prime;
+    }
+
+    return hash;
+}

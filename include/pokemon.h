@@ -70,7 +70,7 @@ private:
     byte moves[4];
     byte trainer_id[2];
     byte secret_id[2];
-    byte exp[4];
+    u32 exp;
     byte nickname[10];
     byte trainer_name[7];
     byte pokerus;

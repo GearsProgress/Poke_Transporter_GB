@@ -24,10 +24,6 @@ bool inject_mystery(Pokemon_Party &incoming_box_data)
     else
     {
         script.build_script(incoming_box_data);
-        tte_write(std::to_string(sizeof(incoming_box_data.get_converted_pkmn(0))).c_str());
-        while(true){
-            global_next_frame();
-        }
     }
     u32 checksum = 0;
     if (curr_rom.is_ruby_sapphire())
