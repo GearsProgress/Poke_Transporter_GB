@@ -4,12 +4,15 @@
 #include <tonc.h>
 #include "random.h"
 #include "global_frame_controller.h"
-#include "gb_rom_values/eng_gb_rom_values.h"
 
 #define POKEMON_SIZE 80
 
 // How much trade data is sent for each langauge and generation,
 // sarts at OT name and ends after the 3 buffer bytes
+#define GEN1_JPN_SIZE 353
+#define GEN1_INT_SIZE 418
+#define GEN2_JPN_SIZE 383
+#define GEN2_INT_SIZE 444
 
 struct Simplified_Pokemon
 {
@@ -26,13 +29,18 @@ struct Simplified_Pokemon
 class Pokemon
 {
 public:
+    int pkmn_size = 0;
+    int ot_and_party = 0;
+    int ot_size = 0;
+    int nickname_size = 0;
+    int nature_mod = 0;
+    int unown_letter = -1;
     Pokemon();
-    void generate_pkmn(int index, byte *party_data, const GB_ROM curr_rom);
-    // void load_data(int index, const byte *party_data, int game, int lang);
-    void convert_to_gen_three(bool simplified, bool stabilize_mythical, GB_ROM curr_rom);
-    // void copy_from_to(const byte *source, byte *destination, int size, bool reverse_endian);
-    void alocate_data_chunks(byte *G, byte *A, byte *E, byte *M, byte *gen_3_data);
-    void insert_data(byte *first, byte *second, byte *third, byte *fourth, byte *gen_3_pkmn);
+    void load_data(int index, const byte *party_data, int game, int lang);
+    void convert_to_gen_three(bool simplified, bool stabilize_mythical);
+    void copy_from_to(const byte *source, byte *destination, int size, bool reverse_endian);
+    void alocate_data_chunks(byte *G, byte *A, byte *E, byte *M);
+    void insert_data(byte *first, byte *second, byte *third, byte *fourth);
     byte get_gen_3_data(int index);
     byte *get_full_gen_3_array();
     byte get_unencrypted_data(int index);
@@ -78,20 +86,19 @@ private:
     byte data_section_E[12];
     byte data_section_M[12];
     hword checksum;
-    // u8 encryption_key[4];
+    byte encryption_key[4];
     hword origin_info = 0;
     bool is_shiny = false;
-    u8 pp_values[4];
-    u8 pp_bonus[4];
-    u8 pure_pp_values[4];
-    u8 dvs[2];
-    u8 ivs[6];
-    u32 ribbons;
+    byte pp_values[4];
+    byte pp_bonus[4];
+    byte pure_pp_values[4];
+    byte dvs[2];
+    byte ivs[6];
+    byte ribbons[4] = {0, 0, 0, 0};
     u32 iv_egg_ability;
-    u8 unown_letter = -1;
     bool is_valid;
     bool is_new = false;
-    // int box_size;
+    int box_size;
 };
 
 #endif

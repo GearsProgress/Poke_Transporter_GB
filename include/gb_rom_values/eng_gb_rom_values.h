@@ -260,40 +260,4 @@ const struct GB_ROM ENG_CRYSTAL = {
     .textBorderHeight = 1,
 };
 
-const struct BASE_OFFSETS_STRUCT ITL_GEN1_OFFSETS = {
-    .pkmn_size = 33,
-    .ot_size = 11,
-    .nickname_size = 11,
-    .box_size = 20,
-
-    .species_index = 0x00,
-    .level = 0x03,
-    .moves = {0x08, 0x09, 0x0A, 0x0B},
-    .OT_ID = 0x0C,
-    .exp = 0x0E,
-    .evs = {0x11, 0x13, 0x15, 0x17, 0x19},
-    .dvs = 0x1B,
-    .pp_values = {0x1D, 0x1E, 0x1F, 0x20},
-};
-
-const struct BASE_OFFSETS_STRUCT ITL_GEN2_OFFSETS = {
-    .pkmn_size = 32,
-    .ot_size = 11,
-    .nickname_size = 11,
-    .box_size = 20,
-
-    .species_index = 0x00,
-    .level = 0x1F,
-    .moves = {0x02, 0x03, 0x04, 0x05},
-    .OT_ID = 0x06,
-    .exp = 0x08,
-    .evs = {0x0B, 0x0D, 0x0F, 0x11, 0x13},
-    .dvs = 0x15,
-    .pp_values = {0x17, 0x18, 0x19, 0x1A},
-    .item = 0x01,
-    .friendship = 0x1B,
-    .pokerus = 0x1C,
-    .caught_data = 0x1D,
-};
-
 #endif

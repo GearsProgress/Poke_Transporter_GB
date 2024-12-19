@@ -12,67 +12,79 @@ Pokemon::Pokemon() {};
 // A lot of the event Pokemon script is reused. Really should be split into many different functions
 // Endian-ness too is all over the place... :/
 
-void Pokemon::generate_pkmn(int index, byte *party_data, GB_ROM curr_rom)
+void Pokemon::load_data(int index, const byte *party_data, int game, int lang)
 {
-    // Start off by determining the section of data that is the current Pokemon
-    BASE_OFFSETS_STRUCT curr_offsets;
-
-    if (curr_rom.language == JPN_ID)
+    language = lang;
+    if (lang == JPN_ID)
     {
-        if (curr_rom.generation == 1)
+        switch (game)
         {
-            /*
-                            gen = 1;
-                            pkmn_size = 44;
-                            ot_size = 6;
-                            nickname_size = 6;
-                            box_size = 30;
-                            */
-        }
-        else
-        {
-            /*
-                            gen = 2;
-                            pkmn_size = 32;
-                            ot_size = 6;
-                            nickname_size = 6;
-                            box_size = 30;
-                            */
+        case GREEN_ID:
+        case RED_ID:
+        case BLUE_ID:
+        case YELLOW_ID:
+            gen = 1;
+            pkmn_size = 44;
+            ot_size = 6;
+            nickname_size = 6;
+            box_size = 30;
+            break;
+        case GOLD_ID:
+        case SILVER_ID:
+        case CRYSTAL_ID:
+            gen = 2;
+            pkmn_size = 32;
+            ot_size = 6;
+            nickname_size = 6;
+            box_size = 30;
+            break;
         }
     }
     else
     {
-        if (curr_rom.generation = 1)
+        switch (game)
         {
-            curr_offsets = ITL_GEN1_OFFSETS;
-        }
-        else
-        {
-            curr_offsets = ITL_GEN2_OFFSETS;
+        case RED_ID:
+        case BLUE_ID:
+        case YELLOW_ID:
+            gen = 1;
+            pkmn_size = 33;
+            ot_size = 11;
+            nickname_size = 11;
+            box_size = 20;
+            break;
+        case GOLD_ID:
+        case SILVER_ID:
+        case CRYSTAL_ID:
+            gen = 2;
+            pkmn_size = 32;
+            ot_size = 11;
+            nickname_size = 11;
+            box_size = 20;
+            break;
         }
     }
-
     int party_species_offset =
         1 +          // the num pkmn byte
         (1 * index); // the pkmn index we're looking for
 
     int box_struct_offset =
-        1 +                               // the num of pkmn byte
-        (1 * curr_offsets.box_size) + 1 + // list of pkmn in box and terminator
-        (curr_offsets.pkmn_size * index); // the pokemon we're looking for
+        1 +                  // the num of pkmn byte
+        (1 * box_size) + 1 + // list of pkmn in box and terminator
+        (pkmn_size * index); // the pokemon we're looking for
 
     int ot_offset =
-        1 +                                                // the num of pkmn byte
-        (1 * curr_offsets.box_size) + 1 +                  // list of pkmn in box and terminator
-        (curr_offsets.pkmn_size * curr_offsets.box_size) + // the pokemon structs
-        (curr_offsets.ot_size * index);                    // the ot we're looking for
+        1 +                      // the num of pkmn byte
+        (1 * box_size) + 1 +     // list of pkmn in box and terminator
+        (pkmn_size * box_size) + // the pokemon structs
+        (ot_size * index);       // the ot we're looking for
 
     int nickname_offset =
-        1 +                                                // the num of pkmn byte
-        (1 * curr_offsets.box_size) + 1 +                  // list of pkmn in box and terminator
-        (curr_offsets.pkmn_size * curr_offsets.box_size) + // the pokemon structs
-        (curr_offsets.ot_size * curr_offsets.box_size) +   // the ots
-        (curr_offsets.nickname_size * index);              // the nickname we're looking for
+        1 +                      // the num of pkmn byte
+        (1 * box_size) + 1 +     // list of pkmn in box and terminator
+        (pkmn_size * box_size) + // the pokemon structs
+        (ot_size * box_size) +   // the ots
+        (nickname_size * index); // the nickname we're looking for
 
     num_in_box = party_data[0];
     index_in_box = index;
@@ -131,13 +143,13 @@ void Pokemon::generate_pkmn(int index, byte *party_data, GB_ROM curr_rom)
         tte_write("struct offset: ");
         tte_write(std::to_string(box_struct_offset).c_str());
         tte_write("\nbox_size: ");
-        tte_write(std::to_string(curr_offsets.box_size).c_str());
+        tte_write(std::to_string(box_size).c_str());
         tte_write("\npkmn_size: ");
-        tte_write(std::to_string(curr_offsets.pkmn_size).c_str());
+        tte_write(std::to_string(pkmn_size).c_str());
         tte_write("\nindex: ");
         tte_write(std::to_string(index).c_str());
         tte_write(", game: ");
-        tte_write(std::to_string(curr_rom.version).c_str());
+        tte_write(std::to_string(game).c_str());
         while (!key_hit(KEY_A))
         {
             global_next_frame();
@@ -145,13 +157,10 @@ void Pokemon::generate_pkmn(int index, byte *party_data, GB_ROM curr_rom)
         global_next_frame();
     }
 }
-
-void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical, GB_ROM curr_rom)
+void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
 {
-    byte gen_3_pkmn[80];
-
     // Convert the species indexes
-    if (curr_rom.generation == 1)
+    if (gen == 1)
     {
         if (species_index_struct > 190)
         {
@@ -185,7 +194,6 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical, GB_
     is_valid = true;
 
     nature_mod = exp % 25; // save the nature mod in case the level is changed
-
     // Update dex if not simple
     if (!simplified && !is_caught(species_index_struct))
     {
@@ -205,7 +213,7 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical, GB_
             new_nickname[i] = get_gen_3_char(JPN_NAMES[species_index_struct][i], true);
         }
 
-        if (curr_rom.generation == 1)
+        if (gen == 1)
         {
             // レッド (Red)
             new_ot[0] = 0x7A; // レ
@@ -215,7 +223,7 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical, GB_
         }
         else
         {
-            if (((origin_info & 0b1000000000000000) >> 15) == 1) // Checks if the Gen 2 player is male or female
+            if (((caught_data[1] & 0b10000000) >> 7) == 1) // Checks if the Gen 2 player is male or female
             {
                 // クリス (Kurisu)
                 new_ot[0] = 0x58; // ク
@@ -232,26 +240,14 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical, GB_
                 new_ot[3] = 0xFF;
             }
         }
-        for (int i = 0; i < 10; i++)
-        {
-            gen_3_pkmn[8 + i] = new_nickname[i]; // Nickname
-        }
-        for (int i = 0; i < 7; i++)
-        {
-            gen_3_pkmn[20 + i] = new_ot[i]; // OT Name
-        }
+        copy_from_to(&new_nickname[0], &gen_3_pkmn[8], 10, false); // Nickname
+        copy_from_to(&new_ot[0], &gen_3_pkmn[20], 7, false);       // OT Name
     }
     else
     {
-        gen_3_pkmn[18] = language; // Language
-        for (int i = 0; i < 10; i++)
-        {
-            gen_3_pkmn[8 + i] = *convert_text(&nickname[i], 1, curr_rom.generation, curr_rom.language); // Nickname
-        }
-        for (int i = 0; i < 7; i++)
-        {
-            gen_3_pkmn[20 + i] = *convert_text(&trainer_name[i], 1, curr_rom.generation, curr_rom.language); // OT Name
-        }
+        gen_3_pkmn[18] = language;                                                                 // Language
+        copy_from_to(convert_text(&nickname[0], 10, gen, language), &gen_3_pkmn[8], 10, false);    // Nickname
+        copy_from_to(convert_text(&trainer_name[0], 7, gen, language), &gen_3_pkmn[20], 7, false); // OT Name
     }
 
     // Make sure Level is not over 100 based on EXP
@@ -417,15 +413,15 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical, GB_
     }
     for (int i = 0; i < 4; i++)
     {
-        pid = n_pid;
+        pid[i] = (n_pid >> (i * 8)) & 0xFF;
     }
     enable_auto_random();
 
     // Determine and set Ability
-    iv_egg_ability |= ((pid & 0x00000000000000000000000000000001) ? get_num_abilities(species_index_struct) : 0) << 31;
+    iv_egg_ability |= ((pid[0] & 0x1) ? get_num_abilities(species_index_struct) : 0) << 31;
 
     // Origin info
-    origin_info |= ((origin_info & 0b1000000000000000) << 8); // OT gender - We would shift left 15 bits, but the bit is already shifted over 7
+    origin_info |= ((caught_data[1] & 0b10000000) << 8); // OT gender - We would shift left 15 bits, but the bit is already shifted over 7
     if (is_missingno)
     {
         origin_info |= (1 << 11); // Master Ball
@@ -434,72 +430,58 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical, GB_
     {
         origin_info |= (4 << 11); // Ball
     }
-    origin_info |= (((curr_rom.generation == 1) ? 4 : 7) << 7); // Game
-    origin_info |= met_level;                                   // Level met
+    origin_info |= (((gen == 1) ? 4 : 7) << 7); // Game
+    origin_info |= met_level;                   // Level met
 
     // Ribbons and Obedience
     // ribbons[2] |= 0b00000100; // Artist Ribbon
     if (species_index_struct == 151 || species_index_struct == 251) // Pokemon is Mew or Celebi
     {
-        ribbons |= 0b10000000000000000000000000000000; // Fateful Encounter flag
+        ribbons[3] |= 0b10000000; // Fateful Encounter flag
     }
     else if (is_missingno)
     {
-        ribbons |= 0b10000000000000000000000000000000; // Fateful Encounter flag
+        ribbons[3] |= 0b10000000; // Fateful Encounter flag
         // ribbons[3] |= 0b00000100; // World Ribbon
     }
     // Personality Value
-    for (int i = 0; i < 4; i++)
-    {
-        gen_3_pkmn[0 + i] = pid << (i * 8);
-    }
+    copy_from_to(&pid[0], &gen_3_pkmn[0], 4, false);
     // Trainer ID
-    for (int i = 0; i < 2; i++)
-    {
-        gen_3_pkmn[4 + i] = trainer_id << (i * 8);
-    }
+    copy_from_to(&trainer_id[0], &gen_3_pkmn[4], 2, true);
+
     // Check if the Pokemon is shiny
-    byte secret_arr[2];
-    byte trainer_arr[2] = {
-        trainer_id << 0,
-        trainer_id << 8,
-    };
-    byte pid_arr[4] = {
-        pid << 0,
-        pid << 8,
-        pid << 16,
-        pid << 24,
-    };
     if (is_shiny)
     {
-
-        secret_arr[0] = trainer_arr[1] ^ pid_arr[0] ^ pid_arr[2] ^ 0x0; // This value at the end should be random between 0 - 15, if that is to be implemented
-        secret_arr[1] = trainer_arr[0] ^ pid_arr[1] ^ pid_arr[3] ^ 0x0;
+        secret_id[0] = trainer_id[1] ^ pid[0] ^ pid[2] ^ 0x0; // This value at the end should be random between 0 - 15, if that is to be implemented
+        secret_id[1] = trainer_id[0] ^ pid[1] ^ pid[3] ^ 0x0;
         // Randomly shift by 16 (maybe)
     }
     else // Not shiny, make sure it isn't
     {
-        secret_arr[0] = dvs[0];
-        secret_arr[1] = dvs[1];
+        secret_id[0] = dvs[0];
+        secret_id[1] = dvs[1];
 
-        if (((trainer_arr[0] ^ secret_arr[0] ^ pid_arr[0] ^ pid_arr[2]) == 0) &&
-            ((trainer_arr[1] ^ secret_arr[1] ^ pid_arr[1] ^ pid_arr[3]) < 8))
+        if (((trainer_id[0] ^ secret_id[0] ^ pid[0] ^ pid[2]) == 0) &&
+            ((trainer_id[1] ^ secret_id[1] ^ pid[1] ^ pid[3]) < 8))
         {
-            secret_id += 0x80000;
+            secret_id[1] += 8;
         }
     }
-    gen_3_pkmn[6] = secret_arr[0]; // Set SID
-    gen_3_pkmn[7] = secret_arr[1]; // Set SID
+    copy_from_to(&secret_id[0], &gen_3_pkmn[6], 2, false); // Set SID
 
     gen_3_pkmn[19] = 0b00000010; // Egg Name (has species sanity flag)
     gen_3_pkmn[27] = 0b00000000; // Markings
 
     // Data:
 
-    u8 data_section_G[12] = {};
-    u8 data_section_A[12] = {};
-    u8 data_section_E[12] = {};
-    u8 data_section_M[12] = {};
+    // Reset the data sections (in case the player runs the program twice)
+    for (int i = 0; i < 12; i++)
+    {
+        data_section_G[i] = 0;
+        data_section_A[i] = 0;
+        data_section_E[i] = 0;
+        data_section_M[i] = 0;
+    }
 
     data_section_G[0] = species_index_struct;
     data_section_G[1] = 0x00;                   // Species Index, check for glitch Pokemon
@@ -511,14 +493,11 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical, GB_
     }
     data_section_G[8] = (pp_bonus[0] << 0 | pp_bonus[1] << 2 | pp_bonus[2] << 4 | pp_bonus[3] << 6);
 
-    data_section_A[0] = moves[0]; // Move 1
-    data_section_A[2] = moves[1]; // Move 2
-    data_section_A[4] = moves[2]; // Move 3
-    data_section_A[6] = moves[3]; // Move 4
-    for (int i = 0; i < 4; i++)
-    {
-        data_section_A[8 + i] = pure_pp_values[i]; // PP Values
-    }
+    data_section_A[0] = moves[0];                                   // Move 1
+    data_section_A[2] = moves[1];                                   // Move 2
+    data_section_A[4] = moves[2];                                   // Move 3
+    data_section_A[6] = moves[3];                                   // Move 4
+    copy_from_to(&pure_pp_values[0], &data_section_A[8], 4, false); // PP Values
 
     // Data section E is all zero (EVs and Contest Stats)
 
@@ -530,10 +509,7 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical, GB_
     {
         data_section_M[i + 4] = (iv_egg_ability >> (i * 8) & 0xFF); // Set IVs, Egg, and Ability
     }
-    for (int i = 0; i < 4; i++)
-    {
-        data_section_M[8 + i] = ribbons << 8; // Ribbons and Fateful Encounter
-    }
+    copy_from_to(&ribbons[0], &data_section_M[8], 4, false); // Ribbons and Fateful Encounter
 
     // Checksum:
     checksum = 0x0000;
@@ -548,122 +524,145 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical, GB_
     gen_3_pkmn[28] = checksum & 0xFF;
     gen_3_pkmn[29] = (checksum & 0xFF00) >> 8;
 
-    u32 encryption_key = (trainer_id << 16 | secret_id) ^ pid; // XOR SID and TID with PID
+    for (int i = 0; i < 4; i++)
+    {
+        encryption_key[i] = gen_3_pkmn[4 + i] ^ pid[i]; // XOR SID and TID with PID
+    }
 
     for (int i = 0; i < 12; i++)
     {
         unencrypted_data[i] = data_section_G[i];
-        data_section_G[i] ^= encryption_key << ((i % 4) * 8);
+        data_section_G[i] ^= encryption_key[i % 4];
         unencrypted_data[12 + i] = data_section_A[i];
-        data_section_A[i] ^= encryption_key << ((i % 4) * 8);
+        data_section_A[i] ^= encryption_key[i % 4];
         unencrypted_data[24 + i] = data_section_E[i];
-        data_section_E[i] ^= encryption_key << ((i % 4) * 8);
+        data_section_E[i] ^= encryption_key[i % 4];
         unencrypted_data[36 + i] = data_section_M[i];
-        data_section_M[i] ^= encryption_key << ((i % 4) * 8);
+        data_section_M[i] ^= encryption_key[i % 4];
     }
 
     // Puts the four data chunks into their correct locations based on the PID
-    alocate_data_chunks(data_section_G, data_section_A, data_section_E, data_section_M, gen_3_pkmn);
+    alocate_data_chunks(data_section_G, data_section_A, data_section_E, data_section_M);
     global_next_frame();
 }
 
-void Pokemon::alocate_data_chunks(byte *G, byte *A, byte *E, byte *M, byte *gen_3_data)
+void Pokemon::copy_from_to(const byte *source, byte *destination, int size, bool reverse_endian)
 {
-    word full_pid = pid;
+    if (reverse_endian)
+    {
+        for (int i = 0; i < size; i++)
+        {
+            destination[(size - 1) - i] = source[i];
+        }
+    }
+    else
+    {
+        for (int i = 0; i < size; i++)
+        {
+            destination[i] = source[i];
+        }
+    }
+}
+
+void Pokemon::alocate_data_chunks(byte *G, byte *A, byte *E, byte *M)
+{
+    word full_pid = (pid[3] << 24 | pid[2] << 16 | pid[1] << 8 | pid[0]);
     byte mod_pid = full_pid % 24;
     unencrypted_data[48] = mod_pid;
     // This is such a stupid way to do this, but I can't for the life of me find a formula for the permutation table.
     switch (mod_pid)
     {
     case 0:
-        insert_data(G, A, E, M, gen_3_data);
+        insert_data(G, A, E, M);
         break;
     case 1:
-        insert_data(G, A, M, E, gen_3_data);
+        insert_data(G, A, M, E);
         break;
     case 2:
-        insert_data(G, E, A, M, gen_3_data);
+        insert_data(G, E, A, M);
         break;
     case 3:
-        insert_data(G, E, M, A, gen_3_data);
+        insert_data(G, E, M, A);
         break;
     case 4:
-        insert_data(G, M, A, E, gen_3_data);
+        insert_data(G, M, A, E);
         break;
     case 5:
-        insert_data(G, M, E, A, gen_3_data);
+        insert_data(G, M, E, A);
         break;
     case 6:
-        insert_data(A, G, E, M, gen_3_data);
+        insert_data(A, G, E, M);
         break;
     case 7:
-        insert_data(A, G, M, E, gen_3_data);
+        insert_data(A, G, M, E);
         break;
     case 8:
-        insert_data(A, E, G, M, gen_3_data);
+        insert_data(A, E, G, M);
         break;
     case 9:
-        insert_data(A, E, M, G, gen_3_data);
+        insert_data(A, E, M, G);
         break;
     case 10:
-        insert_data(A, M, G, E, gen_3_data);
+        insert_data(A, M, G, E);
         break;
     case 11:
-        insert_data(A, M, E, G, gen_3_data);
+        insert_data(A, M, E, G);
         break;
     case 12:
-        insert_data(E, G, A, M, gen_3_data);
+        insert_data(E, G, A, M);
         break;
     case 13:
-        insert_data(E, G, M, A, gen_3_data);
+        insert_data(E, G, M, A);
         break;
     case 14:
-        insert_data(E, A, G, M, gen_3_data);
+        insert_data(E, A, G, M);
         break;
     case 15:
-        insert_data(E, A, M, G, gen_3_data);
+        insert_data(E, A, M, G);
         break;
     case 16:
-        insert_data(E, M, G, A, gen_3_data);
+        insert_data(E, M, G, A);
         break;
     case 17:
-        insert_data(E, M, A, G, gen_3_data);
+        insert_data(E, M, A, G);
         break;
     case 18:
-        insert_data(M, G, A, E, gen_3_data);
+        insert_data(M, G, A, E);
         break;
     case 19:
-        insert_data(M, G, E, A, gen_3_data);
+        insert_data(M, G, E, A);
         break;
     case 20:
-        insert_data(M, A, G, E, gen_3_data);
+        insert_data(M, A, G, E);
         break;
     case 21:
-        insert_data(M, A, E, G, gen_3_data);
+        insert_data(M, A, E, G);
         break;
     case 22:
-        insert_data(M, E, G, A, gen_3_data);
+        insert_data(M, E, G, A);
         break;
     case 23:
-        insert_data(M, E, A, G, gen_3_data);
+        insert_data(M, E, A, G);
         break;
     }
 }
 
-void Pokemon::insert_data(byte *first, byte *second, byte *third, byte *fourth, byte *gen_3_pkmn)
+void Pokemon::insert_data(byte *first, byte *second, byte *third, byte *fourth)
 {
-    for (int i = 0; i < 12; i++){
-        gen_3_pkmn[32 + i] = first[i];
-    }
-    for (int i = 0; i < 12; i++){
-        gen_3_pkmn[44 + i] = second[i];
-    }
-    for (int i = 0; i < 12; i++){
-        gen_3_pkmn[56 + i] = third[i];
-    }
-    for (int i = 0; i < 12; i++){
-        gen_3_pkmn[68 + i] = fourth[i];
-    }
+    copy_from_to(&first[0], &gen_3_pkmn[32], 12, false);
+    copy_from_to(&second[0], &gen_3_pkmn[44], 12, false);
+    copy_from_to(&third[0], &gen_3_pkmn[56], 12, false);
+    copy_from_to(&fourth[0], &gen_3_pkmn[68], 12, false);
+}
+
+byte Pokemon::get_gen_3_data(int index)
+{
+    return gen_3_pkmn[index];
+}
+
+byte *Pokemon::get_full_gen_3_array()
+{
+    return gen_3_pkmn;
 }
 
 byte Pokemon::get_unencrypted_data(int index)
@@ -868,7 +867,6 @@ Simplified_Pokemon Pokemon::get_simple_pkmn()
     return curr_pkmn;
 }
 
-/*
 void Pokemon::set_to_event(byte nature)
 {
     int event_id = 0;
@@ -984,7 +982,7 @@ void Pokemon::set_to_event(byte nature)
     }
 
     // Determine and set OT gender
-    data_section_M[3] |= (origins_info[1] & 0b10000000);
+    data_section_M[3] |= (caught_data[1] & 0b10000000);
 
     // Check the level
     if (exp < 560) // Minimum EXP for level 10
@@ -1030,4 +1028,3 @@ void Pokemon::set_to_event(byte nature)
     alocate_data_chunks(data_section_G, data_section_A, data_section_E, data_section_M);
     return;
 }
-*/

@@ -20,7 +20,8 @@ public:
     bool load_gb_rom();
     GB_ROM curr_gb_rom;
     void show_sprites();
-    Pokemon pkmn_array[30];
+    Simplified_Pokemon simple_pkmn_array[30];
+    Simplified_Pokemon get_simple_pkmn(int index);
     bool fill_simple_pkmn_array();
     bool get_contains_mythical();
     void set_mythic_stabilization(bool stabilize);

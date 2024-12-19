@@ -229,7 +229,8 @@ void determine_fennel_blink()
 void set_missingno(bool val)
 {
     missingno_enabled = val;
-    if (val == false){
+    if (val == false)
+    {
         set_background_pal(curr_rom.gamecode, false, false);
         fennel_blink_timer = 0;
     }
@@ -239,9 +240,8 @@ bool get_missingno_enabled()
 {
     return missingno_enabled;
 }
-
 // FNV-1a 32-bit hash function for byte arrays
-u32 fnv1a_hash(unsigned char* data, size_t length)
+u32 fnv1a_hash(unsigned char *data, size_t length)
 {
     const uint32_t fnv_prime = 0x01000193;
     const uint32_t fnv_offset_basis = 0x811C9DC5;
@@ -252,6 +252,5 @@ u32 fnv1a_hash(unsigned char* data, size_t length)
         hash ^= data[i];
         hash *= fnv_prime;
     }
-
     return hash;
 }
