@@ -185,6 +185,7 @@ int credits()
 #define CREDITS_ARRAY_SIZE 18
 	int curr_credits_num = 0;
 	std::string credits_array[CREDITS_ARRAY_SIZE] = {
+		//"testing: う",
 		"Lead developer:\n\nThe Gears of\nProgress",
 		"Logo and co-ideator:\n\n-Jome\n\nSpritework:\n\n-LJ Birdman\n\n",
 		"Icon Sprites: \n\n-LuigiTKO\n-GuiAbel\n-SourApple\n & the artists from\nPok@mon Showdown and\nCrystal Clear",
@@ -226,6 +227,10 @@ int credits()
 		}
 		if (ENABLE_DEBUG_SCREEN && key_hit(KEY_SELECT))
 		{
+			if (key_held(KEY_UP) && key_held(KEY_L) && key_held(KEY_R))
+			{
+				set_treecko(true);
+			}
 			u32 pkmn_flags = 0;
 			bool e4_flag = read_flag(curr_rom.e4_flag);
 			bool mg_flag = read_flag(curr_rom.mg_flag);
@@ -276,6 +281,10 @@ int credits()
 
 			tte_write("\n\n");
 			tte_write(VERSION);
+			if (get_treecko_enabled())
+			{
+				tte_write(".T");
+			}
 			while (true)
 			{
 				if (key_hit(KEY_B))

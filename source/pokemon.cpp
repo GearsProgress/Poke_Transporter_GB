@@ -178,14 +178,14 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
         species_index_party = species_index_struct;
     }
 
-    if (                                               // index_in_box % 4 == 0 ||
-        species_index_struct > 251 ||                  // Checks if the Pokemon is beyond Celebi
-        species_index_struct == 0 ||                   // Checks that the Pokemon isn't a blank party space
-        species_index_struct != species_index_party || // Checks that the Pokemon isn't a hybrid or an egg
-        index_in_box >= num_in_box ||                  // Checks that we're not reading beyond the Pokemon in the box
-        item != 0)                                     // Checks that the Pokemon doesn't have an item
+    if (                                                                          // index_in_box % 4 == 0 ||
+        (species_index_struct > NUM_POKEMON - (get_treecko_enabled() ? 0 : 1)) || // Checks if the Pokemon is beyond the supported Pokemon
+        species_index_struct == 0 ||                                              // Checks that the Pokemon isn't a blank party space
+        species_index_struct != species_index_party ||                            // Checks that the Pokemon isn't a hybrid or an egg
+        index_in_box >= num_in_box ||                                             // Checks that we're not reading beyond the Pokemon in the box
+        item != 0)                                                                // Checks that the Pokemon doesn't have an item
     {
-        if (!NO_INVALID_PKMN)
+        if (!DONT_HIDE_INVALID_PKMN)
         {
             is_valid = false;
             return;
@@ -314,7 +314,7 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
             pp_bonus[i] = 0;
         }
     }
-    else if (species_index_struct != 0xEB) // Ignore Smeargle due to Sketch
+    else if ((species_index_struct != 0xEB) && (species_index_struct != 0xFC)) // Ignore Smeargle due to Sketch, Ignore Treecko because Treecko
     {
         for (int i = 0; i < 4; i++)
         {
@@ -483,9 +483,9 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
         data_section_M[i] = 0;
     }
 
-    data_section_G[0] = species_index_struct;
-    data_section_G[1] = 0x00;                   // Species Index, check for glitch Pokemon
-    data_section_G[2] = (is_new ? 0x44 : 0x00); // Rare Candy if new
+    data_section_G[0] = (species_index_struct != 252 ? species_index_struct : 277); // Treecko check
+    data_section_G[1] = (species_index_struct != 252 ? 0x00 : 0x01);                // Treecko check;
+    data_section_G[2] = (is_new ? 0x44 : 0x00);                                     // Rare Candy if new
     data_section_G[3] = 0x00;
     for (int i = 0; i < 3; i++)
     {

@@ -2846,7 +2846,7 @@ const u16 gen_3_Intern_char_array[256]{
     0x147,
     0x19E,
 };
-const u8 EXP_GROUPS[252] = {
+const u8 EXP_GROUPS[POKEMON_ARRAY_SIZE] = {
     0, // Offset the list to remove "off by one" errors
     3, // Bulbasaur
     3, // Ivysaur
@@ -3099,8 +3099,9 @@ const u8 EXP_GROUPS[252] = {
     5, // Lugia
     5, // Ho-Oh
     3, // Celebi
+    3, // Treecko
 };
-const u8 GENDER_RATIO[252] = {
+const u8 GENDER_RATIO[POKEMON_ARRAY_SIZE] = {
     0, // Offset the list to remove "off by one" errors
     1, // Bulbasaur         [1♀:7♂]
     1, // Ivysaur           [1♀:7♂]
@@ -3353,8 +3354,10 @@ const u8 GENDER_RATIO[252] = {
     7, // Lugia             [Gender Unknown]
     7, // Ho-Oh             [Gender Unknown]
     7, // Celebi            [Gender Unknown]
+    1, // Treecko           [1♀:7♂]
+
 };
-const bool NUM_ABILITIES[252] = {
+const bool NUM_ABILITIES[POKEMON_ARRAY_SIZE] = {
     0, // Offset the list to remove "off by one" errors
     0, // Bulbasaur         Overgrow
     0, // Ivysaur           Overgrow
@@ -3607,8 +3610,9 @@ const bool NUM_ABILITIES[252] = {
     0, // Lugia             Pressure
     0, // Ho-Oh             Pressure
     0, // Celebi            Natural Cure
+    0, // Treecko           Overgrow
 };
-const byte MOVESETS[252][32] = {
+const byte MOVESETS[POKEMON_ARRAY_SIZE][32] = {
     // This data is stored as 32 bytes of binary data per Pokemon, depending on if they can learn the move. Data obtained through PokeAPI
     // 0(unused) 8           16          24          32          40          48          56          64          72          80          88          96          104         112         120         128         136         144         152         160         168         176         184         192         200         208         216         224         232         240         248
     {0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000}, // Offset the list to remove "off by one" errors
@@ -3863,8 +3867,9 @@ const byte MOVESETS[252][32] = {
     {0b00000000, 0b00000000, 0b10110000, 0b00000000, 0b00100010, 0b00000010, 0b00000000, 0b11110001, 0b00000010, 0b00000000, 0b00000111, 0b01001010, 0b00000010, 0b11000000, 0b01010000, 0b00000001, 0b01000000, 0b00100000, 0b00000000, 0b00001000, 0b00001000, 0b00000100, 0b01000010, 0b00000100, 0b00001000, 0b01110001, 0b00010010, 0b10110000, 0b00000001, 0b00000100, 0b11001011, 0b11000000}, // Lugia
     {0b00000000, 0b00000000, 0b10110000, 0b00000000, 0b00000010, 0b00000010, 0b00000100, 0b00000001, 0b00000010, 0b00001000, 0b00000111, 0b01001010, 0b00000010, 0b11000000, 0b01010000, 0b00000010, 0b01000000, 0b00100000, 0b00001000, 0b00001000, 0b00001000, 0b00000100, 0b00000010, 0b00000100, 0b00000000, 0b01110001, 0b00010010, 0b10110100, 0b00000000, 0b00000100, 0b11001011, 0b11000000}, // Ho-oh
     {0b00000000, 0b00000011, 0b00000000, 0b00000000, 0b00000010, 0b00000000, 0b00000000, 0b00000001, 0b00000000, 0b01001000, 0b00000000, 0b00001110, 0b00000010, 0b11000001, 0b01010010, 0b00000000, 0b01000000, 0b00100000, 0b00001000, 0b00001000, 0b00001000, 0b00000100, 0b00000010, 0b00000100, 0b00010000, 0b01110001, 0b00000011, 0b10110000, 0b00100000, 0b00000100, 0b11001011, 0b10000000}, // Celebi
+    {0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000010, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000}, // Treecko
 };
-const byte FIRST_MOVES[252] = {
+const byte FIRST_MOVES[POKEMON_ARRAY_SIZE] = {
     // Data obtained through PokeAPI
     0,    // Offset the list to remove "off by one" errors
     0x21, // Bulbasaur       (tackle)
@@ -4118,8 +4123,9 @@ const byte FIRST_MOVES[252] = {
     0x12, // Lugia           (whirlwind)
     0x12, // Ho-oh           (whirlwind)
     0x49, // Celebi          (leech-seed)
+    0x01, // Treecko         (pound)
 };
-const std::string_view NAMES[252]{
+const std::string_view NAMES[POKEMON_ARRAY_SIZE]{
     "MissingNo", // Offset the list to remove "off by one" errors
     "Bulbasaur",
     "Ivysaur",
@@ -4372,8 +4378,9 @@ const std::string_view NAMES[252]{
     "Lugia",
     "Ho-Oh",
     "Celebi",
+    "Treecko",
 };
-const u16 JPN_NAMES[252][6]{
+const u16 JPN_NAMES[POKEMON_ARRAY_SIZE][6]{
     {},                                              // Offset the list to remove "off by one" errors
     {0x30D5, 0x30B7, 0x30AE, 0x30C0, 0x30CD, 0x19E}, // Bulbasaur
     {0x30D5, 0x30B7, 0x30AE, 0x30BD, 0x30A6, 0x19E}, // Ivysaur
@@ -4626,8 +4633,9 @@ const u16 JPN_NAMES[252][6]{
     {0x30EB, 0x30AE, 0x30A2, 0x19E},                 // Lugia
     {0x30DB, 0x30A6, 0x30AA, 0x30A6, 0x19E},         // Ho-Oh
     {0x30BB, 0x30EC, 0x30D3, 0x30A3, 0x19E},         // Celebi
+    {0x30AD, 0x30E2, 0x30EA},                        // Treecko
 };
-const u8 EVOLUTIONS[252]{
+const u8 EVOLUTIONS[POKEMON_ARRAY_SIZE]{
     0,    // Offset the list to remove "off by one" errors
     0x0,  // Bulbasaur is a base evolution
     0x1,  // Ivysaur evolves from Bulbasaur
@@ -4880,6 +4888,7 @@ const u8 EVOLUTIONS[252]{
     0x0,  // Lugia is a base evolution
     0x0,  // Ho-oh is a base evolution
     0x0,  // Celebi is a base evolution
+    0x0,  // Treecko is a base evolution
 };
 const u8 POWER_POINTS[252]{
     0,  // Offset the list to remove "off by one" errors
@@ -5142,7 +5151,7 @@ const u8 POWER_POINTS[252]{
 #define ICON_BRN 3
 #define ICON_PNK 4
 
-const u8 MENU_SPRITE_PALS[252 + 26][2] = {
+const u8 MENU_SPRITE_PALS[POKEMON_ARRAY_SIZE + 26][2] = {
     {ICON_BLU, ICON_RED}, // MISSINGNO
     {ICON_GRN, ICON_GRN}, // BULBASAUR
     {ICON_GRN, ICON_GRN}, // IVYSAUR
@@ -5395,6 +5404,7 @@ const u8 MENU_SPRITE_PALS[252 + 26][2] = {
     {ICON_BLU, ICON_PNK}, // LUGIA
     {ICON_RED, ICON_BRN}, // HO_OH
     {ICON_GRN, ICON_PNK}, // CELEBI
+    {ICON_GRN, ICON_BLU}, // TREECKO
     {ICON_BRN, ICON_BLU}, // UNOWN
     {ICON_BRN, ICON_BLU}, // UNOWN
     {ICON_BRN, ICON_BLU}, // UNOWN
@@ -5445,7 +5455,7 @@ extern const byte EVENT_PKMN[8][80]{
     {0x00, 0x00, 0x00, 0x00, 0x0A, 0x00, 0x00, 0x00, 0xBD, 0xBF, 0xC6, 0xBF, 0xBC, 0xC3, 0xFF, 0x34, 0x01, 0x31, 0x02, 0x02, 0xA2, 0xA1, 0x00, 0xBB, 0xC8, 0xC3, 0xD0, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFB, 0x00, 0x00, 0x00, 0x80, 0x43, 0x05, 0x00, 0x00, 0x64, 0x00, 0x00, 0xF6, 0x00, 0xF8, 0x00, 0xE2, 0x00, 0xC3, 0x00, 0x05, 0x0F, 0x28, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0x46, 0x21, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
 };
 
-const u8 TYPES[252][2]{
+const u8 TYPES[POKEMON_ARRAY_SIZE][2]{
     {0x0, 0x0},   // Missingno is ???/???
     {0xc, 0x3},   // Bulbasaur is grass/poison
     {0xc, 0x3},   // Ivysaur is grass/poison
@@ -5698,4 +5708,5 @@ const u8 TYPES[252][2]{
     {0xe, 0x2},   // Lugia is psychic/flying
     {0xa, 0x2},   // Ho-oh is fire/flying
     {0xe, 0xc},   // Celebi is psychic/grass
+    {0xc, 0xc},   // Treecko is grass/grass
 };

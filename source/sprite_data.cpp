@@ -356,13 +356,13 @@ void load_temp_box_sprites(Pokemon_Party party_data)
     u32 curr_tile_id = global_tile_id_end;
     for (int i = 0; i < 30; i++)
     {
-        if (party_data.get_simple_pkmn(i).is_valid || NO_INVALID_PKMN)
+        if (party_data.get_simple_pkmn(i).is_valid || DONT_HIDE_INVALID_PKMN)
         {
             Simplified_Pokemon curr_pkmn = party_data.get_simple_pkmn(i);
             int dex_num = curr_pkmn.dex_number;
             if (dex_num == 201)
             {
-                dex_num = 252 + curr_pkmn.unown_letter;
+                dex_num = POKEMON_ARRAY_SIZE + curr_pkmn.unown_letter;
             }
             else if (curr_pkmn.is_missingno)
             {

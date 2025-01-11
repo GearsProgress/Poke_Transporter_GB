@@ -1,7 +1,7 @@
 #ifndef DEBUG_MODE_H
 #define DEBUG_MODE_H
 
-#define VERSION "v1.1.2"
+#define VERSION "v1.1.3"
 #define PTGB_BUILD_LANGUAGE ENG_ID
 
 #define DEBUG_MODE false
@@ -14,7 +14,7 @@
 #define IGNORE_UNRECEIVED_PKMN (true && DEBUG_MODE)
 #define FORCE_TUTORIAL (false && DEBUG_MODE)
 #define DONT_REMOVE_PKMN (true && DEBUG_MODE)
-#define NO_INVALID_PKMN (false && DEBUG_MODE)
+#define DONT_HIDE_INVALID_PKMN (false && DEBUG_MODE)
 #define IGNORE_DEX_COMPLETION (false && DEBUG_MODE)
 #define WRITE_CABLE_DATA_TO_SAVE (false && DEBUG_MODE)
 #define SHOW_DATA_PACKETS (false && DEBUG_MODE)

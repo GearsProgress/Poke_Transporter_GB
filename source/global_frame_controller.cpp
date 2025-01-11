@@ -14,6 +14,7 @@ int curr_link_animation_state = 0;
 int fennel_blink_timer = 0;
 int fennel_blink_state = 0;
 bool missingno_enabled = false;
+bool treecko_enabled = false;
 
 void global_next_frame()
 {
@@ -236,10 +237,21 @@ void set_missingno(bool val)
     }
 }
 
+void set_treecko(bool val)
+{
+    treecko_enabled = val;
+}
+
 bool get_missingno_enabled()
 {
     return missingno_enabled;
 }
+
+bool get_treecko_enabled()
+{
+    return treecko_enabled;
+}
+
 // FNV-1a 32-bit hash function for byte arrays
 u32 fnv1a_hash(unsigned char *data, size_t length)
 {
