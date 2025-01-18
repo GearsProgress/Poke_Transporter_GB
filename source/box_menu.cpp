@@ -114,17 +114,16 @@ int Box_Menu::box_main(Pokemon_Party party_data)
             Simplified_Pokemon curr_pkmn = party_data.get_simple_pkmn(index);
             if (curr_pkmn.is_valid)
             {
-                char nickname[11] = {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\0'};
+                tte_set_pos(40, 72);
                 for (int i = 0; i < 10; i++)
                 {
-                    nickname[i] = gen_3_Intern_char_array[curr_pkmn.nickname[i]];
                     if (curr_pkmn.nickname[i] == 0xFF)
                     {
-                        i = 10;
+                        break;
                     }
+                    tte_putc(gen_3_Intern_char_array[curr_pkmn.nickname[i]]);
                 }
-                tte_set_pos(40, 72);
-                tte_write(nickname);
+                
                 if (curr_pkmn.is_shiny)
                 {
                     tte_set_pos(40, 80);
