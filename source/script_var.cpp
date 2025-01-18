@@ -225,6 +225,7 @@ void sprite_var::set_start()
 
 void sprite_var::insert_sprite_data(u8 mg_array[], const unsigned int sprite_array[], unsigned int size, const unsigned short palette_array[])
 {
+
     set_start();
     u32 pointer = curr_rom.loc_gSaveDataBuffer + *curr_loc_ptr + 8;
     for (int i = 0; i < 4; i++)
@@ -237,11 +238,10 @@ void sprite_var::insert_sprite_data(u8 mg_array[], const unsigned int sprite_arr
         mg_array[*curr_loc_ptr] = size >> (8 * i);
         (*curr_loc_ptr)++;
     }
-    for (unsigned int parser = 0; parser < size; parser++)
-    {
-        mg_array[*curr_loc_ptr] = sprite_array[parser / 4] >> (8 * (parser % 4));
-        (*curr_loc_ptr)++;
-    }
+
+    LZ77UnCompWram(sprite_array, &mg_array[*curr_loc_ptr]);
+    *curr_loc_ptr += size;
+
     for (unsigned int parser = 0; parser < 32; parser++)
     {
         mg_array[*curr_loc_ptr] = palette_array[parser / 2] >> (8 * (parser % 2));
