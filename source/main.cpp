@@ -132,7 +132,6 @@ void initalization_script(void)
 	load_graphics();
 
 	// Prepare dialouge
-	populate_dialogue();
 	populate_script();
 	init_text_engine();
 
