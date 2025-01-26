@@ -1,10 +1,10 @@
 #ifndef DEBUG_MODE_H
 #define DEBUG_MODE_H
 
-#define VERSION "v1.1.3"
+#define VERSION "v1.2.0b"
 #define PTGB_BUILD_LANGUAGE ENG_ID
 
-#define DEBUG_MODE false
+#define DEBUG_MODE true
 
 #define PRINT_LINK_DATA (false && DEBUG_MODE) // This is currently broken... not sure why
 #define INSTANT_TEXT_SPEED (true && DEBUG_MODE)

@@ -182,7 +182,7 @@ void first_load_message(void)
 
 int credits()
 {
-#define CREDITS_ARRAY_SIZE 18
+#define CREDITS_ARRAY_SIZE 19
 	int curr_credits_num = 0;
 	std::string credits_array[CREDITS_ARRAY_SIZE] = {
 		//"testing: う",
@@ -191,6 +191,7 @@ int credits()
 		"Icon Sprites: \n\n-LuigiTKO\n-GuiAbel\n-SourApple\n & the artists from\nPok@mon Showdown and\nCrystal Clear",
 		"Remote and Arbitrary\nCode Execution\nassistance:\n\n\n-TimoVM",
 		"Development\nassistance:\n\n-im a blisy\n-rileyk64\n-Shao",
+		"Space Optimization:\n\n-easyaspi314",
 		"Built using:\n\n\n-DevkitPro\n-LibTonc\n-LibGBA",
 		"Inspired by the\nworks of:\n\n-Goppier\n-Lorenzooone\n-im a blisy\n-RETIRE",
 		"Programs used:\n\n\n-HexManiacAdvance\n-PKHeX\n-WC3Tool\n-Usenti\n-SappyMidToAGB",
