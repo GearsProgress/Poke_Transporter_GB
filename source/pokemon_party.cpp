@@ -16,6 +16,9 @@ const GB_ROM *list_of_gb_roms[NUM_GB_ROMS] = {
 	&ENG_GOLD,
 	&ENG_SILVER,
 	&ENG_CRYSTAL,
+	&FRE_RED,
+	&FRE_BLUE,
+	&FRE_YELLOW
 };
 
 byte gen1_rb_debug_box_data[0x462] = {

@@ -4,7 +4,6 @@
 #include <string>
 #include <tonc.h>
 
-// Dialogue
 #define DIA_OPEN 0
 #define DIA_E4 1
 #define DIA_MG_FRLGE 2

@@ -7,13 +7,13 @@
 #define DEBUG_MODE true
 
 #define PRINT_LINK_DATA (false && DEBUG_MODE) // This is currently broken... not sure why
-#define INSTANT_TEXT_SPEED (true && DEBUG_MODE)
+#define INSTANT_TEXT_SPEED (false && DEBUG_MODE)
 #define IGNORE_GAME_PAK (true && DEBUG_MODE)
 #define IGNORE_LINK_CABLE (true && DEBUG_MODE)
 #define IGNORE_MG_E4_FLAGS (true && DEBUG_MODE)
 #define IGNORE_UNRECEIVED_PKMN (true && DEBUG_MODE)
 #define FORCE_TUTORIAL (false && DEBUG_MODE)
-#define DONT_REMOVE_PKMN (true && DEBUG_MODE)
+#define DONT_REMOVE_PKMN (false && DEBUG_MODE)
 #define DONT_HIDE_INVALID_PKMN (false && DEBUG_MODE)
 #define IGNORE_DEX_COMPLETION (false && DEBUG_MODE)
 #define WRITE_CABLE_DATA_TO_SAVE (false && DEBUG_MODE)

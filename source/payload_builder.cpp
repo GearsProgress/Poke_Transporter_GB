@@ -1,6 +1,6 @@
 #include "payload_builder.h"
 #include "gb_rom_values/base_gb_rom_struct.h"
-#include "gb_rom_values/eng_gb_rom_values.h"
+#include "gb_rom_values/gb_rom_wrapper.h"
 #include "debug_mode.h"
 #include "z80_asm.h"
 
@@ -957,7 +957,7 @@ int test_main() // Rename to "main" to send the payload to test_payload.txt
 {
     freopen("test_payload.txt", "w", stdout);
     std::cout << std::endl;
-    byte *payload = generate_payload(ENG_GOLD, TRANSFER, true);
+    byte *payload = generate_payload(ENG_RED, TRANSFER, true);
     if (true)
     {
         for (int i = 0; i < 0x2A0; i++)

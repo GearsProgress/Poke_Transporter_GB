@@ -1,0 +1,227 @@
+# import pandas lib as pd
+import pandas as pd
+import os 
+from enum import Enum
+import json
+
+engCharArray = [
+0x20, 	0xC0, 	0xC1, 	0xC2, 	0xC7, 	0xC8, 	0xC9, 	0xCA, 	0xCB, 	0xCC, 	0x20, 	0xCE, 	0xCF, 	0xD2, 	0xD3, 	0xD4, 
+0x152, 	0xD9, 	0xDA, 	0xDB, 	0xD1, 	0xDF, 	0xE0, 	0xE1, 	0x20, 	0xE7, 	0xE8, 	0xE9, 	0xEA, 	0xEB, 	0xEC, 	0x20, 
+0xEE, 	0xEF, 	0xF2, 	0xF3, 	0xF4, 	0x153, 	0xF9, 	0xFA, 	0xFB, 	0xF1, 	0xBA, 	0xAA, 	0x1D49, 	0x26, 	0x2B, 	0x20, 
+0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x3D, 	0x3B, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 
+0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 
+0x25AF, 	0xBF, 	0xA1, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0xCD, 	0x25, 	0x28, 	0x29, 	0x20, 	0x20, 
+0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0xE2, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0xED, 
+0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x2B07, 	0x2B05, 	0x27A1, 	0x2A, 	0x2A, 	0x2A, 
+0x2A, 	0x2A, 	0x2A, 	0x2A, 	0x1D49, 	0x3C, 	0x3E, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 
+0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 
+0x2B3, 	0x30, 	0x31, 	0x32, 	0x33, 	0x34, 	0x35, 	0x36, 	0x37, 	0x38, 	0x39, 	0x21, 	0x3F, 	0x2E, 	0x2D, 	0x30FB, 
+0x2026, 	0x201C, 	0x201D, 	0x2018, 	0x2019, 	0x2642, 	0x2640, 	0x20, 	0x2C, 	0xD7, 	0x2F, 	0x41, 	0x42, 	0x43, 	0x44, 	0x45, 
+0x46, 	0x47, 	0x48, 	0x49, 	0x4A, 	0x4B, 	0x4C, 	0x4D, 	0x4E, 	0x4F, 	0x50, 	0x51, 	0x52, 	0x53, 	0x54, 	0x55, 
+0x56, 	0x57, 	0x58, 	0x59, 	0x5A, 	0x61, 	0x62, 	0x63, 	0x64, 	0x65, 	0x66, 	0x67, 	0x68, 	0x69, 	0x6A, 	0x6B, 
+0x6C, 	0x6D, 	0x6E, 	0x6F, 	0x70, 	0x71, 	0x72, 	0x73, 	0x74, 	0x75, 	0x76, 	0x77, 	0x78, 	0x79, 	0x7A, 	0x25B6, 
+0x3A, 	0xC4, 	0xD6, 	0xDC, 	0xE4, 	0xF6, 	0xFC, 	0x7C, 	0x20, 	0x20, 	0x15E, 	0x23C, 	0x206, 	0x1B2, 	0x147, 	0x19E, 
+]
+
+jpnCharArray = [
+0x20, 	0x3042, 	0x3044, 	0x3046, 	0x3048, 	0x304A, 	0x304B, 	0x304D, 	0x304F, 	0x3051, 	0x3053, 	0x3055, 	0x3057, 	0x3059, 	0x305B, 	0x305D, 
+0x305F, 	0x3061, 	0x3064, 	0x3066, 	0x3068, 	0x306A, 	0x306B, 	0x306C, 	0x306D, 	0x306E, 	0x306F, 	0x3072, 	0x3075, 	0x3078, 	0x307B, 	0x307E, 
+0x307F, 	0x3080, 	0x3081, 	0x3082, 	0x3084, 	0x3086, 	0x3088, 	0x3089, 	0x308A, 	0x308B, 	0x308C, 	0x308D, 	0x308F, 	0x3092, 	0x3093, 	0x3041, 
+0x3043, 	0x3045, 	0x3047, 	0x3049, 	0x3083, 	0x3085, 	0x3087, 	0x304C, 	0x304E, 	0x3050, 	0x3052, 	0x3054, 	0x3056, 	0x3058, 	0x305A, 	0x305C, 
+0x305E, 	0x3060, 	0x3062, 	0x3065, 	0x3067, 	0x3069, 	0x3070, 	0x3073, 	0x3076, 	0x3079, 	0x307C, 	0x3071, 	0x3074, 	0x3077, 	0x307A, 	0x307D, 
+0x3063, 	0x30A2, 	0x30A4, 	0x30A6, 	0x30A8, 	0x30AA, 	0x30AB, 	0x30AD, 	0x30AF, 	0x30B1, 	0x30B3, 	0x30B5, 	0x30B7, 	0x30B9, 	0x30BB, 	0x30BD, 
+0x30BF, 	0x30C1, 	0x30C4, 	0x30C6, 	0x30C8, 	0x30CA, 	0x30CB, 	0x30CC, 	0x30CD, 	0x30CE, 	0x30CF, 	0x30D2, 	0x30D5, 	0x30D8, 	0x30DB, 	0x30DE, 
+0x30DF, 	0x30E0, 	0x30E1, 	0x30E2, 	0x30E4, 	0x30E6, 	0x30E8, 	0x30E9, 	0x30EA, 	0x20, 	0x30EC, 	0x30ED, 	0x30EF, 	0x30F2, 	0x30F3, 	0x30A1, 
+0x30A3, 	0x30A5, 	0x30A7, 	0x30A9, 	0x30E3, 	0x30E5, 	0x30E7, 	0x30AC, 	0x30AE, 	0x30B0, 	0x30B2, 	0x30B4, 	0x30B6, 	0x30B8, 	0x30BA, 	0x30BC, 
+0x30BE, 	0x30C0, 	0x30C2, 	0x30C5, 	0x30C7, 	0x30C9, 	0x30D0, 	0x30D3, 	0x30D6, 	0x30D9, 	0x30DC, 	0x30D1, 	0x30D4, 	0x30D7, 	0x30DA, 	0x30DD, 
+0x30C3, 	0x30, 	0x31, 	0x32, 	0x33, 	0x34, 	0x35, 	0x36, 	0x37, 	0x38, 	0x39, 	0xFF01, 	0xFF1F, 	0x3002, 	0x30FC, 	0x30FB, 
+0x30FB, 	0x300E, 	0x300F, 	0x300C, 	0x300D, 	0x2642, 	0x2640, 	0x5186, 	0x2E, 	0xD7, 	0x2F, 	0x41, 	0x42, 	0x43, 	0x44, 	0x45, 
+0x46, 	0x47, 	0x48, 	0x49, 	0x4A, 	0x4B, 	0x4C, 	0x4D, 	0x4E, 	0x4F, 	0x50, 	0x51, 	0x52, 	0x53, 	0x54, 	0x55, 
+0x56, 	0x57, 	0x58, 	0x59, 	0x5A, 	0x61, 	0x62, 	0x63, 	0x64, 	0x65, 	0x66, 	0x67, 	0x68, 	0x69, 	0x6A, 	0x6B, 
+0x6C, 	0x6D, 	0x6E, 	0x6F, 	0x70, 	0x71, 	0x72, 	0x73, 	0x74, 	0x75, 	0x76, 	0x77, 	0x78, 	0x79, 	0x7A, 	0x25B6, 
+0x3A, 	0xC4, 	0xD6, 	0xDC, 	0xE4, 	0xF6, 	0xFC, 	0x7C, 	0x20, 	0x20, 	0x15E, 	0x23C, 	0x206, 	0x1B2, 	0x147, 	0x19E, 
+]
+
+def convertByte(incoming, array):
+    if incoming == ord("'"):
+        incoming = ord("’")
+        print("Warning! ' found, replacing with ’!")
+    
+    index = 0
+    for val in array:
+        if val == incoming:
+            return index
+        index += 1
+    print(f"Warning! No match found for char [ {chr(incoming)} ]!\n")
+    return 0
+    
+ 
+def SplitSentenceIntoLines(sentence, offset, charPerLine):
+    outStr = ""
+    currLine = ""
+    lineCount = 0
+    for word in sentence.split():
+        #print(word)
+        if (word[0] == "Ň"):
+            lineCount += 1
+            currLine = word + " "
+            offset = 0
+        elif (len(currLine + word) < charPerLine - offset):
+            currLine += word + " "
+        elif (len(currLine + word) == charPerLine - offset):
+            currLine += word
+        else:
+            if (len(currLine) != 0 and currLine[-1] == " "):
+                currLine = currLine[:-1]
+            outStr += currLine + "Ň" # Newline character
+            lineCount += 1
+            currLine = word + " "
+            offset = 0
+
+    outStr += currLine
+    return len(currLine), lineCount, outStr
+
+# -*- coding: utf-8 -*-
+import re
+alphabets= "([A-Za-z])"
+prefixes = "(Mr|St|Mrs|Ms|Dr)[.]"
+suffixes = "(Inc|Ltd|Jr|Sr|Co)"
+starters = "(Mr|Mrs|Ms|Dr|Prof|Capt|Cpt|Lt|He\s|She\s|It\s|They\s|Their\s|Our\s|We\s|But\s|However\s|That\s|This\s|Wherever)"
+acronyms = "([A-Z][.][A-Z][.](?:[A-Z][.])?)"
+websites = "[.](com|net|org|io|gov|edu|me)"
+digits = "([0-9])"
+multiple_dots = r'\.{2,}'
+
+def split_into_sentences(text: str) -> list[str]:
+    """
+    Split the text into sentences.
+
+    If the text contains substrings "<prd>" or "<stop>", they would lead 
+    to incorrect splitting because they are used as markers for splitting.
+
+    :param text: text to be split into sentences
+    :type text: str
+
+    :return: list of sentences
+    :rtype: list[str]
+    """
+    text = " " + text + "  "
+    text = text.replace("\n"," ")
+    text = re.sub(prefixes,"\\1<prd>",text)
+    text = re.sub(websites,"<prd>\\1",text)
+    text = re.sub(digits + "[.]" + digits,"\\1<prd>\\2",text)
+    text = re.sub(multiple_dots, lambda match: "<prd>" * len(match.group(0)) + "<stop>", text)
+    if "Ph.D" in text: text = text.replace("Ph.D.","Ph<prd>D<prd>")
+    text = re.sub("\s" + alphabets + "[.] "," \\1<prd> ",text)
+    text = re.sub(acronyms+" "+starters,"\\1<stop> \\2",text)
+    text = re.sub(alphabets + "[.]" + alphabets + "[.]" + alphabets + "[.]","\\1<prd>\\2<prd>\\3<prd>",text)
+    text = re.sub(alphabets + "[.]" + alphabets + "[.]","\\1<prd>\\2<prd>",text)
+    text = re.sub(" "+suffixes+"[.] "+starters," \\1<stop> \\2",text)
+    text = re.sub(" "+suffixes+"[.]"," \\1<prd>",text)
+    text = re.sub(" " + alphabets + "[.]"," \\1<prd>",text)
+    if "”" in text: text = text.replace(".”","”.")
+    if "\"" in text: text = text.replace(".\"","\".")
+    if "!" in text: text = text.replace("!\"","\"!")
+    if "?" in text: text = text.replace("?\"","\"?")
+    text = text.replace(".",".<stop>")
+    text = text.replace("?","?<stop>")
+    text = text.replace("!","!<stop>")
+    text = text.replace("<prd>",".")
+    sentences = text.split("<stop>")
+    sentences = [s.strip() for s in sentences]
+    if sentences and not sentences[-1]: sentences = sentences[:-1]
+    return sentences
+
+class Languages(Enum):
+    English = 1
+
+# read by default 1st sheet of an excel file
+dir = os.curdir + "\\text_helper"
+
+mainDict = {
+    "PTGB": {},
+    "RSEFRLG": {},
+    "GB": {},
+    "GENERAL": {},
+}
+
+def convert_item(line, numLines, charPerLine):
+    split_sents = split_into_sentences(line)
+    index = 0
+    outStr = ""
+    currLine = 0
+    offset = 0
+    escapeCount = 0
+    while index < len(split_sents) and escapeCount < 100:
+        offset, recievedLine, out = SplitSentenceIntoLines(split_sents[index], offset, charPerLine)
+        currLine += recievedLine
+        if (currLine < numLines):
+            #print(split_sents[index])
+            index += 1
+            outStr += out
+        else:
+            outStr = outStr[:-1]
+            outStr += "|" # new textbox character
+            offset = 0
+            currLine = 0
+            escapeCount += 1
+            #print(index)
+    if escapeCount == 100:
+        print(f"ERROR! Sentence \"{out}\" is too long!")
+    byteStr = ""
+    for char in outStr:
+        byteStr += hex(convertByte(ord(char), engCharArray)) + ", "
+    byteStr += "0xff" 
+    return byteStr
+
+print("\n\nStarting parse: \n")
+
+sheets = []
+for lang in Languages:
+    sheets.append(pd.read_excel(dir + "\\text.xlsx", sheet_name=lang.name))
+
+for sheet in sheets:
+    for row in sheet.iterrows():
+        currRow = row[1]
+        #print(currRow)
+        mainDict[currRow[0]][currRow[1]] = currRow[2]
+
+
+with open(dir + '\\dialogue.cpp', 'w') as cppFile:   
+    with open (dir + '\\dialogue.h', 'w') as hFile:
+        cppFile.write("#include \"dialogue.h\"\n")
+        hFile.write("#ifndef DIALOGUE_H\n#define DIALOGUE_H\n\n#include <string>\n#include <tonc.h>\n\n")
+
+
+        # PTGB
+        PTGB = mainDict["PTGB"]
+        
+        num = 0
+        for key, line in PTGB.items():
+            #print("--------")
+            PTGB[key] = convert_item(line, 4, 28)
+            cppFile.write("\nconst byte dialogueLine" + str(num) + "[] = {" + PTGB[key] + "};")
+            hFile.write(f"#define {key} {num}\n")
+            num += 1
+            
+        cppFile.write("\n")
+        hFile.write(f"\n#define DIA_SIZE {num}\n#define DIA_END DIA_SIZE\n\n")
+
+        cppFile.write("\n\nconst byte *dialogue[DIA_SIZE] = {")
+        for i in range(num):
+            cppFile.write("\ndialogueLine" + str(i) + ", ")
+        cppFile.write("\n};\n")
+        hFile.write("extern const byte *dialogue[DIA_SIZE];\n")
+
+        GENERAL = mainDict["GENERAL"]
+        for key, line in GENERAL.items():
+            GENERAL[key] = convert_item(line, 16, 30)
+            cppFile.write(f"\nconst byte {key}[] = {{{GENERAL[key]}}};")
+        cppFile.write("\n")
+    
+    
+        hFile.write("\n#endif")
+        
+with open(dir + '\\output.json', 'w') as cppFile:
+    cppFile.write(json.dumps(mainDict))
+    

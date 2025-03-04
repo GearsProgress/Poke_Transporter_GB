@@ -96,6 +96,7 @@ std::string n2hexstr(I w, size_t hex_len = sizeof(I) << 1)
 
 void load_graphics()
 {
+
 	tte_erase_rect(0, 0, H_MAX, V_MAX);
 	// Load opening background first so it hides everything else
 	load_flex_background(BG_OPENING, 1);
@@ -138,6 +139,9 @@ void initalization_script(void)
 	// Set the random seed
 	rand_set_seed(0x1216);
 
+	// Clean up the main screen quick
+	tte_erase_rect(0, 0, 240, 160);
+
 	VBlankIntrWait();
 	REG_DISPCNT &= ~DCNT_BLANK;
 };
@@ -151,7 +155,7 @@ void game_load_error(void)
 	tte_set_pos(40, 24);
 	tte_set_margins(40, 24, 206, 104);
 	set_textbox_large();
-	tte_write("#{cx:0xF000}The Pok@mon save\nfile was not loaded successfully.\n\nPlease remove and\nreinsert the Game\nPak, and then press the A button.");
+	ptgb_write("#{cx:0xF000}The Pok@mon save\nfile was not loaded successfully.\n\nPlease remove and\nreinsert the Game\nPak, and then press the A button.");
 	key_poll();
 	while (!key_hit(KEY_A))
 	{
@@ -171,7 +175,7 @@ void first_load_message(void)
 {
 	tte_set_pos(8, 0);
 	tte_set_ink(10);
-	tte_write("#{cx:0xD000}\n\nHello! Thank you for using\nPok@ Transporter GB!\n\nJust as a word of caution- \nPok@ Transporter GB WILL\nmodify both the GameBoy and GameBoy Advance save files.\n\nPlease note that Pok@\nTransporter GB is still in\nbeta, so save file backups\nare HIGHLY recommended\nbefore using. With that all\nbeing said, please enjoy!\n\n      -The Gears of Progress");
+	ptgb_write("#{cx:0xD000}\n\nHello! Thank you for using\nPok@ Transporter GB!\n\nJust as a word of caution- \nPok@ Transporter GB WILL\nmodify both the GameBoy and GameBoy Advance save files.\n\nPlease note that Pok@\nTransporter GB is still in\nbeta, so save file backups\nare HIGHLY recommended\nbefore using. With that all\nbeing said, please enjoy!\n\n      -The Gears of Progress");
 	while (!key_hit(KEY_A))
 	{
 		global_next_frame();
@@ -209,7 +213,7 @@ int credits()
 	while (true)
 	{
 		set_textbox_large();
-		tte_write(credits_array[curr_credits_num].c_str());
+		ptgb_write(credits_array[curr_credits_num].c_str());
 
 		if (key_hit(KEY_B))
 		{
@@ -244,46 +248,46 @@ int credits()
 			int def_lang = get_def_lang_num();
 
 			set_textbox_large();
-			tte_write("Debug info:\n\nG: ");
+			ptgb_write("Debug info:\n\nG: ");
 			std::string lang;
 			lang += curr_rom.language;
-			tte_write(lang.c_str());
+			ptgb_write(lang.c_str());
 			switch (curr_rom.gamecode)
 			{
 			case RUBY_ID:
-				tte_write("-R-");
+				ptgb_write("-R-");
 				break;
 			case SAPPHIRE_ID:
-				tte_write("-S-");
+				ptgb_write("-S-");
 				break;
 			case FIRERED_ID:
-				tte_write("-F-");
+				ptgb_write("-F-");
 				break;
 			case LEAFGREEN_ID:
-				tte_write("-L-");
+				ptgb_write("-L-");
 				break;
 			case EMERALD_ID:
-				tte_write("-E-");
+				ptgb_write("-E-");
 				break;
 			}
-			tte_write(std::to_string(curr_rom.version).c_str());
+			ptgb_write(std::to_string(curr_rom.version).c_str());
 
-			tte_write("\nF: ");
-			tte_write(std::to_string(e4_flag).c_str());
-			tte_write(std::to_string(mg_flag).c_str());
-			tte_write(std::to_string(all_collected_flag).c_str());
-			tte_write("-");
-			tte_write((n2hexstr(pkmn_flags)).c_str());
-			tte_write("\nS:   ");
-			tte_write(std::to_string(tutorial).c_str());
-			tte_write("-");
-			tte_write((n2hexstr(def_lang)).c_str());
+			ptgb_write("\nF: ");
+			ptgb_write(std::to_string(e4_flag).c_str());
+			ptgb_write(std::to_string(mg_flag).c_str());
+			ptgb_write(std::to_string(all_collected_flag).c_str());
+			ptgb_write("-");
+			ptgb_write((n2hexstr(pkmn_flags)).c_str());
+			ptgb_write("\nS:   ");
+			ptgb_write(std::to_string(tutorial).c_str());
+			ptgb_write("-");
+			ptgb_write((n2hexstr(def_lang)).c_str());
 
-			tte_write("\n\n");
-			tte_write(VERSION);
+			ptgb_write("\n\n");
+			ptgb_write(VERSION);
 			if (get_treecko_enabled())
 			{
-				tte_write(".T");
+				ptgb_write(".T");
 			}
 			while (true)
 			{
@@ -317,13 +321,13 @@ int main_menu_loop()
 				tte_set_pos(x, ((i * 2) + 10) * 8);
 				if (i == curr_selection)
 				{
-					tte_write("#{cx:0xD000}");
+					ptgb_write("#{cx:0xD000}");
 				}
 				else
 				{
-					tte_write("#{cx:0xE000}");
+					ptgb_write("#{cx:0xE000}");
 				}
-				tte_write(menu_options[i].data());
+				ptgb_write(menu_options[i].data());
 			}
 		}
 
@@ -339,7 +343,7 @@ int main_menu_loop()
 		else if (key_hit(KEY_A))
 		{
 			tte_erase_rect(0, 0, H_MAX, V_MAX);
-			tte_write("#{cx:0xF000}");
+			ptgb_write("#{cx:0xF000}");
 			return return_values[curr_selection];
 		}
 		else
@@ -360,8 +364,9 @@ int main(void)
 
 	// Legal mumbo jumbo
 	tte_set_pos(8, 0);
-	tte_write("#{cx:0xE000}\n\nPok@ Transporter GB was made\nout of love and appreciation\nfor the Pokemon franchise\nwith no profit in mind.\nIt will ALWAYS be free.\n\nPlease support the original developers-\nNintendo and GAME FREAK.\n\nAll Pokemon names, sprites, and music are owned by \nNintendo, Creatures Inc, and\nGAME FREAK Inc.\n\n\n         Press A to continue");
-	tte_write("#{cx:0xF000}"); // Set the color to grey
+	pal_bg_bank[15][15] = CLR_WHITE; // Set the color to white
+	//ptgb_write("\n\nPok@ Transporter GB was made\nout of love and appreciation\nfor the Pokemon franchise\nwith no profit in mind.\nIt will ALWAYS be free.\n\nPlease support the original developers-\nNintendo and GAME FREAK.\n\nAll Pokemon names, sprites, and music are owned by \nNintendo, Creatures Inc, and\nGAME FREAK Inc.\n\n\n         Press A to continue");
+	//ptgb_write(intro_legal);
 	bool wait = true;
 	while (wait)
 	{
@@ -371,6 +376,7 @@ int main(void)
 			wait = false;
 		}
 	}
+	pal_bg_bank[15][15] = 0b00100110001100010;  // Set the color to grey
 
 	// Gears of Progress
 	tte_erase_rect(0, 0, 240, 160);
@@ -396,7 +402,7 @@ int main(void)
 	bool start_pressed = false;
 	REG_BLDCNT = BLD_BUILD(BLD_BG3, BLD_BG0, 1);
 	tte_set_pos(6 * 8, 12 * 8);
-	tte_write("#{cx:0xF000}Push Start Button!");
+	ptgb_write("Push Start Button!");
 	int fade = 0;
 	while (!start_pressed)
 	{

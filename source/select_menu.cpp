@@ -1,6 +1,11 @@
 #include "select_menu.h"
 #include "sprite_data.h"
 
+#define TEXT_HEIGHT 10
+#define TEXT_WIDTH 8
+#define TILE_HEIGHT 8
+#define TILE_WIDTH 8
+
 Select_Menu::Select_Menu(bool enable_cancel, int nMenu_type)
 {
     cancel_enabled = enable_cancel;
@@ -48,7 +53,7 @@ int Select_Menu::select_menu_main()
             update = false;
         }
         update_y_offset();
-        obj_set_pos(point_arrow, 19 * 8, (2 + curr_selection) * 8);
+        obj_set_pos(point_arrow, 19 * TILE_HEIGHT, (2 + curr_selection) * TEXT_HEIGHT);
         global_next_frame();
 
         if (update)
@@ -91,17 +96,17 @@ void Select_Menu::show_menu()
     add_menu_box(menu_options.size());
     for (unsigned int i = 0; i < menu_options.size(); i++)
     {
-        tte_set_pos(20 * 8, (2 + i) * 8);
-        tte_write(menu_options[i].c_str());
+        tte_set_pos(20 * TEXT_WIDTH, (2 + i) * TEXT_HEIGHT);
+        ptgb_write(menu_options[i].c_str());
     }
     obj_unhide(point_arrow, 0);
-    obj_set_pos(point_arrow, 19 * 8, 2 * 8);
+    obj_set_pos(point_arrow, 19 * TEXT_WIDTH, 2 * TEXT_HEIGHT);
 }
 
 void Select_Menu::hide_menu()
 {
     obj_hide(point_arrow);
-    tte_erase_rect(20 * 8, 2 * 8, (20 + 8) * 8, (2 + menu_options.size()) * 8);
+    tte_erase_rect(160, 16, 224, 160);
     reload_textbox_background();
     clear_options();
     obj_hide(point_arrow);

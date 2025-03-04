@@ -4,6 +4,7 @@
 #include <tonc.h>
 #include <vector>
 #include <string>
+#include "text_engine.h"
 
 #define LANG_MENU 1
 #define CART_MENU 2

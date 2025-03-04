@@ -1,10 +1,10 @@
-#ifndef ENG_GB_ROM_VALUES_H
-#define ENG_GB_ROM_VALUES_H
+#ifndef FRE_GB_ROM_VALUES_H
+#define FRE_GB_ROM_VALUES_H
 
 #include "base_gb_rom_struct.h"
 
-const struct GB_ROM ENG_RED = {
-    .language = ENG_ID,
+const struct GB_ROM FRE_RED = {
+    .language = FRE_ID,
     .version = RED_ID,
     .generation = 1,
     .method = METHOD_NEWLINE,
@@ -16,24 +16,24 @@ const struct GB_ROM ENG_RED = {
     .short_pkmn_name = 0xE3,
     .pointer_pkmn_name = 0xFC,
 
-    .clearScreen = 0x190F,
-    .CableClub_TextBoxBorder = 0x5AB3,
-    .placeString = 0x1955,
-    .Serial_ExchangeBytes = 0x216F,
-    ._RemovePokemon = 0x7B68,
-    .SaveSAVtoSRAM1 = 0x1C77E2,
-    .SaveSAVtoSRAM2 = 0x1C780F,
-    .Bankswitch = 0x35D6,
-    .SoftReset = 0x1F49,
-    .garbageDataLocation = 0x0316,
+    .clearScreen = 0x190C,
+    .CableClub_TextBoxBorder = 0x5B41,
+    .placeString = 0x1952,
+    .Serial_ExchangeBytes = 0x216B,
+    ._RemovePokemon = 0x7BD9,
+    .SaveSAVtoSRAM1 = 0x1C77B3,
+    .SaveSAVtoSRAM2 = 0x1C77E0,
+    .Bankswitch = 0x35F3,
+    .SoftReset = 0x1F45,
+    .garbageDataLocation = 0x1F8E,
 
-    .wRemoveMonFromBox = 0xCF95,
-    .wBoxCount = 0xDA80,
-    .wWhichPokemon = 0xCF92,
-    .wBoxDataStart = 0xDA80,
-    .wBoxDataEnd = 0xDEE2,
-    .wSerialEnemyDataBlock = 0xD893,
-    .wEnemyMonSpecies = 0xCFE5,
+    .wRemoveMonFromBox = 0xCF9A,
+    .wBoxCount = 0xDA85,
+    .wWhichPokemon = 0xCF95,
+    .wBoxDataStart = 0xDA85,
+    .wBoxDataEnd = 0xDEE7,
+    .wSerialEnemyDataBlock = 0xD898,
+    .wEnemyMonSpecies = 0xCFEA,
 
     .wSerialEnemyMonsPatchList = 0xC5D0,
     .wSerialOtherGameboyRandomNumberListBlock = 0xCD81,
@@ -44,8 +44,8 @@ const struct GB_ROM ENG_RED = {
     .textBorderWidth = 12,
     .textBorderHeight = 1,
 };
-const struct GB_ROM ENG_BLUE = {
-    .language = ENG_ID,
+const struct GB_ROM FRE_BLUE = {
+    .language = FRE_ID,
     .version = BLUE_ID,
     .generation = 1,
     .method = METHOD_NEWLINE,
@@ -57,24 +57,24 @@ const struct GB_ROM ENG_BLUE = {
     .short_pkmn_name = 0xE3,
     .pointer_pkmn_name = 0xFC,
 
-    .clearScreen = 0x190F,
-    .CableClub_TextBoxBorder = 0x5AB3,
-    .placeString = 0x1955,
-    .Serial_ExchangeBytes = 0x216F,
-    ._RemovePokemon = 0x7B68,
-    .SaveSAVtoSRAM1 = 0x1C77E2,
-    .SaveSAVtoSRAM2 = 0x1C780F,
-    .Bankswitch = 0x35D6,
-    .SoftReset = 0x1F49,
-    .garbageDataLocation = 0x0316,
+    .clearScreen = 0x190C,
+    .CableClub_TextBoxBorder = 0x5B41,
+    .placeString = 0x1952,
+    .Serial_ExchangeBytes = 0x216B,
+    ._RemovePokemon = 0x7BD9,
+    .SaveSAVtoSRAM1 = 0x1C77B3,
+    .SaveSAVtoSRAM2 = 0x1C77E0,
+    .Bankswitch = 0x35F3,
+    .SoftReset = 0x1F45,
+    .garbageDataLocation = 0x1F8E,
 
-    .wRemoveMonFromBox = 0xCF95,
-    .wBoxCount = 0xDA80,
-    .wWhichPokemon = 0xCF92,
-    .wBoxDataStart = 0xDA80,
-    .wBoxDataEnd = 0xDEE2,
-    .wSerialEnemyDataBlock = 0xD893,
-    .wEnemyMonSpecies = 0xCFE5,
+    .wRemoveMonFromBox = 0xCF9A,
+    .wBoxCount = 0xDA85,
+    .wWhichPokemon = 0xCF95,
+    .wBoxDataStart = 0xDA85,
+    .wBoxDataEnd = 0xDEE7,
+    .wSerialEnemyDataBlock = 0xD898,
+    .wEnemyMonSpecies = 0xCFEA,
 
     .wSerialEnemyMonsPatchList = 0xC5D0,
     .wSerialOtherGameboyRandomNumberListBlock = 0xCD81,
@@ -85,8 +85,8 @@ const struct GB_ROM ENG_BLUE = {
     .textBorderWidth = 12,
     .textBorderHeight = 1,
 };
-const struct GB_ROM ENG_YELLOW = {
-    .language = ENG_ID,
+const struct GB_ROM FRE_YELLOW = {
+    .language = FRE_ID,
     .version = YELLOW_ID,
     .generation = 1,
     .method = METHOD_MEW,
@@ -98,17 +98,17 @@ const struct GB_ROM ENG_YELLOW = {
     .short_pkmn_name = 0x15,
     .pointer_pkmn_name = 0xE3,
 
-    .clearScreen = 0x16DD,
-    .CableClub_TextBoxBorder = 0x16F0, // TextBoxBoarder, since the Cable Club isn't loaded
-    .placeString = 0x1723,
-    .Serial_ExchangeBytes = 0x1FCB,
-    ._RemovePokemon = 0x7A0F,
-    .SaveSAVtoSRAM1 = 0x1C7B32,
-    .SaveSAVtoSRAM2 = 0x1C7B56,
-    .OpenSRAM = 0x3E99,
-    .Bankswitch = 0x3E7E, // BankswitchCommon
-    .SoftReset = 0x1D05,
-    .CloseSRAM = 0x3EA9,
+    .clearScreen = 0x16DA,
+    .CableClub_TextBoxBorder = 0x5BE3, // TextBoxBoarder, since the Cable Club isn't loaded
+    .placeString = 0x1720,
+    .Serial_ExchangeBytes = 0x1FC7,
+    ._RemovePokemon = 0x7A69,
+    .SaveSAVtoSRAM1 = 0x1C7B03,
+    .SaveSAVtoSRAM2 = 0x1C7B27,
+    .OpenSRAM = 0x3E9C,
+    .Bankswitch = 0x3E81, // BankswitchCommon
+    .SoftReset = 0x1D01,
+    .CloseSRAM = 0x3EAC,
     .garbageDataLocation = 0x0161,
 
     .wRemoveMonFromBox = 0xCF94,
@@ -128,8 +128,8 @@ const struct GB_ROM ENG_YELLOW = {
     .textBorderWidth = 12,
     .textBorderHeight = 1,
 };
-const struct GB_ROM ENG_GOLD = {
-    .language = ENG_ID,
+const struct GB_ROM FRE_GOLD = {
+    .language = FRE_ID,
     .version = GOLD_ID,
     .generation = 2,
     .method = METHOD_GEN2,
@@ -150,12 +150,12 @@ const struct GB_ROM ENG_GOLD = {
     .SoftReset = 0x05B0,
     .garbageDataLocation = 0x0654,
 
-    .wRemoveMonFromBox = 0x01D008,   // wPokemonWithdrawDepositParameter
-    .wBoxCount = 0x01AD6C,           // sBoxCount
-    .wWhichPokemon = 0x01D005,       // wCurPartyMon
-    .wBoxDataStart = 0xAD6C,         // sBoxStart
-    .wBoxDataEnd = 0xB1BA,           // sBoxEnd
-    .wSerialEnemyDataBlock = 0xDD40, // wOTPartyData
+    .wRemoveMonFromBox = 0x01D008, // wPokemonWithdrawDepositParameter
+    .wBoxCount = 0x01AD6C,         // sBoxCount
+    .wWhichPokemon = 0x01D005,     // wCurPartyMon
+    .wBoxDataStart = 0xAD6C,                            // sBoxStart
+    .wBoxDataEnd = 0xB1BA,                              // sBoxEnd
+    .wSerialEnemyDataBlock = 0xDD40,                    // wOTPartyData
     .wEnemyMonSpecies = 0x01D0EF,
 
     .wSerialEnemyMonsPatchList = 0xC5D0,                // wOTPatchLists
@@ -167,8 +167,8 @@ const struct GB_ROM ENG_GOLD = {
     .textBorderWidth = 12,
     .textBorderHeight = 1,
 };
-const struct GB_ROM ENG_SILVER = {
-    .language = ENG_ID,
+const struct GB_ROM FRE_SILVER = {
+    .language = FRE_ID,
     .version = SILVER_ID,
     .generation = 2,
     .method = METHOD_GEN2,
@@ -189,12 +189,12 @@ const struct GB_ROM ENG_SILVER = {
     .SoftReset = 0x05B0,
     .garbageDataLocation = 0x0654,
 
-    .wRemoveMonFromBox = 0x01D008,   // wPokemonWithdrawDepositParameter
-    .wBoxCount = 0x01AD6C,           // sBoxCount
-    .wWhichPokemon = 0x01D005,       // wCurPartyMon
-    .wBoxDataStart = 0xAD6C,         // sBoxStart
-    .wBoxDataEnd = 0xB1BA,           // sBoxEnd
-    .wSerialEnemyDataBlock = 0xDD40, // wOTPartyData
+    .wRemoveMonFromBox = 0x01D008, // wPokemonWithdrawDepositParameter
+    .wBoxCount = 0x01AD6C,         // sBoxCount
+    .wWhichPokemon = 0x01D005,     // wCurPartyMon
+    .wBoxDataStart = 0xAD6C,                            // sBoxStart
+    .wBoxDataEnd = 0xB1BA,                              // sBoxEnd
+    .wSerialEnemyDataBlock = 0xDD40,                    // wOTPartyData
     .wEnemyMonSpecies = 0x01D0EF,
 
     .wSerialEnemyMonsPatchList = 0xC5D0,                // wOTPatchLists
@@ -206,8 +206,8 @@ const struct GB_ROM ENG_SILVER = {
     .textBorderWidth = 12,
     .textBorderHeight = 1,
 };
-const struct GB_ROM ENG_CRYSTAL = {
-    .language = ENG_ID,
+const struct GB_ROM FRE_CRYSTAL = {
+    .language = FRE_ID,
     .version = CRYSTAL_ID,
     .generation = 2,
     .method = METHOD_GEN2,
@@ -228,12 +228,12 @@ const struct GB_ROM ENG_CRYSTAL = {
     .SoftReset = 0x0150, // Reset
     .garbageDataLocation = 0x0770,
 
-    .wRemoveMonFromBox = 0x01D10B,   // wPokemonWithdrawDepositParameter
-    .wBoxCount = 0x01AD10,           // sBoxCount
-    .wWhichPokemon = 0x01D109,       // wCurPartyMon
-    .wBoxDataStart = 0x01AD10,       // sBox
-    .wBoxDataEnd = 0x01B15E,         // sBoxEnd
-    .wSerialEnemyDataBlock = 0xD26B, // wOTPartyData
+    .wRemoveMonFromBox = 0x01D10B, // wPokemonWithdrawDepositParameter
+    .wBoxCount = 0x01AD10,         // sBoxCount
+    .wWhichPokemon = 0x01D109,     // wCurPartyMon
+    .wBoxDataStart = 0x01AD10,                          // sBox
+    .wBoxDataEnd = 0x01B15E,                            // sBoxEnd
+    .wSerialEnemyDataBlock = 0xD26B,                    // wOTPartyData
     .wEnemyMonSpecies = 0x01D206,
 
     .wSerialEnemyMonsPatchList = 0xC6D0,                // wOTPatchLists

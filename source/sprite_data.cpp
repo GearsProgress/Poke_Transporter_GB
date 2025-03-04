@@ -17,13 +17,13 @@ int y_offset_direction = 1;
 #include "background.h"
 void load_background()
 {
-    int CBB = 0;
-    int SBB = 1;
+    int CBB = 2;
+    int SBB = 12;
     // Load palette
     tonccpy(pal_bg_mem, backgroundPal, backgroundPalLen);
     // Load tiles into CBB 0
     LZ77UnCompVram(backgroundTiles, &tile_mem[CBB][0]);
-    // Load map into SBB 30
+    // Load map into SBB 0
     LZ77UnCompVram(backgroundMap, &se_mem[SBB][0]);
     REG_BG0CNT = BG_CBB(CBB) | BG_SBB(SBB) | BG_4BPP | BG_REG_32x32 | BG_PRIO(3);
 }
@@ -119,8 +119,8 @@ void set_background_pal(int curr_rom_id, bool dark, bool fade)
 #include "menu_bars.h"
 void load_flex_background(int background_id, int layer)
 {
-    int CBB = 1;  // CBB is the tiles that make up the sprite
-    int SBB = 15; // SSB is the array of which tile goes where
+    int CBB = 3;  // CBB is the tiles that make up the sprite
+    int SBB = 31; // SSB is the array of which tile goes where
     switch (background_id)
     {
     case (BG_OPENING):
@@ -168,13 +168,13 @@ void load_flex_background(int background_id, int layer)
 void load_textbox_background()
 {
     int CBB = 2;
-    int SBB = 17;
+    int SBB = 20;
     // Load palette
     tonccpy(pal_bg_mem + 16, textBoxBGPal, textBoxBGPalLen);
     // Load tiles into CBB 0
-    LZ77UnCompVram(textBoxBGTiles, &tile_mem[CBB][0]);
+    LZ77UnCompVram(textBoxBGTiles, &tile_mem[CBB][38]);
     // Load map into SBB 0
-    LZ77UnCompVram(textBoxBGMap, &se_mem[SBB][0]);
+    reload_textbox_background();
 
     REG_BG2VOFS = 96;
     REG_BG2CNT = BG_CBB(CBB) | BG_SBB(SBB) | BG_4BPP | BG_REG_32x32 | BG_PRIO(3);
@@ -182,40 +182,46 @@ void load_textbox_background()
 
 void reload_textbox_background()
 {
-    int SBB = 17;
+    int SBB = 20;
     LZ77UnCompVram(textBoxBGMap, &se_mem[SBB][0]);
+    for (int i = 0; i < 1024; i++){
+        se_mem[SBB][i] += 38; // This should be overflow protected, but if we're flipping back around we're already in trouble
+    }
 }
 
 // tile ID, VH Flip, Palette Bank
-#define TILE_CLEAR (0 | (0b00 << 0xA) | (1 << 0xC))
-#define TILE_N (2 | (0b00 << 0xA) | (1 << 0xC))
-#define TILE_NE (1 | (0b01 << 0xA) | (1 << 0xC))
-#define TILE_E (3 | (0b01 << 0xA) | (1 << 0xC))
-#define TILE_SE (5 | (0b01 << 0xA) | (1 << 0xC))
-#define TILE_S (6 | (0b00 << 0xA) | (1 << 0xC))
-#define TILE_SW (5 | (0b00 << 0xA) | (1 << 0xC))
-#define TILE_W (3 | (0b00 << 0xA) | (1 << 0xC))
-#define TILE_NW (1 | (0b00 << 0xA) | (1 << 0xC))
-#define TILE_MID (4 | (0b00 << 0xA) | (1 << 0xC))
+#define TILE_OFFSET 38
+#define TILE_CLEAR ((0 + TILE_OFFSET) | (0b00 << 0xA) | (1 << 0xC))
+#define TILE_N ((2  + TILE_OFFSET) | (0b00 << 0xA) | (1 << 0xC))
+#define TILE_NE ((1  + TILE_OFFSET) | (0b01 << 0xA) | (1 << 0xC))
+#define TILE_E ((3  + TILE_OFFSET) | (0b01 << 0xA) | (1 << 0xC))
+#define TILE_SE ((5  + TILE_OFFSET) | (0b01 << 0xA) | (1 << 0xC))
+#define TILE_S ((6  + TILE_OFFSET) | (0b00 << 0xA) | (1 << 0xC))
+#define TILE_SW ((5  + TILE_OFFSET) | (0b00 << 0xA) | (1 << 0xC))
+#define TILE_W ((3  + TILE_OFFSET) | (0b00 << 0xA) | (1 << 0xC))
+#define TILE_NW ((1  + TILE_OFFSET) | (0b00 << 0xA) | (1 << 0xC))
+#define TILE_MID ((4  + TILE_OFFSET) | (0b00 << 0xA) | (1 << 0xC))
 #define MENU_WIDTH 11 - 1
 
 void add_menu_box(int options)
 {
     int start = (32 * 13) + 18;
-    int SBB = 17;
+    int SBB = 20;
+
+    int tiles = ((options * 10) / 8) + 1;
 
     se_mem[SBB][start] = TILE_NW;
     se_mem[SBB][start + MENU_WIDTH] = TILE_NE;
-    se_mem[SBB][start + (32 * (options + 1))] = TILE_SW;
-    se_mem[SBB][start + (32 * (options + 1)) + MENU_WIDTH] = TILE_SE;
+    se_mem[SBB][start + (32 * (tiles + 1))] = TILE_SW;
+    se_mem[SBB][start + (32 * (tiles + 1)) + MENU_WIDTH] = TILE_SE;
 
     for (int i = 1; i < MENU_WIDTH; i++)
     {
         se_mem[SBB][start + i] = TILE_N;
-        se_mem[SBB][start + ((32 * (options + 1))) + i] = TILE_S;
+        se_mem[SBB][start + ((32 * (tiles + 1))) + i] = TILE_S;
     }
 
-    for (int i = 0; i < options; i++)
+    for (int i = 0; i < tiles; i++)
     {
         se_mem[SBB][start + (32 * (i + 1)) + MENU_WIDTH] = TILE_E;
         se_mem[SBB][start + (32 * (i + 1))] = TILE_W;
@@ -223,7 +229,7 @@ void add_menu_box(int options)
 
     for (int x = 1; x < MENU_WIDTH; x++)
     {
-        for (int y = 1; y < options + 1; y++)
+        for (int y = 1; y < tiles + 1; y++)
         {
             se_mem[SBB][start + (32 * y) + x] = TILE_MID;
         }
@@ -657,7 +663,7 @@ void load_select_sprites(int game_id, int lang)
 void fennel_blink(int frame)
 {
     bool missingno = get_missingno_enabled();
-    int SBB = 15; // SSB is the array of which tile goes where
+    int SBB = 31; // SSB is the array of which tile goes where
     switch (frame)
     {
     case 0:
@@ -682,7 +688,7 @@ void fennel_blink(int frame)
 void fennel_speak(int frame)
 {
     bool missingno = get_missingno_enabled();
-    int SBB = 15; // SSB is the array of which tile goes where
+    int SBB = 31; // SSB is the array of which tile goes where
     switch (frame)
     {
     case 0:

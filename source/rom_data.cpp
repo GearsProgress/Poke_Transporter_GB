@@ -2,6 +2,7 @@
 #include "mystery_gift_builder.h"
 #include "pokemon_party.h"
 #include "pokemon_data.h"
+#include "text_engine.h"
 #include "gba_rom_values/eng_gba_rom_values.h"
 #include "gba_rom_values/jpn_gba_rom_values.h"
 #include "gba_rom_values/fre_gba_rom_values.h"
@@ -182,7 +183,7 @@ void rom_data::print_rom_info()
     out += "-";
     out += char(language);
     tte_set_pos(0, 8);
-    tte_write(out.c_str());
+    ptgb_write(out.c_str());
 }
 
 bool rom_data::verify_rom()

@@ -4,6 +4,7 @@
 #include "random.h"
 #include "save_data_manager.h"
 #include "debug_mode.h"
+#include "text_engine.h"
 
 Pokemon::Pokemon() {};
 
@@ -92,7 +93,7 @@ void Pokemon::load_data(int index, const byte *party_data, int game, int lang)
     switch (gen)
     {
     case 1:
-        // tte_write(std::to_string(party_data[1121]).c_str());
+        // ptgb_write(std::to_string(party_data[1121]).c_str());
         // while (true){};
         species_index_party = party_data[party_species_offset];
         species_index_struct = party_data[box_struct_offset + 0x00];
@@ -140,16 +141,16 @@ void Pokemon::load_data(int index, const byte *party_data, int game, int lang)
     if (SHOW_DATA_PACKETS)
     {
         tte_set_pos(8, 120);
-        tte_write("struct offset: ");
-        tte_write(std::to_string(box_struct_offset).c_str());
-        tte_write("\nbox_size: ");
-        tte_write(std::to_string(box_size).c_str());
-        tte_write("\npkmn_size: ");
-        tte_write(std::to_string(pkmn_size).c_str());
-        tte_write("\nindex: ");
-        tte_write(std::to_string(index).c_str());
-        tte_write(", game: ");
-        tte_write(std::to_string(game).c_str());
+        ptgb_write("struct offset: ");
+        ptgb_write(std::to_string(box_struct_offset).c_str());
+        ptgb_write("\nbox_size: ");
+        ptgb_write(std::to_string(box_size).c_str());
+        ptgb_write("\npkmn_size: ");
+        ptgb_write(std::to_string(pkmn_size).c_str());
+        ptgb_write("\nindex: ");
+        ptgb_write(std::to_string(index).c_str());
+        ptgb_write(", game: ");
+        ptgb_write(std::to_string(game).c_str());
         while (!key_hit(KEY_A))
         {
             global_next_frame();
