@@ -121,7 +121,7 @@ void load_flex_background(int background_id, int layer);
 void load_eternal_sprites();
 void load_temp_box_sprites(Pokemon_Party party_data);
 void load_type_sprites(int pkmn_index, int dex_offset, bool is_caught);
-void add_menu_box(int options);
+void add_menu_box(int options, int startX, int startY);
 void reload_textbox_background();
 void load_select_sprites(int game_id, int lang);
 void fennel_blink(int frame);

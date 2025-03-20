@@ -4,6 +4,7 @@
 #include "pokemon.h"
 #include "rom_data.h"
 #include "libraries/Pokemon-Gen3-to-Gen-X/include/save.h"
+#include "text_engine.h"
 
 #define pkmn_length 80
 #define READ_SAVE_SECTIONS 5
@@ -94,12 +95,13 @@ void initalize_memory_locations()
 
 void print_mem_section()
 {
-    std::string out;
-    out.append(1, mem_name);
-    out += "-";
-    out += std::to_string(mem_id);
+    return; // This function isn't really needed now
+    byte out[4] = {0, 0, 0, 0xFF};
+    out[0] = get_gen_3_char(mem_name, false);
+    out[1] = get_gen_3_char('-', false);
+    out[2] = get_gen_3_char(mem_id + 0xA1, false); // Kinda a dumb way to 
     tte_set_pos(0, 0);
-    tte_write(out.c_str());
+    ptgb_write(out, true);
 }
 
 // Reverses the endian of the given array

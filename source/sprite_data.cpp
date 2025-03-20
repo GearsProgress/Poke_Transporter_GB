@@ -110,7 +110,7 @@ void set_background_pal(int curr_rom_id, bool dark, bool fade)
     (pal_obj_mem + (BTN_LIT_PAL * 16))[8] = pal_bg_mem[1];
     (pal_obj_mem + (BTN_LIT_PAL * 16))[9] = pal_bg_mem[1];
     (pal_obj_mem + (BTN_LIT_PAL * 16))[10] = pal_bg_mem[3];
-    pal_bg_bank[14][15] = pal_bg_mem[3];
+    pal_bg_bank[15][14] = pal_bg_mem[3];
 }
 
 #include "openingBG.h"
@@ -184,7 +184,8 @@ void reload_textbox_background()
 {
     int SBB = 20;
     LZ77UnCompVram(textBoxBGMap, &se_mem[SBB][0]);
-    for (int i = 0; i < 1024; i++){
+    for (int i = 0; i < 1024; i++)
+    {
         se_mem[SBB][i] += 38; // This should be overflow protected, but if we're flipping back around we're already in trouble
     }
 }
@@ -192,41 +193,79 @@ void reload_textbox_background()
 // tile ID, VH Flip, Palette Bank
 #define TILE_OFFSET 38
 #define TILE_CLEAR ((0 + TILE_OFFSET) | (0b00 << 0xA) | (1 << 0xC))
-#define TILE_N ((2  + TILE_OFFSET) | (0b00 << 0xA) | (1 << 0xC))
-#define TILE_NE ((1  + TILE_OFFSET) | (0b01 << 0xA) | (1 << 0xC))
-#define TILE_E ((3  + TILE_OFFSET) | (0b01 << 0xA) | (1 << 0xC))
-#define TILE_SE ((5  + TILE_OFFSET) | (0b01 << 0xA) | (1 << 0xC))
-#define TILE_S ((6  + TILE_OFFSET) | (0b00 << 0xA) | (1 << 0xC))
-#define TILE_SW ((5  + TILE_OFFSET) | (0b00 << 0xA) | (1 << 0xC))
-#define TILE_W ((3  + TILE_OFFSET) | (0b00 << 0xA) | (1 << 0xC))
-#define TILE_NW ((1  + TILE_OFFSET) | (0b00 << 0xA) | (1 << 0xC))
-#define TILE_MID ((4  + TILE_OFFSET) | (0b00 << 0xA) | (1 << 0xC))
-#define MENU_WIDTH 11 - 1
+#define TILE_MID ((1 + TILE_OFFSET) | (0b00 << 0xA) | (1 << 0xC))
+#define TILE_N ((2 + TILE_OFFSET) | (0b00 << 0xA) | (1 << 0xC))
+#define TILE_NE ((3 + TILE_OFFSET) | (0b00 << 0xA) | (1 << 0xC))
+#define TILE_E ((4 + TILE_OFFSET) | (0b00 << 0xA) | (1 << 0xC))
+#define TILE_W ((4 + TILE_OFFSET) | (0b01 << 0xA) | (1 << 0xC))
+#define TILE_NW ((3 + TILE_OFFSET) | (0b01 << 0xA) | (1 << 0xC))
 
-void add_menu_box(int options)
+#define TILE_SW_0 ((6 + TILE_OFFSET) | (0b01 << 0xA) | (1 << 0xC))
+#define TILE_S_0 ((5 + TILE_OFFSET) | (0b00 << 0xA) | (1 << 0xC))
+#define TILE_SE_0 ((6 + TILE_OFFSET) | (0b00 << 0xA) | (1 << 0xC))
+
+#define TILE_SW_2 ((8 + TILE_OFFSET) | (0b01 << 0xA) | (1 << 0xC))
+#define TILE_S_2 ((7 + TILE_OFFSET) | (0b00 << 0xA) | (1 << 0xC))
+#define TILE_SE_2 ((8 + TILE_OFFSET) | (0b00 << 0xA) | (1 << 0xC))
+
+#define TILE_SW_4U ((10 + TILE_OFFSET) | (0b01 << 0xA) | (1 << 0xC))
+#define TILE_S_4U ((9 + TILE_OFFSET) | (0b00 << 0xA) | (1 << 0xC))
+#define TILE_SE_4U ((10 + TILE_OFFSET) | (0b00 << 0xA) | (1 << 0xC))
+#define TILE_SW_4L ((12 + TILE_OFFSET) | (0b01 << 0xA) | (1 << 0xC))
+#define TILE_S_4L ((11 + TILE_OFFSET) | (0b00 << 0xA) | (1 << 0xC))
+#define TILE_SE_4L ((12 + TILE_OFFSET) | (0b00 << 0xA) | (1 << 0xC))
+
+#define TILE_SW_6U ((14 + TILE_OFFSET) | (0b01 << 0xA) | (1 << 0xC))
+#define TILE_S_6U ((13 + TILE_OFFSET) | (0b00 << 0xA) | (1 << 0xC))
+#define TILE_SE_6U ((14 + TILE_OFFSET) | (0b00 << 0xA) | (1 << 0xC))
+#define TILE_SW_6L ((16 + TILE_OFFSET) | (0b01 << 0xA) | (1 << 0xC))
+#define TILE_S_6L ((15 + TILE_OFFSET) | (0b00 << 0xA) | (1 << 0xC))
+#define TILE_SE_6L ((16 + TILE_OFFSET) | (0b00 << 0xA) | (1 << 0xC))
+
+#define MENU_WIDTH 11 - 1 // Currently static
+
+static int TILE_SE_U_ARR[4] = {TILE_SE_0, TILE_SE_2, TILE_SE_4U, TILE_SE_6U};
+static int TILE_S_U_ARR[4] = {TILE_S_0, TILE_S_2, TILE_S_4U, TILE_S_6U};
+static int TILE_SW_U_ARR[4] = {TILE_SW_0, TILE_SW_2, TILE_SW_4U, TILE_SW_6U};
+static int TILE_SE_L_ARR[4] = {TILE_CLEAR, TILE_CLEAR, TILE_SE_4L, TILE_SE_6L};
+static int TILE_S_L_ARR[4] = {TILE_CLEAR, TILE_CLEAR, TILE_S_4L, TILE_S_6L};
+static int TILE_SW_L_ARR[4] = {TILE_CLEAR, TILE_CLEAR, TILE_SW_4L, TILE_SW_6L};
+
+void add_menu_box(int options, int startTileX, int startTileY)
 {
-    int start = (32 * 13) + 18;
+    // We can't check the current offset very easily, so we'll just assume it's in the text box position.
+    startTileY += 12;
+
+    int start = (32 * startTileY) + startTileX;
     int SBB = 20;
 
-    int tiles = ((options * 10) / 8) + 1;
+    int tiles = (options * 10) / 8;
+    int rem = (options * 10) % 8;
 
+    // Corners
     se_mem[SBB][start] = TILE_NW;
     se_mem[SBB][start + MENU_WIDTH] = TILE_NE;
-    se_mem[SBB][start + (32 * (tiles + 1))] = TILE_SW;
-    se_mem[SBB][start + (32 * (tiles + 1)) + MENU_WIDTH] = TILE_SE;
+    se_mem[SBB][start + (32 * (tiles + 1))] = TILE_SW_U_ARR[rem / 2];
+    se_mem[SBB][start + (32 * (tiles + 2))] = TILE_SW_L_ARR[rem / 2];
+    se_mem[SBB][start + (32 * (tiles + 1)) + MENU_WIDTH] = TILE_SE_U_ARR[rem / 2];
+    se_mem[SBB][start + (32 * (tiles + 2)) + MENU_WIDTH] = TILE_SE_L_ARR[rem / 2];
 
+    // Top and bottom edge
     for (int i = 1; i < MENU_WIDTH; i++)
     {
         se_mem[SBB][start + i] = TILE_N;
-        se_mem[SBB][start + ((32 * (tiles + 1))) + i] = TILE_S;
+        se_mem[SBB][start + ((32 * (tiles + 1))) + i] = TILE_S_U_ARR[rem / 2];
+        se_mem[SBB][start + ((32 * (tiles + 2))) + i] = TILE_S_L_ARR[rem / 2];
     }
 
+    // Sides
     for (int i = 0; i < tiles; i++)
     {
         se_mem[SBB][start + (32 * (i + 1)) + MENU_WIDTH] = TILE_E;
         se_mem[SBB][start + (32 * (i + 1))] = TILE_W;
     }
 
+    // Middle
     for (int x = 1; x < MENU_WIDTH; x++)
     {
         for (int y = 1; y < tiles + 1; y++)
@@ -333,8 +372,7 @@ inline void BitUnPack(const void *src, void *dst, uint16_t len, uint8_t from, ui
         .src_len = len,
         .src_bpp = from,
         .dst_bpp = to,
-        .dst_ofs = 0
-    };
+        .dst_ofs = 0};
     BitUnPack(src, dst, &bupInfo);
 }
 
@@ -439,7 +477,7 @@ void load_sprite(OBJ_ATTR *sprite, const unsigned int objTiles[], int objTilesLe
 };
 
 void load_sprite_compressed(OBJ_ATTR *sprite, const unsigned int objTiles[],
-                 u32 &tile_id, u32 pal_bank, int attr0, int attr1, u32 priority)
+                            u32 &tile_id, u32 pal_bank, int attr0, int attr1, u32 priority)
 {
     // bits 8-31 of the header are the length
     int objTilesLen = objTiles[0] >> 8;
@@ -448,7 +486,6 @@ void load_sprite_compressed(OBJ_ATTR *sprite, const unsigned int objTiles[],
     tile_id += objTilesLen / 32;
     obj_hide(sprite);
 };
-
 
 void load_select_sprites(int game_id, int lang)
 {

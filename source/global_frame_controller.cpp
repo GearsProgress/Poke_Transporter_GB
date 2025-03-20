@@ -266,3 +266,13 @@ u32 fnv1a_hash(unsigned char *data, size_t length)
     }
     return hash;
 }
+
+int get_string_length(const byte *str)
+{
+    int size = 0;
+    while (str[size] != 0xFF)
+    {
+        size++;
+    }
+    return size;
+}

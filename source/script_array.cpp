@@ -16,8 +16,8 @@
 int last_error;
 Pokemon_Party party_data = Pokemon_Party();
 
-Select_Menu langs(false, LANG_MENU);
-Select_Menu games(false, CART_MENU);
+Select_Menu langs(false, LANG_MENU, 18, 0);
+Select_Menu games(false, CART_MENU, 18, 0);
 Box_Menu box_viewer;
 
 script_obj transfer_script[SCRIPT_SIZE];
@@ -132,14 +132,14 @@ void populate_script()
 
 void populate_lang_menu()
 {
-    langs.add_option("English", ENG_ID);
-    langs.add_option("Japanese", JPN_ID);
-    langs.add_option("Spanish", SPA_ID);
-    langs.add_option("French", FRE_ID);
-    langs.add_option("German", GER_ID);
-    langs.add_option("Italian", ITA_ID);
-    langs.add_option("Korean", KOR_ID);
-    langs.add_option("Cancel", -1);
+    langs.add_option(option_english, ENG_ID);
+    langs.add_option(option_japanese, JPN_ID);
+    langs.add_option(option_spanish, SPA_ID);
+    langs.add_option(option_french, FRE_ID);
+    langs.add_option(option_german, GER_ID);
+    langs.add_option(option_italian, ITA_ID);
+    langs.add_option(option_korean, KOR_ID);
+    langs.add_option(option_cancel, -1);
 }
 
 void populate_game_menu(int lang)
@@ -147,30 +147,30 @@ void populate_game_menu(int lang)
     switch (lang)
     {
     case (JPN_ID):
-        games.add_option("Red", RED_ID);
-        games.add_option("Green", GREEN_ID);
-        games.add_option("Blue", BLUE_ID);
-        games.add_option("Yellow", YELLOW_ID);
-        games.add_option("Gold", GOLD_ID);
-        games.add_option("Silver", SILVER_ID);
-        games.add_option("Crystal", CRYSTAL_ID);
-        games.add_option("Cancel", -1);
+        games.add_option(option_red, RED_ID);
+        games.add_option(option_green, GREEN_ID);
+        games.add_option(option_blue, BLUE_ID);
+        games.add_option(option_yellow, YELLOW_ID);
+        games.add_option(option_gold, GOLD_ID);
+        games.add_option(option_silver, SILVER_ID);
+        games.add_option(option_crystal, CRYSTAL_ID);
+        games.add_option(option_cancel, -1);
         break;
 
     case (KOR_ID):
-        games.add_option("Gold", GOLD_ID);
-        games.add_option("Silver", SILVER_ID);
-        games.add_option("Cancel", -1);
+        games.add_option(option_gold, GOLD_ID);
+        games.add_option(option_silver, SILVER_ID);
+        games.add_option(option_cancel, -1);
         break;
 
     default:
-        games.add_option("Red", RED_ID);
-        games.add_option("Blue", BLUE_ID);
-        games.add_option("Yellow", YELLOW_ID);
-        games.add_option("Gold", GOLD_ID);
-        games.add_option("Silver", SILVER_ID);
-        games.add_option("Crystal", CRYSTAL_ID);
-        games.add_option("Cancel", -1);
+        games.add_option(option_red, RED_ID);
+        games.add_option(option_blue, BLUE_ID);
+        games.add_option(option_yellow, YELLOW_ID);
+        games.add_option(option_gold, GOLD_ID);
+        games.add_option(option_silver, SILVER_ID);
+        games.add_option(option_crystal, CRYSTAL_ID);
+        games.add_option(option_cancel, -1);
         break;
     }
 }

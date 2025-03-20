@@ -10,7 +10,7 @@
 #include "debug_mode.h"
 #include "button_menu.h"
 #include "sprite_data.h"
-#include "latin_normal.h"
+#include "latin_short.h"
 #include "japanese_small.h"
 
 #define TEXT_CBB 0
@@ -34,18 +34,19 @@ void init_text_engine()
                        15,                              // Text color
                        0,                               // Shadow color
                        0,                               // Paper
-                       0),                              // ???
+                       0),                              // Special
                    CLR_WHITE,                           // White text
-                   &japanese_smallFont,                 // Custom font
+                   BUILD_FONT,                          // Custom font
                    NULL                                 // Use default chr4 renderer
     );
     tte_init_con();
 
-    tte_set_margins(LEFT, TOP, RIGHT, BOTTOM);
-    tte_set_pos(LEFT, TOP);
+    // tte_set_margins(LEFT, TOP, RIGHT, BOTTOM);
+    // tte_set_pos(LEFT, TOP);
 
-    pal_bg_bank[13][15] = CLR_WHITE;
-    pal_bg_bank[15][15] = 0b0000110001100010;
+    pal_bg_bank[15][INK_WHITE] = CLR_WHITE;              // White
+    pal_bg_bank[15][INK_DARK_GREY] = 0b0000110001100010; // Dark Grey
+    // 14 will be changed to game color
 
     // Set default variables
     char_index = 0;
@@ -68,7 +69,7 @@ int text_loop(int script)
     curr_text = curr_line.get_text();
 
     show_text_box();
-    tte_set_margins(LEFT, TOP, RIGHT, BOTTOM);
+    // tte_set_margins(LEFT, TOP, RIGHT, BOTTOM);
     while (true) // This loops through all the connected script objects
     {
         if (curr_text != NULL && curr_text[char_index] != 0xFF && curr_text[char_index] != 0xF7)
@@ -92,16 +93,15 @@ int text_loop(int script)
         }
         curr_text = curr_line.get_text();
         char_index = 0;
-    }
 
-    if (text_exit)
-    {
-        hide_text_box();
-        tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
-        text_exit = false;
-        return 0;
+        if (text_exit)
+        {
+            hide_text_box();
+            tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
+            text_exit = false;
+            return 0;
+        }
     }
-    global_next_frame();
 }
 
 int text_next_obj_id(script_obj current_line)
@@ -133,6 +133,7 @@ void hide_text_box()
 void set_text_exit()
 {
     text_exit = true;
+    key_poll(); // This removes the "A Hit" when exiting the text
 }
 
 // Implement a version that just writes the whole string
@@ -163,15 +164,23 @@ int ptgb_write(const byte *text, bool instant, int length)
 
     while ((ch = *str) != 0xFF && num < length)
     {
-        if (get_frame_count() % 2 == 0 || key_held(KEY_B) || key_held(KEY_A))
+        if (get_frame_count() % 2 == 0 || key_held(KEY_B) || key_held(KEY_A) || instant)
         {
             str++;
             switch (ch)
             {
             case 0xF7:
+                if (DISPLAY_CONTROL_CHAR)
+                {
+                    tc->drawgProc(0xB9);
+                }
                 wait_for_user_to_continue(true);
                 break;
             case 0xFE:
+                if (DISPLAY_CONTROL_CHAR)
+                {
+                    tc->drawgProc(0xEF);
+                }
                 tc->cursorY += 10; // tc->font->charH;
                 tc->cursorX = tc->marginLeft;
                 break;
@@ -185,11 +194,13 @@ int ptgb_write(const byte *text, bool instant, int length)
 
                 // Character wrap
                 int charW = font->widths ? font->widths[gid] : font->charW;
-                if (tc->cursorX + charW > tc->marginRight)
+
+                // We don't want this tbh- all of the newlines should deal with moving to the next line
+                /* if (tc->cursorX + charW > tc->marginRight)
                 {
                     tc->cursorY += 10; // font->charH;
                     tc->cursorX = tc->marginLeft;
-                }
+                } */
 
                 // Draw and update position
                 tc->drawgProc(gid);
@@ -197,15 +208,41 @@ int ptgb_write(const byte *text, bool instant, int length)
             }
             num += 1;
         }
-        if (get_curr_flex_background() == BG_FENNEL)
+        if (get_curr_flex_background() == BG_FENNEL && !instant)
         {
             fennel_speak(((num / 4) % 4) + 1);
         }
-        global_next_frame();
+        if (!instant)
+        {
+            global_next_frame();
+        }
     }
 
     // Return characters used (PONDER: is this really the right thing?)
     return 0; // str - text;
+}
+// This is mostly used for debug stuff, I shouldn't rely it on it much.
+int ptgb_write_debug(const char *text, bool instant)
+{
+    byte temp_holding[256];
+    int i;
+    for (i = 0; i < 256; i++)
+    {
+        if (text[i] == '\0')
+        {
+            temp_holding[i] = 0xFF;
+            i = 256;
+        }
+        else if (text[i] == '\n')
+        {
+            temp_holding[i] = 0xFE;
+        }
+        else
+        {
+            temp_holding[i] = get_gen_3_char(text[i], false);
+        }
+    }
+    return ptgb_write(temp_holding, instant);
 }
 
 // Adding this to avoid compiler issues temporarilly

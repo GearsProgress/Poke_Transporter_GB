@@ -12,21 +12,23 @@
 class Select_Menu
 {
 public:
-    Select_Menu(bool enable_cancel, int nMenu_type);
+    Select_Menu(bool enable_cancel, int nMenu_type, int nStartX, int nStartY);
     int select_menu_main();
     void hide_menu();
     void show_menu();
     void clear_options();
-    void add_option(std::string option, int return_value);
+    void add_option(const byte *option, int return_value);
     void set_lang(int nLang);
 
 private:
-    std::vector<std::string> menu_options;
+    std::vector<const byte*> menu_options;
     std::vector<int> return_values;
     unsigned int curr_selection;
     bool cancel_enabled;
     int menu_type;
     int lang;
+    int startTileX;
+    int startTileY;
 };
 
 #endif

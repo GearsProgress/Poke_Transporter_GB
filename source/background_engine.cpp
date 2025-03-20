@@ -21,8 +21,8 @@ void background_frame(int global_frame_count)
 
 void set_textbox_large()
 {
-        tte_set_pos(40, 24);
-        tte_set_margins(40, 24, 206, 104);
+        tte_set_pos(40, 16);
+        tte_set_margins(40, 16, 206, 112);
         tte_erase_rect(0, 0, H_MAX, V_MAX);
         REG_BG2VOFS = 0;
 }

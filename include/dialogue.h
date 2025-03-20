@@ -4,7 +4,6 @@
 #include <string>
 #include <tonc.h>
 
-// Dialogue
 #define DIA_OPEN 0
 #define DIA_E4 1
 #define DIA_MG_FRLGE 2
@@ -47,4 +46,43 @@
 
 extern const byte *dialogue[DIA_SIZE];
 
+extern const byte option_english[];
+extern const byte option_japanese[];
+extern const byte option_spanish[];
+extern const byte option_french[];
+extern const byte option_german[];
+extern const byte option_italian[];
+extern const byte option_korean[];
+extern const byte option_green[];
+extern const byte option_red[];
+extern const byte option_blue[];
+extern const byte option_yellow[];
+extern const byte option_gold[];
+extern const byte option_silver[];
+extern const byte option_crystal[];
+extern const byte option_cancel[];
+extern const byte press_start[];
+extern const byte intro_legal[];
+extern const byte option_transfer[];
+extern const byte option_dreamdex[];
+extern const byte option_credits[];
+extern const byte credits_page_1[];
+extern const byte credits_page_2[];
+extern const byte credits_page_3[];
+extern const byte credits_page_4[];
+extern const byte credits_page_5[];
+extern const byte credits_page_6[];
+extern const byte credits_page_7[];
+extern const byte credits_page_8[];
+extern const byte credits_page_9[];
+extern const byte credits_page_10[];
+extern const byte credits_page_11[];
+extern const byte credits_page_12[];
+extern const byte credits_page_13[];
+extern const byte credits_page_14[];
+extern const byte credits_page_15[];
+extern const byte credits_page_16[];
+extern const byte credits_page_17[];
+extern const byte credits_page_18[];
+extern const byte credits_page_19[];
 #endif

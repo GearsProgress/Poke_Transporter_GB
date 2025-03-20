@@ -174,7 +174,7 @@ void game_load_error(void)
 void first_load_message(void)
 {
 	tte_set_pos(8, 0);
-	tte_set_ink(10);
+	tte_set_ink(INK_ROM_COLOR);
 	ptgb_write("#{cx:0xD000}\n\nHello! Thank you for using\nPok@ Transporter GB!\n\nJust as a word of caution- \nPok@ Transporter GB WILL\nmodify both the GameBoy and GameBoy Advance save files.\n\nPlease note that Pok@\nTransporter GB is still in\nbeta, so save file backups\nare HIGHLY recommended\nbefore using. With that all\nbeing said, please enjoy!\n\n      -The Gears of Progress");
 	while (!key_hit(KEY_A))
 	{
@@ -187,33 +187,39 @@ int credits()
 {
 #define CREDITS_ARRAY_SIZE 19
 	int curr_credits_num = 0;
-	std::string credits_array[CREDITS_ARRAY_SIZE] = {
-		//"testing: う",
-		"Lead developer:\n\nThe Gears of\nProgress",
-		"Logo and co-ideator:\n\n-Jome\n\nSpritework:\n\n-LJ Birdman\n\n",
-		"Icon Sprites: \n\n-LuigiTKO\n-GuiAbel\n-SourApple\n & the artists from\nPok@mon Showdown and\nCrystal Clear",
-		"Remote and Arbitrary\nCode Execution\nassistance:\n\n\n-TimoVM",
-		"Development\nassistance:\n\n-im a blisy\n-rileyk64\n-Shao",
-		"Space Optimization:\n\n-easyaspi314",
-		"Built using:\n\n\n-DevkitPro\n-LibTonc\n-LibGBA",
-		"Inspired by the\nworks of:\n\n-Goppier\n-Lorenzooone\n-im a blisy\n-RETIRE",
-		"Programs used:\n\n\n-HexManiacAdvance\n-PKHeX\n-WC3Tool\n-Usenti\n-SappyMidToAGB",
-		"Open Source Code and\nLibraries:\n\n-libtonc-examples\n-PokemonGen3toGenX\n-gba-link-connection\n-awesome-gbadev\n-arduino-poke-gen2",
-		"Research resources:\n\n-arm-docs\n-PokemonGen3toGenX\n\nFull links can be\nfound on this\nprogram's GitHub",
-		"ROM data obtained\nfrom decompilations created by the PRET team",
-		"Pok@mon data\nobtained from:\n\n-Bulbapedia\n-Serebii\n-PokeAPI.com",
-		"Discord community\nassistance:\n\n-Hex Maniac Advance\n Development\n-gbadev\n-pret",
-		"Writing assistance:\n\n\n-Mad",
-		"An immense thanks to\nLorenzooone for\ntheir assistance in\nreading/writing save\ndata. Without them,\nthis project would\nnot have been\npossible.",
-		"Special thanks to\nEnn, roku, Sleepy,\nEza, sarahtonin,\nBasabi, Mad, and\neveryone who has\nlistened to me talk\nabout this for\nmonths!",
-		"All Pok@mon names,\nsprites, and names\nof related resources\nare copyright\nNintendo,\nCreatures Inc.,\nand GAME FREAK Inc.",
-		"This project is not endorsed or\nsupported by\nGameFreak/Nintendo.\n\nPlease support the\noriginal developers.",
+	const byte *credits_array[CREDITS_ARRAY_SIZE] = {
+		credits_page_1,
+		credits_page_2,
+		credits_page_3,
+		credits_page_4,
+		credits_page_5,
+		credits_page_6,
+		credits_page_7,
+		credits_page_8,
+		credits_page_9,
+		credits_page_10,
+		credits_page_11,
+		credits_page_12,
+		credits_page_13,
+		credits_page_14,
+		credits_page_15,
+		credits_page_16,
+		credits_page_17,
+		credits_page_18,
+		credits_page_19,
+		// Add translators
 	};
+
+	bool update = true;
 
 	while (true)
 	{
-		set_textbox_large();
-		ptgb_write(credits_array[curr_credits_num].c_str());
+		if (update)
+		{
+			set_textbox_large();
+			ptgb_write(credits_array[curr_credits_num], true);
+			update = false;
+		}
 
 		if (key_hit(KEY_B))
 		{
@@ -224,10 +230,12 @@ int credits()
 		if (key_hit(KEY_LEFT) && curr_credits_num > 0)
 		{
 			curr_credits_num--;
+			update = true;
 		}
 		if (key_hit(KEY_RIGHT) && curr_credits_num < (CREDITS_ARRAY_SIZE - 1))
 		{
 			curr_credits_num++;
+			update = true;
 		}
 		if (ENABLE_DEBUG_SCREEN && key_hit(KEY_SELECT))
 		{
@@ -248,46 +256,46 @@ int credits()
 			int def_lang = get_def_lang_num();
 
 			set_textbox_large();
-			ptgb_write("Debug info:\n\nG: ");
+			ptgb_write_debug("Debug info:\n\nG: ", true);
 			std::string lang;
 			lang += curr_rom.language;
-			ptgb_write(lang.c_str());
+			ptgb_write_debug(lang.c_str(), true);
 			switch (curr_rom.gamecode)
 			{
 			case RUBY_ID:
-				ptgb_write("-R-");
+				ptgb_write_debug("-R-", true);
 				break;
 			case SAPPHIRE_ID:
-				ptgb_write("-S-");
+				ptgb_write_debug("-S-", true);
 				break;
 			case FIRERED_ID:
-				ptgb_write("-F-");
+				ptgb_write_debug("-F-", true);
 				break;
 			case LEAFGREEN_ID:
-				ptgb_write("-L-");
+				ptgb_write_debug("-L-", true);
 				break;
 			case EMERALD_ID:
-				ptgb_write("-E-");
+				ptgb_write_debug("-E-", true);
 				break;
 			}
-			ptgb_write(std::to_string(curr_rom.version).c_str());
+			ptgb_write_debug(std::to_string(curr_rom.version).c_str(), true);
 
-			ptgb_write("\nF: ");
-			ptgb_write(std::to_string(e4_flag).c_str());
-			ptgb_write(std::to_string(mg_flag).c_str());
-			ptgb_write(std::to_string(all_collected_flag).c_str());
-			ptgb_write("-");
-			ptgb_write((n2hexstr(pkmn_flags)).c_str());
-			ptgb_write("\nS:   ");
-			ptgb_write(std::to_string(tutorial).c_str());
-			ptgb_write("-");
-			ptgb_write((n2hexstr(def_lang)).c_str());
+			ptgb_write_debug("\nF: ", true);
+			ptgb_write_debug(std::to_string(e4_flag).c_str(), true);
+			ptgb_write_debug(std::to_string(mg_flag).c_str(), true);
+			ptgb_write_debug(std::to_string(all_collected_flag).c_str(), true);
+			ptgb_write_debug("-", true);
+			ptgb_write_debug((n2hexstr(pkmn_flags)).c_str(), true);
+			ptgb_write_debug("\nS:   ", true);
+			ptgb_write_debug(std::to_string(tutorial).c_str(), true);
+			ptgb_write_debug("-", true);
+			ptgb_write_debug((n2hexstr(def_lang)).c_str(), true);
 
-			ptgb_write("\n\n");
-			ptgb_write(VERSION);
+			ptgb_write_debug("\n", true);
+			ptgb_write_debug(VERSION, true);
 			if (get_treecko_enabled())
 			{
-				ptgb_write(".T");
+				ptgb_write_debug(".T", true);
 			}
 			while (true)
 			{
@@ -309,25 +317,29 @@ int credits()
 int main_menu_loop()
 {
 	bool update = true;
-	std::string_view menu_options[NUM_MENU_OPTIONS] = {"Transfer Pok@mon", "Dream Dex", "Credits"};
+	const byte *menu_options[NUM_MENU_OPTIONS] = {option_transfer, option_dreamdex, option_credits};
 	int return_values[NUM_MENU_OPTIONS] = {BTN_TRANSFER, BTN_POKEDEX, BTN_CREDITS};
+	u16 test = 0;
 	while (true)
 	{
 		if (update)
 		{
+			tte_erase_rect(0, 80, 240, 160);
 			for (int i = 0; i < NUM_MENU_OPTIONS; i++)
 			{
-				int x = (6 + ((18 - menu_options[i].length()) / 2)) * 8;
-				tte_set_pos(x, ((i * 2) + 10) * 8);
+				int size = get_string_length(menu_options[i]);
+				int x = (6 + ((18 - size) / 2)) * 8;
+				tte_set_pos(x, ((i * 17) + 80));
 				if (i == curr_selection)
 				{
-					ptgb_write("#{cx:0xD000}");
+					tte_set_ink(INK_WHITE);
 				}
 				else
 				{
-					ptgb_write("#{cx:0xE000}");
+					tte_set_ink(INK_ROM_COLOR);
 				}
-				ptgb_write(menu_options[i].data());
+				ptgb_write(menu_options[i], true);
+				test++;
 			}
 		}
 
@@ -342,7 +354,7 @@ int main_menu_loop()
 		}
 		else if (key_hit(KEY_A))
 		{
-			tte_erase_rect(0, 0, H_MAX, V_MAX);
+			tte_erase_rect(0, test, H_MAX, V_MAX);
 			ptgb_write("#{cx:0xF000}");
 			return return_values[curr_selection];
 		}
@@ -363,10 +375,10 @@ int main(void)
 	set_background_pal(0, false, false);
 
 	// Legal mumbo jumbo
-	tte_set_pos(8, 0);
-	pal_bg_bank[15][15] = CLR_WHITE; // Set the color to white
-	//ptgb_write("\n\nPok@ Transporter GB was made\nout of love and appreciation\nfor the Pokemon franchise\nwith no profit in mind.\nIt will ALWAYS be free.\n\nPlease support the original developers-\nNintendo and GAME FREAK.\n\nAll Pokemon names, sprites, and music are owned by \nNintendo, Creatures Inc, and\nGAME FREAK Inc.\n\n\n         Press A to continue");
-	//ptgb_write(intro_legal);
+	tte_set_margins(8, 8, H_MAX - 8, V_MAX - 8);
+	tte_set_pos(8, 0); // There's def a way to set this to the "top left corner"
+	tte_set_ink(INK_ROM_COLOR);
+	ptgb_write(intro_legal, true);
 	bool wait = true;
 	while (wait)
 	{
@@ -376,7 +388,6 @@ int main(void)
 			wait = false;
 		}
 	}
-	pal_bg_bank[15][15] = 0b00100110001100010;  // Set the color to grey
 
 	// Gears of Progress
 	tte_erase_rect(0, 0, 240, 160);
@@ -401,8 +412,9 @@ int main(void)
 	obj_unhide_multi(ptgb_logo_l, 1, 2);
 	bool start_pressed = false;
 	REG_BLDCNT = BLD_BUILD(BLD_BG3, BLD_BG0, 1);
-	tte_set_pos(6 * 8, 12 * 8);
-	ptgb_write("Push Start Button!");
+	tte_set_pos(((30 - get_string_length(press_start)) / 2) * 8, 12 * 8);
+	tte_set_ink(INK_DARK_GREY);
+	ptgb_write(press_start, true);
 	int fade = 0;
 	while (!start_pressed)
 	{
@@ -413,6 +425,7 @@ int main(void)
 	};
 	key_poll();
 	tte_erase_rect(0, 0, H_MAX, V_MAX);
+	REG_BLDALPHA = BLDA_BUILD(0b10000, 0); // Reset fade
 
 	//  Check if the game has been loaded correctly.
 	while (!curr_rom.load_rom())
@@ -443,7 +456,7 @@ int main(void)
 	// MAIN LOOP
 	while (true)
 	{
-		if (DEBUG_MODE)
+		if (DEBUG_MODE && false) // This isn't really needed anymore
 		{
 			print_mem_section();
 			curr_rom.print_rom_info();
@@ -457,6 +470,7 @@ int main(void)
 		switch (main_menu_loop())
 		{
 		case (BTN_TRANSFER):
+			tte_set_ink(INK_DARK_GREY);
 			obj_hide_multi(ptgb_logo_l, 2);
 			load_flex_background(BG_FENNEL, 2);
 			text_loop(BTN_TRANSFER);
@@ -470,6 +484,7 @@ int main(void)
 			set_background_pal(curr_rom.gamecode, false, false);
 			break;
 		case (BTN_CREDITS):
+			tte_set_ink(INK_DARK_GREY);
 			set_textbox_large();
 			show_text_box();
 			REG_BG1CNT = (REG_BG1CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
