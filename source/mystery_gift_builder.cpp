@@ -4,6 +4,7 @@
 #include "pokemon_party.h"
 #include "pokemon_data.h"
 #include "rom_data.h"
+#include "dialogue.h"
 
 #define MG_SCRIPT false
 #define S30_SCRIPT true
@@ -149,6 +150,7 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     //      À = Player name
     // Ň = New line
     // ƞ = string terminator
+    /*
     switch (curr_rom.gamecode)
     {
     case RUBY_ID:
@@ -181,6 +183,9 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     textThank.set_text(u"ȆÀËThanks for stopping by, ƲÀ!ȼIf you’ll excuse me, I must returnŇto my disguise.ŞUntil our paths cross again!");
     textPCFull.set_text(u"ȆÀÉFENNEL: It seems like the PC is full!ȼGo make some room, and I can sendŇover the rest of your POKéMON.");
     textLookerFull.set_text(u"ȆÀËLOOKER: Speak to me again afterŇyou’ve made room, ƲÀ!ȼIn the meantime, I will return toŇmy disguise.");
+    */
+
+    textGreet.set_text(option_english);
 
     const int movementSlowSpinArray[16] = {
         MOVEMENT_ACTION_FACE_LEFT,

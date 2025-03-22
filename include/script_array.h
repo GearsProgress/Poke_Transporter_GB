@@ -4,7 +4,7 @@
 #include "script_obj.h"
 #include "pokemon_party.h"
 #include "rom_data.h"
-#include "dialogue.h"
+#include "translated_text.h"
 
 // Commands
 #define T_SCRIPT_START DIA_END + 0

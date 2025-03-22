@@ -7,20 +7,23 @@
 #include "sprite_data.h"
 #include "box_menu.h"
 #include "pokemon_data.h"
+#include "text_engine.h"
+#include "translated_text.h"
 
 Box_Menu::Box_Menu() {};
 
 int Box_Menu::box_main(Pokemon_Party party_data)
 {
     tte_erase_screen();
-    load_flex_background(BG_FENNEL, 3);
-    REG_BG2VOFS = BG2VOF_LARGE_TEXTBOX;
-    REG_BG2VOFS = 0;
+    load_flex_background(BG_BOX, 2);
+    REG_BG1VOFS = 0;
+    REG_BG1HOFS = 0;
+    REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
     load_temp_box_sprites(party_data);
     Button cancel_button(button_cancel_left, button_cancel_right, 64);
     Button confirm_button(button_confirm_left, button_confirm_right, 64);
-    cancel_button.set_location(32, 112);
-    confirm_button.set_location(136, 112);
+    cancel_button.set_location(88, 144);
+    confirm_button.set_location(160, 144);
     cancel_button.show();
     confirm_button.show();
     curr_button = 0;
@@ -37,7 +40,7 @@ int Box_Menu::box_main(Pokemon_Party party_data)
                 x--;
                 update_pos = true;
             }
-            else if (key_hit(KEY_RIGHT) && (x < 9))
+            else if (key_hit(KEY_RIGHT) && (x < 5))
             {
                 x++;
                 update_pos = true;
@@ -47,15 +50,15 @@ int Box_Menu::box_main(Pokemon_Party party_data)
                 y--;
                 update_pos = true;
             }
-            else if (key_hit(KEY_DOWN) && (y < 2))
+            else if (key_hit(KEY_DOWN) && (y < 4))
             {
                 y++;
                 update_pos = true;
             }
-            else if (key_hit(KEY_DOWN) && (y == 2))
+            else if (key_hit(KEY_DOWN) && (y == 4))
             {
                 obj_hide(box_select);
-                if (x < 5)
+                if (x < 3)
                 {
                     cancel_button.set_highlight(true);
                     curr_button = CANCEL_BUTTON;
@@ -74,14 +77,14 @@ int Box_Menu::box_main(Pokemon_Party party_data)
                 curr_button = CANCEL_BUTTON;
                 cancel_button.set_highlight(true);
                 confirm_button.set_highlight(false);
-                x -= 5;
+                x -= 3;
             }
             else if (key_hit(KEY_RIGHT) && (curr_button == CANCEL_BUTTON))
             {
                 curr_button = CONFIRM_BUTTON;
                 cancel_button.set_highlight(false);
                 confirm_button.set_highlight(true);
-                x += 5;
+                x += 3;
             }
             else if (key_hit(KEY_UP))
             {
@@ -108,32 +111,34 @@ int Box_Menu::box_main(Pokemon_Party party_data)
         }
         if (update_pos)
         {
-            int index = x + (y * 10);
-            obj_set_pos(box_select, 40 + (x * 16), 24 + (y * 16));
-            tte_erase_rect(40, 72, 220, 88);
+            int index = x + (y * BOXMENU_HNUM);
+            obj_set_pos(box_select, BOXMENU_LEFT + (x * (16 + BOXMENU_HSPACE)), BOXMENU_TOP + (y * (16 + BOXMENU_VSPACE)));
+            tte_erase_rect(8, 16, 72, 152);
             Simplified_Pokemon curr_pkmn = party_data.get_simple_pkmn(index);
             if (curr_pkmn.is_valid)
             {
-                tte_set_pos(40, 72);
-                for (int i = 0; i < 10; i++)
-                {
-                    if (curr_pkmn.nickname[i] == 0xFF)
-                    {
-                        break;
-                    }
-                    tte_putc(gen_3_Intern_char_array[curr_pkmn.nickname[i]]);
-                }
-                
+                byte val[11];
+                tte_set_pos(8, 88);
+                ptgb_write(curr_pkmn.nickname, true);
+
                 if (curr_pkmn.is_shiny)
                 {
-                    tte_set_pos(40, 80);
-                    tte_write("*");
+                    tte_set_pos(64, 16);
+                    val[0] = 0xF7;
+                    val[1] = 0xFF;
+                    ptgb_write(val, true);
                 }
-                tte_set_pos(48, 80);
-                tte_write(curr_pkmn.is_missingno ? "MissingNo" : NAMES[curr_pkmn.dex_number].data());
-                tte_set_pos(146, 80);
-                tte_write("Lv: ");
-                tte_write(std::to_string(curr_pkmn.met_level).c_str());
+                tte_set_pos(16, 98);
+                ptgb_write(PKMN_NAMES[curr_pkmn.dex_number], true);
+                tte_set_pos(8, 108);
+                val[0] = 0xC6; // L
+                val[1] = 0xEA; // v
+                val[2] = 0xF0; // :
+                val[3] = 0x00; // " "
+                val[4] = 0xFF; // endline
+                ptgb_write(val, true);
+                convert_int_to_ptgb_str(curr_pkmn.met_level, val); // Val should never go out of bounds
+                ptgb_write(val, true);
                 update_pos = false;
             }
         }

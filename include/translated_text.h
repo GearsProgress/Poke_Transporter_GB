@@ -45,7 +45,6 @@
 #define DIA_END DIA_SIZE
 
 extern const byte *dialogue[DIA_SIZE];
-
 extern const byte option_english[];
 extern const byte option_japanese[];
 extern const byte option_spanish[];
@@ -85,4 +84,6 @@ extern const byte credits_page_16[];
 extern const byte credits_page_17[];
 extern const byte credits_page_18[];
 extern const byte credits_page_19[];
+extern const byte *PKMN_NAMES[252];
+
 #endif

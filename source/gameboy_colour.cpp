@@ -122,7 +122,7 @@ void setup()
   init_packet = true;
   end_of_data = false;
 
-  set_textbox_large();
+  create_textbox(0, 0, 80, 80, true);
   tte_erase_screen();
   tte_set_pos(40, 24);
   ptgb_write("\n\n\n   Connecting to\n      GameBoy");

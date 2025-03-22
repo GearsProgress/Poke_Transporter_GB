@@ -19,18 +19,24 @@ void background_frame(int global_frame_count)
         }
 }
 
-void set_textbox_large()
+void create_textbox(int startTileX, int startTileY, int width, int height, bool eraseMainBox)
 {
-        tte_set_pos(40, 16);
-        tte_set_margins(40, 16, 206, 112);
+        if (eraseMainBox)
+        {
+                erase_textbox_tiles();
+        }
+        add_menu_box(startTileX, startTileY, width, height);
+        tte_set_pos((startTileX + 1) * 8, (startTileY + 1) * 8);
+        tte_set_margins(startTileX + 1, startTileY + 1, startTileX + 1 + width, startTileY + 1 + height);
         tte_erase_rect(0, 0, H_MAX, V_MAX);
-        REG_BG2VOFS = 0;
 }
-void set_textbox_small()
+
+void reset_textbox()
 {
-        tte_set_margins(LEFT, TOP, RIGHT, BOTTOM);
         tte_erase_rect(0, 0, H_MAX, V_MAX);
-        REG_BG2VOFS = 96;
+        reload_textbox_background();
+        tte_set_pos(1 * 8, 14 * 8);
+        tte_set_margins(LEFT, TOP, RIGHT, BOTTOM);
 }
 
 void show_textbox()

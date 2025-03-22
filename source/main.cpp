@@ -153,8 +153,7 @@ void game_load_error(void)
 	REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(1);
 	REG_BG2VOFS = 0;
 	tte_set_pos(40, 24);
-	tte_set_margins(40, 24, 206, 104);
-	set_textbox_large();
+	create_textbox(5, 3, 80, 80, true);
 	ptgb_write("#{cx:0xF000}The Pok@mon save\nfile was not loaded successfully.\n\nPlease remove and\nreinsert the Game\nPak, and then press the A button.");
 	key_poll();
 	while (!key_hit(KEY_A))
@@ -216,7 +215,7 @@ int credits()
 	{
 		if (update)
 		{
-			set_textbox_large();
+			create_textbox(5, 3, 160, 80, true);
 			ptgb_write(credits_array[curr_credits_num], true);
 			update = false;
 		}
@@ -224,7 +223,7 @@ int credits()
 		if (key_hit(KEY_B))
 		{
 			hide_text_box();
-			set_textbox_small();
+			reset_textbox();
 			return 0;
 		}
 		if (key_hit(KEY_LEFT) && curr_credits_num > 0)
@@ -255,7 +254,7 @@ int credits()
 			bool tutorial = get_tutorial_flag();
 			int def_lang = get_def_lang_num();
 
-			set_textbox_large();
+			create_textbox(5, 3, 80, 80, true);
 			ptgb_write_debug("Debug info:\n\nG: ", true);
 			std::string lang;
 			lang += curr_rom.language;
@@ -302,7 +301,7 @@ int credits()
 				if (key_hit(KEY_B))
 				{
 					hide_text_box();
-					set_textbox_small();
+					reset_textbox();
 					return 0;
 				}
 				global_next_frame();
@@ -436,7 +435,7 @@ int main(void)
 	}
 
 	// Initalize memory and save data after loading the game
-	set_textbox_small();
+	reset_textbox();
 	REG_BG2CNT = REG_BG2CNT | BG_PRIO(3);
 	init_bank();
 	initalize_memory_locations();
@@ -485,7 +484,7 @@ int main(void)
 			break;
 		case (BTN_CREDITS):
 			tte_set_ink(INK_DARK_GREY);
-			set_textbox_large();
+			create_textbox(0, 0, 160, 80, true);
 			show_text_box();
 			REG_BG1CNT = (REG_BG1CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
 			obj_set_pos(ptgb_logo_l, 56, 108);

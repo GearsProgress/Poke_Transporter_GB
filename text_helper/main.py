@@ -6,7 +6,7 @@ import json
 import requests
 import copy
 
-update = False
+update = True
 
 print ("\n\n\n\n\n---------------")
 
@@ -32,15 +32,15 @@ engCharArray = [
 0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 
 0x25AF, 	0xBF, 	0xA1, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0xCD, 	0x25, 	0x28, 	0x29, 	0x20, 	0x20, 
 0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0xE2, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0xED, 
-0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x2B07, 	0x2B05, 	0x27A1, 	0x2A, 	0x2A, 	0x2A, 
-0x2A, 	0x2A, 	0x2A, 	0x2A, 	0x1D49, 	0x3C, 	0x3E, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 
+0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x2B07, 	0x2B05, 	0x27A1, 	0x20, 	0x20, 	0x20, 
+0x20, 	0x20, 	0x20, 	0x20, 	0x1D49, 	0x3C, 	0x3E, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 
 0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 
 0x2B3, 	0x30, 	0x31, 	0x32, 	0x33, 	0x34, 	0x35, 	0x36, 	0x37, 	0x38, 	0x39, 	0x21, 	0x3F, 	0x2E, 	0x2D, 	0x30FB, 
 0x2026, 	0x201C, 	0x201D, 	0x2018, 	0x2019, 	0x2642, 	0x2640, 	0x20, 	0x2C, 	0xD7, 	0x2F, 	0x41, 	0x42, 	0x43, 	0x44, 	0x45, 
 0x46, 	0x47, 	0x48, 	0x49, 	0x4A, 	0x4B, 	0x4C, 	0x4D, 	0x4E, 	0x4F, 	0x50, 	0x51, 	0x52, 	0x53, 	0x54, 	0x55, 
 0x56, 	0x57, 	0x58, 	0x59, 	0x5A, 	0x61, 	0x62, 	0x63, 	0x64, 	0x65, 	0x66, 	0x67, 	0x68, 	0x69, 	0x6A, 	0x6B, 
 0x6C, 	0x6D, 	0x6E, 	0x6F, 	0x70, 	0x71, 	0x72, 	0x73, 	0x74, 	0x75, 	0x76, 	0x77, 	0x78, 	0x79, 	0x7A, 	0x25B6, 
-0x3A, 	0xC4, 	0xD6, 	0xDC, 	0xE4, 	0xF6, 	0xFC, 	0x7C, 	0x20, 	0x20, 	0x15E, 	0x23C, 	0x206, 	0x1B2, 	0x147, 	0x19E, 
+0x3A, 	0xC4, 	0xD6, 	0xDC, 	0xE4, 	0xF6, 	0xFC, 	0x2A, 	0x20, 	0x20, 	0x15E, 	0x23C, 	0x206, 	0x1B2, 	0x147, 	0x19E, 
 ]
 
 jpnCharArray = [
@@ -59,7 +59,7 @@ jpnCharArray = [
 0x46, 	0x47, 	0x48, 	0x49, 	0x4A, 	0x4B, 	0x4C, 	0x4D, 	0x4E, 	0x4F, 	0x50, 	0x51, 	0x52, 	0x53, 	0x54, 	0x55, 
 0x56, 	0x57, 	0x58, 	0x59, 	0x5A, 	0x61, 	0x62, 	0x63, 	0x64, 	0x65, 	0x66, 	0x67, 	0x68, 	0x69, 	0x6A, 	0x6B, 
 0x6C, 	0x6D, 	0x6E, 	0x6F, 	0x70, 	0x71, 	0x72, 	0x73, 	0x74, 	0x75, 	0x76, 	0x77, 	0x78, 	0x79, 	0x7A, 	0x25B6, 
-0x3A, 	0xC4, 	0xD6, 	0xDC, 	0xE4, 	0xF6, 	0xFC, 	0x7C, 	0x20, 	0x20, 	0x15E, 	0x23C, 	0x206, 	0x1B2, 	0x147, 	0x19E, 
+0x3A, 	0xC4, 	0xD6, 	0xDC, 	0xE4, 	0xF6, 	0xFC, 	0x2A, 	0x20, 	0x20, 	0x15E, 	0x23C, 	0x206, 	0x1B2, 	0x147, 	0x19E, 
 ]
 
 charConversionList = [
@@ -221,6 +221,7 @@ for lang in Languages:
     "GB": {},
     "GENERAL": {},
     "CREDITS": {},
+    "PKMN_NAMES": {},
 }
 
 textDict = copy.deepcopy(mainDict)
@@ -241,7 +242,7 @@ def convert_item(line, numLines, charPerLine, include_box_breaks):
             outStr += out
         else:
             outStr = outStr[:-1]
-            outStr += "|" # new textbox character
+            outStr += "ȼ" # new textbox character
             offset = 0
             currLine = 0
             escapeCount += 1
@@ -257,9 +258,9 @@ def convert_item(line, numLines, charPerLine, include_box_breaks):
         # A space right before a newline just takes up space
         newStr = newStr.replace(" Ň", "Ň")
         # Newlines shouldn't happen right after a new textbox
-        newStr = newStr.replace("|Ň", "|")
+        newStr = newStr.replace("ȼŇ", "ȼ")
         # Nor should newlines be right before a new textbox
-        newStr = newStr.replace("Ň|", "|")
+        newStr = newStr.replace("Ňȼ", "ȼ")
         
         exitLoop = (newStr == outStr)
         outStr = newStr
@@ -289,10 +290,10 @@ for lang in Languages:
             #print(currRow)
             mainDict[lang.name][currRow.iloc[0]][currRow.iloc[1]] = currRow.iloc[2]
 
-with open(os.curdir + '\\source\\dialogue.cpp', 'w') as cppFile:   
-    cppFile.write("#include \"dialogue.h\"\n#include \"debug_mode.h\"\n#include \"pokemon_data.h\"\n")
+with open(os.curdir + '\\source\\translated_text.cpp', 'w') as cppFile:   
+    cppFile.write("#include \"translated_text.h\"\n#include \"debug_mode.h\"\n#include \"pokemon_data.h\"\n")
     for lang in Languages: # putting this here is a really silly way to loop through all the CPP values but only write to H once
-        with open (os.curdir + '\\include\\dialogue.h', 'w') as hFile:
+        with open (os.curdir + '\\include\\translated_text.h', 'w') as hFile:
             hFile.write("#ifndef DIALOGUE_H\n#define DIALOGUE_H\n\n#include <string>\n#include <tonc.h>\n\n")
             cppFile.write(f"#if PTGB_BUILD_LANGUAGE == {lang.value + 1}\n")
 
@@ -316,19 +317,47 @@ with open(os.curdir + '\\source\\dialogue.cpp', 'w') as cppFile:
             cppFile.write("\n};\n")
             hFile.write("extern const byte *dialogue[DIA_SIZE];\n")
 
+            # RSEFRLG
+           # RSEFRLG = mainDict[lang.name]["RSEFRLG"]
+           # for key, line in RSEFRLG.items():
+           #     RSEFRLG[key] = convert_item(line, 2, , False)
+           #     cppFile.write(f"\nconst byte {key}[] = {{{RSEFRLG[key]}}};")
+           #     hFile.write(f"\nextern const byte {key}[];")
+
             # General
             GENERAL = mainDict[lang.name]["GENERAL"]
             for key, line in GENERAL.items():
                 GENERAL[key] = convert_item(line, 16, 28, False) # TODO This should not be for *every* item
-                cppFile.write(f"\nconst byte {key}[] = {{{GENERAL[key]}}};")
-                hFile.write(f"\nextern const byte {key}[];")
+                cppFile.write(f"const byte {key}[] = {{{GENERAL[key]}}};\n")
+                hFile.write(f"extern const byte {key}[];\n")
             
             # Credits
             CREDITS = mainDict[lang.name]["CREDITS"]
             for key, line in CREDITS.items():
                 CREDITS[key] = convert_item(line, 8, 20, False)
-                cppFile.write(f"\nconst byte {key}[] = {{{CREDITS[key]}}};")
-                hFile.write(f"\nextern const byte {key}[];")
+                cppFile.write(f"const byte {key}[] = {{{CREDITS[key]}}};\n")
+                hFile.write(f"extern const byte {key}[];\n")
+            cppFile.write("\n")
+                
+            # Pokemon Names
+            PKMN_NAMES = mainDict[lang.name]["PKMN_NAMES"]
+            
+            num = 0
+            for key, line in PKMN_NAMES.items():
+                #print("--------")
+                PKMN_NAMES[key] = convert_item(line, 4, 28, True)
+                cppFile.write("const byte PKMN_NAMES" + str(num) + "[] = {" + PKMN_NAMES[key] + "};\n")
+                num += 1
+                
+            cppFile.write("\n")
+
+            cppFile.write(f"\n\nconst byte *PKMN_NAMES[{num}] = " + "{")
+            for i in range(num):
+                cppFile.write("\nPKMN_NAMES" + str(i) + ", ")
+            cppFile.write("\n};\n")
+            hFile.write(f"extern const byte *PKMN_NAMES[{num}];\n")
+
+                
             
             
             
@@ -339,7 +368,7 @@ with open(os.curdir + '\\source\\dialogue.cpp', 'w') as cppFile:
 
 for lang in Languages:
     for cat in mainDict[lang.name]:
-        if cat in {"PTGB", "GENERAL", "CREDITS"}:
+        if cat in {"PTGB", "GENERAL", "CREDITS", "PKMN_NAMES"}:
             for item in mainDict[lang.name][cat]:
                 string = mainDict[lang.name][cat][item].split(", ")
                 outText = ""

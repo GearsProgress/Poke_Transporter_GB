@@ -41,8 +41,7 @@ void global_next_frame()
             REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(1);
             REG_BG2VOFS = 0;
             tte_set_pos(40, 24);
-            tte_set_margins(40, 24, 206, 104);
-            set_textbox_large();
+            create_textbox(5, 3, 80, 80, true);
             tte_write("\n\n#{cx:0xF000}The Pok@mon game was\nremoved. Please turn\noff the system and\nrestart the program.");
             // obj_hide_multi(testroid, 128);
             oam_copy(oam_mem, obj_buffer, num_sprites);
@@ -275,4 +274,31 @@ int get_string_length(const byte *str)
         size++;
     }
     return size;
+}
+
+void convert_int_to_ptgb_str(int val, byte str[])
+{
+    int div = 1;
+    int count = 0;
+    int num;
+    bool non_zero = false;
+
+    while (div < val)
+    {
+        div *= 10;
+    }
+
+    while (div != 0)
+    {
+        num = val / div;
+        if (num != 0 || non_zero)
+        {
+            non_zero = true;
+            str[count] = num + 0xA1; // 0xA1 is 0 in the chart
+            count++;
+        }
+        val %= div;
+        div /= 10;
+    }
+    str[count] = 0xFF;
 }

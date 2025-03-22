@@ -13,6 +13,13 @@
 #define CANCEL_BUTTON 1
 #define CONFIRM_BUTTON 2
 
+// Box is 144 x 104, top left is 88 32, sprite is 16x16, sprites are not centered
+#define BOXMENU_TOP 32 + 2
+#define BOXMENU_LEFT 88 + 4
+#define BOXMENU_VSPACE 5
+#define BOXMENU_HSPACE 8
+#define BOXMENU_HNUM 6
+
 class Box_Menu
 {
 public:

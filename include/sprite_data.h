@@ -6,6 +6,7 @@
 #include "pokemon_data.h"
 #include "pokemon_party.h"
 #include "rom_data.h"
+#include "box_menu.h"
 
 #define FENNEL_SHIFT 4
 
@@ -106,6 +107,7 @@ extern OBJ_ATTR *link_blob3;
 #define BG_FENNEL 1
 #define BG_DEX 2
 #define BG_MAIN_MENU 3
+#define BG_BOX 4
 
 extern rom_data curr_rom;
 
@@ -121,11 +123,13 @@ void load_flex_background(int background_id, int layer);
 void load_eternal_sprites();
 void load_temp_box_sprites(Pokemon_Party party_data);
 void load_type_sprites(int pkmn_index, int dex_offset, bool is_caught);
-void add_menu_box(int options, int startX, int startY);
+void add_menu_box(int options, int startTileX, int startTileY);
+void add_menu_box(int startTileX, int startTileY, int width, int height);
 void reload_textbox_background();
 void load_select_sprites(int game_id, int lang);
 void fennel_blink(int frame);
 void fennel_speak(int frame);
 int get_curr_flex_background();
 void update_y_offset();
+void erase_textbox_tiles();
 #endif

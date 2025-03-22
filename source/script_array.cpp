@@ -11,7 +11,7 @@
 #include <tonc.h>
 #include "background_engine.h"
 #include "select_menu.h"
-#include "dialogue.h"
+#include "translated_text.h"
 
 int last_error;
 Pokemon_Party party_data = Pokemon_Party();
@@ -259,7 +259,7 @@ bool run_conditional(int index)
         load_flex_background(BG_FENNEL, 3);
         link_animation_state(STATE_CONNECTION);
         party_data.start_link();
-        set_textbox_small();
+        reset_textbox();
         load_flex_background(BG_FENNEL, 2);
         link_animation_state(0);
         return true;

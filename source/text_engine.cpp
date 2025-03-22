@@ -72,7 +72,7 @@ int text_loop(int script)
     // tte_set_margins(LEFT, TOP, RIGHT, BOTTOM);
     while (true) // This loops through all the connected script objects
     {
-        if (curr_text != NULL && curr_text[char_index] != 0xFF && curr_text[char_index] != 0xF7)
+        if (curr_text != NULL && curr_text[char_index] != 0xFF && curr_text[char_index] != 0xFB)
         {
             tte_set_pos(LEFT, TOP);
             tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
@@ -154,7 +154,7 @@ int ptgb_write(const byte *text, bool instant, int length)
     TFont *font;
     int num = 0;
 
-    if (curr_text[char_index] == 0xF7) // This will need to be moved
+    if (curr_text[char_index] == 0xFB) // This will need to be moved
     {
         line_char_index += char_index;
         line_char_index++;
@@ -169,7 +169,7 @@ int ptgb_write(const byte *text, bool instant, int length)
             str++;
             switch (ch)
             {
-            case 0xF7:
+            case 0xFB:
                 if (DISPLAY_CONTROL_CHAR)
                 {
                     tc->drawgProc(0xB9);

@@ -17,5 +17,6 @@ void set_treecko(bool val);
 bool get_treecko_enabled();
 u32 fnv1a_hash(unsigned char* data, size_t length);
 int get_string_length(const byte *str);
+void convert_int_to_ptgb_str(int val, byte str[]);
 
 #endif

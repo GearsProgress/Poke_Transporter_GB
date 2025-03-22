@@ -117,6 +117,7 @@ void set_background_pal(int curr_rom_id, bool dark, bool fade)
 #include "fennelBG.h"
 #include "dexBG.h"
 #include "menu_bars.h"
+#include "boxBG.h"
 void load_flex_background(int background_id, int layer)
 {
     int CBB = 3;  // CBB is the tiles that make up the sprite
@@ -157,6 +158,15 @@ void load_flex_background(int background_id, int layer)
         LZ77UnCompVram(menu_barsTiles, &tile_mem[CBB][0]);
         // Load map into SBB 0
         LZ77UnCompVram(menu_barsMap, &se_mem[SBB][0]);
+        REG_BG1VOFS = 0;
+        break;
+    case (BG_BOX):
+        // Load palette
+        tonccpy(pal_bg_mem + 32, boxBGPal, boxBGPalLen);
+        // Load tiles into CBB 0
+        LZ77UnCompVram(boxBGTiles, &tile_mem[CBB][0]);
+        // Load map into SBB 0
+        LZ77UnCompVram(boxBGMap, &se_mem[SBB][0]);
         REG_BG1VOFS = 0;
         break;
     }
@@ -233,15 +243,20 @@ static int TILE_SW_L_ARR[4] = {TILE_CLEAR, TILE_CLEAR, TILE_SW_4L, TILE_SW_6L};
 
 void add_menu_box(int options, int startTileX, int startTileY)
 {
+    add_menu_box(startTileX, startTileY, MENU_WIDTH * 8, options * 10);
+}
+
+void add_menu_box(int startTileX, int startTileY, int width, int height)
+{
+
     // We can't check the current offset very easily, so we'll just assume it's in the text box position.
     startTileY += 12;
 
-    int start = (32 * startTileY) + startTileX;
     int SBB = 20;
 
-    int tiles = (options * 10) / 8;
-    int rem = (options * 10) % 8;
-
+    int start = (32 * startTileY) + startTileX;
+    int tiles = height / 8;
+    int rem = height % 8;
     // Corners
     se_mem[SBB][start] = TILE_NW;
     se_mem[SBB][start + MENU_WIDTH] = TILE_NE;
@@ -271,6 +286,24 @@ void add_menu_box(int options, int startTileX, int startTileY)
         for (int y = 1; y < tiles + 1; y++)
         {
             se_mem[SBB][start + (32 * y) + x] = TILE_MID;
+        }
+    }
+}
+
+void erase_textbox_tiles()
+{
+
+    // We can't check the current offset very easily, so we'll just assume it's in the text box position.
+    int startTileY = 12;
+
+    int start = (32 * startTileY);
+    int SBB = 20;
+
+    for (int x = 0; x < 30; x++)
+    {
+        for (int y = 0; y < 20; y++)
+        {
+            se_mem[SBB][start + (32 * y) + x] = TILE_CLEAR;
         }
     }
 }
@@ -428,7 +461,7 @@ void load_temp_box_sprites(Pokemon_Party party_data)
                 dex_num = 0;
             }
             load_sprite(party_sprites[i], &unique_duel_frame_menu_spritesTiles[dex_num * 32], 256, curr_tile_id, MENU_SPRITE_PALS[dex_num][curr_pkmn.is_shiny] + MENU_PAL_START, ATTR0_SQUARE, ATTR1_SIZE_16x16, 1);
-            obj_set_pos(party_sprites[i], (16 * (i % 10)) + 40, (16 * (i / 10)) + 24);
+            obj_set_pos(party_sprites[i], ((16+ BOXMENU_HSPACE) * (i % BOXMENU_HNUM)) + BOXMENU_LEFT, ((16  + BOXMENU_VSPACE) * (i / BOXMENU_HNUM)) + BOXMENU_TOP);
             obj_unhide(party_sprites[i], 0);
         }
         curr_tile_id += 4;

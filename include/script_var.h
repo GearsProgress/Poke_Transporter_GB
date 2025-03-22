@@ -48,12 +48,13 @@ class textbox_var : public xse_var
 {
 public:
     using xse_var::xse_var;
-    void set_text(std::u16string_view nText);
+    void set_text(const byte nText[]);
     void insert_text(u8 mg_array[]);
     void set_start();
     void insert_virtual_text(u8 mg_array[]);
     void set_virtual_start();
-    std::u16string_view text;
+    const byte *text;
+    int text_length;
 };
 
 class movement_var : public xse_var
