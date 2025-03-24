@@ -1,0 +1,17 @@
+# docker-compose run --service-ports build
+
+version: "3.5"
+
+services:
+  build:
+    image: devkitpro/devkitarm
+    working_dir: /usr/Poke_Transporter_GB
+    command: tail -F anything
+    volumes:
+      - type: bind
+        source: ${SSH_AUTH_SOCK}
+        target: ${SSH_AUTH_SOCK}
+      - type: bind
+        source: ${PWD}
+        target: /usr/Poke_Transporter_GB
+

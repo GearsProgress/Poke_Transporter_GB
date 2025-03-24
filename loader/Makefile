@@ -1,6 +1,3 @@
-# Build configuration (set to either 'debug' or 'release')
-BUILD_TYPE := debug
-
 #---------------------------------------------------------------------------------
 .SUFFIXES:
 #---------------------------------------------------------------------------------
@@ -28,12 +25,12 @@ LIBTONC := $(DEVKITPRO)/libtonc
 # the makefile is found
 #
 #---------------------------------------------------------------------------------
-TARGET		:= $(notdir $(CURDIR))_mb
+TARGET		:= $(notdir $(CURDIR))
 BUILD		:= build
 SOURCES		:= source
 INCLUDES	:= include
-DATA		:=
-MUSIC		:= audio
+DATA		:= data
+MUSIC		:=
 GRAPHICS	:= graphics
 
 #---------------------------------------------------------------------------------
@@ -42,30 +39,20 @@ GRAPHICS	:= graphics
 ARCH	:=	-mthumb -mthumb-interwork
 
 CFLAGS	:=	-g -Wall -O2\
-		-mcpu=arm7tdmi -mtune=arm7tdmi -masm-syntax-unified\
-		$(ARCH) 
+		-mcpu=arm7tdmi -mtune=arm7tdmi\
+		$(ARCH)
 
-CFLAGS	+=	$(INCLUDE) -ffunction-sections -fdata-sections -Os -Wall -mthumb -mcpu=arm7tdmi -mtune=arm7tdmi
-CXXFLAGS	:=	$(CFLAGS) -g0 -fno-rtti -fno-exceptions -std=c++20 -Wno-volatile -D_GLIBCXX_USE_CXX20_ABI=0
+CFLAGS	+=	$(INCLUDE)
 
-ifeq ($(BUILD_TYPE), debug)
-	CFLAGS += -g -DDEBUG
-	CXXFLAGS += -g -DDEBUG
-else ifeq ($(BUILD_TYPE), release)
-
-
-endif
+CXXFLAGS	:=	$(CFLAGS) -fno-rtti -fno-exceptions
 
 ASFLAGS	:=	-g $(ARCH)
-LDFLAGS	=	-Os -g $(ARCH) -Wl,-Map,$(notdir $*.map) -Wl,--gc-sections -mthumb -mcpu=arm7tdmi -mtune=arm7tdmi
-
-CFLAGS += -flto
-LDFLAGS += -flto
+LDFLAGS	=	-g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
-LIBS	:= -lmm -ltonc -lgba -lc -lgcc
+LIBS	:= -lmm -ltonc
 
 
 #---------------------------------------------------------------------------------
@@ -98,10 +85,10 @@ SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 PNGFILES	:=	$(foreach dir,$(GRAPHICS),$(notdir $(wildcard $(dir)/*.png)))
 BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
 
-#ifneq ($(strip $(MUSIC)),)
-#	export AUDIOFILES	:=	$(foreach dir,$(notdir $(wildcard $(MUSIC)/*.*)),$(CURDIR)/$(MUSIC)/$(dir))
-#	BINFILES += soundbank.bin
-#endif
+ifneq ($(strip $(MUSIC)),)
+	export AUDIOFILES	:=	$(foreach dir,$(notdir $(wildcard $(MUSIC)/*.*)),$(CURDIR)/$(MUSIC)/$(dir))
+	BINFILES += soundbank.bin
+endif
 
 #---------------------------------------------------------------------------------
 # use CXX for linking C++ projects, CC for standard C
@@ -139,13 +126,11 @@ export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
-	cp $(TARGET).gba loader/data/multiboot_rom.bin
-	@$(MAKE) -C loader
 
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@$(MAKE) -C loader clean
+	@rm -f data/*
 	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).gba
 
 
@@ -170,9 +155,9 @@ $(OFILES_SOURCES) : $(HFILES)
 #---------------------------------------------------------------------------------
 # rule to build soundbank from music files
 #---------------------------------------------------------------------------------
-#soundbank.bin soundbank.h : $(AUDIOFILES)
+soundbank.bin soundbank.h : $(AUDIOFILES)
 #---------------------------------------------------------------------------------
-#	@mmutil $^ -osoundbank.bin -hsoundbank.h
+	@mmutil $^ -osoundbank.bin -hsoundbank.h
 
 #---------------------------------------------------------------------------------
 # This rule links in binary data with the .bin extension
