@@ -6,13 +6,21 @@
 #include "multiboot_rom_bin.h"
 
 #define SPRITE_CHAR_BLOCK 4
+#define MULTIBOOT_ENTRY_POINT (void*)0x020000C0
 
+/**
+ * An enum with an entry for every separate sprite we load in.
+ * We use this to ensure a valid index for each sprite
+ */
 enum SpriteTypes
 {
 	SPRITE_LOGO_L,
 	SPRITE_LOGO_R
 };
 
+/**
+ * Similarly, the PaletteTypes enum has an entry for every separate palette we're using here.
+ */
 enum PaletteTypes
 {
 	PAL_LOGO
@@ -34,6 +42,9 @@ static void loadSprite(OBJ_ATTR *sprite, const unsigned int objTiles[], int objT
 	obj_hide(sprite);
 };
 
+/**
+ * This function exists to simply load and position the Poke Transporter GB logo
+ */
 static void load_logo(u32* curSpriteIndex)
 {
 	// load palette
@@ -54,15 +65,9 @@ static void load_logo(u32* curSpriteIndex)
 /**
  * Loads the PokeTransporter multiboot rom into EWRAM
  */
-static void load_multiboot_rom(const void *src, void *dst, u32 size)
+static void load_multiboot_rom(const void *src, u32 size)
 {
-    u8 *s = (u8*)src;
-    u8 *d = (u8*)dst;
-    
-    for (u32 i = 0; i < size; i++)
-	{
-        d[i] = s[i];
-    }
+	memcpy32(MULTIBOOT_ENTRY_POINT, src, size);
 }
 
 /**
@@ -77,7 +82,7 @@ void execute_multiboot()
     REG_WAITCNT = 0x4317;
 
     // Function pointer to EWRAM execution entry
-    void (*entry)(void) = (void*)0x020000C0;
+    void (*entry)(void) = MULTIBOOT_ENTRY_POINT;
     entry();  // Jump to loaded ROM
 }
 
@@ -100,6 +105,6 @@ int main(void)
 
 	VBlankIntrWait();
 
-	load_multiboot_rom(multiboot_rom_bin, (void*)0x02000000, multiboot_rom_bin_size);
+	load_multiboot_rom(multiboot_rom_bin, multiboot_rom_bin_size);
 	execute_multiboot();
 }

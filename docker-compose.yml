@@ -1,4 +1,14 @@
-# docker-compose run --service-ports build
+# This docker-compose file allows you to pull the devkitpro/devkitarm docker container
+# and use it to build the Poke Transporter GB rom(s).
+#
+# To launch the container itself in the background:
+# 	docker compose up -d
+# Note the container name being printed in the terminal. In my case it was this: poke_transporter_gb-build-1
+#
+# Then get a terminal into the container like this:
+# 	docker exec -it poke_transporter_gb-build-1 /bin/bash
+#
+# Now you can build the project inside this terminal.
 
 version: "3.5"
 
