@@ -139,7 +139,8 @@ export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 $(BUILD):
 	@[ -d $@ ] || mkdir -p $@
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
-	cp $(TARGET).gba loader/data/multiboot_rom.bin
+	@mkdir -p loader/data
+	@cp $(TARGET).gba loader/data/multiboot_rom.bin
 	@$(MAKE) -C loader
 
 #---------------------------------------------------------------------------------
