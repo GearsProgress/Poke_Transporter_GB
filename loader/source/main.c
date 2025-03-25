@@ -67,23 +67,17 @@ static void load_logo(u32* curSpriteIndex)
 /**
  * Loads the PokeTransporter multiboot rom into EWRAM
  */
-static void load_multiboot_rom(const void *src, u32 size)
+static void load_multiboot_rom(const void *src, size_t size)
 {
+	REG_IME = 0; // Disable all interrupts
 	memcpy(DST_EWRAM, src, size);
+	REG_IME = 1;
 }
-
 /**
  * Now jump to the multiboot rom address and start execution
  */
-void execute_multiboot()
+static void execute_multiboot()
 {
-    // Disable interrupts
-	// During the time the user could swap out the cartridge, we should disable interrupts
-    REG_IME = 0;
-
-    // Set up waitstates (multiboot defaults to faster EWRAM access)
-    REG_WAITCNT = 0x4317;
-
     // Function pointer to EWRAM execution entry
     void (*entry)(void) = MULTIBOOT_ENTRY_POINT;
     entry();  // Jump to loaded ROM
@@ -109,5 +103,6 @@ int main(void)
 	VBlankIntrWait();
 
 	load_multiboot_rom(multiboot_rom_bin, multiboot_rom_bin_size);
+
 	execute_multiboot();
 }
