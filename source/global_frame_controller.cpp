@@ -91,6 +91,7 @@ const unsigned short MENU_PALS[5][4] = {
 
 void set_menu_sprite_pal(int frame)
 {
+    return;
     for (int i = 0; i < 5; i++)
     {
         unsigned short curr_pal[16] = {

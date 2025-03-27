@@ -4,7 +4,7 @@
 #include "pokemon_party.h"
 #include "pokemon_data.h"
 #include "rom_data.h"
-#include "dialogue.h"
+#include "translated_text.h"
 
 #define MG_SCRIPT false
 #define S30_SCRIPT true

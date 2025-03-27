@@ -534,6 +534,10 @@ const struct ROM_DATA ENG_EMERALD_v0 = {
     .loc_voicegroup = 0x08686A74,
     .loc_sPicTable_NPC = 0x08506404,
 
+    .loc_gMonFrontPicTable = 0x08301418,
+    .loc_gMonPaletteTable = 0x08303678,
+    .loc_gMonShinyPaletteTable = 0x08304438,
+
     // The following should be consistant across languages and revisions.
     .loc_gSaveDataBuffer = 0x0203ABBC, // The location of the saveDataBuffer
     .loc_gSpecialVar_0x8000 = 0x020375D8,

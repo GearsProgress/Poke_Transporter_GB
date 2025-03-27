@@ -204,7 +204,7 @@ int ptgb_write(const byte *text, bool instant, int length)
 
                 // Draw and update position
                 tc->drawgProc(gid);
-                tc->cursorX += charW;
+                tc->cursorX += 6; //charW;
             }
             num += 1;
         }

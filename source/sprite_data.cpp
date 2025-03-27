@@ -397,6 +397,8 @@ OBJ_ATTR *link_blob1 = &obj_buffer[num_sprites++];
 OBJ_ATTR *link_blob2 = &obj_buffer[num_sprites++];
 OBJ_ATTR *link_blob3 = &obj_buffer[num_sprites++];
 
+OBJ_ATTR *grabbed_front_sprite = &obj_buffer[num_sprites++];
+
 u32 global_tile_id_end = 0;
 
 inline void BitUnPack(const void *src, void *dst, uint16_t len, uint8_t from, uint8_t to)
@@ -436,21 +438,20 @@ void load_eternal_sprites()
     load_sprite(link_blob1, &tempTileBuf[0], 32, curr_tile_id, LINK_CABLE_PAL, ATTR0_SQUARE, ATTR1_SIZE_8x8, 1);
     load_sprite(link_blob2, &tempTileBuf[8], 32, curr_tile_id, LINK_CABLE_PAL, ATTR0_SQUARE, ATTR1_SIZE_8x8, 1);
     load_sprite(link_blob3, &tempTileBuf[16], 32, curr_tile_id, LINK_CABLE_PAL, ATTR0_SQUARE, ATTR1_SIZE_8x8, 1);
-
     global_tile_id_end = curr_tile_id;
 
     obj_set_pos(down_arrow, 14 * 8, 17 * 8);
     obj_set_pos(up_arrow, 14 * 8, 3 * 8);
 }
 
-void load_temp_box_sprites(Pokemon_Party party_data)
+void load_temp_box_sprites(Pokemon_Party *party_data)
 {
     u32 curr_tile_id = global_tile_id_end;
     for (int i = 0; i < 30; i++)
     {
-        if (party_data.get_simple_pkmn(i).is_valid || DONT_HIDE_INVALID_PKMN)
+        if (party_data->get_simple_pkmn(i).is_valid || DONT_HIDE_INVALID_PKMN)
         {
-            Simplified_Pokemon curr_pkmn = party_data.get_simple_pkmn(i);
+            Simplified_Pokemon curr_pkmn = party_data->get_simple_pkmn(i);
             int dex_num = curr_pkmn.dex_number;
             if (dex_num == 201)
             {
@@ -460,12 +461,32 @@ void load_temp_box_sprites(Pokemon_Party party_data)
             {
                 dex_num = 0;
             }
-            load_sprite(party_sprites[i], &unique_duel_frame_menu_spritesTiles[dex_num * 32], 256, curr_tile_id, MENU_SPRITE_PALS[dex_num][curr_pkmn.is_shiny] + MENU_PAL_START, ATTR0_SQUARE, ATTR1_SIZE_16x16, 1);
-            obj_set_pos(party_sprites[i], ((16+ BOXMENU_HSPACE) * (i % BOXMENU_HNUM)) + BOXMENU_LEFT, ((16  + BOXMENU_VSPACE) * (i / BOXMENU_HNUM)) + BOXMENU_TOP);
+            // grab_menu_sprite(dex_num, curr_tile_id, party_sprites[i], 0);
+
+            u32 gMonIconPaletteIndices = 0x0857c388;
+            u32 sprite_table = 0x0857bca8;
+            u32 sprite_location = (*(u32 *)(sprite_table + (dex_num * 4)));
+
+            int pal_num = *(byte *)(0x0857c388 + dex_num);
+            load_sprite(party_sprites[i], (const unsigned int *)sprite_location, 512, curr_tile_id, MENU_PAL_RED + pal_num, ATTR0_SQUARE, ATTR1_SIZE_32x32, 1);
+            obj_set_pos(party_sprites[i], ((BOXMENU_SPRITE_WIDTH + BOXMENU_HSPACE) * (i % BOXMENU_HNUM)) + (BOXMENU_LEFT + BOXMENU_SPRITE_HOFFSET), ((BOXMENU_SPRITE_HEIGHT + BOXMENU_VSPACE) * (i / BOXMENU_HNUM)) + (BOXMENU_TOP + BOXMENU_SPRITE_VOFFSET));
             obj_unhide(party_sprites[i], 0);
         }
-        curr_tile_id += 4;
+        else
+        {
+            curr_tile_id += 16;
+        }
     }
+    // Load the menu sprite palettes. Should this be done somewhere else?
+    u32 gMonIconPalettes = 0x08dde1f8;
+    unsigned short buffer[16];
+    for (int i = 0; i < 3; i++)
+    {
+        tonccpy((pal_obj_mem + ((MENU_PAL_RED + i) * 16)), (const unsigned short *)(gMonIconPalettes + (i * 32)), 32);
+    }
+
+    load_sprite_compressed(grabbed_front_sprite, (const unsigned int *)*(u32 *)(curr_rom.loc_gMonFrontPicTable + (0 * 8)), curr_tile_id, PULLED_SPRITE_PAL, ATTR0_SQUARE, ATTR1_SIZE_64x64, 1);
+    obj_set_pos(grabbed_front_sprite, 8, 16);
     load_sprite_compressed(box_select, box_selectTiles, curr_tile_id, BTN_PAL, ATTR0_SQUARE, ATTR1_SIZE_16x16, 0);
     load_sprite_compressed(button_cancel_left, button_cancel_leftTiles, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
     load_sprite_compressed(button_cancel_right, button_edgeTiles, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
@@ -810,4 +831,64 @@ void update_y_offset()
     obj_set_pos(cart_shell, (8 * 11) + 4, (8 * 4) + 11 + y_offset);
     obj_set_pos(cart_label, (8 * 11) + 4 + 8, (8 * 4) + 11 + 13 + y_offset);
     obj_set_pos(flag, (8 * 11) + 4, (8 * 4) + 19 + y_offset);
+}
+
+void update_front_box_sprite(Simplified_Pokemon *curr_pkmn)
+{
+    u32 curr_tile_id = global_tile_id_end + (30 * 16);
+    int dex_num = 0;
+    if (curr_pkmn->unown_letter > 1)
+    {
+        dex_num = 412 + curr_pkmn->unown_letter;
+    }
+    else if (curr_pkmn->is_missingno)
+    {
+        dex_num = 0;
+    }
+    else
+    {
+        dex_num = curr_pkmn->dex_number;
+    }
+
+    u32 sprite_location = *(u32 *)(curr_rom.loc_gMonFrontPicTable + (dex_num * 8));
+    u32 palette_location = *(u32 *)((curr_pkmn->is_shiny ? curr_rom.loc_gMonShinyPaletteTable : curr_rom.loc_gMonPaletteTable) + (curr_pkmn->dex_number * 8));
+    unsigned short buffer[16];
+
+    LZ77UnCompWram((const unsigned short *)palette_location, buffer); // This is a little silly, but it's being weird with bytes vs shorts when we copy it directly
+    for (int i = 0; i < 16; i++)
+    {
+        double red = (buffer[i] >> 0) & 0b11111;
+        double green = (buffer[i] >> 5) & 0b11111;
+        double blue = (buffer[i] >> 10) & 0b11111;
+        int grey = (0.299 * red) + (0.587 * green) + (0.114 * blue);
+
+        // buffer[i] = RGB15_SAFE(red, ((int)green >> 1), 0);
+        buffer[i] = RGB15_SAFE(grey, (grey >> 1), 0);
+    }
+    tonccpy((pal_obj_mem + (PULLED_SPRITE_PAL * 16)), buffer, 32);
+    LZ77UnCompVram((const unsigned int *)sprite_location, &tile_mem[SPRITE_CHAR_BLOCK][curr_tile_id]);
+    // load_sprite_compressed(grabbed_front_sprite, (const unsigned int *)sprite_location, curr_tile_id, PULLED_SPRITE_PAL, ATTR0_SQUARE, ATTR1_SIZE_64x64, 1);
+}
+
+void update_menu_sprite(Pokemon_Party *party_data, int index, int frame)
+{
+    u32 curr_tile_id = global_tile_id_end + (index * 16);
+
+    Simplified_Pokemon curr_pkmn = party_data->get_simple_pkmn(index);
+    int dex_num = curr_pkmn.dex_number;
+    if (dex_num == 201)
+    {
+        dex_num = POKEMON_ARRAY_SIZE + curr_pkmn.unown_letter;
+    }
+    else if (curr_pkmn.is_missingno)
+    {
+        dex_num = 0;
+    }
+
+    u32 sprite_table = 0x0857bca8;
+    u32 gMonIconPaletteIndices = 0x0857c388;
+    u32 gMonIconPalettes = 0x08dde1f8;
+
+    u32 sprite_location = (*(u32 *)(sprite_table + (dex_num * 4))) + (frame == 0 ? 0 : 512);
+    tonccpy(&tile_mem[SPRITE_CHAR_BLOCK][curr_tile_id], (const unsigned int *)sprite_location, 512);
 }

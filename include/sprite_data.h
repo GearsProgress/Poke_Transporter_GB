@@ -84,6 +84,8 @@ extern OBJ_ATTR *link_blob1;
 extern OBJ_ATTR *link_blob2;
 extern OBJ_ATTR *link_blob3;
 
+extern OBJ_ATTR *grabbed_front_sprite;
+
 #define BG2VOF_SMALL_TEXTBOX 96
 #define BG2VOF_LARGE_TEXTBOX 0
 
@@ -102,6 +104,7 @@ extern OBJ_ATTR *link_blob3;
 #define MENU_PAL_START MENU_PAL_RED
 #define GBA_CART_PAL 12
 #define LINK_CABLE_PAL 13
+#define PULLED_SPRITE_PAL 14
 
 #define BG_OPENING 0
 #define BG_FENNEL 1
@@ -121,7 +124,7 @@ void set_background_pal(int curr_rom_id, bool dark, bool fade);
 void load_textbox_background();
 void load_flex_background(int background_id, int layer);
 void load_eternal_sprites();
-void load_temp_box_sprites(Pokemon_Party party_data);
+void load_temp_box_sprites(Pokemon_Party *party_data);
 void load_type_sprites(int pkmn_index, int dex_offset, bool is_caught);
 void add_menu_box(int options, int startTileX, int startTileY);
 void add_menu_box(int startTileX, int startTileY, int width, int height);
@@ -132,4 +135,6 @@ void fennel_speak(int frame);
 int get_curr_flex_background();
 void update_y_offset();
 void erase_textbox_tiles();
+void update_front_box_sprite(Simplified_Pokemon *curr_pkmn);
+void update_menu_sprite(Pokemon_Party *party_data, int index, int frame);
 #endif
