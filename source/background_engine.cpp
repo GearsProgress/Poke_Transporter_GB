@@ -27,7 +27,8 @@ void create_textbox(int startTileX, int startTileY, int width, int height, bool 
         }
         add_menu_box(startTileX, startTileY, width, height);
         tte_set_pos((startTileX + 1) * 8, (startTileY + 1) * 8);
-        tte_set_margins(startTileX + 1, startTileY + 1, startTileX + 1 + width, startTileY + 1 + height);
+        tte_set_margins((startTileX + 1) * 8, (startTileY + 1) * 8,
+                        (startTileX + 1 + width) * 8, (startTileY + 1 + height) * 8);
         tte_erase_rect(0, 0, H_MAX, V_MAX);
 }
 

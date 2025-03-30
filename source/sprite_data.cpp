@@ -257,16 +257,18 @@ void add_menu_box(int startTileX, int startTileY, int width, int height)
     int start = (32 * startTileY) + startTileX;
     int tiles = height / 8;
     int rem = height % 8;
+    width /= 8;
+
     // Corners
     se_mem[SBB][start] = TILE_NW;
-    se_mem[SBB][start + MENU_WIDTH] = TILE_NE;
+    se_mem[SBB][start + width] = TILE_NE;
     se_mem[SBB][start + (32 * (tiles + 1))] = TILE_SW_U_ARR[rem / 2];
     se_mem[SBB][start + (32 * (tiles + 2))] = TILE_SW_L_ARR[rem / 2];
-    se_mem[SBB][start + (32 * (tiles + 1)) + MENU_WIDTH] = TILE_SE_U_ARR[rem / 2];
-    se_mem[SBB][start + (32 * (tiles + 2)) + MENU_WIDTH] = TILE_SE_L_ARR[rem / 2];
+    se_mem[SBB][start + (32 * (tiles + 1)) + width] = TILE_SE_U_ARR[rem / 2];
+    se_mem[SBB][start + (32 * (tiles + 2)) + width] = TILE_SE_L_ARR[rem / 2];
 
     // Top and bottom edge
-    for (int i = 1; i < MENU_WIDTH; i++)
+    for (int i = 1; i < width; i++)
     {
         se_mem[SBB][start + i] = TILE_N;
         se_mem[SBB][start + ((32 * (tiles + 1))) + i] = TILE_S_U_ARR[rem / 2];
@@ -276,12 +278,12 @@ void add_menu_box(int startTileX, int startTileY, int width, int height)
     // Sides
     for (int i = 0; i < tiles; i++)
     {
-        se_mem[SBB][start + (32 * (i + 1)) + MENU_WIDTH] = TILE_E;
+        se_mem[SBB][start + (32 * (i + 1)) + width] = TILE_E;
         se_mem[SBB][start + (32 * (i + 1))] = TILE_W;
     }
 
     // Middle
-    for (int x = 1; x < MENU_WIDTH; x++)
+    for (int x = 1; x < width; x++)
     {
         for (int y = 1; y < tiles + 1; y++)
         {
@@ -447,47 +449,50 @@ void load_eternal_sprites()
 void load_temp_box_sprites(Pokemon_Party *party_data)
 {
     u32 curr_tile_id = global_tile_id_end;
-    for (int i = 0; i < 30; i++)
+
+    if (!IGNORE_GAME_PAK)
     {
-        if (party_data->get_simple_pkmn(i).is_valid || DONT_HIDE_INVALID_PKMN)
+        for (int i = 0; i < 30; i++)
         {
-            Simplified_Pokemon curr_pkmn = party_data->get_simple_pkmn(i);
-            int dex_num = curr_pkmn.dex_number;
-            if (dex_num == 201)
+            if (party_data->get_simple_pkmn(i).is_valid || DONT_HIDE_INVALID_PKMN)
             {
-                dex_num = POKEMON_ARRAY_SIZE + curr_pkmn.unown_letter;
+                Simplified_Pokemon curr_pkmn = party_data->get_simple_pkmn(i);
+                int dex_num = curr_pkmn.dex_number;
+                if (dex_num == 201)
+                {
+                    dex_num = POKEMON_ARRAY_SIZE + curr_pkmn.unown_letter;
+                }
+                else if (curr_pkmn.is_missingno)
+                {
+                    dex_num = 0;
+                }
+
+                u32 gMonIconPaletteIndices = 0x0857c388;
+                u32 sprite_table = 0x0857bca8;
+
+                u32 sprite_location = (*(u32 *)(sprite_table + (dex_num * 4)));
+                int pal_num = *(byte *)(gMonIconPaletteIndices + dex_num);
+                load_sprite(party_sprites[i], (const unsigned int *)sprite_location, 512, curr_tile_id, MENU_PAL_RED + pal_num, ATTR0_SQUARE, ATTR1_SIZE_32x32, 1);
+                obj_set_pos(party_sprites[i], ((BOXMENU_SPRITE_WIDTH + BOXMENU_HSPACE) * (i % BOXMENU_HNUM)) + (BOXMENU_LEFT + BOXMENU_SPRITE_HOFFSET), ((BOXMENU_SPRITE_HEIGHT + BOXMENU_VSPACE) * (i / BOXMENU_HNUM)) + (BOXMENU_TOP + BOXMENU_SPRITE_VOFFSET));
+                obj_unhide(party_sprites[i], 0);
             }
-            else if (curr_pkmn.is_missingno)
+            else
             {
-                dex_num = 0;
+                curr_tile_id += 16;
             }
-            // grab_menu_sprite(dex_num, curr_tile_id, party_sprites[i], 0);
-
-            u32 gMonIconPaletteIndices = 0x0857c388;
-            u32 sprite_table = 0x0857bca8;
-            u32 sprite_location = (*(u32 *)(sprite_table + (dex_num * 4)));
-
-            int pal_num = *(byte *)(0x0857c388 + dex_num);
-            load_sprite(party_sprites[i], (const unsigned int *)sprite_location, 512, curr_tile_id, MENU_PAL_RED + pal_num, ATTR0_SQUARE, ATTR1_SIZE_32x32, 1);
-            obj_set_pos(party_sprites[i], ((BOXMENU_SPRITE_WIDTH + BOXMENU_HSPACE) * (i % BOXMENU_HNUM)) + (BOXMENU_LEFT + BOXMENU_SPRITE_HOFFSET), ((BOXMENU_SPRITE_HEIGHT + BOXMENU_VSPACE) * (i / BOXMENU_HNUM)) + (BOXMENU_TOP + BOXMENU_SPRITE_VOFFSET));
-            obj_unhide(party_sprites[i], 0);
         }
-        else
+        // Load the menu sprite palettes. Should this be done somewhere else?
+        u32 gMonIconPalettes = 0x08dde1f8;
+        for (int i = 0; i < 3; i++)
         {
-            curr_tile_id += 16;
+            tonccpy((pal_obj_mem + ((MENU_PAL_RED + i) * 16)), (const unsigned short *)(gMonIconPalettes + (i * 32)), 32);
         }
-    }
-    // Load the menu sprite palettes. Should this be done somewhere else?
-    u32 gMonIconPalettes = 0x08dde1f8;
-    unsigned short buffer[16];
-    for (int i = 0; i < 3; i++)
-    {
-        tonccpy((pal_obj_mem + ((MENU_PAL_RED + i) * 16)), (const unsigned short *)(gMonIconPalettes + (i * 32)), 32);
+
+        load_sprite_compressed(grabbed_front_sprite, (const unsigned int *)*(u32 *)(curr_rom.loc_gMonFrontPicTable + (0 * 8)), curr_tile_id, PULLED_SPRITE_PAL, ATTR0_SQUARE, ATTR1_SIZE_64x64, 1);
+        obj_set_pos(grabbed_front_sprite, 8, 16);
     }
 
-    load_sprite_compressed(grabbed_front_sprite, (const unsigned int *)*(u32 *)(curr_rom.loc_gMonFrontPicTable + (0 * 8)), curr_tile_id, PULLED_SPRITE_PAL, ATTR0_SQUARE, ATTR1_SIZE_64x64, 1);
-    obj_set_pos(grabbed_front_sprite, 8, 16);
-    load_sprite_compressed(box_select, box_selectTiles, curr_tile_id, BTN_PAL, ATTR0_SQUARE, ATTR1_SIZE_16x16, 0);
+    load_sprite_compressed(box_select, box_selectTiles, curr_tile_id, BTN_PAL, ATTR0_SQUARE, ATTR1_SIZE_32x32, 0);
     load_sprite_compressed(button_cancel_left, button_cancel_leftTiles, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
     load_sprite_compressed(button_cancel_right, button_edgeTiles, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
     load_sprite_compressed(button_confirm_left, button_confirm_leftTiles, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
@@ -835,8 +840,14 @@ void update_y_offset()
 
 void update_front_box_sprite(Simplified_Pokemon *curr_pkmn)
 {
+    if (IGNORE_GAME_PAK)
+    {
+        return; // We don't want to look into garbage data, get out of here.
+    }
+
     u32 curr_tile_id = global_tile_id_end + (30 * 16);
     int dex_num = 0;
+
     if (curr_pkmn->unown_letter > 1)
     {
         dex_num = 412 + curr_pkmn->unown_letter;
@@ -867,11 +878,15 @@ void update_front_box_sprite(Simplified_Pokemon *curr_pkmn)
     }
     tonccpy((pal_obj_mem + (PULLED_SPRITE_PAL * 16)), buffer, 32);
     LZ77UnCompVram((const unsigned int *)sprite_location, &tile_mem[SPRITE_CHAR_BLOCK][curr_tile_id]);
-    // load_sprite_compressed(grabbed_front_sprite, (const unsigned int *)sprite_location, curr_tile_id, PULLED_SPRITE_PAL, ATTR0_SQUARE, ATTR1_SIZE_64x64, 1);
 }
 
 void update_menu_sprite(Pokemon_Party *party_data, int index, int frame)
 {
+    if (IGNORE_GAME_PAK)
+    {
+        return; // We don't want to look into garbage data, get out of here.
+    }
+
     u32 curr_tile_id = global_tile_id_end + (index * 16);
 
     Simplified_Pokemon curr_pkmn = party_data->get_simple_pkmn(index);
@@ -886,8 +901,6 @@ void update_menu_sprite(Pokemon_Party *party_data, int index, int frame)
     }
 
     u32 sprite_table = 0x0857bca8;
-    u32 gMonIconPaletteIndices = 0x0857c388;
-    u32 gMonIconPalettes = 0x08dde1f8;
 
     u32 sprite_location = (*(u32 *)(sprite_table + (dex_num * 4))) + (frame == 0 ? 0 : 512);
     tonccpy(&tile_mem[SPRITE_CHAR_BLOCK][curr_tile_id], (const unsigned int *)sprite_location, 512);

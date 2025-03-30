@@ -129,6 +129,7 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
 
     music_var songLooker(sec30_variable_list, &curr_section30_index);
 
+    // This determines if the event has been done before
     bool first_time = true;
     for (int i = 1; i <= 251; i++)
     {

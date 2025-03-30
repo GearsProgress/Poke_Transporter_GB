@@ -156,7 +156,7 @@ void textbox_var::set_virtual_start()
 void textbox_var::insert_text(u8 mg_array[])
 {
     set_start();
-    for (unsigned int parser = 0; parser < text_length; parser++)
+    for (int parser = 0; parser < text_length; parser++)
     {
         if (curr_rom.is_hoenn() && (text[parser] == 0xFC) && (get_gen_3_char((char16_t)(text[parser + 1]), false) == 0x01)) // Removes colored text
         {
@@ -175,9 +175,8 @@ void textbox_var::insert_text(u8 mg_array[])
 void textbox_var::insert_virtual_text(u8 mg_array[])
 {
     set_virtual_start();
-    for (unsigned int parser = 0; parser < text_length; parser++)
+    for (int parser = 0; parser < text_length; parser++)
     {
-        text[parser];
         if (curr_rom.is_hoenn() && (text[parser] == 0xFC) && (get_gen_3_char((char16_t)(text[parser + 1]), false) == 0x01)) // Removes colored text
         {
             parser += 2;

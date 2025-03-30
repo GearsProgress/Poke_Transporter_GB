@@ -81,7 +81,7 @@ def convertByte(incoming, array):
     print(f"Warning! No match found for char [ {chr(incoming)} ]!")
     return 0
  
-def SplitSentenceIntoLines(sentence, offset, charPerLine):
+def SplitSentenceIntoLines(sentence, offset, pixelsPerChar, pixelsInLine):
     # If we can optimize this to remove the spaces, it could save some space.
     outStr = ""
     currLine = ""
@@ -92,6 +92,7 @@ def SplitSentenceIntoLines(sentence, offset, charPerLine):
         word = words[currWordIndex]
         # print(word)
         if(True):
+            testOut = ((len(currLine + word) + offset) * pixelsPerChar)
             # See if the whole sentence is a newline
             if (sentence == "Ň"):
                 outStr += "Ň"
@@ -100,11 +101,11 @@ def SplitSentenceIntoLines(sentence, offset, charPerLine):
                 offset = 0
                 currWordIndex += 1
             # Test if the word is too long in general
-            elif (len(word) > charPerLine):
+            elif ((len(word) * pixelsPerChar) > pixelsInLine):
                 print(f"ERROR: Word {word} exceeds alloted length")
                 currWordIndex += 1
             # Test if adding the word will go over our alloted space
-            elif ((len(currLine + word) + offset) <= charPerLine):
+            elif (((len(currLine + word) + offset) * pixelsPerChar) <= pixelsInLine):
                 # If not, add the word and increase the index
                 currLine += (word + " ")
                 currWordIndex += 1
@@ -145,7 +146,7 @@ def SplitSentenceIntoLines(sentence, offset, charPerLine):
                 offset = 0
             
     outStr += currLine
-    return len(currLine), lineCount, outStr
+    return len(currLine) + offset, lineCount, outStr
 
 # -*- coding: utf-8 -*-
 import re
@@ -206,8 +207,8 @@ def split_into_sentences(text: str) -> list[str]:
     return sentences
 
 class Languages(Enum):
-    Japanese = 0
     English = 1
+    Japanese = 0
 
 # read by default 1st sheet of an excel file
 dir = os.curdir + "\\text_helper"
@@ -226,7 +227,7 @@ for lang in Languages:
 
 textDict = copy.deepcopy(mainDict)
 
-def convert_item(line, numLines, charPerLine, include_box_breaks):
+def convert_item(line, numLines, pixelsInLine, include_box_breaks):
     split_sents = split_into_sentences(line)
     index = 0
     outStr = ""
@@ -234,7 +235,7 @@ def convert_item(line, numLines, charPerLine, include_box_breaks):
     offset = 0
     escapeCount = 0
     while index < len(split_sents) and escapeCount < 100:
-        offset, recievedLine, out = SplitSentenceIntoLines(split_sents[index], offset, charPerLine)
+        offset, recievedLine, out = SplitSentenceIntoLines(split_sents[index], offset, 6, pixelsInLine)
         currLine += recievedLine
         if (currLine < numLines):
             #print(split_sents[index])
@@ -303,7 +304,7 @@ with open(os.curdir + '\\source\\translated_text.cpp', 'w') as cppFile:
             num = 0
             for key, line in PTGB.items():
                 #print("--------")
-                PTGB[key] = convert_item(line, 4, 28, True)
+                PTGB[key] = convert_item(line, 4, 224, True)
                 cppFile.write("\nconst byte dialogueLine" + str(num) + "[] = {" + PTGB[key] + "};")
                 hFile.write(f"#define {key} {num}\n")
                 num += 1
@@ -327,14 +328,14 @@ with open(os.curdir + '\\source\\translated_text.cpp', 'w') as cppFile:
             # General
             GENERAL = mainDict[lang.name]["GENERAL"]
             for key, line in GENERAL.items():
-                GENERAL[key] = convert_item(line, 16, 28, False) # TODO This should not be for *every* item
+                GENERAL[key] = convert_item(line, 16, 240, False) # TODO This should not be for *every* item
                 cppFile.write(f"const byte {key}[] = {{{GENERAL[key]}}};\n")
                 hFile.write(f"extern const byte {key}[];\n")
             
             # Credits
             CREDITS = mainDict[lang.name]["CREDITS"]
             for key, line in CREDITS.items():
-                CREDITS[key] = convert_item(line, 8, 20, False)
+                CREDITS[key] = convert_item(line, 8, 160, False)
                 cppFile.write(f"const byte {key}[] = {{{CREDITS[key]}}};\n")
                 hFile.write(f"extern const byte {key}[];\n")
             cppFile.write("\n")
@@ -345,7 +346,7 @@ with open(os.curdir + '\\source\\translated_text.cpp', 'w') as cppFile:
             num = 0
             for key, line in PKMN_NAMES.items():
                 #print("--------")
-                PKMN_NAMES[key] = convert_item(line, 4, 28, True)
+                PKMN_NAMES[key] = convert_item(line, 4, 240, True)
                 cppFile.write("const byte PKMN_NAMES" + str(num) + "[] = {" + PKMN_NAMES[key] + "};\n")
                 num += 1
                 

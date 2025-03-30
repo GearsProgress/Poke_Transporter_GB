@@ -181,7 +181,7 @@ int ptgb_write(const byte *text, bool instant, int length)
                 {
                     tc->drawgProc(0xEF);
                 }
-                tc->cursorY += 10; // tc->font->charH;
+                tc->cursorY += tc->font->charH;
                 tc->cursorX = tc->marginLeft;
                 break;
             default:
@@ -204,7 +204,7 @@ int ptgb_write(const byte *text, bool instant, int length)
 
                 // Draw and update position
                 tc->drawgProc(gid);
-                tc->cursorX += 6; //charW;
+                tc->cursorX += charW;
             }
             num += 1;
         }

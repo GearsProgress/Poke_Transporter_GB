@@ -148,19 +148,16 @@ void initalization_script(void)
 
 void game_load_error(void)
 {
-	// EG_BG0CNT = (REG_BG0CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
-	// REG_BG1CNT = (REG_BG1CNT & ~BG_PRIO_MASK) | BG_PRIO(2);
 	REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(1);
-	REG_BG2VOFS = 0;
-	tte_set_pos(40, 24);
-	create_textbox(5, 3, 80, 80, true);
+	create_textbox(4, 1, 160, 80, true);
 	ptgb_write("#{cx:0xF000}The Pok@mon save\nfile was not loaded successfully.\n\nPlease remove and\nreinsert the Game\nPak, and then press the A button.");
 	key_poll();
 	while (!key_hit(KEY_A))
 	{
 		global_next_frame();
 	}
-	tte_erase_screen();
+	// This was causing a green screen (lol), so we might need to mess with it once the text is added back in
+	//tte_erase_screen();
 	delay_counter = 0;
 
 	while (delay_counter < 60)
@@ -215,7 +212,8 @@ int credits()
 	{
 		if (update)
 		{
-			create_textbox(5, 3, 160, 80, true);
+			create_textbox(4, 1, 160, 80, true);
+			show_text_box();
 			ptgb_write(credits_array[curr_credits_num], true);
 			update = false;
 		}
@@ -254,7 +252,7 @@ int credits()
 			bool tutorial = get_tutorial_flag();
 			int def_lang = get_def_lang_num();
 
-			create_textbox(5, 3, 80, 80, true);
+			create_textbox(4, 1, 160, 80, true);
 			ptgb_write_debug("Debug info:\n\nG: ", true);
 			std::string lang;
 			lang += curr_rom.language;
@@ -327,7 +325,8 @@ int main_menu_loop()
 			for (int i = 0; i < NUM_MENU_OPTIONS; i++)
 			{
 				int size = get_string_length(menu_options[i]);
-				int x = (6 + ((18 - size) / 2)) * 8;
+				int char_width = (curr_rom.language == JPN_ID ? 8 : 6);
+				int x = ((240 - (size * char_width)) / 2);
 				tte_set_pos(x, ((i * 17) + 80));
 				if (i == curr_selection)
 				{
@@ -411,7 +410,12 @@ int main(void)
 	obj_unhide_multi(ptgb_logo_l, 1, 2);
 	bool start_pressed = false;
 	REG_BLDCNT = BLD_BUILD(BLD_BG3, BLD_BG0, 1);
-	tte_set_pos(((30 - get_string_length(press_start)) / 2) * 8, 12 * 8);
+
+	int char_width = (curr_rom.language == JPN_ID ? 8 : 6);
+	int size = get_string_length(press_start);
+	int x = ((240 - (size * char_width)) / 2);
+	tte_set_pos(x, 12 * 8);
+
 	tte_set_ink(INK_DARK_GREY);
 	ptgb_write(press_start, true);
 	int fade = 0;
@@ -484,8 +488,8 @@ int main(void)
 			break;
 		case (BTN_CREDITS):
 			tte_set_ink(INK_DARK_GREY);
-			create_textbox(0, 0, 160, 80, true);
-			show_text_box();
+			//create_textbox(0, 0, 160, 80, true);
+			//show_text_box();
 			REG_BG1CNT = (REG_BG1CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
 			obj_set_pos(ptgb_logo_l, 56, 108);
 			obj_set_pos(ptgb_logo_r, 56 + 64, 108);
