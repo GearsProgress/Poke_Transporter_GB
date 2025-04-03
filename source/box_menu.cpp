@@ -131,7 +131,7 @@ int Box_Menu::box_main(Pokemon_Party party_data)
                     tte_write("*");
                 }
                 tte_set_pos(48, 80);
-                tte_write(curr_pkmn.is_missingno ? "MissingNo" : NAMES[curr_pkmn.dex_number].data());
+                tte_write(curr_pkmn.is_missingno ? "MissingNo" : NAMES[curr_pkmn.dex_number]);
                 tte_set_pos(146, 80);
                 tte_write("Lv: ");
                 tte_write(std::to_string(curr_pkmn.met_level).c_str());

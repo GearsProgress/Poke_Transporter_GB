@@ -4125,7 +4125,7 @@ const byte FIRST_MOVES[POKEMON_ARRAY_SIZE] = {
     0x49, // Celebi          (leech-seed)
     0x01, // Treecko         (pound)
 };
-const std::string_view NAMES[POKEMON_ARRAY_SIZE]{
+const char* NAMES[POKEMON_ARRAY_SIZE]{
     "MissingNo", // Offset the list to remove "off by one" errors
     "Bulbasaur",
     "Ivysaur",
