@@ -31,7 +31,7 @@ void z80_asm_handler::add_byte(u8 value)
 
 void z80_asm_handler::generate_patchlist(z80_asm_handler *bytes_to_patch){
     bool higher_than_FC = false;
-    for (int i = 0; i < bytes_to_patch->data_vector.size(); i++){
+    for (unsigned int i = 0; i < bytes_to_patch->data_vector.size(); i++){
         if (i - 19 == 0x100 && !higher_than_FC){
             add_byte(0xFF); // This tells the system that the byte is further than 0xFF away
             higher_than_FC = true;

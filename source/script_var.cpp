@@ -3,6 +3,7 @@
 #include "script_var.h"
 #include "pokemon_data.h"
 #include "debug_mode.h"
+#include "global_frame_controller.h"
 
 extern rom_data curr_rom;
 
@@ -136,9 +137,10 @@ u32 xse_var::get_loc_in_sec30()
 
 // TEXTBOX VAR
 
-void textbox_var::set_text(std::u16string_view nText)
+void textbox_var::set_text(const byte nText[])
 {
     text = nText;
+    text_length = get_string_length(nText);
 }
 
 void textbox_var::set_start()
@@ -154,16 +156,15 @@ void textbox_var::set_virtual_start()
 void textbox_var::insert_text(u8 mg_array[])
 {
     set_start();
-    for (unsigned int parser = 0; parser < text.length(); parser++)
+    for (int parser = 0; parser < text_length; parser++)
     {
-        byte character = get_gen_3_char((char16_t)(text.at(parser)), false);
-        if (curr_rom.is_hoenn() && (character == 0xFC) && (get_gen_3_char((char16_t)(text.at(parser + 1)), false) == 0x01)) // Removes colored text
+        if (curr_rom.is_hoenn() && (text[parser] == 0xFC) && (get_gen_3_char((char16_t)(text[parser + 1]), false) == 0x01)) // Removes colored text
         {
             parser += 2;
         }
         else
         {
-            mg_array[*curr_loc_ptr] = character;
+            mg_array[*curr_loc_ptr] = text[parser];
             (*curr_loc_ptr)++;
         }
     }
@@ -174,16 +175,15 @@ void textbox_var::insert_text(u8 mg_array[])
 void textbox_var::insert_virtual_text(u8 mg_array[])
 {
     set_virtual_start();
-    for (unsigned int parser = 0; parser < text.length(); parser++)
+    for (int parser = 0; parser < text_length; parser++)
     {
-        byte character = get_gen_3_char((char16_t)(text.at(parser)), false);
-        if (curr_rom.is_hoenn() && (character == 0xFC) && (get_gen_3_char((char16_t)(text.at(parser + 1)), false) == 0x01)) // Removes colored text
+        if (curr_rom.is_hoenn() && (text[parser] == 0xFC) && (get_gen_3_char((char16_t)(text[parser + 1]), false) == 0x01)) // Removes colored text
         {
             parser += 2;
         }
         else
         {
-            mg_array[*curr_loc_ptr] = character;
+            mg_array[*curr_loc_ptr] = text[parser];
             (*curr_loc_ptr)++;
         }
     }
@@ -225,6 +225,7 @@ void sprite_var::set_start()
 
 void sprite_var::insert_sprite_data(u8 mg_array[], const unsigned int sprite_array[], unsigned int size, const unsigned short palette_array[])
 {
+
     set_start();
     u32 pointer = curr_rom.loc_gSaveDataBuffer + *curr_loc_ptr + 8;
     for (int i = 0; i < 4; i++)
@@ -237,11 +238,10 @@ void sprite_var::insert_sprite_data(u8 mg_array[], const unsigned int sprite_arr
         mg_array[*curr_loc_ptr] = size >> (8 * i);
         (*curr_loc_ptr)++;
     }
-    for (unsigned int parser = 0; parser < size; parser++)
-    {
-        mg_array[*curr_loc_ptr] = sprite_array[parser / 4] >> (8 * (parser % 4));
-        (*curr_loc_ptr)++;
-    }
+
+    LZ77UnCompWram(sprite_array, &mg_array[*curr_loc_ptr]);
+    *curr_loc_ptr += size;
+
     for (unsigned int parser = 0; parser < 32; parser++)
     {
         mg_array[*curr_loc_ptr] = palette_array[parser / 2] >> (8 * (parser % 2));

@@ -11,59 +11,17 @@
 #include <tonc.h>
 #include "background_engine.h"
 #include "select_menu.h"
+#include "translated_text.h"
 
 int last_error;
 Pokemon_Party party_data = Pokemon_Party();
 
-Select_Menu langs(false, LANG_MENU);
-Select_Menu games(false, CART_MENU);
+Select_Menu langs(false, LANG_MENU, 18, 0);
+Select_Menu games(false, CART_MENU, 18, 0);
 Box_Menu box_viewer;
 
 script_obj transfer_script[SCRIPT_SIZE];
 script_obj event_script[SCRIPT_SIZE];
-std::string_view dialogue[DIA_SIZE];
-
-void populate_dialogue()
-{
-    dialogue[DIA_OPEN] = "Hey there! I'm Professor\nFennel. As you can see, I'm\na scientist.|In fact, the subject I'm \nresearching is Trainers!|My dream is to collect save files of various trainers, \nbut I haven't had any \nbreakthroughs yet...|So in the meantime, I've\nbeen working on a different\nproject with one of my old\nfriends!|In my home region, there's a\nlocation that can make a\nPok@mon's dreams into\nreality.|This means that any other\nPok@mon they meet in their\ndreams become real!|That's fantastic, but my\ngoal is to do the same-\njust with a trainer's dream\ninstead!|That's why I need your help!\nI want to bring as many\nPok@mon out of your dreams\nas possible!|There's just over 250\nPok@mon I want to catalogue\nin my Dream Pok@Dex-\nor Dream Dex for short.|But I'll let you keep any\nPok@mon- they're from your\ndreams after all!|One last note, save data\nbackups are recommended-\njust on the off chance that\nsomething goes wrong!|I think that's everything...\nwhenever you're ready to\nstart, just let me know!";
-    dialogue[DIA_E4] = "Hi trainer! I'm thrilled\nyou've decided to help with our research, but we need\nthe best of the best!|Come back after you've\nbeaten the Elite Four and\nbecome the Champion!";
-    dialogue[DIA_MG_FRLGE] = "Sorry trainer, one more\nthing to take care of before\nwe can begin- you need to\nenable MYSTERY GIFT!|Head to the nearest Pok@\nMart and fill out the\nquestionnaire as follows:\nLINK TOGETHER WITH ALL|After that, you should be\nall set to go!|See you soon!";
-    dialogue[DIA_MG_RS] = "Sorry trainer, one more\nthing to take care of before\nwe can begin- you need to\nenable MYSTERY EVENT!|Head to the PETALBURG\nPok@mon Center and tell the\nman next to the PC:\nMYSTERY EVENT IS EXCITING|After that, you should be\nall set to go!|See you soon!";
-    dialogue[DIA_LETS_START] = "Perfect, that's all the\ninformation I need! Let's\nget started!";
-    dialogue[DIA_START] = "On a second Game Boy family\nsystem, please load the Game\nBoy Pok@mon game you wish to\ntransfer from.|In your Game Boy Pok@mon\ngame, make your current box\nthe one you want to transfer\nfrom.|Then connect this Game Boy\nAdvance to the other Game\nBoy family system using a\nGame Boy Color link cable.|Once you're ready, press A\non this device, talk to the Cable Club attendant, and\nthen initiate a trade.";
-    dialogue[DIA_TRANS_GOOD] = "Amazing! Fantastic!\nEverything went perfectly!";
-    dialogue[DIA_NEW_DEX] = "It looks like there's at\nleast one new Pok@mon here\nthat isn't in the Dream Dex!|I'll give them something\nextra sweet as a reward for you both.";
-    dialogue[DIA_NO_NEW_DEX] = "It doesn't look like there's\nanything new for your Dream\nDex, but that's okay!|It's important to confirm\nresearch results with\nmultiple tests!";
-    dialogue[DIA_SEND_FRIEND_KANTO] = "I'm going to send these\nPok@mon to one of my friends\nso that you can pick them\nup!|They live just south of the Pok@mon center on Seven\nIsland!";
-    dialogue[DIA_SEND_FRIEND_HOENN_RS] = "I'm going to send these\nPok@mon to one of my friends\nso that you can pick them\nup!|They live just southeast of the Pok@mon center in\nMossdeep City!";
-    dialogue[DIA_SEND_FRIEND_HOENN_E] = "I'm going to send these\nPok@mon to one of my friends\nso that you can pick them\nup!|They live just southeast of the Pok@mon center in\nSootopolis City!";
-    dialogue[DIA_THANK] = "Thank you so much for your\nhelp! Whenever you want to\ntransfer more Pok@mon, just\nlet me know!|See you around!";
-    dialogue[DIA_GET_MON] = "Let's get started! Please connect Load the Game Boy Pok@mon game you want to transfer from, and put the Pok@mon you want to transfer into your party. ";
-    dialogue[DIA_MG_OTHER_EVENT] = "Hi Trainer! It looks like\nyou have a different event\ncurrently loaded.|That's no problem, but it\nwill be overwritten if you\ncontinue.|Turn off the system now if\nyou want to experience your\ncurrent event,\nbut otherwise-";
-    dialogue[DIA_PKMN_TO_COLLECT] = "Hi Trainer! It looks like\nyou still have Pok@mon to\npick up...|I can't send over new\nPok@mon until you pick those\nup.|Come back after you've\nreceived them!";
-    dialogue[DIA_NO_VALID_PKMN] = "Sorry Trainer, it doesn't\nlook like you have any valid\nPok@mon in your current box\nright now.|Go double check your current\nbox and we can give it\nanother shot!";
-    dialogue[DIA_ASK_QUEST] = "Hi trainer! Before we begin,\nI need to ask you a few\nquestions.";
-    dialogue[DIA_WHAT_GAME_TRANS] = "And which Game Boy Pok@mon\ngame are you transferring\nfrom?";
-    dialogue[DIA_WHAT_LANG_TRANS] = "What language is the Game\nBoy Pok@mon game that you're\ntransferring from?";
-    dialogue[DIA_NO_GB_ROM] = "I'm sorry, but that version\nin that language is not\ncurrently supported.";
-    dialogue[DIA_IN_BOX] = "Alright! Let's take a look\nat the Pok@mon that will be\ntransfered.|Please remember, once a\nPok@mon is transfered, it\nCANNOT be returned to the\nGame Boy Game Pak.|Select confirm once you're\nready, or select cancel if\nyou want to keep the Pok@mon\non your Game Boy Game Pak.";
-    dialogue[DIA_MYTHIC_CONVERT] = "It looks like you have a\nrare Mythical Pok@mon!|Due to their rarity, it\nseems they've overloaded the\nmachine.|I can stablize them if you'd\nlike, but it'll change some\nthings like met location,\nOT, TID, and Shininess.|Otherwise I can leave them\nas is, but there's no\nguarentee that they'll be\ntransferrable in the future.|Do you want me to stablize\nthem? This will apply to\nall of the Mythical Pok@mon\ncurrently in your box.";
-    dialogue[DIA_CANCEL] = "No worries! Feel free to\ncome back if you change your\nmind!|See you around!";
-    dialogue[DIA_SOME_INVALID_PKMN] = "I see there is at least one\nPok@mon that cannot be\ntransferred from your\ncurrent box.|Pok@mon holding items or\nmodified incorrectly through\nunintended means cannot\nbe transferred.|The other Pok@mon will\ntransfer just fine though!";
-    dialogue[DIA_MENU_BACK] = "No worries! Feel free to\ncome back any time!";
-    dialogue[DIA_IS_MISSINGNO] = "...It seems like one of your Pok@mon is messing with the machine...|It looks to only be graphical though, so we can continue!";
-
-    dialogue[DIA_ERROR_COLOSSEUM] = "It looks like you went to\nthe colosseum instead of the\ntrading room!|Let's try that again!";
-    dialogue[DIA_ERROR_COM_ENDED] = "Communication with the other\ndevice was terminated.|Let's try that again!";
-    dialogue[DIA_ERROR_DISCONNECT] = "It looks like the Game Boy\nColor link cable was\ndisconnected...|Let's try that again!";
-    dialogue[DIA_ERROR_TIME_ONE] = "It looks like the connection\ntimed out...|Let's try that again!";
-    dialogue[DIA_ERROR_TIME_TWO] = "It seems like the connection\ntimed out...|Let's try that again!";
-
-    dialogue[DIA_WHAT_LANG_EVENT] = "What language is the Game\nBoy Pok@mon game that you\nwant to send an event to?";
-    dialogue[DIA_WHAT_GAME_EVENT] = "And which Game Boy Pok@mon\ngame do you want to send an event to?";
-    dialogue[DIA_K_DEX_NOT_FULL] = "Sorry trainer, it looks like\nyou haven't caught all 150\nPok@mon from the Kanto\nregion yet.|Go out and catch them all\nand then we'll be able to\nsend over the event!";
-    dialogue[DIA_J_DEX_NOT_FULL] = "Sorry trainer, it looks like\nyou haven't caught all 99\nnew Pok@mon from the Johto\nregion yet.|Go out and catch them all\nand then we'll be able to\nsend over the event!";
-}
 
 void populate_script()
 {
@@ -174,14 +132,14 @@ void populate_script()
 
 void populate_lang_menu()
 {
-    langs.add_option("English", ENG_ID);
-    langs.add_option("Japanese", JPN_ID);
-    langs.add_option("Spanish", SPA_ID);
-    langs.add_option("French", FRE_ID);
-    langs.add_option("German", GER_ID);
-    langs.add_option("Italian", ITA_ID);
-    langs.add_option("Korean", KOR_ID);
-    langs.add_option("Cancel", -1);
+    langs.add_option(option_english, ENG_ID);
+    langs.add_option(option_japanese, JPN_ID);
+    langs.add_option(option_spanish, SPA_ID);
+    langs.add_option(option_french, FRE_ID);
+    langs.add_option(option_german, GER_ID);
+    langs.add_option(option_italian, ITA_ID);
+    langs.add_option(option_korean, KOR_ID);
+    langs.add_option(option_cancel, -1);
 }
 
 void populate_game_menu(int lang)
@@ -189,30 +147,30 @@ void populate_game_menu(int lang)
     switch (lang)
     {
     case (JPN_ID):
-        games.add_option("Red", RED_ID);
-        games.add_option("Green", GREEN_ID);
-        games.add_option("Blue", BLUE_ID);
-        games.add_option("Yellow", YELLOW_ID);
-        games.add_option("Gold", GOLD_ID);
-        games.add_option("Silver", SILVER_ID);
-        games.add_option("Crystal", CRYSTAL_ID);
-        games.add_option("Cancel", -1);
+        games.add_option(option_red, RED_ID);
+        games.add_option(option_green, GREEN_ID);
+        games.add_option(option_blue, BLUE_ID);
+        games.add_option(option_yellow, YELLOW_ID);
+        games.add_option(option_gold, GOLD_ID);
+        games.add_option(option_silver, SILVER_ID);
+        games.add_option(option_crystal, CRYSTAL_ID);
+        games.add_option(option_cancel, -1);
         break;
 
     case (KOR_ID):
-        games.add_option("Gold", GOLD_ID);
-        games.add_option("Silver", SILVER_ID);
-        games.add_option("Cancel", -1);
+        games.add_option(option_gold, GOLD_ID);
+        games.add_option(option_silver, SILVER_ID);
+        games.add_option(option_cancel, -1);
         break;
 
     default:
-        games.add_option("Red", RED_ID);
-        games.add_option("Blue", BLUE_ID);
-        games.add_option("Yellow", YELLOW_ID);
-        games.add_option("Gold", GOLD_ID);
-        games.add_option("Silver", SILVER_ID);
-        games.add_option("Crystal", CRYSTAL_ID);
-        games.add_option("Cancel", -1);
+        games.add_option(option_red, RED_ID);
+        games.add_option(option_blue, BLUE_ID);
+        games.add_option(option_yellow, YELLOW_ID);
+        games.add_option(option_gold, GOLD_ID);
+        games.add_option(option_silver, SILVER_ID);
+        games.add_option(option_crystal, CRYSTAL_ID);
+        games.add_option(option_cancel, -1);
         break;
     }
 }
@@ -301,7 +259,7 @@ bool run_conditional(int index)
         load_flex_background(BG_FENNEL, 3);
         link_animation_state(STATE_CONNECTION);
         party_data.start_link();
-        set_textbox_small();
+        reset_textbox();
         load_flex_background(BG_FENNEL, 2);
         link_animation_state(0);
         return true;

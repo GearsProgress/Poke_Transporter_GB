@@ -4,6 +4,7 @@
 #include "pokemon_party.h"
 #include "pokemon_data.h"
 #include "rom_data.h"
+#include "translated_text.h"
 
 #define MG_SCRIPT false
 #define S30_SCRIPT true
@@ -128,6 +129,7 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
 
     music_var songLooker(sec30_variable_list, &curr_section30_index);
 
+    // This determines if the event has been done before
     bool first_time = true;
     for (int i = 1; i <= 251; i++)
     {
@@ -149,38 +151,39 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     //      À = Player name
     // Ň = New line
     // ƞ = string terminator
+    
     switch (curr_rom.gamecode)
     {
     case RUBY_ID:
-        textGreet.set_text(u"When I was young, I traveled the worldŇas a POKéMON TRAINER.");
-        textMoveBox.set_text(u"ȆÀËOh, of course, I have to unlockŇthe door!");
-        textWeHere.set_text(u"ȆÀËLOOKER: I am here in Hoenn to findŇthe leader MAXIE.ȼAs well, I am helping my friendŇProfessor FENNEL.ȼThis is why you are here, no?ŇI shall tell her you are ready.ŞCome! Allons y!");
+        textGreet.set_text(dia_textGreet_rse);
+        textMoveBox.set_text(dia_textMoveBox_rs);
+        textWeHere.set_text(dia_textWeHere_r);
         break;
     case SAPPHIRE_ID:
-        textGreet.set_text(u"When I was young, I traveled the worldŇas a POKéMON TRAINER.");
-        textMoveBox.set_text(u"ȆÀËOh, of course, I have to unlockŇthe door!");
-        textWeHere.set_text(u"ȆÀËLOOKER: I am here in Hoenn to findŇthe leader ARCHIE.ȼAs well, I am helping my friendŇProfessor FENNEL.ȼThis is why you are here, no?ŇI shall tell her you are ready.ŞCome! Allons y!");
+        textGreet.set_text(dia_textGreet_rse);
+        textMoveBox.set_text(dia_textMoveBox_rs);
+        textWeHere.set_text(dia_textWeHere_s);
         break;
     case FIRERED_ID:
     case LEAFGREEN_ID:
-        textGreet.set_text(u"I may not look like much now,Ňbut when I was younger…");
-        textMoveBox.set_text(u"ȆÀËOh, of course, I have to moveŇthe boxes!");
-        textWeHere.set_text(u"ȆÀËLOOKER: I am here in Kanto to findŇthe leader GIOVANNI.ȼAs well, I am helping my friendŇProfessor FENNEL.ȼThis is why you are here, no?ŇI shall tell her you are ready.ŞCome! Allons y!");
+        textGreet.set_text(dia_textGreet_frlg);
+        textMoveBox.set_text(dia_textMoveBox_frlg);
+        textWeHere.set_text(dia_textWeHere_frlg);
         break;
     case EMERALD_ID:
-        textGreet.set_text(u"When I was young, I traveled the worldŇas a POKéMON TRAINER.");
-        textMoveBox.set_text(u"ȆÀËOh, of course, I have to moveŇthe plants!");
-        textWeHere.set_text(u"ȆÀËLOOKER: I am here in Hoenn to findŇthe leaders MAXIE and ARCHIE.ȼAs well, I am helping my friendŇProfessor FENNEL.ȼThis is why you are here, no?ŇI shall tell her you are ready.ŞCome! Allons y!");
+        textGreet.set_text(dia_textGreet_rse);
+        textMoveBox.set_text(dia_textMoveBox_e);
+        textWeHere.set_text(dia_textWeHere_e);
         break;
     }
-    textReceived.set_text(u"ȆÀÁƲÀ’S POKéMON were sent to theŇPC!");
-    textYouMustBe.set_text(first_time ? u"Ah! You must be ƲÀ!ŇI was told you’d be coming.ȼOh! I still wear my disguise! Pardon!ŇOr, rather, let me introduce myself." : u"Ah, ƲÀ! Welcome back!ŇGood to see you again!ȼOh! I still wear my disguise! Pardon!");
-    textIAm.set_text(first_time ? u"ȆÀËI am a globe-trotting elite of theŇInternational Police.ȼMy name…ŞAh, no, I shall inform you of myŇcode name only.ȼMy code name, it is LOOKER!" : u"ȆÀËIt is I, globe-trotting elite of theŇInternational Police.ȼMy code name, it is LOOKER!");
-    textPCConvo.set_text(u"ȆÀÉFENNEL: Ah, LOOKER! I take itŇƲÀ has arrived?ȼȆÀËLOOKER: Indeed! They’re ready toŇreceive their POKéMON!ȼȆÀÉFENNEL: Excellent! I’ll send themŇover momentarily… stand by!"); // ȼDon’t worry ƲÀ,Ňyou won’t have to do a thing!");
-    textPCThanks.set_text(u"ȆÀÉFENNEL: It looks like everything wasŇsent to your PC successfully!ȼThank you both for your help!");
-    textThank.set_text(u"ȆÀËThanks for stopping by, ƲÀ!ȼIf you’ll excuse me, I must returnŇto my disguise.ŞUntil our paths cross again!");
-    textPCFull.set_text(u"ȆÀÉFENNEL: It seems like the PC is full!ȼGo make some room, and I can sendŇover the rest of your POKéMON.");
-    textLookerFull.set_text(u"ȆÀËLOOKER: Speak to me again afterŇyou’ve made room, ƲÀ!ȼIn the meantime, I will return toŇmy disguise.");
+    textReceived.set_text(dia_textRecieved);
+    textYouMustBe.set_text(first_time ? dia_textYouMustBe_first : dia_textYouMustBe_second);
+    textIAm.set_text(first_time ? dia_textIAm_first : dia_textIAm_second);
+    textPCConvo.set_text(dia_textPCConvo); // ȼDon’t worry ƲÀ,Ňyou won’t have to do a thing!");
+    textPCThanks.set_text(dia_textPCThanks);
+    textThank.set_text(dia_textThank);
+    textPCFull.set_text(dia_textPCFull);
+    textLookerFull.set_text(dia_textLookerFull);
 
     const int movementSlowSpinArray[16] = {
         MOVEMENT_ACTION_FACE_LEFT,

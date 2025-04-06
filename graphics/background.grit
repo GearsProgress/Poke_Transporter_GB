@@ -1,4 +1,4 @@
 #
-# Brinstar : 64x64t, 4bpp, SBB-layout, not compressed.
+# Brinstar : 32x32t, 4bpp, SBB-layout, LZ77 compressed.
 #
--gt -gB4 -mR4 -mLs -pe16
+-gt -gB4 -gzl -mR4 -mRtpf -mLs -mzl -pe16

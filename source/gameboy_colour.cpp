@@ -10,7 +10,7 @@
 #include "interrupt.h"
 #include "text_engine.h"
 #include "global_frame_controller.h"
-#include "gb_rom_values/eng_gb_rom_values.h"
+#include "gb_rom_values/gb_rom_wrapper.h"
 #include "background_engine.h"
 #include "sprite_data.h"
 #include "payload_builder.h"
@@ -85,8 +85,8 @@ void print(std::string str)
   tte_set_pos(LEFT, 0);
   for (int j = 0; j < 10; j++)
   {
-    tte_write("#{cx:0xE000}");
-    tte_write(spi_text_out_array[j].c_str());
+    ptgb_write("#{cx:0xE000}");
+    ptgb_write(spi_text_out_array[j].c_str());
   }
 }
 
@@ -122,10 +122,10 @@ void setup()
   init_packet = true;
   end_of_data = false;
 
-  set_textbox_large();
+  create_textbox(0, 0, 80, 80, true);
   tte_erase_screen();
   tte_set_pos(40, 24);
-  tte_write("\n\n\n   Connecting to\n      GameBoy");
+  ptgb_write("\n\n\n   Connecting to\n      GameBoy");
 }
 
 byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, Simplified_Pokemon *curr_simple_array, bool cancel_connection)
@@ -178,7 +178,7 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
     {
       tte_erase_screen();
       tte_set_pos(40, 24);
-      tte_write(curr_gb_rom->version != YELLOW_ID ? "\n\n\nLink was successful!\n\n  Waiting for trade" : "\n\n\nLink was successful!\n\n Waiting for battle");
+      ptgb_write(curr_gb_rom->version != YELLOW_ID ? "\n\n\nLink was successful!\n\n  Waiting for trade" : "\n\n\nLink was successful!\n\n Waiting for battle");
       link_animation_state(STATE_NO_ANIM);
       state = pretrade;
       data_counter = 0;
@@ -223,7 +223,7 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
     {
       tte_erase_screen();
       tte_set_pos(40, 24);
-      tte_write("\n\n\nTransferring data...\n    please wait!");
+      ptgb_write("\n\n\nTransferring data...\n    please wait!");
       link_animation_state(STATE_TRANSFER);
       mosi_delay = 1;
       state = party_preamble;
@@ -399,21 +399,21 @@ byte exchange_boxes(byte curr_in, byte *box_data_storage, GB_ROM *curr_gb_rom)
     }
     if (SHOW_DATA_PACKETS)
     {
-      tte_write("P: ");
-      tte_write(std::to_string(data_packet[0]).c_str());
-      tte_write("\n");
+      ptgb_write("P: ");
+      ptgb_write(std::to_string(data_packet[0]).c_str());
+      ptgb_write("\n");
       for (int i = 0; i < DATA_PER_PACKET; i++)
       {
-        tte_write(std::to_string(i).c_str());
-        tte_write(": ");
-        tte_write(std::to_string(data_packet[PACKET_DATA_AT(i)]).c_str());
-        tte_write(" [");
-        tte_write(std::to_string(data_packet[PACKET_FLAG_AT(i)]).c_str());
-        tte_write("]\n");
+        ptgb_write(std::to_string(i).c_str());
+        ptgb_write(": ");
+        ptgb_write(std::to_string(data_packet[PACKET_DATA_AT(i)]).c_str());
+        ptgb_write(" [");
+        ptgb_write(std::to_string(data_packet[PACKET_FLAG_AT(i)]).c_str());
+        ptgb_write("]\n");
       }
-      tte_write(std::to_string(checksum).c_str());
-      tte_write(" = ");
-      tte_write(std::to_string(data_packet[PACKET_CHECKSUM]).c_str());
+      ptgb_write(std::to_string(checksum).c_str());
+      ptgb_write(" = ");
+      ptgb_write(std::to_string(data_packet[PACKET_CHECKSUM]).c_str());
     }
 
     if (checksum == data_packet[PACKET_CHECKSUM] && !init_packet && !(test_packet_fail && received_offset == 128)) // Verify if the data matches the checksum
@@ -451,10 +451,10 @@ byte exchange_boxes(byte curr_in, byte *box_data_storage, GB_ROM *curr_gb_rom)
 
     if (SHOW_DATA_PACKETS)
     {
-      tte_write("\nNO: ");
-      tte_write(std::to_string(next_offset).c_str());
-      tte_write("\nFP: ");
-      tte_write(std::to_string(failed_packet).c_str());
+      ptgb_write("\nNO: ");
+      ptgb_write(std::to_string(next_offset).c_str());
+      ptgb_write("\nFP: ");
+      ptgb_write(std::to_string(failed_packet).c_str());
     }
 
     if (!init_packet)
@@ -476,10 +476,10 @@ byte exchange_boxes(byte curr_in, byte *box_data_storage, GB_ROM *curr_gb_rom)
 
     if (SHOW_DATA_PACKETS)
     {
-      tte_write("\nRO: ");
-      tte_write(std::to_string(received_offset).c_str());
-      tte_write("\nIP: ");
-      tte_write(std::to_string(init_packet).c_str());
+      ptgb_write("\nRO: ");
+      ptgb_write(std::to_string(received_offset).c_str());
+      ptgb_write("\nIP: ");
+      ptgb_write(std::to_string(init_packet).c_str());
 
       while (!key_held(KEY_A))
       {

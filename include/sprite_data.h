@@ -6,6 +6,7 @@
 #include "pokemon_data.h"
 #include "pokemon_party.h"
 #include "rom_data.h"
+#include "box_menu.h"
 
 #define FENNEL_SHIFT 4
 
@@ -83,6 +84,8 @@ extern OBJ_ATTR *link_blob1;
 extern OBJ_ATTR *link_blob2;
 extern OBJ_ATTR *link_blob3;
 
+extern OBJ_ATTR *grabbed_front_sprite;
+
 #define BG2VOF_SMALL_TEXTBOX 96
 #define BG2VOF_LARGE_TEXTBOX 0
 
@@ -101,28 +104,37 @@ extern OBJ_ATTR *link_blob3;
 #define MENU_PAL_START MENU_PAL_RED
 #define GBA_CART_PAL 12
 #define LINK_CABLE_PAL 13
+#define PULLED_SPRITE_PAL 14
 
 #define BG_OPENING 0
 #define BG_FENNEL 1
 #define BG_DEX 2
 #define BG_MAIN_MENU 3
+#define BG_BOX 4
 
 extern rom_data curr_rom;
 
 void load_sprite(OBJ_ATTR *sprite, const unsigned int objTiles[], int objTilesLen,
+                 u32 &tile_id, u32 pal_bank, int attr0, int attr1, u32 priority);
+
+void load_sprite_compressed(OBJ_ATTR *sprite, const unsigned int objTiles[],
                  u32 &tile_id, u32 pal_bank, int attr0, int attr1, u32 priority);
 void load_background();
 void set_background_pal(int curr_rom_id, bool dark, bool fade);
 void load_textbox_background();
 void load_flex_background(int background_id, int layer);
 void load_eternal_sprites();
-void load_temp_box_sprites(Pokemon_Party party_data);
+void load_temp_box_sprites(Pokemon_Party *party_data);
 void load_type_sprites(int pkmn_index, int dex_offset, bool is_caught);
-void add_menu_box(int options);
+void add_menu_box(int options, int startTileX, int startTileY);
+void add_menu_box(int startTileX, int startTileY, int width, int height);
 void reload_textbox_background();
 void load_select_sprites(int game_id, int lang);
 void fennel_blink(int frame);
 void fennel_speak(int frame);
 int get_curr_flex_background();
 void update_y_offset();
+void erase_textbox_tiles();
+void update_front_box_sprite(Simplified_Pokemon *curr_pkmn);
+void update_menu_sprite(Pokemon_Party *party_data, int index, int frame);
 #endif

@@ -1,28 +1,7 @@
 #ifndef ENG_GB_ROM_VALUES_H
 #define ENG_GB_ROM_VALUES_H
 
-// These are redefined because C++ doesn't like compiling TONC
-#define JPN_ID 1
-#define ENG_ID 2
-#define FRE_ID 3
-#define ITA_ID 4
-#define GER_ID 5
-#define SPA_ID 7
-#define KOR_ID 8
-
-#define GREEN_ID 0
-#define RED_ID 1
-#define BLUE_ID 2
-#define YELLOW_ID 3
-#define GOLD_ID 4
-#define SILVER_ID 5
-#define CRYSTAL_ID 6
-
-#define METHOD_NEWLINE 0
-#define METHOD_MEW 1
-#define METHOD_GEN2 2
-
-#include "gb_rom_values/base_gb_rom_struct.h"
+#include "base_gb_rom_struct.h"
 
 const struct GB_ROM ENG_RED = {
     .language = ENG_ID,
@@ -51,13 +30,14 @@ const struct GB_ROM ENG_RED = {
     .wRemoveMonFromBox = 0xCF95,
     .wBoxCount = 0xDA80,
     .wWhichPokemon = 0xCF92,
-    .hSerialConnectionStatus = 0xFFAA,
     .wBoxDataStart = 0xDA80,
     .wBoxDataEnd = 0xDEE2,
-    .wSerialOtherGameboyRandomNumberListBlock = 0xCD81,
     .wSerialEnemyDataBlock = 0xD893,
-    .wSerialEnemyMonsPatchList = 0xC5D0,
     .wEnemyMonSpecies = 0xCFE5,
+
+    .wSerialEnemyMonsPatchList = 0xC5D0,
+    .wSerialOtherGameboyRandomNumberListBlock = 0xCD81,
+    .hSerialConnectionStatus = 0xFFAA,
 
     .transferStringLocation = 0xC444,
     .textBorderUppLeft = 0xC42F,
@@ -91,13 +71,14 @@ const struct GB_ROM ENG_BLUE = {
     .wRemoveMonFromBox = 0xCF95,
     .wBoxCount = 0xDA80,
     .wWhichPokemon = 0xCF92,
-    .hSerialConnectionStatus = 0xFFAA,
     .wBoxDataStart = 0xDA80,
     .wBoxDataEnd = 0xDEE2,
-    .wSerialOtherGameboyRandomNumberListBlock = 0xCD81,
     .wSerialEnemyDataBlock = 0xD893,
-    .wSerialEnemyMonsPatchList = 0xC5D0,
     .wEnemyMonSpecies = 0xCFE5,
+
+    .wSerialEnemyMonsPatchList = 0xC5D0,
+    .wSerialOtherGameboyRandomNumberListBlock = 0xCD81,
+    .hSerialConnectionStatus = 0xFFAA,
 
     .transferStringLocation = 0xC444,
     .textBorderUppLeft = 0xC42F,
@@ -127,18 +108,20 @@ const struct GB_ROM ENG_YELLOW = {
     .OpenSRAM = 0x3E99,
     .Bankswitch = 0x3E7E, // BankswitchCommon
     .SoftReset = 0x1D05,
-    .garbageDataLocation = 0x0161,
     .CloseSRAM = 0x3EA9,
+    .garbageDataLocation = 0x0161,
+
     .wRemoveMonFromBox = 0xCF94,
     .wBoxCount = 0xDA7F,
     .wWhichPokemon = 0xCF91,
-    .hSerialConnectionStatus = 0xFFAA,
     .wBoxDataStart = 0xDA7F,
     .wBoxDataEnd = 0xDEE1,
-    .wSerialOtherGameboyRandomNumberListBlock = 0xCD81,
     .wSerialEnemyDataBlock = 0xD892,
-    .wSerialEnemyMonsPatchList = 0xC5D0,
     .wEnemyMonSpecies = 0xCFE4,
+
+    .wSerialEnemyMonsPatchList = 0xC5D0,
+    .wSerialOtherGameboyRandomNumberListBlock = 0xCD81,
+    .hSerialConnectionStatus = 0xFFAA,
 
     .transferStringLocation = 0xC444,
     .textBorderUppLeft = 0xC42F,
@@ -167,16 +150,17 @@ const struct GB_ROM ENG_GOLD = {
     .SoftReset = 0x05B0,
     .garbageDataLocation = 0x0654,
 
-    .wRemoveMonFromBox = 0x01D008, // wPokemonWithdrawDepositParameter
-    .wBoxCount = 0x01AD6C,         // sBoxCount
-    .wWhichPokemon = 0x01D005,     // wCurPartyMon
-    .hSerialConnectionStatus = 0xFFCD,
-    .wBoxDataStart = 0xAD6C,                            // sBoxStart
-    .wBoxDataEnd = 0xB1BA,                              // sBoxEnd
-    .wSerialOtherGameboyRandomNumberListBlock = 0xD0EF, // wOTLinkBattleRNData
-    .wSerialEnemyDataBlock = 0xDD40,                    // wOTPartyData
-    .wSerialEnemyMonsPatchList = 0xC5D0,                // wOTPatchLists
+    .wRemoveMonFromBox = 0x01D008,   // wPokemonWithdrawDepositParameter
+    .wBoxCount = 0x01AD6C,           // sBoxCount
+    .wWhichPokemon = 0x01D005,       // wCurPartyMon
+    .wBoxDataStart = 0xAD6C,         // sBoxStart
+    .wBoxDataEnd = 0xB1BA,           // sBoxEnd
+    .wSerialEnemyDataBlock = 0xDD40, // wOTPartyData
     .wEnemyMonSpecies = 0x01D0EF,
+
+    .wSerialEnemyMonsPatchList = 0xC5D0,                // wOTPatchLists
+    .wSerialOtherGameboyRandomNumberListBlock = 0xD0EF, // wOTLinkBattleRNData
+    .hSerialConnectionStatus = 0xFFCD,
 
     .transferStringLocation = 0xC444,
     .textBorderUppLeft = 0xC42F,
@@ -205,16 +189,17 @@ const struct GB_ROM ENG_SILVER = {
     .SoftReset = 0x05B0,
     .garbageDataLocation = 0x0654,
 
-    .wRemoveMonFromBox = 0x01D008, // wPokemonWithdrawDepositParameter
-    .wBoxCount = 0x01AD6C,         // sBoxCount
-    .wWhichPokemon = 0x01D005,     // wCurPartyMon
-    .hSerialConnectionStatus = 0xFFCD,
-    .wBoxDataStart = 0xAD6C,                            // sBoxStart
-    .wBoxDataEnd = 0xB1BA,                              // sBoxEnd
-    .wSerialOtherGameboyRandomNumberListBlock = 0xD0EF, // wOTLinkBattleRNData
-    .wSerialEnemyDataBlock = 0xDD40,                    // wOTPartyData
-    .wSerialEnemyMonsPatchList = 0xC5D0,                // wOTPatchLists
+    .wRemoveMonFromBox = 0x01D008,   // wPokemonWithdrawDepositParameter
+    .wBoxCount = 0x01AD6C,           // sBoxCount
+    .wWhichPokemon = 0x01D005,       // wCurPartyMon
+    .wBoxDataStart = 0xAD6C,         // sBoxStart
+    .wBoxDataEnd = 0xB1BA,           // sBoxEnd
+    .wSerialEnemyDataBlock = 0xDD40, // wOTPartyData
     .wEnemyMonSpecies = 0x01D0EF,
+
+    .wSerialEnemyMonsPatchList = 0xC5D0,                // wOTPatchLists
+    .wSerialOtherGameboyRandomNumberListBlock = 0xD0EF, // wOTLinkBattleRNData
+    .hSerialConnectionStatus = 0xFFCD,
 
     .transferStringLocation = 0xC444,
     .textBorderUppLeft = 0xC42F,
@@ -243,16 +228,17 @@ const struct GB_ROM ENG_CRYSTAL = {
     .SoftReset = 0x0150, // Reset
     .garbageDataLocation = 0x0770,
 
-    .wRemoveMonFromBox = 0x01D10B, // wPokemonWithdrawDepositParameter
-    .wBoxCount = 0x01AD10,         // sBoxCount
-    .wWhichPokemon = 0x01D109,     // wCurPartyMon
-    .hSerialConnectionStatus = 0xFFCB,
-    .wBoxDataStart = 0x01AD10,                          // sBox
-    .wBoxDataEnd = 0x01B15E,                            // sBoxEnd
-    .wSerialOtherGameboyRandomNumberListBlock = 0xD206, // wOTLinkBattleRNData
-    .wSerialEnemyDataBlock = 0xD26B,                    // wOTPartyData
-    .wSerialEnemyMonsPatchList = 0xC6D0,                // wOTPatchLists
+    .wRemoveMonFromBox = 0x01D10B,   // wPokemonWithdrawDepositParameter
+    .wBoxCount = 0x01AD10,           // sBoxCount
+    .wWhichPokemon = 0x01D109,       // wCurPartyMon
+    .wBoxDataStart = 0x01AD10,       // sBox
+    .wBoxDataEnd = 0x01B15E,         // sBoxEnd
+    .wSerialEnemyDataBlock = 0xD26B, // wOTPartyData
     .wEnemyMonSpecies = 0x01D206,
+
+    .wSerialEnemyMonsPatchList = 0xC6D0,                // wOTPatchLists
+    .wSerialOtherGameboyRandomNumberListBlock = 0xD206, // wOTLinkBattleRNData
+    .hSerialConnectionStatus = 0xFFCB,
 
     .transferStringLocation = 0xC544,
     .textBorderUppLeft = 0xC52F,

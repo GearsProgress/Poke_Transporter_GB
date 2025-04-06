@@ -2,6 +2,7 @@
 #include "mystery_gift_builder.h"
 #include "pokemon_party.h"
 #include "pokemon_data.h"
+#include "text_engine.h"
 #include "gba_rom_values/eng_gba_rom_values.h"
 #include "gba_rom_values/jpn_gba_rom_values.h"
 #include "gba_rom_values/fre_gba_rom_values.h"
@@ -120,6 +121,10 @@ void rom_data::fill_values(const ROM_DATA *rom_values)
     loc_voicegroup = rom_values->loc_voicegroup;
     loc_sPicTable_NPC = rom_values->loc_sPicTable_NPC;
 
+    loc_gMonFrontPicTable = rom_values->loc_gMonFrontPicTable;
+    loc_gMonPaletteTable = rom_values->loc_gMonPaletteTable;
+    loc_gMonShinyPaletteTable = rom_values->loc_gMonShinyPaletteTable;
+
     offset_ramscript = rom_values->offset_ramscript;
     offset_flags = rom_values->offset_flags;
     offset_wondercard = rom_values->offset_wondercard;
@@ -143,7 +148,6 @@ void rom_data::fill_values(const ROM_DATA *rom_values)
     def_npc_id = rom_values->def_npc_id;
 
     loc_gSaveBlock1PTR = rom_values->loc_gSaveBlock1PTR; // TODO: Only used for old script, can be removed later
-
 }
 
 bool rom_data::is_hoenn()
@@ -182,7 +186,7 @@ void rom_data::print_rom_info()
     out += "-";
     out += char(language);
     tte_set_pos(0, 8);
-    tte_write(out.c_str());
+    ptgb_write(out.c_str());
 }
 
 bool rom_data::verify_rom()

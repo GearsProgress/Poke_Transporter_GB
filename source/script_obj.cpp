@@ -7,7 +7,7 @@
 
 script_obj::script_obj(){};
 
-script_obj::script_obj(std::string_view nText, int nNext)
+script_obj::script_obj(const byte* nText, int nNext)
 {
     text = nText;
     has_text = true;
@@ -30,7 +30,7 @@ script_obj::script_obj(int nRun, int nNext_if_true, int nNext_if_false)
     next_false_index = nNext_if_false;
 }
 
-std::string_view script_obj::get_text()
+const byte* script_obj::get_text()
 {
     if (has_text)
     {
@@ -38,7 +38,7 @@ std::string_view script_obj::get_text()
     }
     else
     {
-        return "";
+        return NULL;
     }
 }
 

@@ -43,7 +43,11 @@ struct ROM_DATA
     int loc_voicegroup;
     int loc_sPicTable_NPC; // sPicTable_OldWoman in FRLG
 
-    int loc_gSaveBlock1; // Only used in R/S
+    int loc_gMonFrontPicTable; // gMonStillFrontPicTable in Emerald
+    int loc_gMonPaletteTable;
+    int loc_gMonShinyPaletteTable;
+
+    int loc_gSaveBlock1;     // Only used in R/S
     int loc_gSaveDataBuffer; // The location of the saveDataBuffer
     int loc_gSpecialVar_0x8000;
     int loc_gMPlayInfo_BGM;
