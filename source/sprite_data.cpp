@@ -243,7 +243,7 @@ static int TILE_SW_L_ARR[4] = {TILE_CLEAR, TILE_CLEAR, TILE_SW_4L, TILE_SW_6L};
 
 void add_menu_box(int options, int startTileX, int startTileY)
 {
-    add_menu_box(startTileX, startTileY, MENU_WIDTH * 8, options * 10);
+    add_menu_box(startTileX, startTileY, (MENU_WIDTH) * 8, options * 10);
 }
 
 void add_menu_box(int startTileX, int startTileY, int width, int height)

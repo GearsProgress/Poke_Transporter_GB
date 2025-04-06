@@ -150,7 +150,7 @@ void game_load_error(void)
 {
 	REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(1);
 	create_textbox(4, 1, 160, 80, true);
-	ptgb_write("#{cx:0xF000}The Pok@mon save\nfile was not loaded successfully.\n\nPlease remove and\nreinsert the Game\nPak, and then press the A button.");
+	ptgb_write(cart_load_error, true);
 	key_poll();
 	while (!key_hit(KEY_A))
 	{
@@ -171,7 +171,7 @@ void first_load_message(void)
 {
 	tte_set_pos(8, 0);
 	tte_set_ink(INK_ROM_COLOR);
-	ptgb_write("#{cx:0xD000}\n\nHello! Thank you for using\nPok@ Transporter GB!\n\nJust as a word of caution- \nPok@ Transporter GB WILL\nmodify both the GameBoy and GameBoy Advance save files.\n\nPlease note that Pok@\nTransporter GB is still in\nbeta, so save file backups\nare HIGHLY recommended\nbefore using. With that all\nbeing said, please enjoy!\n\n      -The Gears of Progress");
+	ptgb_write(intro_first, true);
 	while (!key_hit(KEY_A))
 	{
 		global_next_frame();
@@ -372,9 +372,12 @@ int main(void)
 	// Set colors based on current ROM
 	set_background_pal(0, false, false);
 
+	// First load message... which apparently was removed at some point?
+	first_load_message();
+
 	// Legal mumbo jumbo
 	tte_set_margins(8, 8, H_MAX - 8, V_MAX - 8);
-	tte_set_pos(8, 0); // There's def a way to set this to the "top left corner"
+	tte_set_pos(8, 8);
 	tte_set_ink(INK_ROM_COLOR);
 	ptgb_write(intro_legal, true);
 	bool wait = true;

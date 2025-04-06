@@ -45,7 +45,26 @@
 #define DIA_END DIA_SIZE
 
 extern const byte *dialogue[DIA_SIZE];
-extern const byte option_english[];
+
+extern const byte dia_textGreet_rse[];
+extern const byte dia_textGreet_frlg[];
+extern const byte dia_textMoveBox_rs[];
+extern const byte dia_textMoveBox_frlg[];
+extern const byte dia_textMoveBox_e[];
+extern const byte dia_textWeHere_r[];
+extern const byte dia_textWeHere_s[];
+extern const byte dia_textWeHere_frlg[];
+extern const byte dia_textWeHere_e[];
+extern const byte dia_textRecieved[];
+extern const byte dia_textYouMustBe_first[];
+extern const byte dia_textYouMustBe_second[];
+extern const byte dia_textIAm_first[];
+extern const byte dia_textIAm_second[];
+extern const byte dia_textPCConvo[];
+extern const byte dia_textPCThanks[];
+extern const byte dia_textThank[];
+extern const byte dia_textPCFull[];
+extern const byte dia_textLookerFull[];extern const byte option_english[];
 extern const byte option_japanese[];
 extern const byte option_spanish[];
 extern const byte option_french[];
@@ -61,10 +80,15 @@ extern const byte option_silver[];
 extern const byte option_crystal[];
 extern const byte option_cancel[];
 extern const byte press_start[];
-extern const byte intro_legal[];
 extern const byte option_transfer[];
 extern const byte option_dreamdex[];
 extern const byte option_credits[];
+extern const byte intro_first[];
+extern const byte intro_legal[];
+extern const byte cart_load_error[];
+extern const byte pulled_cart_error[];
+extern const byte kanto_name[];
+extern const byte johto_name[];
 extern const byte credits_page_1[];
 extern const byte credits_page_2[];
 extern const byte credits_page_3[];

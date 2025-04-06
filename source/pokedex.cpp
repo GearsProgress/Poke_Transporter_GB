@@ -9,6 +9,8 @@
 #include "global_frame_controller.h"
 #include "save_data_manager.h"
 #include "button_handler.h"
+#include "translated_text.h"
+#include "text_engine.h"
 
 Dex dex_array[DEX_MAX];
 int dex_shift = 0;
@@ -16,7 +18,6 @@ int dex_x_cord = 8;
 int speed = 0;
 int delay = 0;
 int count = 0;
-int leading_zeros = 0;
 Button kanto_count;
 Button johto_count;
 int kanto_dex_num;
@@ -72,9 +73,32 @@ int pokedex_loop()
 {
     pokedex_init();
     pokedex_show();
-    bool init = true;
-    // TODO: For some reason there is screen tearing here. Probably not noticable on console,
-    // but it should be removed at some point
+    bool update = true;
+
+    byte undiscovered_text[] = {0xAE, 0xAE, 0xAE, 0xAE, 0xAE, 0xAE, 0xAE, 0xAE, 0xAE, 0xAE, 0xFF};
+    byte temp_string[4] = {}; // Should never be longer than 4 characters (including endline)
+                              // TODO: For some reason there is screen tearing here. Probably not noticable on console,
+                              // but it should be removed at some point
+
+    tte_set_pos(8, 148);
+    ptgb_write(kanto_name, true);
+    convert_int_to_ptgb_str(kanto_dex_num, temp_string, 3);
+    ptgb_write(temp_string, true);
+    temp_string[0] = 0xBA; // "/"
+    temp_string[1] = 0xFF;
+    ptgb_write(temp_string, true);
+    convert_int_to_ptgb_str(mew_caught ? 151 : 150, temp_string, 3);
+    ptgb_write(temp_string, true);
+
+    tte_set_pos(128, 148);
+    ptgb_write(johto_name, true);
+    convert_int_to_ptgb_str(johto_dex_num, temp_string, 3);
+    ptgb_write(temp_string, true);
+    temp_string[0] = 0xBA; // "/"
+    temp_string[1] = 0xFF;
+    ptgb_write(temp_string, true);
+    convert_int_to_ptgb_str(celebi_caught ? 100 : 99, temp_string, 3);
+    ptgb_write(temp_string, true);
 
     while (true)
     {
@@ -86,6 +110,7 @@ int pokedex_loop()
         else if (key_hit(KEY_DOWN) || key_hit(KEY_UP))
         {
             dex_shift += key_tri_vert();
+            update = true;
         }
         else if (key_held(KEY_DOWN) || key_held(KEY_UP))
         {
@@ -103,6 +128,7 @@ int pokedex_loop()
                         count++;
                     }
                     dex_shift += key_tri_vert();
+                    update = true;
                 }
             }
             else
@@ -141,10 +167,10 @@ int pokedex_loop()
             obj_unhide(up_arrow, 0);
             obj_unhide(down_arrow, 0);
         }
-
-        if ((key_tri_vert() != 0) | init)
+        int val = key_tri_vert();
+        if (update)
         {
-            tte_erase_rect(0, 0, 240, 160);
+            tte_erase_rect(0, 0, 240, 140);
             int mythic_skip = 0;
             for (int i = 0; i < DEX_MAX; i++)
             {
@@ -152,45 +178,31 @@ int pokedex_loop()
                 {
                     mythic_skip++;
                 }
-                tte_set_pos(dex_x_cord + (2 * 8), (i * 8 * 2) + 32);
-                tte_write(is_caught(dex_shift + i + 1 + mythic_skip) ? "^" : " ");
+
+                if (is_caught(dex_shift + i + 1 + mythic_skip))
+                {
+                    tte_set_pos(dex_x_cord + (1.5 * 8), (i * 8 * 2) + 32);
+                    temp_string[0] = 0xF7;
+                    temp_string[1] = 0xF8;
+                    temp_string[2] = 0xFF;
+                    ptgb_write(temp_string, true);
+                }
+
                 tte_set_pos(dex_x_cord + (3 * 8), (i * 8 * 2) + 32);
-                tte_write("000");
-                if (dex_shift + i + 1 + mythic_skip < 10)
-                {
-                    leading_zeros = 2;
-                }
-                else if (dex_shift + i + 1 + mythic_skip < 100)
-                {
-                    leading_zeros = 1;
-                }
-                else
-                {
-                    leading_zeros = 0;
-                }
-                tte_set_pos(dex_x_cord + ((3 + leading_zeros) * 8), (i * 8 * 2) + 32);
-                tte_write(std::to_string(dex_shift + i + 1 + mythic_skip).c_str());
+                convert_int_to_ptgb_str(dex_shift + i + 1 + mythic_skip, temp_string, 3);
+                ptgb_write(temp_string, true);
+
                 tte_set_pos(dex_x_cord + (7 * 8), (i * 8 * 2) + 32);
-                tte_write(is_caught(dex_shift + i + 1 + mythic_skip) ? std::string(NAMES[dex_shift + i + 1 + mythic_skip]).data() : "----------");
+                ptgb_write(is_caught(dex_shift + i + 1 + mythic_skip) ? PKMN_NAMES[dex_shift + i + 1 + mythic_skip] : undiscovered_text, true);
+            }
+            global_next_frame(); // This is a bit silly, but it works. Makes the types one frame off from the text, but that's 'fine'
+            // Eventually it could be optimized to move the labels around, but this honestly makes the most sense. Less code but one frame different
+            for (int i = 0; i < DEX_MAX; i++)
+            {
                 load_type_sprites(dex_shift + i + 1 + mythic_skip, i, is_caught(dex_shift + i + 1 + mythic_skip));
             }
-            tte_set_pos(8, 152);
-            tte_write("KANTO:");
-            tte_set_pos(56 + (8 * kanto_offset), 152);
-            tte_write(std::to_string(kanto_dex_num).c_str());
-            tte_write("/");
-            tte_write(mew_caught ? "151" : "150");
-
-            tte_set_pos(128, 152);
-            tte_write("JOHTO:");
-            tte_set_pos(176 + (8 * johto_offset), 152);
-            tte_write(std::to_string(johto_dex_num).c_str());
-            tte_write("/");
-            tte_write(celebi_caught ? "100" : "99");
-
-            init = false;
+            update = false;
         }
-
         global_next_frame();
     }
 }

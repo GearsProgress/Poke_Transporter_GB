@@ -4,7 +4,9 @@ import os
 from enum import Enum
 import json
 import requests
+from collections import defaultdict
 import copy
+import math
 
 update = True
 
@@ -43,6 +45,24 @@ engCharArray = [
 0x3A, 	0xC4, 	0xD6, 	0xDC, 	0xE4, 	0xF6, 	0xFC, 	0x2A, 	0x20, 	0x20, 	0x15E, 	0x23C, 	0x206, 	0x1B2, 	0x147, 	0x19E, 
 ]
 
+engCharWidthArray = [
+    0x4, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x0, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 
+0x8, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x0, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x0, 
+0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x8, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x9, 	0x6, 	0x6, 	0x0, 
+0x0, 	0x0, 	0x0, 	0x0, 	0xA, 	0x8, 	0x3, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 
+0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 
+0x6, 	0x6, 	0x4, 	0x8, 	0x8, 	0x8, 	0x7, 	0x8, 	0x8, 	0x4, 	0x6, 	0x6, 	0x4, 	0x4, 	0x0, 	0x0, 
+0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x6, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x6, 
+0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x7, 	0x7, 	0x7, 	0x7, 	0x2, 	0x3, 	0x4, 
+0x5, 	0x5, 	0x6, 	0x7, 	0x5, 	0x6, 	0x6, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 
+0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 
+0x8, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x4, 	0x6, 	0x3, 	0x6, 	0x3, 
+0x6, 	0x6, 	0x6, 	0x3, 	0x3, 	0x6, 	0x6, 	0x6, 	0x3, 	0x7, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 
+0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 
+0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x4, 	0x5, 	0x6, 
+0x4, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x5, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x8, 
+0x3, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x38, 	0x0, 	0x0, ]
+
 jpnCharArray = [
 0x20, 	0x3042, 	0x3044, 	0x3046, 	0x3048, 	0x304A, 	0x304B, 	0x304D, 	0x304F, 	0x3051, 	0x3053, 	0x3055, 	0x3057, 	0x3059, 	0x305B, 	0x305D, 
 0x305F, 	0x3061, 	0x3064, 	0x3066, 	0x3068, 	0x306A, 	0x306B, 	0x306C, 	0x306D, 	0x306E, 	0x306F, 	0x3072, 	0x3075, 	0x3078, 	0x307B, 	0x307E, 
@@ -71,82 +91,88 @@ def convertByte(incoming, array):
     for pair in charConversionList:
         if incoming == ord(pair[0]):
             incoming = ord(pair[1])
-            print(f"Warning! {pair[0]} found, replacing with {pair[1]} !")
+            #print(f"Warning! {pair[0]} found, replacing with {pair[1]} !")
+            next_key = max(mainDict[lang.name]["Warnings"].keys(), default =- 1) + 1
+            mainDict[lang.name]["Warnings"][next_key] = f"Warning! {pair[0]} found, replacing with {pair[1]} !"
+    
     
     index = 0
     for val in array:
         if val == incoming:
             return index
         index += 1
-    print(f"Warning! No match found for char [ {chr(incoming)} ]!")
+    #print(f"Error! No match found for char [ {chr(incoming)} ]!")
+    
+    next_key = max(mainDict[lang.name]["Errors"].keys(), default =- 1) + 1
+    mainDict[lang.name]["Errors"][next_key] = f"Error! No match found for char [ {chr(incoming)} ]!"
     return 0
  
 def SplitSentenceIntoLines(sentence, offset, pixelsPerChar, pixelsInLine):
-    # If we can optimize this to remove the spaces, it could save some space.
+    # If we can optimize this to remove the spaces, it could save a few bytes.
+
     outStr = ""
     currLine = ""
     lineCount = 0
     currWordIndex = 0
+    lineLength = 0
+    spaceLength = 0
     words = sentence.split()
     while(currWordIndex < len(words)):
         word = words[currWordIndex]
+        wordLength = 0
         # print(word)
-        if(True):
-            testOut = ((len(currLine + word) + offset) * pixelsPerChar)
-            # See if the whole sentence is a newline
-            if (sentence == "Ň"):
-                outStr += "Ň"
-                currLine = ""
-                lineCount += 1
-                offset = 0
-                currWordIndex += 1
-            # Test if the word is too long in general
-            elif ((len(word) * pixelsPerChar) > pixelsInLine):
-                print(f"ERROR: Word {word} exceeds alloted length")
-                currWordIndex += 1
-            # Test if adding the word will go over our alloted space
-            elif (((len(currLine + word) + offset) * pixelsPerChar) <= pixelsInLine):
-                # If not, add the word and increase the index
-                currLine += (word + " ")
-                currWordIndex += 1
-            # We need to move to the next line
+        
+        # Figure out the length of the word in pixels
+        for char in word:
+            if (pixelsPerChar == "Variable Latin Font"):
+                wordLength += engCharWidthArray[convertByte(ord(char), engCharArray)]
+                spaceLength = engCharWidthArray[convertByte(ord(' '), engCharArray)]
             else:
-                # Every line should already have a space at the end of it. Remove it here
-                outStr += (currLine[:-1] + "Ň")
-                currLine = ""
-                lineCount += 1
-                offset = 0
-                
+                wordLength += pixelsPerChar
+                spaceLength = pixelsPerChar
+        
+        # See if the whole sentence is a newline
+        if (sentence == "Ň"):
+            outStr += "Ň"
+            currLine = ""
+            lineCount += 1
+            offset = 0
+            lineLength = 0
+            currWordIndex += 1
             
+        # See if the sentence is a new box
+        elif(sentence == "Ş" or sentence == "ȼ"):
+            outStr += sentence
+            currLine = ""
+            offset = 0
+            lineLength = 0
+            currWordIndex += 1
             
-
+        # Test if the word is too long in general
+        elif (wordLength > pixelsInLine):
+            #print(f"ERROR: Word {word} exceeds alloted length")
+            next_key = max(mainDict[lang.name]["Errors"].keys(), default =- 1) + 1
+            mainDict[lang.name]["Errors"][next_key] = f"ERROR: Word {word} exceeds alloted length"
+            currWordIndex += 1
             
+        # Test if adding the word will go over our alloted space
+        elif ((wordLength + lineLength + offset) <= pixelsInLine):
+            # If not, add the word and increase the index
+            currLine += (word + " ")
+            lineLength += (wordLength + spaceLength)
+            currWordIndex += 1
             
+        # We need to move to the next line
         else:
-            if (word[0] == "Ň"):
-                if (prevLineLen >= charPerLine + 1):
-                    word = word[1:] # Remove the newline since we just added one
-                else:
-                    lineCount += 1
-                    currLine = word + " "
-                    offset = 0
-                    prevLineLen = len(currLine) 
-                    word = word[1:] # Set up remaining line
-            elif ((len(currLine + word) + offset) < charPerLine):
-                currLine += word + " "
-            elif ((len(currLine + word) + offset) == charPerLine):
-                currLine += word
-            else:
-                if (len(currLine) != 0 and currLine[-1] == " "):
-                    currLine = currLine[:-1]
-                outStr += currLine + "Ň" # Newline character
-                lineCount += 1
-                prevLineLen = len(currLine)
-                currLine = word + " "
-                offset = 0
-            
+            # Every line should already have a space at the end of it. Remove it here
+            outStr += (currLine[:-1] + "Ň")
+            currLine = ""
+            lineCount += 1
+            lineLength = 0
+            offset = 0
+                
     outStr += currLine
-    return len(currLine) + offset, lineCount, outStr
+    return lineLength + offset, lineCount, outStr
 
 # -*- coding: utf-8 -*-
 import re
@@ -201,14 +227,21 @@ def split_into_sentences(text: str) -> list[str]:
     text = text.replace("！","！<stop>") # Added for Japanese support
     text = text.replace("<prd>",".")
     text = text.replace("Ň", "<stop>Ň<stop>") # Split newlines into their own sentences
+    text = text.replace("ȼ", "<stop>ȼ<stop>") # Split new boxes into their own sentences
+    text = text.replace("Ş", "<stop>Ş<stop>") # Split new boxes into their own sentences
     sentences = text.split("<stop>")
     sentences = [s.strip() for s in sentences]
     if sentences and not sentences[-1]: sentences = sentences[:-1]
     return sentences
 
 class Languages(Enum):
-    English = 1
     Japanese = 0
+    English = 1
+    French = 2
+    German = 3
+    Italian = 4
+    SpanishEU = 5
+    SpanishLA = 6
 
 # read by default 1st sheet of an excel file
 dir = os.curdir + "\\text_helper"
@@ -223,11 +256,16 @@ for lang in Languages:
     "GENERAL": {},
     "CREDITS": {},
     "PKMN_NAMES": {},
+    "Warnings" : {},
+    "Errors": {},
 }
 
-textDict = copy.deepcopy(mainDict)
-
-def convert_item(line, numLines, pixelsInLine, include_box_breaks):
+def convert_item(ogDict):
+    line = ogDict["bytes"]
+    numLines = ogDict["numLines"]
+    pixelsPerChar = ogDict["pixelsPerChar"]
+    pixelsInLine = ogDict["pixelsInLine"]
+    include_box_breaks = ogDict["includeBoxBreaks"]
     split_sents = split_into_sentences(line)
     index = 0
     outStr = ""
@@ -235,9 +273,16 @@ def convert_item(line, numLines, pixelsInLine, include_box_breaks):
     offset = 0
     escapeCount = 0
     while index < len(split_sents) and escapeCount < 100:
-        offset, recievedLine, out = SplitSentenceIntoLines(split_sents[index], offset, 6, pixelsInLine)
+        offset, recievedLine, out = SplitSentenceIntoLines(split_sents[index], offset, pixelsPerChar, pixelsInLine)
         currLine += recievedLine
-        if (currLine < numLines):
+        
+        if (out == "ȼ"):
+            offset = 0
+            currLine = 0
+            outStr = outStr[:-1]
+            outStr += "ȼ"
+            index += 1
+        elif (currLine < numLines):
             #print(split_sents[index])
             index += 1
             outStr += out
@@ -249,9 +294,15 @@ def convert_item(line, numLines, pixelsInLine, include_box_breaks):
             escapeCount += 1
             #print(index)
             if not include_box_breaks:
-                print(f"ERROR! Made a line break when disabled, sentence \"{outStr}\" is too long!")
+                #print(f"ERROR! Made a line break when disabled, sentence \"{outStr}\" is too long!")
+                next_key = max(mainDict[lang.name]["Errors"].keys(), default =- 1) + 1
+                mainDict[lang.name]["Errors"][next_key] = f"ERROR! Made a line break when disabled, sentence \"{outStr}\" is too long!"
+            
     if escapeCount == 100:
-        print(f"ERROR! Sentence \"{out}\" is too long!")
+        #print(f"ERROR! Sentence \"{out}\" is too long!")
+        next_key = max(mainDict[lang.name]["Errors"].keys(), default =- 1) + 1
+        mainDict[lang.name]["Errors"][next_key] = f"ERROR! Sentence \"{out}\" is too long!"
+            
     # Some cases that should be fixed
     exitLoop = False
     while(not exitLoop):
@@ -262,6 +313,12 @@ def convert_item(line, numLines, pixelsInLine, include_box_breaks):
         newStr = newStr.replace("ȼŇ", "ȼ")
         # Nor should newlines be right before a new textbox
         newStr = newStr.replace("Ňȼ", "ȼ")
+        # Nor should a new textbox be after a new textbox
+        newStr = newStr.replace("ȼȼ", "ȼ")
+        # Nor should a new scroll be after a new textbox
+        newStr = newStr.replace("Şȼ", "Ş")
+        # Nor should a new scroll be after a new textbox
+        newStr = newStr.replace("ȼŞ", "ȼ")
         
         exitLoop = (newStr == outStr)
         outStr = newStr
@@ -277,20 +334,28 @@ def convert_item(line, numLines, pixelsInLine, include_box_breaks):
         byteStr += hex(convertByte(ord(outStr[-1]), arr)) + ", "
         
     byteStr += "0xff" 
-    return byteStr
+    
+    ogDict["bytes"] = byteStr
+    return ogDict
 
 print("\n\nStarting parse: \n")
 
-sheets = []
-for lang in Languages:
-    sheets.append(pd.read_excel(dir + "\\text.xlsx", sheet_name=lang.name))
-
-    for sheet in sheets:
-        for row in sheet.iterrows():
-            currRow = row[1]
-            #print(currRow)
-            mainDict[lang.name][currRow.iloc[0]][currRow.iloc[1]] = currRow.iloc[2]
-
+currSheet = pd.read_excel(dir + "\\text.xlsx", sheet_name="Translations")
+for row in currSheet.iterrows():
+    #print(row)
+    for lang in Languages:
+        currRow = row[1]
+        #print(currRow)
+        offset = lang.value
+        if (pd.isna(currRow.iloc[7 + lang.value])):
+            offset = Languages.English.value
+        mainDict[lang.name][currRow.iloc[0]][currRow.iloc[1]] = {"bytes": currRow.iloc[7 + offset],
+                                                                    "numLines": currRow.iloc[2],
+                                                                    "pixelsPerChar": currRow.iloc[3],
+                                                                    "pixelsInLine" : currRow.iloc[4],
+                                                                    "includeBoxBreaks": currRow.iloc[5],
+                                                                    }
+                
 with open(os.curdir + '\\source\\translated_text.cpp', 'w') as cppFile:   
     cppFile.write("#include \"translated_text.h\"\n#include \"debug_mode.h\"\n#include \"pokemon_data.h\"\n")
     for lang in Languages: # putting this here is a really silly way to loop through all the CPP values but only write to H once
@@ -298,14 +363,15 @@ with open(os.curdir + '\\source\\translated_text.cpp', 'w') as cppFile:
             hFile.write("#ifndef DIALOGUE_H\n#define DIALOGUE_H\n\n#include <string>\n#include <tonc.h>\n\n")
             cppFile.write(f"#if PTGB_BUILD_LANGUAGE == {lang.value + 1}\n")
 
+
             # PTGB
             PTGB = mainDict[lang.name]["PTGB"]
             
             num = 0
             for key, line in PTGB.items():
                 #print("--------")
-                PTGB[key] = convert_item(line, 4, 224, True)
-                cppFile.write("\nconst byte dialogueLine" + str(num) + "[] = {" + PTGB[key] + "};")
+                PTGB[key] = convert_item(line)
+                cppFile.write("\nconst byte dialogueLine" + str(num) + "[] = {" + PTGB[key]["bytes"] + "};")
                 hFile.write(f"#define {key} {num}\n")
                 num += 1
                 
@@ -319,24 +385,24 @@ with open(os.curdir + '\\source\\translated_text.cpp', 'w') as cppFile:
             hFile.write("extern const byte *dialogue[DIA_SIZE];\n")
 
             # RSEFRLG
-           # RSEFRLG = mainDict[lang.name]["RSEFRLG"]
-           # for key, line in RSEFRLG.items():
-           #     RSEFRLG[key] = convert_item(line, 2, , False)
-           #     cppFile.write(f"\nconst byte {key}[] = {{{RSEFRLG[key]}}};")
-           #     hFile.write(f"\nextern const byte {key}[];")
+            RSEFRLG = mainDict[lang.name]["RSEFRLG"]
+            for key, line in RSEFRLG.items():
+                RSEFRLG[key] = convert_item(line)
+                cppFile.write(f"\nconst byte {key}[] = {{{RSEFRLG[key]["bytes"]}}};")
+                hFile.write(f"\nextern const byte {key}[];")
 
             # General
             GENERAL = mainDict[lang.name]["GENERAL"]
             for key, line in GENERAL.items():
-                GENERAL[key] = convert_item(line, 16, 240, False) # TODO This should not be for *every* item
-                cppFile.write(f"const byte {key}[] = {{{GENERAL[key]}}};\n")
+                GENERAL[key] = convert_item(line)
+                cppFile.write(f"const byte {key}[] = {{{GENERAL[key]["bytes"]}}};\n")
                 hFile.write(f"extern const byte {key}[];\n")
             
             # Credits
             CREDITS = mainDict[lang.name]["CREDITS"]
             for key, line in CREDITS.items():
-                CREDITS[key] = convert_item(line, 8, 160, False)
-                cppFile.write(f"const byte {key}[] = {{{CREDITS[key]}}};\n")
+                CREDITS[key] = convert_item(line)
+                cppFile.write(f"const byte {key}[] = {{{CREDITS[key]["bytes"]}}};\n")
                 hFile.write(f"extern const byte {key}[];\n")
             cppFile.write("\n")
                 
@@ -346,8 +412,8 @@ with open(os.curdir + '\\source\\translated_text.cpp', 'w') as cppFile:
             num = 0
             for key, line in PKMN_NAMES.items():
                 #print("--------")
-                PKMN_NAMES[key] = convert_item(line, 4, 240, True)
-                cppFile.write("const byte PKMN_NAMES" + str(num) + "[] = {" + PKMN_NAMES[key] + "};\n")
+                PKMN_NAMES[key] = convert_item(line)
+                cppFile.write("const byte PKMN_NAMES" + str(num) + "[] = {" + PKMN_NAMES[key]["bytes"] + "};\n")
                 num += 1
                 
             cppFile.write("\n")
@@ -369,9 +435,9 @@ with open(os.curdir + '\\source\\translated_text.cpp', 'w') as cppFile:
 
 for lang in Languages:
     for cat in mainDict[lang.name]:
-        if cat in {"PTGB", "GENERAL", "CREDITS", "PKMN_NAMES"}:
+        if cat in {"PTGB", "RSEFRLG", "GENERAL", "CREDITS", "PKMN_NAMES"}:
             for item in mainDict[lang.name][cat]:
-                string = mainDict[lang.name][cat][item].split(", ")
+                string = mainDict[lang.name][cat][item]["bytes"].split(", ")
                 outText = ""
                 if lang == Languages.Japanese:
                     arr = jpnCharArray
@@ -380,10 +446,8 @@ for lang in Languages:
                 for byte in string:
                     byte = engCharArray[int(byte, 0)]
                     outText += chr(byte)
-                textDict[lang.name][cat][item] = outText
+                mainDict[lang.name][cat][item]["text"] = outText
     
 with open(dir + '\\output.json', 'w') as jsonFile:
-    finalDict = {"dataDict": mainDict, "ogText": textDict}
-    
-    jsonFile.write(json.dumps(finalDict))
+    jsonFile.write(json.dumps(mainDict))
     

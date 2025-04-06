@@ -1,4 +1,5 @@
 #include <tonc.h>
+#include <cmath>
 
 #include "global_frame_controller.h"
 #include "random.h"
@@ -29,21 +30,18 @@ void global_next_frame()
         set_background_pal(0xFF, false, false);
     }
     oam_copy(oam_mem, obj_buffer, num_sprites);
-    VBlankIntrWait();
     // mmFrame(); //Music
     if (global_frame_count % 60 == 0)
     {
         set_menu_sprite_pal(0);
         if (!curr_rom.verify_rom())
         {
-            REG_BG0CNT = (REG_BG0CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
-            REG_BG1CNT = (REG_BG1CNT & ~BG_PRIO_MASK) | BG_PRIO(2);
+            REG_BG0CNT = (REG_BG0CNT & ~BG_PRIO_MASK) | BG_PRIO(2);
             REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(1);
-            REG_BG2VOFS = 0;
             tte_set_pos(40, 24);
-            create_textbox(5, 3, 80, 80, true);
-            tte_write("\n\n#{cx:0xF000}The Pok@mon game was\nremoved. Please turn\noff the system and\nrestart the program.");
-            // obj_hide_multi(testroid, 128);
+            create_textbox(4, 1, 160, 80, true);
+            obj_hide_multi(ptgb_logo_l, num_sprites);
+            ptgb_write(pulled_cart_error, true);
             oam_copy(oam_mem, obj_buffer, num_sprites);
             while (true)
             {
@@ -64,6 +62,7 @@ void global_next_frame()
         }
     }
     global_frame_count++;
+    VBlankIntrWait();
 };
 
 int get_frame_count()
@@ -277,14 +276,22 @@ int get_string_length(const byte *str)
     return size;
 }
 
-void convert_int_to_ptgb_str(int val, byte str[])
+void convert_int_to_ptgb_str(int val, byte str[], int min_length)
 {
     int div = 1;
     int count = 0;
     int num;
     bool non_zero = false;
+    bool first = true;
 
-    while (div < val)
+    // Set it up so the number has all the zeros it needs
+    for (int i = 0; i < min_length; i++)
+    {
+        div *= 10;
+    }
+
+    // Increase it if the number is still larger
+    while (div <= val)
     {
         div *= 10;
     }
@@ -298,8 +305,24 @@ void convert_int_to_ptgb_str(int val, byte str[])
             str[count] = num + 0xA1; // 0xA1 is 0 in the chart
             count++;
         }
+        else
+        {
+            if (!first)
+            {
+                str[count] = 0xA1; // 0xA1 is 0 in the chart
+                count++;
+            } else {
+                first = false;
+            }
+        }
+
         val %= div;
         div /= 10;
     }
     str[count] = 0xFF;
+}
+
+void convert_int_to_ptgb_str(int val, byte str[])
+{
+    convert_int_to_ptgb_str(val, str, 0);
 }
