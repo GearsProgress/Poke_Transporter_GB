@@ -384,6 +384,7 @@ int main(void)
 {
 	initalization_script();
 
+	//wow
 	// Set colors based on current ROM
 	set_background_pal(0, false, false);
 
