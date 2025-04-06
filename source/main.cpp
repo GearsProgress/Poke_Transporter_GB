@@ -151,25 +151,24 @@ void game_load_error(void)
 {
 	REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(1);
 
-	create_textbox(4, 1, 160, 80, true);
+	create_textbox(4, 1, 152, 100, true);
 	ptgb_write(cart_load_error, true);
 	key_poll();
 	do
 	{
 		global_next_frame();
-	}
-	while(!key_hit(KEY_A) && !key_hit(KEY_SELECT));
+	} while (!key_hit(KEY_A) && !key_hit(KEY_SELECT));
 
-	tte_erase_screen();
+	tte_erase_rect(0, 0, H_MAX, V_MAX);
 
-	if(key_hit(KEY_SELECT))
+	if (key_hit(KEY_SELECT))
 	{
-    	// We also want to give the option in this screen to upload the multiboot rom to another GBA.
-	// This can be useful when the user wants to work with a flashcart in single rom mode.
-	// The EZ Flash Omega (DE) for instance, triggers a reset of the gba if you insert it while the GBA is turned on.
-	// So the only way to work with it, is to boot Poke Transporter GB over multiboot and have the flashcart already inserted.
-	// It would be a shame not to support this flashcart, because it's awesome for pokémon fans. After all: it supports ds transfer
-	// and should support connecting with the gamecube games.
+		// We also want to give the option in this screen to upload the multiboot rom to another GBA.
+		// This can be useful when the user wants to work with a flashcart in single rom mode.
+		// The EZ Flash Omega (DE) for instance, triggers a reset of the gba if you insert it while the GBA is turned on.
+		// So the only way to work with it, is to boot Poke Transporter GB over multiboot and have the flashcart already inserted.
+		// It would be a shame not to support this flashcart, because it's awesome for pokémon fans. After all: it supports ds transfer
+		// and should support connecting with the gamecube games.
 		multiboot_upload_screen();
 		return;
 	}
@@ -184,7 +183,8 @@ void game_load_error(void)
 
 void first_load_message(void)
 {
-	tte_set_pos(8, 0);
+	tte_set_margins(8, 8, H_MAX - 8, V_MAX);
+	tte_set_pos(8, 8);
 	tte_set_ink(INK_ROM_COLOR);
 	ptgb_write(intro_first, true);
 	while (!key_hit(KEY_A))
@@ -387,8 +387,11 @@ int main(void)
 	// Set colors based on current ROM
 	set_background_pal(0, false, false);
 
-	// First load message... which apparently was removed at some point?
-	first_load_message();
+	/* First load message doesn't really make sense anymore, since you have to load the ROM first.
+	if (!get_tutorial_flag())
+	{
+		first_load_message();
+	}*/
 
 	// Legal mumbo jumbo
 	tte_set_margins(8, 8, H_MAX - 8, V_MAX - 8);
@@ -506,8 +509,8 @@ int main(void)
 			break;
 		case (BTN_CREDITS):
 			tte_set_ink(INK_DARK_GREY);
-			//create_textbox(0, 0, 160, 80, true);
-			//show_text_box();
+			// create_textbox(0, 0, 160, 80, true);
+			// show_text_box();
 			REG_BG1CNT = (REG_BG1CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
 			obj_set_pos(ptgb_logo_l, 56, 108);
 			obj_set_pos(ptgb_logo_r, 56 + 64, 108);

@@ -246,7 +246,7 @@ void add_menu_box(int options, int startTileX, int startTileY)
     add_menu_box(startTileX, startTileY, (MENU_WIDTH) * 8, options * 10);
 }
 
-void add_menu_box(int startTileX, int startTileY, int width, int height)
+void add_menu_box(int startTileX, int startTileY, int full_width, int full_height)
 {
 
     // We can't check the current offset very easily, so we'll just assume it's in the text box position.
@@ -255,20 +255,20 @@ void add_menu_box(int startTileX, int startTileY, int width, int height)
     int SBB = 20;
 
     int start = (32 * startTileY) + startTileX;
-    int tiles = height / 8;
-    int rem = height % 8;
-    width /= 8;
+    int tiles = (full_height / 8) - 2;
+    int rem = full_height % 8;
+    full_width /= 8;
 
     // Corners
     se_mem[SBB][start] = TILE_NW;
-    se_mem[SBB][start + width] = TILE_NE;
+    se_mem[SBB][start + full_width] = TILE_NE;
     se_mem[SBB][start + (32 * (tiles + 1))] = TILE_SW_U_ARR[rem / 2];
     se_mem[SBB][start + (32 * (tiles + 2))] = TILE_SW_L_ARR[rem / 2];
-    se_mem[SBB][start + (32 * (tiles + 1)) + width] = TILE_SE_U_ARR[rem / 2];
-    se_mem[SBB][start + (32 * (tiles + 2)) + width] = TILE_SE_L_ARR[rem / 2];
+    se_mem[SBB][start + (32 * (tiles + 1)) + full_width] = TILE_SE_U_ARR[rem / 2];
+    se_mem[SBB][start + (32 * (tiles + 2)) + full_width] = TILE_SE_L_ARR[rem / 2];
 
     // Top and bottom edge
-    for (int i = 1; i < width; i++)
+    for (int i = 1; i < full_width; i++)
     {
         se_mem[SBB][start + i] = TILE_N;
         se_mem[SBB][start + ((32 * (tiles + 1))) + i] = TILE_S_U_ARR[rem / 2];
@@ -278,12 +278,12 @@ void add_menu_box(int startTileX, int startTileY, int width, int height)
     // Sides
     for (int i = 0; i < tiles; i++)
     {
-        se_mem[SBB][start + (32 * (i + 1)) + width] = TILE_E;
+        se_mem[SBB][start + (32 * (i + 1)) + full_width] = TILE_E;
         se_mem[SBB][start + (32 * (i + 1))] = TILE_W;
     }
 
     // Middle
-    for (int x = 1; x < width; x++)
+    for (int x = 1; x < full_width; x++)
     {
         for (int y = 1; y < tiles + 1; y++)
         {

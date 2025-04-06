@@ -167,7 +167,6 @@ int pokedex_loop()
             obj_unhide(up_arrow, 0);
             obj_unhide(down_arrow, 0);
         }
-        int val = key_tri_vert();
         if (update)
         {
             tte_erase_rect(0, 0, 240, 140);

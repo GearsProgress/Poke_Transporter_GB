@@ -19,16 +19,17 @@ void background_frame(int global_frame_count)
         }
 }
 
-void create_textbox(int startTileX, int startTileY, int width, int height, bool eraseMainBox)
+// This could honestly be an object... might want to do that in the future, depending on how complex using this gets
+void create_textbox(int startTileX, int startTileY, int text_space_width, int text_space_height, bool eraseMainBox)
 {
         if (eraseMainBox)
         {
                 erase_textbox_tiles();
         }
-        add_menu_box(startTileX, startTileY, width, height);
+        add_menu_box(startTileX, startTileY, text_space_width + 16, text_space_height + 16);
         tte_set_pos((startTileX + 1) * 8, (startTileY + 1) * 8);
         tte_set_margins((startTileX + 1) * 8, (startTileY + 1) * 8,
-                        (startTileX + 1 + width) * 8, (startTileY + 1 + height) * 8);
+                        (startTileX + text_space_width) * 8, (startTileY + text_space_height) * 8);
         tte_erase_rect(0, 0, H_MAX, V_MAX);
 }
 
