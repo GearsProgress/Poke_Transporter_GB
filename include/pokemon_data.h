@@ -47,7 +47,7 @@ extern const u8 GENDER_RATIO[POKEMON_ARRAY_SIZE];
 extern const bool NUM_ABILITIES[POKEMON_ARRAY_SIZE];
 extern const byte MOVESETS[POKEMON_ARRAY_SIZE][32];
 extern const byte FIRST_MOVES[POKEMON_ARRAY_SIZE];
-extern const std::string_view NAMES[POKEMON_ARRAY_SIZE];
+extern const char* NAMES[POKEMON_ARRAY_SIZE];
 extern const u16 JPN_NAMES[POKEMON_ARRAY_SIZE][6];
 extern const u8 EVOLUTIONS[POKEMON_ARRAY_SIZE];
 extern const u8 POWER_POINTS[252];

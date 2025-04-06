@@ -142,6 +142,7 @@ int Box_Menu::box_main(Pokemon_Party party_data)
                 {
                     ptgb_write(PKMN_NAMES[0], true);
                 }
+
                 else
                 {
                     ptgb_write(PKMN_NAMES[curr_pkmn.dex_number], true);

@@ -26,6 +26,7 @@
 #include "save_data_manager.h"
 #include "mystery_gift_injector.h"
 #include "mystery_gift_builder.h"
+#include "multiboot_upload.h"
 #include "rom_data.h"
 #include "libraries/Pokemon-Gen3-to-Gen-X/include/save.h"
 
@@ -149,15 +150,29 @@ void initalization_script(void)
 void game_load_error(void)
 {
 	REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(1);
+
 	create_textbox(4, 1, 160, 80, true);
 	ptgb_write(cart_load_error, true);
 	key_poll();
-	while (!key_hit(KEY_A))
+	do
 	{
 		global_next_frame();
 	}
-	// This was causing a green screen (lol), so we might need to mess with it once the text is added back in
-	//tte_erase_screen();
+	while(!key_hit(KEY_A) && !key_hit(KEY_SELECT));
+
+	tte_erase_screen();
+
+	if(key_hit(KEY_SELECT))
+	{
+    	// We also want to give the option in this screen to upload the multiboot rom to another GBA.
+	// This can be useful when the user wants to work with a flashcart in single rom mode.
+	// The EZ Flash Omega (DE) for instance, triggers a reset of the gba if you insert it while the GBA is turned on.
+	// So the only way to work with it, is to boot Poke Transporter GB over multiboot and have the flashcart already inserted.
+	// It would be a shame not to support this flashcart, because it's awesome for pokémon fans. After all: it supports ds transfer
+	// and should support connecting with the gamecube games.
+		multiboot_upload_screen();
+		return;
+	}
 	delay_counter = 0;
 
 	while (delay_counter < 60)
