@@ -101,8 +101,7 @@ void load_graphics()
 	tte_erase_rect(0, 0, H_MAX, V_MAX);
 	// Load opening background first so it hides everything else
 	load_flex_background(BG_OPENING, 1);
-	load_background();
-	load_textbox_background();
+	load_background();	load_textbox_background();
 	load_eternal_sprites();
 
 	// Set up global yes no button
@@ -223,6 +222,7 @@ int credits()
 
 	bool update = true;
 
+	global_next_frame();
 	while (true)
 	{
 		if (update)
@@ -340,7 +340,7 @@ int main_menu_loop()
 			for (int i = 0; i < NUM_MENU_OPTIONS; i++)
 			{
 				int size = get_string_length(menu_options[i]);
-				int char_width = (curr_rom.language == JPN_ID ? 8 : 6);
+				int char_width = (PTGB_BUILD_LANGUAGE == JPN_ID ? 8 : 6);
 				int x = ((240 - (size * char_width)) / 2);
 				tte_set_pos(x, ((i * 17) + 80));
 				if (i == curr_selection)
@@ -384,7 +384,6 @@ int main(void)
 {
 	initalization_script();
 
-	//wow
 	// Set colors based on current ROM
 	set_background_pal(0, false, false);
 
@@ -433,8 +432,8 @@ int main(void)
 	bool start_pressed = false;
 	REG_BLDCNT = BLD_BUILD(BLD_BG3, BLD_BG0, 1);
 
-	int char_width = (curr_rom.language == JPN_ID ? 8 : 6);
 	int size = get_string_length(press_start);
+	int char_width = (PTGB_BUILD_LANGUAGE == JPN_ID ? 8 : 6);
 	int x = ((240 - (size * char_width)) / 2);
 	tte_set_pos(x, 12 * 8);
 
@@ -456,6 +455,7 @@ int main(void)
 	while (!curr_rom.load_rom())
 	{
 		obj_hide_multi(ptgb_logo_l, 2);
+		global_next_frame();
 		game_load_error();
 		// initalization_script();
 	}
@@ -497,16 +497,20 @@ int main(void)
 		case (BTN_TRANSFER):
 			tte_set_ink(INK_DARK_GREY);
 			obj_hide_multi(ptgb_logo_l, 2);
-			load_flex_background(BG_FENNEL, 2);
+			load_flex_background(BG_FENNEL, 3);
 			text_loop(BTN_TRANSFER);
 			break;
 		case (BTN_POKEDEX):
-			load_flex_background(BG_DEX, 2);
-			set_background_pal(curr_rom.gamecode, true, false);
-			obj_hide_multi(ptgb_logo_l, 2);
-			pokedex_loop();
-			load_flex_background(BG_DEX, 3);
-			set_background_pal(curr_rom.gamecode, false, false);
+			if (get_tutorial_flag())
+			{
+				obj_hide_multi(ptgb_logo_l, 2);
+				global_next_frame();
+				load_flex_background(BG_DEX, 2);
+				set_background_pal(curr_rom.gamecode, true, false);
+				pokedex_loop();
+				load_flex_background(BG_DEX, 3);
+				set_background_pal(curr_rom.gamecode, false, false);
+			}
 			break;
 		case (BTN_CREDITS):
 			tte_set_ink(INK_DARK_GREY);
