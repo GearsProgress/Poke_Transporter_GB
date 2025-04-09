@@ -2,7 +2,7 @@
 #define MAIN_MENU_H
 
 #include <tonc.h>
-#include <vector>
+#include "libstd_replacements.h"
 
 #include "button_handler.h"
 
@@ -33,8 +33,8 @@ public:
     void clear_vector();
 
 private:
-    std::vector<Button> button_vector;
-    std::vector<int> return_values;
+    ptgb::vector<Button> button_vector;
+    ptgb::vector<int> return_values;
     int columns;
     int rows;
     int button_height;

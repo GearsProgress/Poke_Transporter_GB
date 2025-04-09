@@ -1,6 +1,6 @@
 #include <tonc.h>
 #include <cmath>
-
+#include "libstd_replacements.h"
 #include "global_frame_controller.h"
 #include "random.h"
 #include "background_engine.h"
@@ -22,7 +22,7 @@ void global_next_frame()
     key_poll();
     rand_next_frame();
     // tte_set_pos(0, 0);
-    // tte_write(std::to_string(get_rand_u32()).c_str());
+    // tte_write(ptgb::to_string(get_rand_u32()));
     background_frame(global_frame_count);
     determine_fennel_blink();
     if (missingno_enabled)

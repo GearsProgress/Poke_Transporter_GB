@@ -1,8 +1,7 @@
 #include <tonc.h>
-#include <string>
 #include <cstring>
 // #include <maxmod.h> //Music
-
+#include "libstd_replacements.h"
 #include "flash_mem.h"
 #include "interrupt.h"
 #include "gb_link.h"
@@ -85,14 +84,16 @@ int test_main(void) Music
 // (R + G*32 + B*1024)
 #define RGB(r, g, b) (r + (g * 32) + (b * 1024))
 
+// make sure outBuffer is large enough! Should be at least hex_len + 1
 template <typename I>
-std::string n2hexstr(I w, size_t hex_len = sizeof(I) << 1)
+void n2hexstr(char* outBuffer, I w, size_t hex_len = sizeof(I) << 1)
 {
 	static const char *digits = "0123456789ABCDEF";
-	std::string rc(hex_len, '0');
+	memset(outBuffer, '0', hex_len);
+	outBuffer[hex_len] = '\0'; // we must make sure to terminate the string
+
 	for (size_t i = 0, j = (hex_len - 1) * 4; i < hex_len; ++i, j -= 4)
-		rc[i] = digits[(w >> j) & 0x0f];
-	return rc;
+		outBuffer[i] = digits[(w >> j) & 0x0f];
 }
 
 void load_graphics()
@@ -196,6 +197,7 @@ void first_load_message(void)
 
 int credits()
 {
+	char hexBuffer[16];
 #define CREDITS_ARRAY_SIZE 19
 	int curr_credits_num = 0;
 	const byte *credits_array[CREDITS_ARRAY_SIZE] = {
@@ -269,9 +271,7 @@ int credits()
 
 			create_textbox(4, 1, 160, 80, true);
 			ptgb_write_debug("Debug info:\n\nG: ", true);
-			std::string lang;
-			lang += curr_rom.language;
-			ptgb_write_debug(lang.c_str(), true);
+			ptgb_write_debug(ptgb::to_string(curr_rom.language), true);
 			switch (curr_rom.gamecode)
 			{
 			case RUBY_ID:
@@ -290,18 +290,22 @@ int credits()
 				ptgb_write_debug("-E-", true);
 				break;
 			}
-			ptgb_write_debug(std::to_string(curr_rom.version).c_str(), true);
+
+			ptgb_write_debug(ptgb::to_string(curr_rom.version), true);
 
 			ptgb_write_debug("\nF: ", true);
-			ptgb_write_debug(std::to_string(e4_flag).c_str(), true);
-			ptgb_write_debug(std::to_string(mg_flag).c_str(), true);
-			ptgb_write_debug(std::to_string(all_collected_flag).c_str(), true);
+			ptgb_write_debug(ptgb::to_string(e4_flag), true);
+			ptgb_write_debug(ptgb::to_string(mg_flag), true);
+			ptgb_write_debug(ptgb::to_string(all_collected_flag), true);
 			ptgb_write_debug("-", true);
-			ptgb_write_debug((n2hexstr(pkmn_flags)).c_str(), true);
+
+			n2hexstr(hexBuffer, pkmn_flags);
+			ptgb_write_debug(hexBuffer, true);
 			ptgb_write_debug("\nS:   ", true);
-			ptgb_write_debug(std::to_string(tutorial).c_str(), true);
+			ptgb_write_debug(ptgb::to_string(tutorial), true);
 			ptgb_write_debug("-", true);
-			ptgb_write_debug((n2hexstr(def_lang)).c_str(), true);
+			n2hexstr(hexBuffer, def_lang);
+			ptgb_write_debug(hexBuffer, true);
 
 			ptgb_write_debug("\n", true);
 			ptgb_write_debug(VERSION, true);

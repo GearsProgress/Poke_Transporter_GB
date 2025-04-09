@@ -4,10 +4,6 @@
 #include "debug_mode.h"
 #include "z80_asm.h"
 
-#include <iostream>
-#include <fstream>
-#include <iomanip>
-
 #define DATA_LOC (SHOW_DATA_PACKETS ? curr_rom.transferStringLocation : curr_rom.wEnemyMonSpecies)
 
 byte out_array[PAYLOAD_SIZE] = {};
@@ -25,8 +21,8 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
 
     if ((curr_rom.generation == 1 && curr_rom.version != YELLOW_ID))
     {
-        std::vector<z80_jump *> jump_vector;
-        std::vector<z80_variable *> var_vector;
+        ptgb::vector<z80_jump *> jump_vector;
+        ptgb::vector<z80_variable *> var_vector;
 
         z80_asm_handler z80_rng_seed(0x0A, curr_rom.wSerialOtherGameboyRandomNumberListBlock + 8);
         z80_asm_handler z80_payload(0x1AA, curr_rom.wSerialEnemyDataBlock);
@@ -280,21 +276,24 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
         }
 
         // Combine the vectors into the full payload
-        std::vector<byte> full_data;
+        ptgb::vector<byte> full_data;
         full_data.reserve(z80_rng_seed.data_vector.size() + z80_payload.data_vector.size() + z80_patchlist.data_vector.size());
-        full_data.insert(full_data.end(), z80_rng_seed.data_vector.begin(), z80_rng_seed.data_vector.end());
-        full_data.insert(full_data.end(), z80_payload.data_vector.begin(), z80_payload.data_vector.end());
-        full_data.insert(full_data.end(), z80_patchlist.data_vector.begin(), z80_patchlist.data_vector.end());
+        full_data.insert(z80_rng_seed.data_vector);
+        full_data.insert(z80_payload.data_vector);
+        full_data.insert(z80_patchlist.data_vector);
 
-        std::copy(full_data.begin(), full_data.end(), out_array);
+        for(size_t i=0; i < full_data.size(); ++i)
+        {
+            out_array[i] = full_data[i];
+        }
 
         return out_array;
     }
 
     else if ((curr_rom.generation == 1 && curr_rom.version == YELLOW_ID))
     {
-        std::vector<z80_jump *> jump_vector;
-        std::vector<z80_variable *> var_vector;
+        ptgb::vector<z80_jump *> jump_vector;
+        ptgb::vector<z80_variable *> var_vector;
 
         z80_asm_handler z80_rng_seed(0x0A, curr_rom.wSerialOtherGameboyRandomNumberListBlock + 8);
         z80_asm_handler z80_payload(0x1AA, curr_rom.wSerialEnemyDataBlock - 8); // Subtracting 8 is because the data is shifted after patching, removing part of the enemy name. May change depending on language
@@ -591,13 +590,16 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
         }
 
         // Combine the vectors into the full payload
-        std::vector<byte> full_data;
+        ptgb::vector<byte> full_data;
         full_data.reserve(z80_rng_seed.data_vector.size() + z80_payload.data_vector.size() + z80_patchlist.data_vector.size());
-        full_data.insert(full_data.end(), z80_rng_seed.data_vector.begin(), z80_rng_seed.data_vector.end());
-        full_data.insert(full_data.end(), z80_payload.data_vector.begin(), z80_payload.data_vector.end());
-        full_data.insert(full_data.end(), z80_patchlist.data_vector.begin(), z80_patchlist.data_vector.end());
+        full_data.insert(z80_rng_seed.data_vector);
+        full_data.insert(z80_payload.data_vector);
+        full_data.insert(z80_patchlist.data_vector);
 
-        std::copy(full_data.begin(), full_data.end(), out_array);
+        for(size_t i=0; i < full_data.size(); ++i)
+        {
+            out_array[i] = full_data[i];
+        }
 
         return out_array;
 
@@ -664,8 +666,8 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
 
     else if (curr_rom.generation == 2)
     {
-        std::vector<z80_jump *> jump_vector;
-        std::vector<z80_variable *> var_vector;
+        ptgb::vector<z80_jump *> jump_vector;
+        ptgb::vector<z80_variable *> var_vector;
 
         z80_asm_handler z80_rng_seed(0x0A, curr_rom.wSerialOtherGameboyRandomNumberListBlock);
         z80_asm_handler z80_payload(0x1CD, curr_rom.wSerialEnemyDataBlock);      // wOTPartyData
@@ -935,13 +937,16 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
         }
 
         // Combine the vectors into the full payload
-        std::vector<byte> full_data;
+        ptgb::vector<byte> full_data;
         full_data.reserve(z80_rng_seed.data_vector.size() + z80_payload.data_vector.size() + z80_patchlist.data_vector.size());
-        full_data.insert(full_data.end(), z80_rng_seed.data_vector.begin(), z80_rng_seed.data_vector.end());
-        full_data.insert(full_data.end(), z80_payload.data_vector.begin(), z80_payload.data_vector.end());
-        full_data.insert(full_data.end(), z80_patchlist.data_vector.begin(), z80_patchlist.data_vector.end());
+        full_data.insert(z80_rng_seed.data_vector);
+        full_data.insert(z80_payload.data_vector);
+        full_data.insert(z80_patchlist.data_vector);
 
-        std::copy(full_data.begin(), full_data.end(), out_array);
+        for(size_t i = 0; i < full_data.size(); ++i)
+        {
+            out_array[i] = full_data[i];
+        }
 
         return out_array;
 
@@ -953,21 +958,23 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
     return nullptr;
 };
 
-int test_main() // Rename to "main" to send the payload to test_payload.txt
+
+// Uncomment to send the payload to test_payload.txt
+#if 0
+#include <cstdio>
+int main()
 {
     freopen("test_payload.txt", "w", stdout);
-    std::cout << std::endl;
+    printf("\n");
     byte *payload = generate_payload(ENG_RED, TRANSFER, true);
     if (true)
     {
         for (int i = 0; i < 0x2A0; i++)
         {
-
-            std::cout << "0x" << std::setfill('0') << std::setw(2) << std::hex << std::uppercase << (unsigned int)payload[i] << ", ";
+            printf("0x%02X, ", (unsigned int)payload[i]);
             if (i % 0x10 == 0xF)
             {
-                std::cout << std::endl
-                          << "# 0x" << std::hex << i + 1 << std::endl;
+                printf("\n# 0x%X\n", i + 1);
             }
         }
         return 0;
@@ -976,12 +983,13 @@ int test_main() // Rename to "main" to send the payload to test_payload.txt
     {
         for (int i = 0; i < 0x150; i++)
         {
-            std::cout << std::setfill('0') << std::setw(2) << std::hex << std::uppercase << (unsigned int)payload[i + ((0x10 * 28) + 9)] << " ";
+            printf("%02X ", (unsigned int)payload[i + ((0x10 * 28) + 9)]);
             if (i % 0x10 == 0xF)
             {
-                std::cout << std::endl;
+                printf("\n");
             }
         }
         return 0;
     }
 }
+#endif

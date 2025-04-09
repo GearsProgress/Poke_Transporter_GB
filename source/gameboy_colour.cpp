@@ -2,7 +2,10 @@
 // Source: https://github.com/stevenchaulk/arduino-poke-gen2
 
 #include <tonc.h>
-#include <string>
+#include <stdarg.h>
+#include <inttypes.h>
+#include "libraries/nanoprintf/nanoprintf.h"
+#include "libstd_replacements.h"
 #include "gameboy_colour.h"
 #include "pokemon_trade.h"
 #include "script_array.h"
@@ -71,22 +74,40 @@ bool end_of_data;
 
 byte data_packet[PACKET_SIZE];
 
-std::string spi_text_out_array[10];
+#define SPI_TEXT_OUT_ARRAY_ELEMENT_SIZE 64
+// 10 elements of 64 bytes, zero-initialized.
+char spi_text_out_array[10][SPI_TEXT_OUT_ARRAY_ELEMENT_SIZE] = {
+  {0},
+  {0},
+  {0},
+  {0},
+  {0},
+  {0},
+  {0},
+  {0},
+  {0},
+  {0}
+};
 
-void print(std::string str)
+void print(const char* format, ...)
 {
+  va_list args;
+  va_start(args, format);
+
   for (int i = 10; i > 0; i--)
   {
-    spi_text_out_array[i] = spi_text_out_array[i - 1];
+    strncpy(spi_text_out_array[i], spi_text_out_array[i - 1], SPI_TEXT_OUT_ARRAY_ELEMENT_SIZE);
   }
-  spi_text_out_array[0] = str + "\n";
+
+  npf_vsnprintf(spi_text_out_array[0], SPI_TEXT_OUT_ARRAY_ELEMENT_SIZE, format, args);
+  va_end(args);
 
   tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
   tte_set_pos(LEFT, 0);
   for (int j = 0; j < 10; j++)
   {
     ptgb_write("#{cx:0xE000}");
-    ptgb_write(spi_text_out_array[j].c_str());
+    ptgb_write(spi_text_out_array[j]);
   }
 }
 
@@ -314,12 +335,7 @@ int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, Simpli
     if (PRINT_LINK_DATA && false)
     {
       tte_set_margins(0, 0, H_MAX, V_MAX);
-      print(
-          std::to_string(counter) + ": [" +
-          std::to_string(data_counter) + "][" +
-          std::to_string(state) + "][" +
-          std::to_string(in_data) + "][" +
-          std::to_string(out_data) + "]\n");
+      print("%d: [%d][%d][%" PRIu8 "][%" PRIu8 "]\n\n", counter, data_counter, state, in_data, out_data);
     }
     out_data = handleIncomingByte(in_data, box_data_storage, curr_payload, curr_gb_rom, curr_simple_array, cancel_connection);
 
@@ -400,20 +416,20 @@ byte exchange_boxes(byte curr_in, byte *box_data_storage, GB_ROM *curr_gb_rom)
     if (SHOW_DATA_PACKETS)
     {
       ptgb_write("P: ");
-      ptgb_write(std::to_string(data_packet[0]).c_str());
+      ptgb_write(ptgb::to_string(data_packet[0]));
       ptgb_write("\n");
       for (int i = 0; i < DATA_PER_PACKET; i++)
       {
-        ptgb_write(std::to_string(i).c_str());
+        ptgb_write(ptgb::to_string(i));
         ptgb_write(": ");
-        ptgb_write(std::to_string(data_packet[PACKET_DATA_AT(i)]).c_str());
+        ptgb_write(ptgb::to_string(data_packet[PACKET_DATA_AT(i)]));
         ptgb_write(" [");
-        ptgb_write(std::to_string(data_packet[PACKET_FLAG_AT(i)]).c_str());
+        ptgb_write(ptgb::to_string(data_packet[PACKET_FLAG_AT(i)]));
         ptgb_write("]\n");
       }
-      ptgb_write(std::to_string(checksum).c_str());
+      ptgb_write(ptgb::to_string(checksum));
       ptgb_write(" = ");
-      ptgb_write(std::to_string(data_packet[PACKET_CHECKSUM]).c_str());
+      ptgb_write(ptgb::to_string(data_packet[PACKET_CHECKSUM]));
     }
 
     if (checksum == data_packet[PACKET_CHECKSUM] && !init_packet && !(test_packet_fail && received_offset == 128)) // Verify if the data matches the checksum
@@ -452,9 +468,9 @@ byte exchange_boxes(byte curr_in, byte *box_data_storage, GB_ROM *curr_gb_rom)
     if (SHOW_DATA_PACKETS)
     {
       ptgb_write("\nNO: ");
-      ptgb_write(std::to_string(next_offset).c_str());
+      ptgb_write(ptgb::to_string(next_offset));
       ptgb_write("\nFP: ");
-      ptgb_write(std::to_string(failed_packet).c_str());
+      ptgb_write(ptgb::to_string(failed_packet));
     }
 
     if (!init_packet)
@@ -477,9 +493,9 @@ byte exchange_boxes(byte curr_in, byte *box_data_storage, GB_ROM *curr_gb_rom)
     if (SHOW_DATA_PACKETS)
     {
       ptgb_write("\nRO: ");
-      ptgb_write(std::to_string(received_offset).c_str());
+      ptgb_write(ptgb::to_string(received_offset));
       ptgb_write("\nIP: ");
-      ptgb_write(std::to_string(init_packet).c_str());
+      ptgb_write(ptgb::to_string(init_packet));
 
       while (!key_held(KEY_A))
       {

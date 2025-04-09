@@ -2,7 +2,6 @@
 #define POKEMON_DATA_H
 
 #include <tonc.h>
-#include <string>
 
 #define erratic_max (u32)600000
 #define fast_max (u32)800000
