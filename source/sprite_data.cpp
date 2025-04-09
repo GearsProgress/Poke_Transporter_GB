@@ -118,8 +118,13 @@ void set_background_pal(int curr_rom_id, bool dark, bool fade)
 #include "dexBG.h"
 #include "menu_bars.h"
 #include "boxBG.h"
+
 void load_flex_background(int background_id, int layer)
 {
+    // This prevents screen tearing on this frame
+    global_next_frame();
+    REG_BG1CNT = (REG_BG1CNT && !BG_PRIO_MASK) | BG_PRIO(3);
+
     int CBB = 3;  // CBB is the tiles that make up the sprite
     int SBB = 31; // SSB is the array of which tile goes where
     switch (background_id)
@@ -129,6 +134,8 @@ void load_flex_background(int background_id, int layer)
         tonccpy(pal_bg_mem + 32, openingBGPal, openingBGPalLen);
         // Load tiles into CBB 0
         LZ77UnCompVram(openingBGTiles, &tile_mem[CBB][0]);
+        // Give it a frame to uncompress the data
+        global_next_frame();
         // Load map into SBB 0
         LZ77UnCompVram(openingBGMap, &se_mem[SBB][0]);
         REG_BG1VOFS = 96;
@@ -138,6 +145,8 @@ void load_flex_background(int background_id, int layer)
         tonccpy(pal_bg_mem + 32, fennelBGPal, fennelBGPalLen);
         // Load tiles into CBB 0
         LZ77UnCompVram(fennelBGTiles, &tile_mem[CBB][0]);
+        // Give it a frame to uncompress the data
+        global_next_frame();
         // Load map into SBB 0
         LZ77UnCompVram(fennelBGMap, &se_mem[SBB][0]);
         REG_BG1VOFS = FENNEL_SHIFT;
@@ -147,6 +156,8 @@ void load_flex_background(int background_id, int layer)
         tonccpy(pal_bg_mem + 32, dexBGPal, dexBGPalLen);
         // Load tiles into CBB 0
         LZ77UnCompVram(dexBGTiles, &tile_mem[CBB][0]);
+        // Give it a frame to uncompress the data
+        global_next_frame();
         // Load map into SBB 0
         LZ77UnCompVram(dexBGMap, &se_mem[SBB][0]);
         REG_BG1VOFS = 0;
@@ -156,6 +167,8 @@ void load_flex_background(int background_id, int layer)
         tonccpy(pal_bg_mem + 32, pal_bg_mem, backgroundPalLen);
         // Load tiles into CBB 0
         LZ77UnCompVram(menu_barsTiles, &tile_mem[CBB][0]);
+        // Give it a frame to uncompress the data
+        global_next_frame();
         // Load map into SBB 0
         LZ77UnCompVram(menu_barsMap, &se_mem[SBB][0]);
         REG_BG1VOFS = 0;
@@ -165,6 +178,8 @@ void load_flex_background(int background_id, int layer)
         tonccpy(pal_bg_mem + 32, boxBGPal, boxBGPalLen);
         // Load tiles into CBB 0
         LZ77UnCompVram(boxBGTiles, &tile_mem[CBB][0]);
+        // Give it a frame to uncompress the data
+        global_next_frame();
         // Load map into SBB 0
         LZ77UnCompVram(boxBGMap, &se_mem[SBB][0]);
         REG_BG1VOFS = 0;
@@ -243,7 +258,7 @@ static int TILE_SW_L_ARR[4] = {TILE_CLEAR, TILE_CLEAR, TILE_SW_4L, TILE_SW_6L};
 
 void add_menu_box(int options, int startTileX, int startTileY)
 {
-    add_menu_box(startTileX, startTileY, (MENU_WIDTH) * 8, options * 10);
+    add_menu_box(startTileX, startTileY, (MENU_WIDTH) * 8, (options * 10) + 16);
 }
 
 void add_menu_box(int startTileX, int startTileY, int full_width, int full_height)
@@ -255,7 +270,7 @@ void add_menu_box(int startTileX, int startTileY, int full_width, int full_heigh
     int SBB = 20;
 
     int start = (32 * startTileY) + startTileX;
-    int tiles = (full_height / 8) - 2;
+    int tiles = (full_height / 8) - 2; // For the extra 2 tiles
     int rem = full_height % 8;
     full_width /= 8;
 

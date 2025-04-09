@@ -68,6 +68,7 @@ int text_loop(int script)
     }
     curr_text = curr_line.get_text();
 
+    REG_BG1CNT = (REG_BG1CNT && !BG_PRIO_MASK) | BG_PRIO(2); // Show Fennel
     show_text_box();
     // tte_set_margins(LEFT, TOP, RIGHT, BOTTOM);
     while (true) // This loops through all the connected script objects
