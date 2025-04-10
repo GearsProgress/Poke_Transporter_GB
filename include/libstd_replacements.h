@@ -107,6 +107,7 @@ namespace ptgb
             }
             else if(newSize > count_)
             {
+                reserve(newSize);
                 for(size_t i=0; i < (newSize - count_); ++i)
                 {
                     push_back(value);
@@ -170,12 +171,12 @@ namespace ptgb
         
         ValueType& operator[](size_t index)
         {
-            return *reinterpret_cast<ValueType*>(buffer_ + index);
+            return *(buffer_ + index);
         }
         
         const ValueType& operator[](size_t index) const
         {
-            return *reinterpret_cast<const ValueType*>(buffer_ + index);
+            return *(buffer_ + index);
         }
     private:
         ValueType *buffer_;
