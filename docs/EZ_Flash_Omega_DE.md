@@ -1,8 +1,8 @@
 ## Intro
 
-The EZ Flash Omega Definitive Edition flashcart is the definitive flashcart for Pokémon fans, because it supports DS Link and works with the Gamecube games.
+The EZ Flash Omega Definitive Edition flashcart is the definitive GBA flashcart for Pokémon fans, because it supports DS Link and works with the Gamecube games.
 
-And we're pleased to report that it will also work as a _target_ with Poke Transporter GB when storing the pokémon game in NOR Flash (Mode B/Single cart mode). In fact, this flashcart is the only one that can be used to transfer pokémon towards. Other flashcarts can only be used to _launch_ Poke Transporter GB.
+And we're pleased to report that it will also work as a _target_ with Poke Transporter GB when storing the pokémon game in NOR Flash (Mode B/Single cart mode). In fact, this flashcart is the only one that can be used to transfer pokémon _towards_. Other flashcarts can only be used to _launch_ Poke Transporter GB.
 
 _However_, there is a **hardware quirk** that makes using Poke Transporter GB with mode B a bit more involved compared to original pokémon cartridges: If you launch Poke Transporter GB and THEN insert the EZ Flash Omega DE into the cartridge slot, the GBA will simply reboot. This doesn't happen when inserting original cartridges.
 
@@ -28,9 +28,11 @@ Steps:
 
 - Make sure the pokémon game is stored on your EZ Flash' NOR flash.
 - Flip the physical switch to mode B on the cartridge and verify that the game launches directly when powering on the GBA with the flashcart inserted.
-- When powering on the GBA, hold SELECT+START. The gameboy logo will remain on screen.
+- With the EZ Flash Omega DE inserted, power on the GBA and hold SELECT+START. The gameboy logo will remain on screen.
 - Now connect the Gamecube-to-GBA cable.
 - Launch a program like FIX94's [GBA Link Cable ROM Sender](https://github.com/FIX94/gba-link-cable-rom-sender) on the GameCube or Wii to upload Poke_Transporter_GB_mb.gba to the GBA.
+- When the upload starts, you'll hear a sound coming from the GBA and you'll see the Nintendo logo appear beneath the Gameboy logo.
+- When the upload is finished, Poke Transporter GB should be launched automatically and if you followed these instructions correctly, it should be able to interact with the gen III game stored on the EZ Flash Omega DE.
 
 ### Method 2: 2 GBAs
 
