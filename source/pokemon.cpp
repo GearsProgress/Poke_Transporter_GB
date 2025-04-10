@@ -1,4 +1,5 @@
 #include <tonc.h>
+#include "libstd_replacements.h"
 #include "pokemon.h"
 #include "pokemon_data.h"
 #include "random.h"
@@ -93,7 +94,7 @@ void Pokemon::load_data(int index, const byte *party_data, int game, int lang)
     switch (gen)
     {
     case 1:
-        // ptgb_write(std::to_string(party_data[1121]).c_str());
+        // ptgb_write(ptgb::to_string(party_data[1121]));
         // while (true){};
         species_index_party = party_data[party_species_offset];
         species_index_struct = party_data[box_struct_offset + 0x00];
@@ -142,15 +143,15 @@ void Pokemon::load_data(int index, const byte *party_data, int game, int lang)
     {
         tte_set_pos(8, 120);
         ptgb_write("struct offset: ");
-        ptgb_write(std::to_string(box_struct_offset).c_str());
+        ptgb_write(ptgb::to_string(box_struct_offset));
         ptgb_write("\nbox_size: ");
-        ptgb_write(std::to_string(box_size).c_str());
+        ptgb_write(ptgb::to_string(box_size));
         ptgb_write("\npkmn_size: ");
-        ptgb_write(std::to_string(pkmn_size).c_str());
+        ptgb_write(ptgb::to_string(pkmn_size));
         ptgb_write("\nindex: ");
-        ptgb_write(std::to_string(index).c_str());
+        ptgb_write(ptgb::to_string(index));
         ptgb_write(", game: ");
-        ptgb_write(std::to_string(game).c_str());
+        ptgb_write(ptgb::to_string(game));
         while (!key_hit(KEY_A))
         {
             global_next_frame();

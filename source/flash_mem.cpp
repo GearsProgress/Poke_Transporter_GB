@@ -1,5 +1,5 @@
 #include <tonc.h>
-#include <string>
+#include "libstd_replacements.h"
 #include "flash_mem.h"
 #include "pokemon.h"
 #include "rom_data.h"
@@ -54,7 +54,7 @@ void initalize_memory_locations()
         copy_save_to_ram(memory_section_array[mem_section], &global_memory_buffer[0], 0x1000);
         tte_set_pos(8, 0);
         tte_write("loc: ");
-        tte_write(std::to_string(memory_section_array[mem_section] + mem_start).c_str());
+        tte_write(ptgb::to_string(memory_section_array[mem_section] + mem_start));
         tte_write("\n");
         for (int i = mem_start; i < (128 + mem_start); i++)
         {
@@ -66,7 +66,7 @@ void initalize_memory_locations()
             {
                 tte_write("#{cx:0xD000}");
             }
-            tte_write(std::to_string(global_memory_buffer[i]).c_str());
+            tte_write(ptgb::to_string(global_memory_buffer[i]));
             if (i % 8 == 7)
             {
                 tte_write("\n");
@@ -153,15 +153,15 @@ bool read_flag(u16 flag_id)
     {
         tte_set_pos(0, 0);
         tte_write("#{cx:0xD000}Attempting to read byte ");
-        tte_write(std::to_string((curr_rom.offset_flags + (flag_id / 8)) % 0xF80).c_str());
+        tte_write(ptgb::to_string((curr_rom.offset_flags + (flag_id / 8)) % 0xF80));
         tte_write(" of memory section ");
-        tte_write(std::to_string(1 + ((curr_rom.offset_flags + (flag_id / 8)) / 0xF80)).c_str());
+        tte_write(ptgb::to_string(1 + ((curr_rom.offset_flags + (flag_id / 8)) / 0xF80)));
         tte_write(" for flag ");
-        tte_write(std::to_string(flag_id).c_str());
+        tte_write(ptgb::to_string(flag_id));
         tte_write(". Flag is ");
         copy_save_to_ram(memory_section_array[1 + ((curr_rom.offset_flags + (flag_id / 8)) / 0xF80)], &global_memory_buffer[0], 0x1000);
         u8 flags = global_memory_buffer[(curr_rom.offset_flags + (flag_id / 8)) % 0xF80];
-        tte_write(std::to_string((flags >> (flag_id % 8)) & 0b1).c_str());
+        tte_write(ptgb::to_string((flags >> (flag_id % 8)) & 0b1));
         while (true)
         {
         };
