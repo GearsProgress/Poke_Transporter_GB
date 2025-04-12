@@ -1,5 +1,5 @@
 #include <tonc.h>
-#include <string>
+#include "libstd_replacements.h"
 #include "script_var.h"
 #include "pokemon_data.h"
 #include "debug_mode.h"
@@ -7,14 +7,14 @@
 
 extern rom_data curr_rom;
 
-script_var::script_var(u32 nValue, std::vector<script_var *> &var_list_ref, int *nCurr_loc_ptr)
+script_var::script_var(u32 nValue, ptgb::vector<script_var *> &var_list_ref, int *nCurr_loc_ptr)
 {
     var_list_ref.push_back(this); // Place the new object in the var_list
     value = nValue;
     curr_loc_ptr = nCurr_loc_ptr;
 };
 
-script_var::script_var(std::vector<script_var *> &var_list_ref, int *nCurr_loc_ptr)
+script_var::script_var(ptgb::vector<script_var *> &var_list_ref, int *nCurr_loc_ptr)
 {
     var_list_ref.push_back(this); // Place the new object in the var_list
     curr_loc_ptr = nCurr_loc_ptr;
@@ -256,8 +256,9 @@ void music_var::set_start()
     start_location_in_script = *curr_loc_ptr;
 }
 
-void music_var::add_track(std::vector<byte> track)
+void music_var::add_track(const byte* trackBytes, size_t trackSize)
 {
+    const ptgb::vector track(trackBytes, trackSize);
     trackArrays.push_back(track);
 }
 
