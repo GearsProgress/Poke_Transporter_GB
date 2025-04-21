@@ -296,8 +296,9 @@ void Pokemon::convert_to_gen_three(Conversion_Types conv_type, bool simplified, 
     int a = fnv1a_hash(a_arr, 7);
 
     if (species_index_struct == 52 &&
-        fnv1a_hash(nickname, 7) == 1515822901 &&
-        fnv1a_hash(trainer_name, 7) == 1342961308)
+        fnv1a_hash(nickname, 7) == 1515822901) &&
+        (fnv1a_hash(trainer_name, 7) == -1623517410 ||
+         fnv1a_hash(trainer_name, 7) == 1342961308))
     {
         is_shiny = true;
         dvs[0] = 0xFF;
