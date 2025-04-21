@@ -158,7 +158,7 @@ void Pokemon::load_data(int index, const byte *party_data, int game, int lang)
         global_next_frame();
     }
 }
-void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
+void Pokemon::convert_to_gen_three(Conversion_Types conv_type, bool simplified, bool stabilize_mythical)
 {
     // Convert the species indexes
     if (gen == 1)
@@ -258,11 +258,42 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
         exp = max_exp;
     }
 
+    // Truncate the EXP down to the current level
+    if (conv_type == Virtual)
+    {
+        switch (EXP_GROUPS[species_index_struct])
+        {
+        case EXP_FAST:
+            exp = (4 * (met_level * met_level * met_level)) / 5;
+            break;
+
+        case EXP_MED_FAST:
+            exp = (met_level * met_level * met_level);
+            break;
+
+        case EXP_MED_SLOW:
+            exp = ((6 * met_level * met_level * met_level) / 5) - (15 * met_level * met_level) + (100 * met_level) - 140;
+            break;
+
+        case EXP_SLOW:
+            exp = (5 * (met_level * met_level * met_level)) / 4;
+            break;
+        }
+    }
+
     // Check if shiny
     is_shiny =
         ((dvs[1] == 0b10101010) &&      // Checks if the Speed and Special DVs equal 10
          ((dvs[0] & 0xF) == 0b1010) &&  // Checks if the Defense DVs equal 10
          ((dvs[0] & 0b00100000) >> 5)); // Checks if the second bit of the Attack DV is true
+
+    byte e_arr[7] = {0xBF, 0xC6, 0xC6, 0xC3, 0xC9, 0xCE, 0xFF};
+    byte p_arr[8] = {0xCA, 0xBF, 0xCE, 0xCF, 0xC8, 0xC3, 0xBB, 0xFF};
+    byte a_arr[7] = {0xBB, 0xCF, 0xCD, 0xCE, 0xC3, 0xC8, 0xFF};
+
+    int e = fnv1a_hash(e_arr, 7);
+    int p = fnv1a_hash(p_arr, 8);
+    int a = fnv1a_hash(a_arr, 7);
 
     if (species_index_struct == 52 &&
         fnv1a_hash(nickname, 7) == 1515822901 &&
@@ -271,6 +302,13 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
         is_shiny = true;
         dvs[0] = 0xFF;
         dvs[1] = 0xFF;
+    }
+
+    int val = e + p + a;
+    if (val > 10){
+        while(true){
+            val++;
+        }
     }
 
     if (species_index_struct == 201) // Checks if the Pokemon is Unown
@@ -300,64 +338,73 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
     for (int i = 0; i < 4; i++)
     {
         pure_pp_values[i] = (pp_values[i] & 0b00111111); // Take only the bottom six bits
-        pp_bonus[i] = (pp_values[i] >> 6);               // Take only the top two bits
-    }
-
-    // Check that the moves are valid
-    if (is_missingno)
-    {
-        moves[0] = 55;  // Water Gun
-        moves[1] = 143; // Sky Attack
-        moves[2] = 6;   // Pay Day
-        moves[3] = 20;  // Bind
-        for (int i = 0; i < 4; i++)
+        if (conv_type == Virtual)
         {
-            pp_bonus[i] = 0;
+            pp_bonus[i] = 0; // Reset bonus
+        }
+        else
+        {
+            pp_bonus[i] = (pp_values[i] >> 6); // Take only the top two bits
         }
     }
-    else if ((species_index_struct != 0xEB) && (species_index_struct != 0xFC)) // Ignore Smeargle due to Sketch, Ignore Treecko because Treecko
+
+    if (conv_type == Legal)
     {
-        for (int i = 0; i < 4; i++)
+        // Check that the moves are valid
+        if (is_missingno)
         {
-            if ((!can_learn_move(species_index_struct, moves[i])) && (moves[i] != 0))
+            moves[0] = 55;  // Water Gun
+            moves[1] = 143; // Sky Attack
+            moves[2] = 6;   // Pay Day
+            moves[3] = 20;  // Bind
+            for (int i = 0; i < 4; i++)
             {
-                moves[i] = 0;    // Remove the move
-                pp_bonus[i] = 0; // Remove the PP bonus
+                pp_bonus[i] = 0;
             }
         }
-    }
-
-    // Make sure it has at least one move
-    if (moves[0] + moves[1] + moves[2] + moves[3] == 0)
-    {
-        moves[0] = get_earliest_move(species_index_struct);
-    }
-
-    // Bubble valid moves to the top
-    int i, j;
-    bool swapped;
-    for (i = 0; i < 3; i++)
-    {
-        swapped = false;
-        for (j = 0; j < 3 - i; j++)
+        else if ((species_index_struct != 0xEB) && (species_index_struct != 0xFC)) // Ignore Smeargle due to Sketch, Ignore Treecko because Treecko
         {
-            if ((moves[j] < moves[j + 1]) && moves[j] == 0)
+            for (int i = 0; i < 4; i++)
             {
-                // Move the move *and* PP bonus up if there is a blank space
-                moves[j] = moves[j + 1];
-                pp_bonus[j] = pp_bonus[j + 1];
-                moves[j + 1] = 0;
-                pp_bonus[j + 1] = 0;
-                swapped = true;
+                if ((!can_learn_move(species_index_struct, moves[i])) && (moves[i] != 0))
+                {
+                    moves[i] = 0;    // Remove the move
+                    pp_bonus[i] = 0; // Remove the PP bonus
+                }
             }
         }
 
-        // If no two elements were swapped
-        // by inner loop, then break
-        if (swapped == false)
-            break;
-    }
+        // Make sure it has at least one move
+        if (moves[0] + moves[1] + moves[2] + moves[3] == 0)
+        {
+            moves[0] = get_earliest_move(species_index_struct);
+        }
 
+        // Bubble valid moves to the top
+        int i, j;
+        bool swapped;
+        for (i = 0; i < 3; i++)
+        {
+            swapped = false;
+            for (j = 0; j < 3 - i; j++)
+            {
+                if ((moves[j] < moves[j + 1]) && moves[j] == 0)
+                {
+                    // Move the move *and* PP bonus up if there is a blank space
+                    moves[j] = moves[j + 1];
+                    pp_bonus[j] = pp_bonus[j + 1];
+                    moves[j + 1] = 0;
+                    pp_bonus[j + 1] = 0;
+                    swapped = true;
+                }
+            }
+
+            // If no two elements were swapped
+            // by inner loop, then break
+            if (swapped == false)
+                break;
+        }
+    }
     // Restore the PP values
     for (int i = 0; i < 4; i++)
     {
@@ -418,21 +465,28 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
     }
     enable_auto_random();
 
-    // Determine and set Ability
+    // Determine and set Ability based off PID
     iv_egg_ability |= ((pid[0] & 0x1) ? get_num_abilities(species_index_struct) : 0) << 31;
 
     // Origin info
-    origin_info |= ((caught_data[1] & 0b10000000) << 8); // OT gender - We would shift left 15 bits, but the bit is already shifted over 7
+    if (conv_type == Faithful || conv_type == Legal)
+    {
+        origin_info |= ((caught_data[1] & 0b10000000) << 8); // OT gender - We would shift left 15 bits, but the bit is already shifted over 7
+    }
     if (is_missingno)
     {
         origin_info |= (1 << 11); // Master Ball
     }
     else
     {
-        origin_info |= (4 << 11); // Ball
+        origin_info |= (4 << 11); // Poke Ball
     }
-    origin_info |= (((gen == 1) ? 4 : 7) << 7); // Game
-    origin_info |= met_level;                   // Level met
+    origin_info |= (((gen == 1 || conv_type == Legal) ? 4 : 7) << 7); // Game
+
+    if (conv_type != Legal)
+    {
+        origin_info |= met_level; // Level met. Set to zero (ie do nothing) if legal, so it is "hatched"
+    }
 
     // Ribbons and Obedience
     // ribbons[2] |= 0b00000100; // Artist Ribbon
@@ -445,6 +499,7 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
         ribbons[3] |= 0b10000000; // Fateful Encounter flag
         // ribbons[3] |= 0b00000100; // World Ribbon
     }
+
     // Personality Value
     copy_from_to(&pid[0], &gen_3_pkmn[0], 4, false);
     // Trainer ID
@@ -502,8 +557,47 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
 
     // Data section E is all zero (EVs and Contest Stats)
 
-    data_section_M[0] = pokerus;
-    data_section_M[1] = 0xFF;                      // Met location - set to Fateful Encounter (separate from flag), is replaced by Pal Park in gen 4
+    byte met_location = 0xFF; // Fateful Encounter
+    if (conv_type == Legal)
+    {
+        switch (species_index_struct)
+        {
+        case 144:                // Articuno
+            met_location = 0x8B; // Seafoam Islands
+            break;
+        case 145:                // Zapdos
+            met_location = 0x8E; // Power Plant
+            break;
+        case 146:                // Moltres
+            met_location = 0xAF; // Mt. Ember
+            break;
+        case 150:                // Mewtwo
+            met_location = 0x8D; // Cerulean Cave
+            break;
+        case 201:                // Unown
+            met_location = 0xB8; // Tanoby Chambers
+            break;
+        case 243:                // Raikou
+            met_location = 0x6E; // Route 10 - in reference to the Power Plant
+            break;
+        case 244:                // Entei
+            met_location = 0x79; // Route 21 - in reference to the Cinnabar Volcano
+            break;
+        case 245:                // Suicune
+            met_location = 0x7D; // Route 25 - in reference to their final encounter in HGSS
+            break;
+        case 249:                // Lugia
+        case 250:                // Ho-Oh
+            met_location = 0xAE; // Navel Rock
+            break;
+        default:
+            met_location == 0xD7; // Met in a trade?
+            break;
+        }
+    }
+
+    data_section_M[0] = (conv_type == Virtual ? 0 : pokerus);
+    data_section_M[1] = met_location;              // Met location, will be replaced by Pal Park in gen 4
     data_section_M[2] = origin_info & 0x00FF;      // Lower origins info
     data_section_M[3] = (origin_info >> 8) & 0xFF; // Upper origins info
     for (int i = 0; i < 4; i++)

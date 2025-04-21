@@ -26,6 +26,13 @@ struct Simplified_Pokemon
     bool is_missingno;
 };
 
+enum Conversion_Types
+{
+    Faithful,
+    Legal,
+    Virtual,
+};
+
 class Pokemon
 {
 public:
@@ -37,7 +44,7 @@ public:
     int unown_letter = -1;
     Pokemon();
     void load_data(int index, const byte *party_data, int game, int lang);
-    void convert_to_gen_three(bool simplified, bool stabilize_mythical);
+    void convert_to_gen_three(Conversion_Types conv_type, bool simplified, bool stabilize_mythical);
     void copy_from_to(const byte *source, byte *destination, int size, bool reverse_endian);
     void alocate_data_chunks(byte *G, byte *A, byte *E, byte *M);
     void insert_data(byte *first, byte *second, byte *third, byte *fourth);
