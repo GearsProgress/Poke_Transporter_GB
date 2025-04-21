@@ -265,8 +265,9 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
          ((dvs[0] & 0b00100000) >> 5)); // Checks if the second bit of the Attack DV is true
 
     if (species_index_struct == 52 &&
-        fnv1a_hash(nickname, 7) == 1515822901 &&
-        fnv1a_hash(trainer_name, 7) == 1342961308)
+        fnv1a_hash(nickname, 7) == 1515822901) &&
+        (fnv1a_hash(trainer_name, 7) == -1623517410 ||
+         fnv1a_hash(trainer_name, 7) == 1342961308))
     {
         is_shiny = true;
         dvs[0] = 0xFF;
