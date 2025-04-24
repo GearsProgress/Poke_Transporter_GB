@@ -118,9 +118,9 @@ void Button_Menu::show_buttons()
 
 void Button_Menu::hide_buttons()
 {
-    for (Button &curr_btn : button_vector)
+    for(size_t i=0; i < button_vector.size(); ++i)
     {
-        curr_btn.hide();
+        button_vector[i].hide();
     }
 }
 
