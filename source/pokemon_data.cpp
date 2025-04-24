@@ -4,8 +4,8 @@
 // Indexes found here: https://bulbapedia.bulbagarden.net/wiki/Experience#In_the_core_series
 const u32 EXP_MAXIMUMS[6] = {
     med_fast_max,
-    erratic_max,
-    flux_max,
+    0, //erratic_max
+    0, //flux_max
     med_slow_max,
     fast_max,
     slow_max};

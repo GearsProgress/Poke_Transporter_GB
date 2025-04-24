@@ -208,7 +208,7 @@ Pokemon Pokemon_Party::get_converted_pkmn(int index)
 {
 	Pokemon converted_mon;
 	converted_mon.load_data(index, box_data_array, game, lang);
-	converted_mon.convert_to_gen_three(false, stabilize_mythic);
+	converted_mon.convert_to_gen_three(Legal, false, stabilize_mythic);
 	has_new_pkmn = has_new_pkmn || converted_mon.get_is_new();
 	simple_pkmn_array[index] = converted_mon.get_simple_pkmn();
 	return converted_mon;
@@ -288,7 +288,7 @@ bool Pokemon_Party::fill_simple_pkmn_array()
 	{
 		Pokemon converted_mon;
 		converted_mon.load_data(index, box_data_array, game, lang);
-		converted_mon.convert_to_gen_three(true, stabilize_mythic);
+		converted_mon.convert_to_gen_three(Legal, true, stabilize_mythic);
 		has_new_pkmn = has_new_pkmn || converted_mon.get_is_new();
 		contains_mythical = contains_mythical ||
 							converted_mon.get_dex_number() == 151 || converted_mon.get_dex_number() == 251;
