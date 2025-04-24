@@ -14,7 +14,7 @@ version: "3.5"
 
 services:
   build:
-    image: devkitpro/devkitarm
+    image: ptgb-builder:latest
     working_dir: /usr/Poke_Transporter_GB
     command: tail -F anything
     volumes:

@@ -16,7 +16,8 @@ static u8 frlg_wonder_card[0x14E] = {
 
 bool inject_mystery(Pokemon_Party &incoming_box_data)
 {
-    mystery_gift_script script;
+    PokemonTables data_tables;
+    mystery_gift_script script(data_tables);
     if (ENABLE_OLD_EVENT)
     {
         // script.build_script_old(incoming_box_data);
@@ -83,7 +84,7 @@ bool inject_mystery(Pokemon_Party &incoming_box_data)
     {
         for (int i = 0; i < MAX_PKMN_IN_BOX; i++) // Add in the Pokemon data
         {
-            Pokemon curr_pkmn = incoming_box_data.get_converted_pkmn(i);
+            Pokemon curr_pkmn = incoming_box_data.get_converted_pkmn(data_tables, i);
             if (curr_pkmn.get_validity())
             {
 

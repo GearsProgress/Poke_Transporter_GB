@@ -6,7 +6,7 @@
 #define TILE_HEIGHT 8
 #define TILE_WIDTH 8
 
-Select_Menu::Select_Menu(bool enable_cancel, int nMenu_type, int nStartTileX, int nStartTileY)
+Select_Menu::Select_Menu(bool enable_cancel, u8 nMenu_type, int nStartTileX, int nStartTileY)
 {
     cancel_enabled = enable_cancel;
     menu_type = nMenu_type;
@@ -14,7 +14,7 @@ Select_Menu::Select_Menu(bool enable_cancel, int nMenu_type, int nStartTileX, in
     startTileY = nStartTileY;
 }
 
-void Select_Menu::add_option(const byte *option, int return_value)
+void Select_Menu::add_option(const byte *option, u8 return_value)
 {
     menu_options.push_back(option);
     return_values.push_back(return_value);
@@ -66,7 +66,7 @@ int Select_Menu::select_menu_main()
 
         if (update)
         {
-            if (return_values[curr_selection] == -1)
+            if (return_values[curr_selection] == UINT8_MAX)
             {
                 switch (menu_type)
                 {
@@ -140,7 +140,7 @@ void Select_Menu::clear_options()
     return_values.clear();
 }
 
-void Select_Menu::set_lang(int nLang)
+void Select_Menu::set_lang(u8 nLang)
 {
     lang = nLang;
 }

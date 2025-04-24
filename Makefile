@@ -1,5 +1,5 @@
 # Build configuration (set to either 'debug' or 'release')
-BUILD_TYPE := debug
+BUILD_TYPE := release
 
 #---------------------------------------------------------------------------------
 .SUFFIXES:
@@ -32,7 +32,7 @@ TARGET		:= $(notdir $(CURDIR))_mb
 BUILD		:= build
 SOURCES		:= source
 INCLUDES	:= include
-DATA		:=
+DATA		:= data
 MUSIC		:= audio
 GRAPHICS	:= graphics
 
@@ -41,7 +41,7 @@ GRAPHICS	:= graphics
 #---------------------------------------------------------------------------------
 ARCH	:=	-mthumb -mthumb-interwork
 
-CFLAGS	:=	-g -Wall -O2\
+CFLAGS	:=	-Wall -O2\
 		-mcpu=arm7tdmi -mtune=arm7tdmi -masm-syntax-unified\
 		$(ARCH) 
 
@@ -56,11 +56,16 @@ else ifeq ($(BUILD_TYPE), release)
 
 endif
 
-ASFLAGS	:=	-g $(ARCH)
-LDFLAGS	=	-Os -g $(ARCH) -Wl,-Map,$(notdir $*.map) -Wl,--gc-sections -mthumb -mcpu=arm7tdmi -mtune=arm7tdmi -Wl,-Map,output.map,--cref -nodefaultlibs
+ASFLAGS	:=	$(ARCH)
+LDFLAGS	=	-Os $(ARCH) -Wl,-Map,$(notdir $*.map) -Wl,--gc-sections -mthumb -mcpu=arm7tdmi -mtune=arm7tdmi -Wl,-Map,output.map,--cref -nodefaultlibs
 
 CFLAGS += -flto
 LDFLAGS += -flto
+
+ifeq ($(BUILD_TYPE), debug)
+ASFLAGS += -g
+LDFLAGS += -g
+endif
 
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
@@ -96,7 +101,6 @@ CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
 SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 PNGFILES	:=	$(foreach dir,$(GRAPHICS),$(notdir $(wildcard $(dir)/*.png)))
-BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.*)))
 
 #ifneq ($(strip $(MUSIC)),)
 #	export AUDIOFILES	:=	$(foreach dir,$(notdir $(wildcard $(MUSIC)/*.*)),$(CURDIR)/$(MUSIC)/$(dir))
@@ -117,13 +121,11 @@ else
 endif
 #---------------------------------------------------------------------------------
 
-export OFILES_BIN := $(addsuffix .o,$(BINFILES))
-
 export OFILES_SOURCES := $(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
 
 export OFILES_GRAPHICS := $(PNGFILES:.png=.o)
 
-export OFILES := $(OFILES_BIN) $(OFILES_SOURCES) $(OFILES_GRAPHICS)
+export OFILES := $(OFILES_SOURCES) $(OFILES_GRAPHICS)
 
 export HFILES := $(addsuffix .h,$(subst .,_,$(BINFILES))) $(PNGFILES:.png=.h)
 
@@ -133,10 +135,19 @@ export INCLUDE	:=	$(foreach dir,$(INCLUDES),-iquote $(CURDIR)/$(dir)) \
 
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
-.PHONY: $(BUILD) clean
+.PHONY: $(BUILD) generate_data clean
+
+all: $(BUILD)
+
+generate_data:
+	mkdir -p data
+	@env -i PATH=$(PATH) $(MAKE) -C tools/compressZX0
+	@env -i PATH=$(PATH) $(MAKE) -C tools/data-generator
+	@cd tools/data-generator && ./data-generator
+	@find tools/data-generator -name *.bin | xargs -i tools/compressZX0/compressZX0 {} data/
 
 #---------------------------------------------------------------------------------
-$(BUILD):
+$(BUILD): generate_data
 	@[ -d $@ ] || mkdir -p $@
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 	@mkdir -p loader/data
@@ -146,12 +157,18 @@ $(BUILD):
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
+	@$(MAKE) -C tools/compressZX0 clean
+	@$(MAKE) -C tools/data-generator clean
 	@$(MAKE) -C loader clean
-	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).gba
+	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).gba data/
 
 
 #---------------------------------------------------------------------------------
 else
+
+BINFILES	:=	$(foreach dir,../$(DATA),$(notdir $(wildcard $(dir)/*.*)))
+export OFILES_BIN := $(addsuffix .o,$(BINFILES))
+OFILES += $(OFILES_BIN)
 
 #---------------------------------------------------------------------------------
 # main targets

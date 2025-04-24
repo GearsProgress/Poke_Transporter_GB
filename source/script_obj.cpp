@@ -4,27 +4,29 @@
 #include "pokemon.h"
 #include "pokemon_party.h"
 #include "script_array.h"
+#include "translated_text.h"
 
 script_obj::script_obj(){};
 
-script_obj::script_obj(const byte* nText, int nNext)
+script_obj::script_obj(const byte* nText, uint16_t nNext)
 {
     text = nText;
-    has_text = true;
     next_index = nNext;
     conditional_index = 0;
     next_false_index = 0;
 }
 
-script_obj::script_obj(int nRun, int nNext)
+script_obj::script_obj(uint16_t nRun, uint16_t nNext)
 {
+    text = nullptr;
     next_index = nNext;
     conditional_index = nRun;
     next_false_index = nNext;
 }
 
-script_obj::script_obj(int nRun, int nNext_if_true, int nNext_if_false)
+script_obj::script_obj(uint16_t nRun, uint16_t nNext_if_true, uint16_t nNext_if_false)
 {
+    text = nullptr;
     next_index = nNext_if_true;
     conditional_index = nRun;
     next_false_index = nNext_if_false;
@@ -32,27 +34,20 @@ script_obj::script_obj(int nRun, int nNext_if_true, int nNext_if_false)
 
 const byte* script_obj::get_text()
 {
-    if (has_text)
-    {
-        return text;
-    }
-    else
-    {
-        return NULL;
-    }
+    return text;
 }
 
-int script_obj::get_true_index()
+uint16_t script_obj::get_true_index()
 {
     return next_index;
 }
 
-int script_obj::get_false_index()
+uint16_t script_obj::get_false_index()
 {
     return next_false_index;
 }
 
-int script_obj::get_cond_id()
+uint16_t script_obj::get_cond_id()
 {
     return conditional_index;
 }

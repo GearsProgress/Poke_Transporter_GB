@@ -8,21 +8,21 @@ class script_obj
 {
 public:
     script_obj();
-    script_obj(const byte* nText, int nNext);               // For dialogue
-    script_obj(int nRun, int nNext);                             // For commands
-    script_obj(int nRun, int nNext_if_true, int nNext_if_false); // for conditionals
+    script_obj(const byte* nText, uint16_t nNext);               // For dialogue
+    script_obj(uint16_t nRun, uint16_t nNext);                             // For commands
+    script_obj(uint16_t nRun, uint16_t nNext_if_true, uint16_t nNext_if_false); // for conditionals
 
     const byte* get_text();
-    int get_true_index();
-    int get_false_index();
-    int get_cond_id();
+    uint16_t get_true_index();
+    uint16_t get_false_index();
+    uint16_t get_cond_id();
 
 private:
     const byte* text;
     bool has_text = false;
-    int next_index;
-    int conditional_index;
-    int next_false_index;
+    uint16_t next_index;
+    uint16_t conditional_index;
+    uint16_t next_false_index;
 };
 
 #endif

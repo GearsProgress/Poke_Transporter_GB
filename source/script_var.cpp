@@ -153,12 +153,12 @@ void textbox_var::set_virtual_start()
     start_location_in_script = *curr_loc_ptr - 4;
 }
 
-void textbox_var::insert_text(u8 mg_array[])
+void textbox_var::insert_text(const u16 *charset, u8 mg_array[])
 {
     set_start();
     for (int parser = 0; parser < text_length; parser++)
     {
-        if (curr_rom.is_hoenn() && (text[parser] == 0xFC) && (get_gen_3_char((char16_t)(text[parser + 1]), false) == 0x01)) // Removes colored text
+        if (curr_rom.is_hoenn() && (text[parser] == 0xFC) && (get_char_from_charset(charset, (char16_t)(text[parser + 1])) == 0x01)) // Removes colored text
         {
             parser += 2;
         }
@@ -172,12 +172,12 @@ void textbox_var::insert_text(u8 mg_array[])
     (*curr_loc_ptr)++;
 }
 
-void textbox_var::insert_virtual_text(u8 mg_array[])
+void textbox_var::insert_virtual_text(const u16 *charset, u8 mg_array[])
 {
     set_virtual_start();
     for (int parser = 0; parser < text_length; parser++)
     {
-        if (curr_rom.is_hoenn() && (text[parser] == 0xFC) && (get_gen_3_char((char16_t)(text[parser + 1]), false) == 0x01)) // Removes colored text
+        if (curr_rom.is_hoenn() && (text[parser] == 0xFC) && (get_char_from_charset(charset, (char16_t)(text[parser + 1])) == 0x01)) // Removes colored text
         {
             parser += 2;
         }

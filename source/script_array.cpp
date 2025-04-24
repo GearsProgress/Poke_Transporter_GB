@@ -139,7 +139,7 @@ void populate_lang_menu()
     langs.add_option(option_german, GER_ID);
     langs.add_option(option_italian, ITA_ID);
     langs.add_option(option_korean, KOR_ID);
-    langs.add_option(option_cancel, -1);
+    langs.add_option(option_cancel, UINT8_MAX);
 }
 
 void populate_game_menu(int lang)
@@ -154,13 +154,13 @@ void populate_game_menu(int lang)
         games.add_option(option_gold, GOLD_ID);
         games.add_option(option_silver, SILVER_ID);
         games.add_option(option_crystal, CRYSTAL_ID);
-        games.add_option(option_cancel, -1);
+        games.add_option(option_cancel, UINT8_MAX);
         break;
 
     case (KOR_ID):
         games.add_option(option_gold, GOLD_ID);
         games.add_option(option_silver, SILVER_ID);
-        games.add_option(option_cancel, -1);
+        games.add_option(option_cancel, UINT8_MAX);
         break;
 
     default:
@@ -170,7 +170,7 @@ void populate_game_menu(int lang)
         games.add_option(option_gold, GOLD_ID);
         games.add_option(option_silver, SILVER_ID);
         games.add_option(option_crystal, CRYSTAL_ID);
-        games.add_option(option_cancel, -1);
+        games.add_option(option_cancel, UINT8_MAX);
         break;
     }
 }
@@ -300,8 +300,8 @@ bool run_conditional(int index)
         {
             return false;
         }
-        games.set_lang(lang);
-        party_data.set_lang(lang);
+        games.set_lang(static_cast<u8>(lang));
+        party_data.set_lang(static_cast<u8>(lang));
         return true;
 
     case CMD_GAME_MENU:
@@ -348,8 +348,10 @@ bool run_conditional(int index)
         return true;
 
     case CMD_LOAD_SIMP:
-        return party_data.fill_simple_pkmn_array();
-
+    {
+        PokemonTables data_tables;
+        return party_data.fill_simple_pkmn_array(data_tables);
+    }
     case CMD_CANCEL_LINK:
         party_data.continue_link(true);
         return true;

@@ -11,6 +11,7 @@
 #include "text_engine.h"
 #include "background_engine.h"
 #include "pokemon_party.h"
+#include "pokemon_data.h"
 #include "script_array.h"
 #include "sprite_data.h"
 #include "button_handler.h"
@@ -253,6 +254,8 @@ int credits()
 		}
 		if (ENABLE_DEBUG_SCREEN && key_hit(KEY_SELECT))
 		{
+			uint16_t charset[256];
+			load_localized_charset(charset, 3, ENG_ID);
 			if (key_held(KEY_UP) && key_held(KEY_L) && key_held(KEY_R))
 			{
 				set_treecko(true);
@@ -270,48 +273,48 @@ int credits()
 			int def_lang = get_def_lang_num();
 
 			create_textbox(4, 1, 160, 80, true);
-			ptgb_write_debug("Debug info:\n\nG: ", true);
-			ptgb_write_debug(ptgb::to_string(curr_rom.language), true);
+			ptgb_write_debug(charset, "Debug info:\n\nG: ", true);
+			ptgb_write_debug(charset, ptgb::to_string(curr_rom.language), true);
 			switch (curr_rom.gamecode)
 			{
 			case RUBY_ID:
-				ptgb_write_debug("-R-", true);
+				ptgb_write_debug(charset, "-R-", true);
 				break;
 			case SAPPHIRE_ID:
-				ptgb_write_debug("-S-", true);
+				ptgb_write_debug(charset, "-S-", true);
 				break;
 			case FIRERED_ID:
-				ptgb_write_debug("-F-", true);
+				ptgb_write_debug(charset, "-F-", true);
 				break;
 			case LEAFGREEN_ID:
-				ptgb_write_debug("-L-", true);
+				ptgb_write_debug(charset, "-L-", true);
 				break;
 			case EMERALD_ID:
-				ptgb_write_debug("-E-", true);
+				ptgb_write_debug(charset, "-E-", true);
 				break;
 			}
 
-			ptgb_write_debug(ptgb::to_string(curr_rom.version), true);
+			ptgb_write_debug(charset, ptgb::to_string(curr_rom.version), true);
 
-			ptgb_write_debug("\nF: ", true);
-			ptgb_write_debug(ptgb::to_string(e4_flag), true);
-			ptgb_write_debug(ptgb::to_string(mg_flag), true);
-			ptgb_write_debug(ptgb::to_string(all_collected_flag), true);
-			ptgb_write_debug("-", true);
+			ptgb_write_debug(charset, "\nF: ", true);
+			ptgb_write_debug(charset, ptgb::to_string(e4_flag), true);
+			ptgb_write_debug(charset, ptgb::to_string(mg_flag), true);
+			ptgb_write_debug(charset, ptgb::to_string(all_collected_flag), true);
+			ptgb_write_debug(charset, "-", true);
 
 			n2hexstr(hexBuffer, pkmn_flags);
-			ptgb_write_debug(hexBuffer, true);
-			ptgb_write_debug("\nS:   ", true);
-			ptgb_write_debug(ptgb::to_string(tutorial), true);
-			ptgb_write_debug("-", true);
+			ptgb_write_debug(charset, hexBuffer, true);
+			ptgb_write_debug(charset, "\nS:   ", true);
+			ptgb_write_debug(charset, ptgb::to_string(tutorial), true);
+			ptgb_write_debug(charset, "-", true);
 			n2hexstr(hexBuffer, def_lang);
-			ptgb_write_debug(hexBuffer, true);
+			ptgb_write_debug(charset, hexBuffer, true);
 
-			ptgb_write_debug("\n", true);
-			ptgb_write_debug(VERSION, true);
+			ptgb_write_debug(charset, "\n", true);
+			ptgb_write_debug(charset, VERSION, true);
 			if (get_treecko_enabled())
 			{
-				ptgb_write_debug(".T", true);
+				ptgb_write_debug(charset, ".T", true);
 			}
 			while (true)
 			{

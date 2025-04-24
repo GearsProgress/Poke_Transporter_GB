@@ -43,7 +43,7 @@ namespace ptgb
     class vector
     {
     public:
-        static constexpr size_t default_capacity = 10;
+        static constexpr size_t default_capacity = 4;
 
         vector()
             : buffer_()

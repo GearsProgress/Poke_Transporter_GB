@@ -6,6 +6,8 @@
 #include "save_data_manager.h"
 #include "debug_mode.h"
 #include "text_engine.h"
+#include "zx0_decompressor.h"
+#include "JPN_NAMES_zx0_bin.h"
 
 Pokemon::Pokemon() {};
 
@@ -159,7 +161,7 @@ void Pokemon::load_data(int index, const byte *party_data, int game, int lang)
         global_next_frame();
     }
 }
-void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
+void Pokemon::convert_to_gen_three(PokemonTables& data_tables, bool simplified, bool stabilize_mythical)
 {
     // Convert the species indexes
     if (gen == 1)
@@ -170,7 +172,8 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
         }
         else
         {
-            species_index_struct = gen_1_index_array[species_index_struct];
+            data_tables.load_gen1_index_array();
+            species_index_struct = data_tables.gen_1_index_array[species_index_struct];
             if (species_index_struct == 0xFF)
             {
                 is_missingno = true;
@@ -206,13 +209,21 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
     // Set nickname
     if (language == KOR_ID)
     {
-
         gen_3_pkmn[18] = JPN_ID; // Set to JPN
         byte new_nickname[10];
         byte new_ot[7];
+        u16 cur_char;
+
+        data_tables.load_gen3_charset(language);
+        // setup the zx0 decompressor to decompress the JPN_NAMES table
+        zx0_decompressor_set_input(JPN_NAMES_zx0_bin);
+        // seek to the right pokemon
+        zx0_decompressor_seek(sizeof(u16) * 6 * species_index_struct);
+
         for (int i = 0; i < 6; i++)
         { // Read the JPN name and convert it
-            new_nickname[i] = get_gen_3_char(JPN_NAMES[species_index_struct][i], true);
+            zx0_decompressor_read((u8*)&cur_char, 2);
+            new_nickname[i] = data_tables.get_gen_3_char(cur_char);
         }
 
         if (gen == 1)
@@ -247,13 +258,16 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
     }
     else
     {
-        gen_3_pkmn[18] = language;                                                                 // Language
-        copy_from_to(convert_text(&nickname[0], 10, gen, language), &gen_3_pkmn[8], 10, false);    // Nickname
-        copy_from_to(convert_text(&trainer_name[0], 7, gen, language), &gen_3_pkmn[20], 7, false); // OT Name
+        gen_3_pkmn[18] = language;                                                           // Language
+
+        data_tables.load_input_charset(gen, language);
+        data_tables.load_gen3_charset(language);
+        copy_from_to(convert_text(data_tables, &nickname[0], 10), &gen_3_pkmn[8], 10, false);    // Nickname
+        copy_from_to(convert_text(data_tables, &trainer_name[0], 7), &gen_3_pkmn[20], 7, false); // OT Name
     }
 
     // Make sure Level is not over 100 based on EXP
-    u32 max_exp = get_max_exp(species_index_struct);
+    u32 max_exp = data_tables.get_max_exp(species_index_struct);
     if (exp > max_exp)
     {
         exp = max_exp;
@@ -320,7 +334,7 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
     {
         for (int i = 0; i < 4; i++)
         {
-            if ((!can_learn_move(species_index_struct, moves[i])) && (moves[i] != 0))
+            if ((!data_tables.can_learn_move(species_index_struct, moves[i])) && (moves[i] != 0))
             {
                 moves[i] = 0;    // Remove the move
                 pp_bonus[i] = 0; // Remove the PP bonus
@@ -331,7 +345,7 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
     // Make sure it has at least one move
     if (moves[0] + moves[1] + moves[2] + moves[3] == 0)
     {
-        moves[0] = get_earliest_move(species_index_struct);
+        moves[0] = data_tables.get_earliest_move(species_index_struct);
     }
 
     // Bubble valid moves to the top
@@ -360,15 +374,16 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
     }
 
     // Restore the PP values
+    data_tables.load_power_points();
     for (int i = 0; i < 4; i++)
     {
-        pure_pp_values[i] = POWER_POINTS[moves[i]] + ((POWER_POINTS[moves[i]] / 5) * pp_bonus[i]);
+        pure_pp_values[i] = data_tables.POWER_POINTS[moves[i]] + ((data_tables.POWER_POINTS[moves[i]] / 5) * pp_bonus[i]);
     }
 
     // This is everything the mythical needs, don't change anything else
     if (stabilize_mythical && (species_index_struct == 151 || species_index_struct == 251))
     {
-        set_to_event(nature_mod);
+        set_to_event(data_tables, nature_mod);
         return;
     }
 
@@ -377,7 +392,7 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
     u32 n_pid;
     if (ENABLE_MATCH_PID)
     {
-        n_pid = generate_pid_iv_match(species_index_struct, nature_mod, &dvs[0]);
+        n_pid = generate_pid_iv_match(data_tables, species_index_struct, nature_mod, &dvs[0]);
 
         u16 curr_rand = get_rand_u16();
         ivs[0] = (curr_rand >> 0) & 0b11111;
@@ -395,7 +410,7 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
     }
     else
     {
-        n_pid = generate_pid_save_iv(species_index_struct, nature_mod, &dvs[0]);
+        n_pid = generate_pid_save_iv(data_tables, species_index_struct, nature_mod, &dvs[0]);
 
         // Convert and set IVs
         int hp_iv = 0;
@@ -420,7 +435,7 @@ void Pokemon::convert_to_gen_three(bool simplified, bool stabilize_mythical)
     enable_auto_random();
 
     // Determine and set Ability
-    iv_egg_ability |= ((pid[0] & 0x1) ? get_num_abilities(species_index_struct) : 0) << 31;
+    iv_egg_ability |= ((pid[0] & 0x1) ? data_tables.get_num_abilities(species_index_struct) : 0) << 31;
 
     // Origin info
     origin_info |= ((caught_data[1] & 0b10000000) << 8); // OT gender - We would shift left 15 bits, but the bit is already shifted over 7
@@ -672,66 +687,23 @@ byte Pokemon::get_unencrypted_data(int index)
     return unencrypted_data[index];
 }
 
-byte *Pokemon::convert_text(byte *text_array, int size, int gen, int lang)
+byte *Pokemon::convert_text(PokemonTables& data_tables, byte *text_array, int size)
 {
     for (int i = 0; i < size; i++)
     {
-        switch (gen)
-        {
-        case 1:
-            switch (lang)
-            {
-            case JPN_ID:
-                text_array[i] = get_gen_3_char(gen_1_Jpn_char_array[text_array[i]], true);
-                break;
-            case ENG_ID:
-            default:
-                text_array[i] = get_gen_3_char(gen_1_Eng_char_array[text_array[i]], false);
-                break;
-            case FRE_ID:
-            case GER_ID:
-                text_array[i] = get_gen_3_char(gen_1_FreGer_char_array[text_array[i]], false);
-                break;
-            case SPA_ID:
-            case ITA_ID:
-                text_array[i] = get_gen_3_char(gen_1_ItaSpa_char_array[text_array[i]], false);
-                break;
-            }
-            break;
-        case 2:
-        default:
-            switch (lang)
-            {
-            case JPN_ID:
-                text_array[i] = get_gen_3_char(gen_2_Jpn_char_array[text_array[i]], true);
-                break;
-            case ENG_ID:
-            default:
-                text_array[i] = get_gen_3_char(gen_2_Eng_char_array[text_array[i]], false);
-                break;
-            case FRE_ID:
-            case GER_ID:
-                text_array[i] = get_gen_3_char(gen_2_FreGer_char_array[text_array[i]], false);
-                break;
-            case SPA_ID:
-            case ITA_ID:
-                text_array[i] = get_gen_3_char(gen_2_ItaSpa_char_array[text_array[i]], false);
-                break;
-            }
-            break;
-        }
+        text_array[i] = data_tables.get_gen_3_char(data_tables.input_charset[text_array[i]]);
     }
     return text_array;
 }
 
-u32 Pokemon::generate_pid_iv_match(byte pid_species_index, byte nature, byte *pid_dvs)
+u32 Pokemon::generate_pid_iv_match(PokemonTables& data_tables, byte pid_species_index, byte nature, byte *pid_dvs)
 {
     u32 new_pid = 0;
     byte new_nature = 0;
     byte new_gender = 0;
     byte new_letter = 0;
-    int gen2_gender_threshold = get_gender_threshold(pid_species_index, false);
-    int gen3_gender_threshold = get_gender_threshold(pid_species_index, true);
+    int gen2_gender_threshold = data_tables.get_gender_threshold(pid_species_index, false);
+    int gen3_gender_threshold = data_tables.get_gender_threshold(pid_species_index, true);
     bool gender = (((pid_dvs[0] >> 4) & 0b1111) < gen2_gender_threshold);
 
     do
@@ -768,7 +740,7 @@ u8 Pokemon::get_gender_from_pid(u32 pid)
     return (pid & 0xFF);
 };
 
-u32 Pokemon::generate_pid_save_iv(byte pid_species_index, byte nature, byte *pid_dvs)
+u32 Pokemon::generate_pid_save_iv(PokemonTables &data_tables, byte pid_species_index, byte nature, byte *pid_dvs)
 {
     // Set Unown Letter
     u32 new_pid = 0;
@@ -795,7 +767,7 @@ u32 Pokemon::generate_pid_save_iv(byte pid_species_index, byte nature, byte *pid
     else
     {
         // Set the correct gender for the Pokemon
-        new_pid |= get_rand_gender_byte(pid_species_index, ((pid_dvs[0] >> 4) & 0b1111));
+        new_pid |= get_rand_gender_byte(data_tables, pid_species_index, ((pid_dvs[0] >> 4) & 0b1111));
 
         // Randomize rest of PID
         new_pid |= get_rand_u32() & 0xFFFFFF00;
@@ -814,10 +786,10 @@ byte Pokemon::rand_reverse_mod(byte modulo_divisor, byte target_mod)
     return (modulo_divisor * get_rand_range(0, (255 - target_mod) / modulo_divisor)) + target_mod;
 }
 
-byte Pokemon::get_rand_gender_byte(byte index_num, byte attack_DVs)
+byte Pokemon::get_rand_gender_byte(PokemonTables &data_tables, byte index_num, byte attack_DVs)
 {
-    byte gen2_threshold = get_gender_threshold(index_num, false);
-    byte gen3_threshold = get_gender_threshold(index_num, true);
+    byte gen2_threshold = data_tables.get_gender_threshold(index_num, false);
+    byte gen3_threshold = data_tables.get_gender_threshold(index_num, true);
     if (gen2_threshold == -1) // Is one gender or is genderless
     {
         return get_rand_range(0, 256);
@@ -869,7 +841,7 @@ Simplified_Pokemon Pokemon::get_simple_pkmn()
     return curr_pkmn;
 }
 
-void Pokemon::set_to_event(byte nature)
+void Pokemon::set_to_event(PokemonTables &data_tables, byte nature)
 {
     int event_id = 0;
     if (species_index_struct == 151)
@@ -915,6 +887,7 @@ void Pokemon::set_to_event(byte nature)
         }
     }
 
+    data_tables.load_event_pkmn();
     // Load the event into the Pokemon array and unencrypted data array
     for (int i = 0; i < 0x20; i++)
     {
@@ -922,15 +895,15 @@ void Pokemon::set_to_event(byte nature)
         {
             i += 10; // Skip over the nickname
         }
-        gen_3_pkmn[i] = EVENT_PKMN[event_id][i];
+        gen_3_pkmn[i] = data_tables.EVENT_PKMN[event_id][i];
     }
 
     for (int i = 0; i < 12; i++)
     {
-        data_section_G[i] = EVENT_PKMN[event_id][i + 0x20 + 0];
-        data_section_A[i] = EVENT_PKMN[event_id][i + 0x20 + 12];
-        data_section_E[i] = EVENT_PKMN[event_id][i + 0x20 + 24];
-        data_section_M[i] = EVENT_PKMN[event_id][i + 0x20 + 36];
+        data_section_G[i] = data_tables.EVENT_PKMN[event_id][i + 0x20 + 0];
+        data_section_A[i] = data_tables.EVENT_PKMN[event_id][i + 0x20 + 12];
+        data_section_E[i] = data_tables.EVENT_PKMN[event_id][i + 0x20 + 24];
+        data_section_M[i] = data_tables.EVENT_PKMN[event_id][i + 0x20 + 36];
     }
 
     // insert moves and PP bonuses
@@ -975,7 +948,8 @@ void Pokemon::set_to_event(byte nature)
     enable_auto_random();
 
     // Determine and set Ability
-    iv_egg_ability |= ((pid[0] & 0x1) ? get_num_abilities(species_index_struct) : 0) << 31;
+    data_tables.load_num_abilities();
+    iv_egg_ability |= ((pid[0] & 0x1) ? data_tables.get_num_abilities(species_index_struct) : 0) << 31;
 
     // Set IVs, Egg, and Ability
     for (int i = 0; i < 4; i++)

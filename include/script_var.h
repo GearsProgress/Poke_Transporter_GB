@@ -49,9 +49,9 @@ class textbox_var : public xse_var
 public:
     using xse_var::xse_var;
     void set_text(const byte nText[]);
-    void insert_text(u8 mg_array[]);
+    void insert_text(const u16 *charset, u8 mg_array[]);
     void set_start();
-    void insert_virtual_text(u8 mg_array[]);
+    void insert_virtual_text(const u16 *charset, u8 mg_array[]);
     void set_virtual_start();
     const byte *text;
     int text_length;

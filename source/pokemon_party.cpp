@@ -204,11 +204,11 @@ int Pokemon_Party::get_last_error()
 	return last_error;
 }
 
-Pokemon Pokemon_Party::get_converted_pkmn(int index)
+Pokemon Pokemon_Party::get_converted_pkmn(PokemonTables& data_tables, int index)
 {
 	Pokemon converted_mon;
 	converted_mon.load_data(index, box_data_array, game, lang);
-	converted_mon.convert_to_gen_three(false, stabilize_mythic);
+	converted_mon.convert_to_gen_three(data_tables, false, stabilize_mythic);
 	has_new_pkmn = has_new_pkmn || converted_mon.get_is_new();
 	simple_pkmn_array[index] = converted_mon.get_simple_pkmn();
 	return converted_mon;
@@ -281,14 +281,14 @@ Simplified_Pokemon Pokemon_Party::get_simple_pkmn(int index)
 	return simple_pkmn_array[index];
 }
 
-bool Pokemon_Party::fill_simple_pkmn_array()
+bool Pokemon_Party::fill_simple_pkmn_array(PokemonTables &data_tables)
 {
 	contains_mythical = false;
 	for (int index = 0; index < get_num_pkmn(); index++)
 	{
 		Pokemon converted_mon;
 		converted_mon.load_data(index, box_data_array, game, lang);
-		converted_mon.convert_to_gen_three(true, stabilize_mythic);
+		converted_mon.convert_to_gen_three(data_tables, true, stabilize_mythic);
 		has_new_pkmn = has_new_pkmn || converted_mon.get_is_new();
 		contains_mythical = contains_mythical ||
 							converted_mon.get_dex_number() == 151 || converted_mon.get_dex_number() == 251;

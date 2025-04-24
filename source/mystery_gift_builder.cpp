@@ -40,7 +40,8 @@ int var_script_ptr_low = (VAR_ID_START + 0x01);
 int var_script_ptr_high = (VAR_ID_START + 0x02);
 int var_call_return_1 = (VAR_ID_START + 0x03);
 
-mystery_gift_script::mystery_gift_script()
+mystery_gift_script::mystery_gift_script(PokemonTables &data_tables)
+    : data_tables(data_tables)
 {
     curr_mg_index = NPC_LOCATION_OFFSET;
     curr_section30_index = 0;
@@ -331,7 +332,7 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
 
     for (int i = 0; i < MAX_PKMN_IN_BOX; i++) // Add in the Pokemon data
     {
-        Pokemon curr_pkmn = incoming_box_data.get_converted_pkmn(i);
+        Pokemon curr_pkmn = incoming_box_data.get_converted_pkmn(data_tables, i);
         if (curr_pkmn.get_validity())
         {
             for (int curr_byte = 0; curr_byte < POKEMON_SIZE; curr_byte++)
@@ -354,14 +355,16 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     }
 
     // insert text
-    textThank.insert_text(save_section_30);
-    textPCFull.insert_text(save_section_30);
-    textWeHere.insert_text(save_section_30);
-    textPCConvo.insert_text(save_section_30);
-    textPCThanks.insert_text(save_section_30);
-    textLookerFull.insert_text(save_section_30);
-    textMoveBox.insert_text(save_section_30);
-    textReceived.insert_text(save_section_30);
+    data_tables.load_gen3_charset(ENG_ID);
+
+    textThank.insert_text(data_tables.gen3_charset, save_section_30);
+    textPCFull.insert_text(data_tables.gen3_charset, save_section_30);
+    textWeHere.insert_text(data_tables.gen3_charset, save_section_30);
+    textPCConvo.insert_text(data_tables.gen3_charset, save_section_30);
+    textPCThanks.insert_text(data_tables.gen3_charset, save_section_30);
+    textLookerFull.insert_text(data_tables.gen3_charset, save_section_30);
+    textMoveBox.insert_text(data_tables.gen3_charset, save_section_30);
+    textReceived.insert_text(data_tables.gen3_charset, save_section_30);
 
     movementSlowSpin.insert_movement(save_section_30);
     movementFastSpin.insert_movement(save_section_30);
@@ -783,9 +786,9 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     add_word(flashBuffer_ptr.place_word());
     add_word(readFlashSector_ptr.place_word());
 
-    textGreet.insert_virtual_text(mg_script);
-    textYouMustBe.insert_virtual_text(mg_script);
-    textIAm.insert_virtual_text(mg_script);
+    textGreet.insert_virtual_text(data_tables.gen3_charset, mg_script);
+    textYouMustBe.insert_virtual_text(data_tables.gen3_charset, mg_script);
+    textIAm.insert_virtual_text(data_tables.gen3_charset, mg_script);
 
     for (unsigned int i = 0; i < mg_variable_list.size(); i++) // Fill all the refrences for script variables in the mg
     {

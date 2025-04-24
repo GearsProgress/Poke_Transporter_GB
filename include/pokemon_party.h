@@ -11,7 +11,7 @@ public:
     void start_link();
     void continue_link(bool cancel_connection);
     int get_last_error();
-    Pokemon get_converted_pkmn(int index);
+    Pokemon get_converted_pkmn(PokemonTables &data_tables, int index);
     bool get_has_new_pkmn();
     void set_game(int nGame);
     void set_lang(int nLang);
@@ -21,7 +21,7 @@ public:
     void show_sprites();
     Simplified_Pokemon simple_pkmn_array[30];
     Simplified_Pokemon get_simple_pkmn(int index);
-    bool fill_simple_pkmn_array();
+    bool fill_simple_pkmn_array(PokemonTables &data_tables);
     bool get_contains_mythical();
     void set_mythic_stabilization(bool stabilize);
     bool contains_valid = false;

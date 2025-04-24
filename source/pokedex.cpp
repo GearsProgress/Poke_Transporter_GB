@@ -11,6 +11,8 @@
 #include "button_handler.h"
 #include "translated_text.h"
 #include "text_engine.h"
+#include "zx0_decompressor.h"
+#include "TYPES_zx0_bin.h"
 
 Dex dex_array[DEX_MAX];
 int dex_shift = 0;
@@ -71,6 +73,11 @@ void pokedex_init()
 
 int pokedex_loop()
 {
+    u8 TYPES[POKEMON_ARRAY_SIZE * 2];
+
+    zx0_decompressor_set_input(TYPES_zx0_bin);
+    zx0_decompressor_read((uint8_t*)TYPES, zx0_decompressor_get_decompressed_size());
+
     pokedex_init();
     pokedex_show();
     bool update = true;
@@ -198,7 +205,7 @@ int pokedex_loop()
             // Eventually it could be optimized to move the labels around, but this honestly makes the most sense. Less code but one frame different
             for (int i = 0; i < DEX_MAX; i++)
             {
-                load_type_sprites(dex_shift + i + 1 + mythic_skip, i, is_caught(dex_shift + i + 1 + mythic_skip));
+                load_type_sprites(TYPES, dex_shift + i + 1 + mythic_skip, i, is_caught(dex_shift + i + 1 + mythic_skip));
             }
             update = false;
         }

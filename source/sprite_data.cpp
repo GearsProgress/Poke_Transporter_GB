@@ -514,13 +514,13 @@ void load_temp_box_sprites(Pokemon_Party *party_data)
     load_sprite_compressed(button_confirm_right, button_edgeTiles, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
 }
 
-void load_type_sprites(int pkmn_index, int dex_offset, bool is_caught)
+void load_type_sprites(const u8* pkmn_type_table, int pkmn_index, int dex_offset, bool is_caught)
 {
     if (is_caught)
     {
         u32 curr_tile_id = global_tile_id_end + (dex_offset * 2 * 4);
-        int type1 = TYPES[pkmn_index][0];
-        int type2 = TYPES[pkmn_index][1];
+        u16 type1 = pkmn_type_table[pkmn_index * 2];
+        u16 type2 = pkmn_type_table[pkmn_index * 2 + 1];
 
         load_sprite(type_sprites[(dex_offset * 2) + 0], &typesTiles[(type1 * 32)], 128, curr_tile_id, (type1 < 13 ? TYPES_PAL1 : TYPES_PAL2), ATTR0_WIDE, ATTR1_SIZE_32x8, 1);
         load_sprite(type_sprites[(dex_offset * 2) + 1], &typesTiles[(type2 * 32)], 128, curr_tile_id, (type2 < 13 ? TYPES_PAL1 : TYPES_PAL2), ATTR0_WIDE, ATTR1_SIZE_32x8, 1);
@@ -561,7 +561,7 @@ void load_sprite_compressed(OBJ_ATTR *sprite, const unsigned int objTiles[],
     obj_hide(sprite);
 };
 
-void load_select_sprites(int game_id, int lang)
+void load_select_sprites(u8 game_id, u8 lang)
 {
     u32 curr_tile_id = global_tile_id_end;
     //                                    Alpha         Shadow          Main Color       Grey             Black         Mid

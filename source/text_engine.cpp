@@ -223,7 +223,7 @@ int ptgb_write(const byte *text, bool instant, int length)
     return 0; // str - text;
 }
 // This is mostly used for debug stuff, I shouldn't rely it on it much.
-int ptgb_write_debug(const char *text, bool instant)
+int ptgb_write_debug(const u16* charset, const char *text, bool instant)
 {
     byte temp_holding[256];
     int i;
@@ -240,7 +240,7 @@ int ptgb_write_debug(const char *text, bool instant)
         }
         else
         {
-            temp_holding[i] = get_gen_3_char(text[i], false);
+            temp_holding[i] = get_char_from_charset(charset, text[i]);
         }
     }
     return ptgb_write(temp_holding, instant);

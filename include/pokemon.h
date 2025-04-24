@@ -14,6 +14,8 @@
 #define GEN2_JPN_SIZE 383
 #define GEN2_INT_SIZE 444
 
+class PokemonTables;
+
 struct Simplified_Pokemon
 {
     byte dex_number;
@@ -37,18 +39,18 @@ public:
     int unown_letter = -1;
     Pokemon();
     void load_data(int index, const byte *party_data, int game, int lang);
-    void convert_to_gen_three(bool simplified, bool stabilize_mythical);
+    void convert_to_gen_three(PokemonTables& data_tables, bool simplified, bool stabilize_mythical);
     void copy_from_to(const byte *source, byte *destination, int size, bool reverse_endian);
     void alocate_data_chunks(byte *G, byte *A, byte *E, byte *M);
     void insert_data(byte *first, byte *second, byte *third, byte *fourth);
     byte get_gen_3_data(int index);
     byte *get_full_gen_3_array();
     byte get_unencrypted_data(int index);
-    byte *convert_text(byte *text_array, int size, int gen, int lang);
-    u32 generate_pid_save_iv(byte pid_species_index, byte nature, byte *pid_dvs);
-    u32 generate_pid_iv_match(byte pid_species_index, byte nature, byte *pid_dvs);
+    byte *convert_text(PokemonTables& data_tables, byte *text_array, int size);
+    u32 generate_pid_save_iv(PokemonTables &data_tables, byte pid_species_index, byte nature, byte *pid_dvs);
+    u32 generate_pid_iv_match(PokemonTables& data_tables, byte pid_species_index, byte nature, byte *pid_dvs);
     byte rand_reverse_mod(byte modulo_divisor, byte target_mod);
-    byte get_rand_gender_byte(byte index_num, byte attack_DVs);
+    byte get_rand_gender_byte(PokemonTables &data_tables, byte index_num, byte attack_DVs);
     byte get_dex_number();
     bool get_validity();
     bool get_is_new();
@@ -57,7 +59,7 @@ public:
     u8 get_letter_from_pid(u32 pid);
     u8 get_nature_from_pid(u32 pid);
     u8 get_gender_from_pid(u32 pid);
-    void set_to_event(byte nature);
+    void set_to_event(PokemonTables &data_tables, byte nature);
     int num_in_box;
     int index_in_box;
     bool is_missingno = false;

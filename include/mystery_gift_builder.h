@@ -256,6 +256,7 @@
 #define CPU_SET_32BIT     0x04000000
 class mystery_gift_script
 {
+    PokemonTables &data_tables;
     int curr_mg_index;
     int curr_section30_index;
     u8 mg_script[MG_SCRIPT_SIZE] = {};
@@ -264,7 +265,7 @@ class mystery_gift_script
     u8 four_align_value = 0;
 
 public:
-    mystery_gift_script();
+    mystery_gift_script(PokemonTables &data_tables);
     void build_script(Pokemon_Party &incoming_box_data);
     //void build_script_old(Pokemon_Party &incoming_box_data);
     u8 get_script_value_at(int index);
