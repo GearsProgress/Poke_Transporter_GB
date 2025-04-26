@@ -266,6 +266,8 @@ static size_t encodeZX0(uint8_t* output_buffer, const uint8_t* buffer, size_t bu
     // first write the size of the input in little endian format in the output buffer
     writer.write_byte(static_cast<uint8_t>(buffer_size));
     writer.write_byte(static_cast<uint8_t>(buffer_size >> 8));
+    writer.write_byte(static_cast<uint8_t>(buffer_size >> 16));
+    writer.write_byte(static_cast<uint8_t>(buffer_size >> 24));
 
     while(pos < numBytes)
     {

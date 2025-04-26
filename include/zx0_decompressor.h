@@ -25,7 +25,7 @@ extern "C"
      * @brief This function returns the uncompressed size of the current input_data buffer.
      * It reads this from the first 2 bytes of input_data
      */
-    uint16_t zx0_decompressor_get_decompressed_size();
+    uint32_t zx0_decompressor_get_decompressed_size();
 
     /**
      * @brief This function seeks to the specified OUTPUT buffer position.
@@ -38,13 +38,13 @@ extern "C"
      * So handle this with care!
      * @param output_byte_pos 
      */
-    void zx0_decompressor_seek(uint16_t output_byte_pos);
+    void zx0_decompressor_seek(uint32_t output_byte_pos);
 
     /**
      * @brief This function copies <num_bytes> of decompressed data into the specified <output_buffer>
      * It will trigger decompression on the go (streaming basis)
      */
-    uint16_t zx0_decompressor_read(uint8_t *output_buffer, uint16_t num_bytes);
+    uint32_t zx0_decompressor_read(uint8_t *output_buffer, uint32_t num_bytes);
 }
 
 #endif
