@@ -21,12 +21,6 @@ class RingBuffer
 public:
     RingBuffer(uint8_t *buffer, const uint32_t bufferSize);
 
-    /**
-     * Returns the buffer size.
-     */
-    uint32_t getBufferSize() const;
-
-    uint32_t read(uint8_t *outputBuffer, uint32_t bytesToRead);
     uint32_t readByte();
     uint32_t readWord();
     void writeByte(uint32_t value);
@@ -48,7 +42,6 @@ private:
     uint32_t ringReadPos_;
     uint32_t ringEndPos_;
     uint32_t bufferSize_;
-    uint32_t sizeMask_;
 };
 
 /**
@@ -135,69 +128,32 @@ RingBuffer::RingBuffer(uint8_t *buffer, const uint32_t bufferSize)
  , ringReadPos_(0)
  , ringEndPos_(0)
  , bufferSize_(bufferSize)
- , sizeMask_(bufferSize - 1)
 {
 }
 
-__attribute__((unused))
-uint32_t RingBuffer::getBufferSize() const
-{
-    return bufferSize_;
-}
-
-__attribute__((unused))
-uint32_t RingBuffer::read(uint8_t *outputBuffer, uint32_t bytesToRead)
-{
-    uint32_t bytesRead = 0;
-        
-    // Align destination to 32-bit if possible
-    while ((ringEndPos_ != ringReadPos_) && (bytesToRead > 0) && ((ringReadPos_ & 3) != 0))
-    {
-        *outputBuffer++ = buffer_[ringReadPos_];
-        ringReadPos_ = (ringReadPos_ + 1) & sizeMask_;
-        --bytesToRead;
-        ++bytesRead;
-    }
-
-    // Bulk 32-bit copies
-    while (bytesToRead >= 4 && ((ringEndPos_ - ringReadPos_) & sizeMask_) >= 4)
-    {
-        *(uint32_t*)outputBuffer = *(uint32_t*)(buffer_ + ringReadPos_);
-        outputBuffer += 4;
-        ringReadPos_ = (ringReadPos_ + 4) & sizeMask_;
-        bytesToRead -= 4;
-        bytesRead += 4;
-    }
-
-    // Remaining bytes
-    while (bytesToRead-- && (ringEndPos_ != ringReadPos_)) {
-        *outputBuffer++ = buffer_[ringReadPos_];
-        ringReadPos_ = (ringReadPos_ + 1) & sizeMask_;
-        ++bytesRead;
-    }
-
-    return bytesRead;
-}
-
-uint32_t RingBuffer::readByte()
+inline uint32_t RingBuffer::readByte()
 {
     uint32_t value;
     if(ringReadPos_ == ringEndPos_) return 0;  // Early exit if empty
 
     value = *(buffer_ + ringReadPos_);
-    ringReadPos_ = (ringReadPos_ + 1) & (bufferSize_ - 1);
+    // On the GBA cpu, apparently if conditions are faster than doing this:
+    // ringEndPos_ = (ringEndPos_ + 1) & sizeMask_;
+    ++ringReadPos_;
+    if(ringReadPos_ >= bufferSize_) ringReadPos_ = 0;
     return value;
 }
 
-uint32_t RingBuffer::readWord()
+inline uint32_t RingBuffer::readWord()
 {
     uint32_t value;
     if(ringReadPos_ == ringEndPos_) return 0;  // Early exit if empty
 
-    if(ringReadPos_ + 4 <= bufferSize_)
+    if(bufferSize_ - ringReadPos_ >= 4)
     {
         value = *(uint32_t*)(buffer_ + ringReadPos_);
-        ringReadPos_ = (ringReadPos_ + 4) & (bufferSize_ - 1);
+        ringReadPos_ += 4;
+        if(ringReadPos_ >= bufferSize_) ringReadPos_ = 0;
     }
     else
     {
@@ -210,54 +166,65 @@ uint32_t RingBuffer::readWord()
     return value;
 }
 
-void RingBuffer::writeByte(uint32_t value)
+inline void RingBuffer::writeByte(uint32_t value)
 {
     buffer_[ringEndPos_] = static_cast<uint8_t>(value);
-    ringEndPos_ = (ringEndPos_ + 1) & (bufferSize_ - 1);  // wraparound done by bitmask
+    ++ringEndPos_;
+    if(ringEndPos_ >= bufferSize_) ringEndPos_ = 0;
 
     if(ringEndPos_ == ringStartPos_)
     {
         // buffer is full, overwrite oldest byte
-        ringStartPos_ = (ringStartPos_ + 1) & (bufferSize_ - 1);  // wraparound done by bitmask
+        ++ringStartPos_;
+        if(ringStartPos_ >= bufferSize_) ringStartPos_ = 0;
     }
 }
 
-void RingBuffer::writeWord(uint32_t value)
+inline void RingBuffer::writeWord(uint32_t value)
 {
     // Check 32-bit alignment
     if ((ringEndPos_ & 3) == 0)
     {
         *(uint32_t*)(buffer_ + ringEndPos_) = value;
-        ringEndPos_ = (ringEndPos_ + 4) & sizeMask_;
-    } else {
+        ringEndPos_ += 4;
+        // On the GBA cpu, apparently if conditions are faster than doing this:
+        // ringEndPos_ = (ringEndPos_ + 4) & sizeMask_;
+        if(ringEndPos_ >= bufferSize_) ringEndPos_ = 0;
+    }
+    else
+    {
         // Fallback to byte-wise for unaligned (little endian)
         buffer_[ringEndPos_] = value & 0xFF;
-        ringEndPos_ = (ringEndPos_ + 1) & sizeMask_;
+        ++ringEndPos_;
+        if(ringEndPos_ >= bufferSize_) ringEndPos_ = 0;
         buffer_[ringEndPos_] = (value >> 8) & 0xFF;
-        ringEndPos_ = (ringEndPos_ + 1) & sizeMask_;
+        ++ringEndPos_;
+        if(ringEndPos_ >= bufferSize_) ringEndPos_ = 0;
         buffer_[ringEndPos_] = (value >> 16) & 0xFF;
-        ringEndPos_ = (ringEndPos_ + 1) & sizeMask_;
+        ++ringEndPos_;
+        if(ringEndPos_ >= bufferSize_) ringEndPos_ = 0;
         buffer_[ringEndPos_] = (value >> 24) & 0xFF;
-        ringEndPos_ = (ringEndPos_ + 1) & sizeMask_;
+        ++ringEndPos_;
+        if(ringEndPos_ >= bufferSize_) ringEndPos_ = 0;
     }
 }
 
-void RingBuffer::seekBackwardsFromBufferEnd(uint32_t offset)
-{    
+inline void RingBuffer::seekBackwardsFromBufferEnd(uint32_t offset)
+{
     ringReadPos_ = (ringEndPos_ - offset) & (bufferSize_ - 1);
 }
 
-uint32_t RingBuffer::getReadPos() const
+inline uint32_t RingBuffer::getReadPos() const
 {
     return ringReadPos_;
 }
 
-uint32_t RingBuffer::getWritePos() const
+inline uint32_t RingBuffer::getWritePos() const
 {
     return ringEndPos_;
 }
 
-void RingBuffer::reset()
+inline void RingBuffer::reset()
 {
     ringStartPos_ = 0;
     ringReadPos_ = 0;
@@ -303,17 +270,18 @@ BitReader::BitReader(const uint8_t* buffer)
 {
 }
 
-uint32_t BitReader::readBit()
+inline uint32_t BitReader::readBit()
 {
     return read(1);
 }
 
-uint32_t BitReader::read(uint32_t numBits)
+inline uint32_t BitReader::read(uint32_t numBits)
 {
     uint32_t result = 0;
     
     // Fast path: Read all bits from cached data
-    if (numBits <= bitsLeft_) {
+    if (numBits <= bitsLeft_)
+    {
         result = (currentDWord_ >> (bitsLeft_ - numBits)) & ((1 << numBits) - 1);
         bitsLeft_ -= numBits;
         return result;
@@ -373,13 +341,8 @@ uint32_t ZX0Decompressor::read(uint8_t *outputBuffer, uint32_t numBytes)
     const uint32_t bytesDecompressedBefore = bytesDecompressed_;
     uint32_t bytesRead;
 
-    while(numBytes)
+    while(numBytes && bytesDecompressed_ < decompressed_size)
     {
-        if(bytesDecompressed_ == decompressed_size)
-        {
-            break;
-        }
-
         // Check if we have finished processing the previous pending command
         // if we have, we need to read a new operation
         if(cur_command_.cmdType == ZX0OperationType::NONE || cur_command_.bytePos >= cur_command_.length)
@@ -431,7 +394,7 @@ void ZX0Decompressor::seek(uint32_t outputBytePos)
     while(bytesToRead);
 }
 
-void ZX0Decompressor::readNextCommand()
+inline void ZX0Decompressor::readNextCommand()
 {
     const uint32_t cmdBit = reader_.readBit();
 
@@ -484,9 +447,9 @@ uint32_t ZX0Decompressor::copy_block(uint8_t *outputBuffer, uint32_t numBytes)
         // Handle remaining bytes
         while (bytesRemaining--)
         {
-            uint32_t byte = reader_.read(8);
-            buffer_.writeByte(byte);
-            *outputBuffer++ = byte;
+            const uint32_t byte_val = reader_.read(8);
+            buffer_.writeByte(byte_val);
+            *outputBuffer++ = byte_val;
         }
     }
     else
@@ -507,8 +470,9 @@ uint32_t ZX0Decompressor::copy_block(uint8_t *outputBuffer, uint32_t numBytes)
 
         while(bytesRemaining--)
         {
-            *outputBuffer = static_cast<uint8_t>(buffer_.readByte());
-            buffer_.writeByte(*outputBuffer);
+            const uint32_t byte_val = static_cast<uint8_t>(buffer_.readByte());
+            *outputBuffer = byte_val;
+            buffer_.writeByte(byte_val);
             ++outputBuffer;
         }
     }
@@ -525,9 +489,9 @@ uint32_t ZX0Decompressor::copy_block(uint8_t *outputBuffer, uint32_t numBytes)
 // 2 KB is a modest/reasonable size to reserve.
 // But this also means we can only have one instance of ZX0Decompressor.
 // This is one of the reasons why it is implemented in the way that it is.
-//__attribute__((section(".iwram")))
+__attribute__((section(".iwram")))
 static uint8_t decompression_buffer[2048];
-//__attribute__((section(".iwram")))
+__attribute__((section(".iwram")))
 static ZX0Decompressor decompressor(decompression_buffer, sizeof(decompression_buffer));
 
 extern "C"
