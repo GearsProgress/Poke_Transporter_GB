@@ -209,6 +209,7 @@ void Pokemon::convert_to_gen_three(PokemonTables& data_tables, bool simplified, 
     // Set nickname
     if (language == KOR_ID)
     {
+        u16 JPN_NAMES[POKEMON_ARRAY_SIZE * 6];
         gen_3_pkmn[18] = JPN_ID; // Set to JPN
         byte new_nickname[10];
         byte new_ot[7];
@@ -216,13 +217,12 @@ void Pokemon::convert_to_gen_three(PokemonTables& data_tables, bool simplified, 
 
         data_tables.load_gen3_charset(language);
         // setup the zx0 decompressor to decompress the JPN_NAMES table
-        zx0_decompressor_set_input(JPN_NAMES_zx0_bin);
-        // seek to the right pokemon
-        zx0_decompressor_seek(sizeof(u16) * 6 * species_index_struct);
+        zx0_decompressor_start((u8*)JPN_NAMES, JPN_NAMES_zx0_bin);
+        zx0_decompressor_read(zx0_decompressor_get_decompressed_size());
 
         for (int i = 0; i < 6; i++)
         { // Read the JPN name and convert it
-            zx0_decompressor_read((u8*)&cur_char, 2);
+            cur_char = JPN_NAMES[species_index_struct * 6];
             new_nickname[i] = data_tables.get_gen_3_char(cur_char);
         }
 

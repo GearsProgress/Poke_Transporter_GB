@@ -75,8 +75,8 @@ int pokedex_loop()
 {
     u8 TYPES[POKEMON_ARRAY_SIZE * 2];
 
-    zx0_decompressor_set_input(TYPES_zx0_bin);
-    zx0_decompressor_read((uint8_t*)TYPES, zx0_decompressor_get_decompressed_size());
+    zx0_decompressor_start((uint8_t*)TYPES, TYPES_zx0_bin);
+    zx0_decompressor_read(zx0_decompressor_get_decompressed_size());
 
     pokedex_init();
     pokedex_show();

@@ -41,8 +41,8 @@ static void load_table(u8 *table, const u8* source, bool &loadedBool)
     {
         return;
     }
-    zx0_decompressor_set_input(source);
-    zx0_decompressor_read(table, zx0_decompressor_get_decompressed_size());
+    zx0_decompressor_start(table, source);
+    zx0_decompressor_read(zx0_decompressor_get_decompressed_size());
     loadedBool = true;
 }
 
@@ -212,8 +212,12 @@ static const u8 *localization_charset_files[]
 
 void load_localized_charset(u16 *output_char_array, byte gen, byte lang)
 {
-    zx0_decompressor_set_input(localization_charset_files[(gen - 1) * 7 + (lang - 1)]);
-    zx0_decompressor_read((u8*)output_char_array, sizeof(u16) * 256);
+    // in the localization_charset_files list,
+    // gen 1 starts first and every gen has 7 entries (1 per language)
+    // however, the language values are 1-based, so we need to convert to 0-based
+    const u8 *input_buffer = localization_charset_files[(gen - 1) * 7 + (lang - 1)];
+    zx0_decompressor_start((u8*)output_char_array, input_buffer);
+    zx0_decompressor_read(sizeof(u16) * 256);
 }
 
 byte get_char_from_charset(const u16 *charset, u16 input_char)

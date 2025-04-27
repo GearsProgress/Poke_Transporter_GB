@@ -9,42 +9,6 @@
 namespace
 {
 /**
- * This class implements a ringbuffer. This is useful for ZX0 decompression
- * because it allows you to look back easily.
- * 
- * WARNING: the specified bufferSize MUST be a power of 2!
- * This is needed because I optimized a modulo division (for wraparound)
- * with a bitmask AND. (and it simply won't work correctly if the bufferSize is not a power of 2!)
- */
-class RingBuffer
-{
-public:
-    RingBuffer(uint8_t *buffer, const uint32_t bufferSize);
-
-    uint32_t readByte();
-    uint32_t readWord();
-    void writeByte(uint32_t value);
-    void writeWord(uint32_t value);
-
-    /**
-     * This function seeks backwards from the current end of the buffer
-     */
-    void seekBackwardsFromBufferEnd(uint32_t offset);
-
-    uint32_t getReadPos() const;
-    uint32_t getWritePos() const;
-
-    void reset();
-protected:
-private:
-    uint8_t *buffer_;
-    uint32_t ringStartPos_;
-    uint32_t ringReadPos_;
-    uint32_t ringEndPos_;
-    uint32_t bufferSize_;
-};
-
-/**
 * This class makes reading on a per-bit basis much easier.
 */
 class BitReader
@@ -84,14 +48,15 @@ typedef struct ZX0Command
 class ZX0Decompressor
 {
 public:
-    ZX0Decompressor(uint8_t* decompressionBuffer, uint32_t decompressionBufferSize);
+    ZX0Decompressor();
 
     /**
      * @brief This function prepares the ZX0Decompressor instance
      * for decompressing the specified inputData
+     * into the specified output_buffer
      * @param compressedData 
      */
-    void setInput(const uint8_t *inputData);
+    void start(uint8_t *output_buffer, const uint8_t *input_data);
 
     /**
      * @brief Retrieves the size of the data when it is fully decompressed
@@ -102,134 +67,20 @@ public:
     /**
      * @brief This function reads <numBytes> of data into <outputBuffer>
      */
-    uint32_t read(uint8_t *outputBuffer, uint32_t numBytes);
-
-    /**
-     * @brief This function uncompresses from the current point until the 
-     * specified outputBytePos lies inside the decompressionBuffer
-     */
-    void seek(uint32_t outputBytePos);
+    uint32_t read(uint32_t numBytes);
 protected:
 private:
     void readNextCommand();
-    uint32_t copy_block(uint8_t *outputBuffer, uint32_t numBytes);
+    uint32_t copy_block(uint32_t numBytes);
 
-    RingBuffer buffer_;
     BitReader reader_;
     ZX0Command cur_command_;
     const uint8_t *inputData_;
+    uint8_t *back_pos_;
+    uint8_t *cur_out;
     uint32_t bytesDecompressed_;
     uint32_t lastOffset_;
 };
-
-RingBuffer::RingBuffer(uint8_t *buffer, const uint32_t bufferSize)
- : buffer_(buffer)
- , ringStartPos_(0)
- , ringReadPos_(0)
- , ringEndPos_(0)
- , bufferSize_(bufferSize)
-{
-}
-
-inline uint32_t RingBuffer::readByte()
-{
-    uint32_t value;
-    if(ringReadPos_ == ringEndPos_) return 0;  // Early exit if empty
-
-    value = *(buffer_ + ringReadPos_);
-    // On the GBA cpu, apparently if conditions are faster than doing this:
-    // ringEndPos_ = (ringEndPos_ + 1) & sizeMask_;
-    ++ringReadPos_;
-    if(ringReadPos_ >= bufferSize_) ringReadPos_ = 0;
-    return value;
-}
-
-inline uint32_t RingBuffer::readWord()
-{
-    uint32_t value;
-    if(ringReadPos_ == ringEndPos_) return 0;  // Early exit if empty
-
-    if(bufferSize_ - ringReadPos_ >= 4)
-    {
-        value = *(uint32_t*)(buffer_ + ringReadPos_);
-        ringReadPos_ += 4;
-        if(ringReadPos_ >= bufferSize_) ringReadPos_ = 0;
-    }
-    else
-    {
-        value = readByte();
-        value = (value << 8) | readByte();
-        value = (value << 8) | readByte();
-        value = (value << 8) | readByte();
-    }
-
-    return value;
-}
-
-inline void RingBuffer::writeByte(uint32_t value)
-{
-    buffer_[ringEndPos_] = static_cast<uint8_t>(value);
-    ++ringEndPos_;
-    if(ringEndPos_ >= bufferSize_) ringEndPos_ = 0;
-
-    if(ringEndPos_ == ringStartPos_)
-    {
-        // buffer is full, overwrite oldest byte
-        ++ringStartPos_;
-        if(ringStartPos_ >= bufferSize_) ringStartPos_ = 0;
-    }
-}
-
-inline void RingBuffer::writeWord(uint32_t value)
-{
-    // Check 32-bit alignment
-    if ((ringEndPos_ & 3) == 0)
-    {
-        *(uint32_t*)(buffer_ + ringEndPos_) = value;
-        ringEndPos_ += 4;
-        // On the GBA cpu, apparently if conditions are faster than doing this:
-        // ringEndPos_ = (ringEndPos_ + 4) & sizeMask_;
-        if(ringEndPos_ >= bufferSize_) ringEndPos_ = 0;
-    }
-    else
-    {
-        // Fallback to byte-wise for unaligned (little endian)
-        buffer_[ringEndPos_] = value & 0xFF;
-        ++ringEndPos_;
-        if(ringEndPos_ >= bufferSize_) ringEndPos_ = 0;
-        buffer_[ringEndPos_] = (value >> 8) & 0xFF;
-        ++ringEndPos_;
-        if(ringEndPos_ >= bufferSize_) ringEndPos_ = 0;
-        buffer_[ringEndPos_] = (value >> 16) & 0xFF;
-        ++ringEndPos_;
-        if(ringEndPos_ >= bufferSize_) ringEndPos_ = 0;
-        buffer_[ringEndPos_] = (value >> 24) & 0xFF;
-        ++ringEndPos_;
-        if(ringEndPos_ >= bufferSize_) ringEndPos_ = 0;
-    }
-}
-
-inline void RingBuffer::seekBackwardsFromBufferEnd(uint32_t offset)
-{
-    ringReadPos_ = (ringEndPos_ - offset) & (bufferSize_ - 1);
-}
-
-inline uint32_t RingBuffer::getReadPos() const
-{
-    return ringReadPos_;
-}
-
-inline uint32_t RingBuffer::getWritePos() const
-{
-    return ringEndPos_;
-}
-
-inline void RingBuffer::reset()
-{
-    ringStartPos_ = 0;
-    ringReadPos_ = 0;
-    ringEndPos_ = 0;
-}
 
 static inline uint32_t read_elias_gamma(BitReader& reader)
 {
@@ -302,26 +153,28 @@ inline uint32_t BitReader::read(uint32_t numBits)
     // Combine remaining bits
     result = (result << numBits) | (currentDWord_ >> (32 - numBits));
     bitsLeft_ -= numBits;
-    
+
     return result;
 }
 
-ZX0Decompressor::ZX0Decompressor(uint8_t* decompressionBuffer, uint32_t decompressionBufferSize)
-    : buffer_(decompressionBuffer, decompressionBufferSize)
-    , reader_(nullptr)
+ZX0Decompressor::ZX0Decompressor()
+    : reader_(nullptr)
     , cur_command_({ZX0OperationType::NONE, 0, 0, 0})
     , inputData_(nullptr)
+    , back_pos_(nullptr)
+    , cur_out(nullptr)
     , bytesDecompressed_(0)
     , lastOffset_(UINT32_MAX)
 {
 }
 
-void ZX0Decompressor::setInput(const uint8_t *inputData)
+void ZX0Decompressor::start(uint8_t *output_buffer, const uint8_t *input_data)
 {
-    buffer_.reset();
-    reader_ = BitReader(inputData + 4);
+    reader_ = BitReader(input_data + 4);
     cur_command_ = {ZX0OperationType::NONE, 0, 0, 0};
-    inputData_ = inputData;
+    inputData_ = input_data;
+    back_pos_ = nullptr;
+    cur_out = output_buffer;
     bytesDecompressed_ = 0;
     lastOffset_ = UINT32_MAX;
 }
@@ -335,7 +188,7 @@ uint32_t ZX0Decompressor::getDecompressedSize() const
     return *((uint32_t*)inputData_);
 }
 
-uint32_t ZX0Decompressor::read(uint8_t *outputBuffer, uint32_t numBytes)
+uint32_t ZX0Decompressor::read(uint32_t numBytes)
 {
     const uint32_t decompressed_size = getDecompressedSize();
     const uint32_t bytesDecompressedBefore = bytesDecompressed_;
@@ -350,48 +203,12 @@ uint32_t ZX0Decompressor::read(uint8_t *outputBuffer, uint32_t numBytes)
             readNextCommand();
         }
 
-        bytesRead = copy_block(outputBuffer + bytesDecompressed_, numBytes);
+        bytesRead = copy_block(numBytes);
         numBytes -= bytesRead;
         bytesDecompressed_ += bytesRead;
     }
 
     return bytesDecompressed_ - bytesDecompressedBefore;
-}
-
-void ZX0Decompressor::seek(uint32_t outputBytePos)
-{
-    uint8_t read_buffer[32];
-    uint32_t bytesToRead;
-    uint32_t chunkSize;
-
-    // NOTE: outputBytePos denotes the index of the byte in the output (decompressed data) buffer!!
-
-    // ZX0 doesn't actually have random access
-    // so we'll have to simulate it.
-    // first check if the specified position is in the backwards direction.
-    if(outputBytePos < bytesDecompressed_)
-    {
-        // the specified position is in earlier decoded data.
-        // this will be expensive, because we will have to start decompression from the beginning
-        // until the specified position.
-        // reset the decoder
-        setInput(inputData_);
-        bytesToRead = outputBytePos;
-    }
-    else
-    {
-        // The specified position is in future -to-be-decoded- decompressed data.
-        // so we just need to keep decoding until we're there.
-        bytesToRead = outputBytePos - bytesDecompressed_;
-    }
-
-    // Start decompressing until we're at the desired point
-    do
-    {
-        chunkSize = (bytesToRead > sizeof(read_buffer)) ? sizeof(read_buffer) : bytesToRead;
-        bytesToRead -= read(read_buffer, chunkSize);
-    }
-    while(bytesToRead);
 }
 
 inline void ZX0Decompressor::readNextCommand()
@@ -426,7 +243,7 @@ inline void ZX0Decompressor::readNextCommand()
     cur_command_.bytePos = 0;
 }
 
-uint32_t ZX0Decompressor::copy_block(uint8_t *outputBuffer, uint32_t numBytes)
+uint32_t ZX0Decompressor::copy_block(uint32_t numBytes)
 {
     const uint32_t available = cur_command_.length - cur_command_.bytePos;
     const uint32_t bytesToRead = (numBytes > available) ? available : numBytes;
@@ -435,45 +252,53 @@ uint32_t ZX0Decompressor::copy_block(uint8_t *outputBuffer, uint32_t numBytes)
     if(cur_command_.cmdType == ZX0OperationType::LITERAL_BLOCK)
     {
         // Literal copy
-        // Use bulk 32-bit writes when aligned
-        while (bytesRemaining >= 4 && (buffer_.getWritePos() & 3) == 0)
+
+        // Align cur_out first
+        while (bytesRemaining && ((uintptr_t)cur_out & 3))
         {
-            const uint32_t word = __builtin_bswap32(reader_.read(32));
-            buffer_.writeWord(word);
-            *(uint32_t*)outputBuffer = word;
-            outputBuffer += 4;
+            (*cur_out++) = reader_.read(8);
+            bytesRemaining--;
+        }
+
+        // Use bulk 32-bit writes when aligned
+        while (bytesRemaining >= 4)
+        {
+            *(uint32_t*)cur_out = __builtin_bswap32(reader_.read(32));
+            cur_out += 4;
             bytesRemaining -= 4;
         }
         // Handle remaining bytes
         while (bytesRemaining--)
         {
-            const uint32_t byte_val = reader_.read(8);
-            buffer_.writeByte(byte_val);
-            *outputBuffer++ = byte_val;
+            (*cur_out++) = reader_.read(8);
         }
     }
     else
     {
         if(!cur_command_.bytePos)
         {
-            buffer_.seekBackwardsFromBufferEnd(cur_command_.offset);
+            back_pos_ = cur_out - cur_command_.offset;
         }
 
-        while (bytesRemaining >= 4 && (buffer_.getReadPos() & 3) == 0)
+        // try to get cur_out and back_pos aligned to 32 bit accesses first
+        while (bytesRemaining && (((uintptr_t)cur_out & 3) || ((uintptr_t)back_pos_ & 3)))
         {
-            const uint32_t word = __builtin_bswap32(buffer_.readWord());
-            buffer_.writeWord(word);
-            *(uint32_t*)outputBuffer = word;
-            outputBuffer += 4;
+            (*cur_out++) = (*back_pos_++);
+            bytesRemaining--;
+        }
+
+        // now try bulk 32 bit writes
+        while(bytesRemaining >= 4)
+        {
+            *(uint32_t*)cur_out = *((uint32_t*)back_pos_);
+            cur_out += 4;
+            back_pos_ += 4;
             bytesRemaining -= 4;
         }
 
         while(bytesRemaining--)
         {
-            const uint32_t byte_val = static_cast<uint8_t>(buffer_.readByte());
-            *outputBuffer = byte_val;
-            buffer_.writeByte(byte_val);
-            ++outputBuffer;
+            (*cur_out++) = (*back_pos_++);
         }
     }
     
@@ -484,21 +309,14 @@ uint32_t ZX0Decompressor::copy_block(uint8_t *outputBuffer, uint32_t numBytes)
 
 }
 
-// define a global 2 KB decompression buffer in IWRAM.
-// IWRAM is much faster than EXRAM, so it's ideally suited for decompression.
-// 2 KB is a modest/reasonable size to reserve.
-// But this also means we can only have one instance of ZX0Decompressor.
-// This is one of the reasons why it is implemented in the way that it is.
 __attribute__((section(".iwram")))
-static uint8_t decompression_buffer[2048];
-__attribute__((section(".iwram")))
-static ZX0Decompressor decompressor(decompression_buffer, sizeof(decompression_buffer));
+static ZX0Decompressor decompressor;
 
 extern "C"
 {
-void zx0_decompressor_set_input(const uint8_t *input_data)
+void zx0_decompressor_start(uint8_t *output_buffer, const uint8_t *input_data)
 {
-    decompressor.setInput(input_data);
+    decompressor.start(output_buffer, input_data);
 }
 
 uint32_t zx0_decompressor_get_decompressed_size()
@@ -506,13 +324,8 @@ uint32_t zx0_decompressor_get_decompressed_size()
     return decompressor.getDecompressedSize();
 }
 
-void zx0_decompressor_seek(uint32_t output_byte_pos)
+uint32_t zx0_decompressor_read(uint32_t num_bytes)
 {
-    decompressor.seek(output_byte_pos);
-}
-
-uint32_t zx0_decompressor_read(uint8_t *output_buffer, uint32_t num_bytes)
-{
-    return decompressor.read(output_buffer, num_bytes);
+    return decompressor.read(num_bytes);
 }
 }

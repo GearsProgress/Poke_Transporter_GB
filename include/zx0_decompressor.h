@@ -19,7 +19,7 @@ extern "C"
      * @brief This function slots the specified input_data buffer into the zx0 decompressor.
      * Calling this function effectively resets the ZX0 decompressors' internal state.
      */
-    void zx0_decompressor_set_input(const uint8_t *input_data);
+    void zx0_decompressor_start(uint8_t *output_buffer, const uint8_t *input_data);
 
     /**
      * @brief This function returns the uncompressed size of the current input_data buffer.
@@ -28,23 +28,10 @@ extern "C"
     uint32_t zx0_decompressor_get_decompressed_size();
 
     /**
-     * @brief This function seeks to the specified OUTPUT buffer position.
-     * NOTE: this is an expensive operation!
-     * ZX0 doesn't actually support random access.
-     * 
-     * So if we're seeking forward, we're actually uncompressing the data until we reach the desired output buffer position.
-     * And if we're seeking backward, we're actually starting to uncompress from scratch until the desired output buffer position!
-     * 
-     * So handle this with care!
-     * @param output_byte_pos 
-     */
-    void zx0_decompressor_seek(uint32_t output_byte_pos);
-
-    /**
      * @brief This function copies <num_bytes> of decompressed data into the specified <output_buffer>
      * It will trigger decompression on the go (streaming basis)
      */
-    uint32_t zx0_decompressor_read(uint8_t *output_buffer, uint32_t num_bytes);
+    uint32_t zx0_decompressor_read(uint32_t num_bytes);
 }
 
 #endif
