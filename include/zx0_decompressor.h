@@ -9,10 +9,6 @@
 // Original implementation can be found here: https://github.com/einar-saukas/ZX0
 // However, we've implemented a custom variant of this algorithm. 
 // (for instance: we're storing the uncompressed size in the first 2 bytes in little endian)
-
-// Our implementation "streams" the decompression: the decompression buffer is only 2 KB, so it can't fit the entire
-// uncompressed file at once. Therefore it uses a ringbuffer to stream the decompression on-demand.
-
 extern "C"
 {
     /**
@@ -31,7 +27,7 @@ extern "C"
      * @brief This function copies <num_bytes> of decompressed data into the specified <output_buffer>
      * It will trigger decompression on the go (streaming basis)
      */
-    uint32_t zx0_decompressor_read(uint32_t num_bytes);
+    void zx0_decompressor_read(uint32_t num_bytes);
 }
 
 #endif

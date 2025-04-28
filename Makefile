@@ -170,6 +170,7 @@ BINFILES	:=	$(foreach dir,../$(DATA),$(notdir $(wildcard $(dir)/*.*)))
 export OFILES_BIN := $(addsuffix .o,$(BINFILES))
 OFILES += $(OFILES_BIN)
 
+# Optimize zx0_decompressor for speed
 zx0_decompressor.o: CXXFLAGS += -O2
 
 #---------------------------------------------------------------------------------
