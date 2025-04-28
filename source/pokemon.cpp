@@ -172,8 +172,7 @@ void Pokemon::convert_to_gen_three(PokemonTables& data_tables, bool simplified, 
         }
         else
         {
-            data_tables.load_gen1_index_array();
-            species_index_struct = data_tables.gen_1_index_array[species_index_struct];
+            species_index_struct = gen_1_index_array[species_index_struct];
             if (species_index_struct == 0xFF)
             {
                 is_missingno = true;

@@ -5,11 +5,16 @@
 #include "libraries/gba-link-connection/LinkCableMultiboot.hpp"
 #include "text_engine.h"
 
+static void multiboot_show_textbox()
+{
+	tte_erase_rect(0, 0, RIGHT, BOTTOM);
+	create_textbox(4, 1, 152, 100, true);
+}
+
 void multiboot_upload_screen()
 {
 	LinkCableMultiboot linkCableMultiboot;
-	tte_erase_rect(0, 0, RIGHT, BOTTOM);
-	create_textbox(4, 1, 152, 100, true);
+	multiboot_show_textbox();
 	ptgb_write(send_multiboot_instructions, true);
 
 	// wait for key press
@@ -25,8 +30,7 @@ void multiboot_upload_screen()
 	}
 
 	// start upload
-	tte_erase_rect(0, 0, RIGHT, BOTTOM);
-	create_textbox(4, 1, 152, 70, true);
+	multiboot_show_textbox();
 	ptgb_write(send_multiboot_wait, true);
 	global_next_frame();
 
@@ -42,16 +46,13 @@ void multiboot_upload_screen()
 		});
 	// show result
 	// clear_textbox();
+	multiboot_show_textbox();
 	if (multibootResult == LinkCableMultiboot::Result::SUCCESS)
 	{
-		tte_erase_rect(0, 0, RIGHT, BOTTOM);
-		create_textbox(4, 1, 152, 70, true);
 		ptgb_write(send_multiboot_success, true);
 	}
 	else
 	{
-		tte_erase_rect(0, 0, RIGHT, BOTTOM);
-		create_textbox(4, 1, 152, 70, true);
 		ptgb_write(send_multiboot_failure, true);
 	}
 

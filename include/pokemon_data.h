@@ -39,8 +39,10 @@
 #define NUM_POKEMON 252
 #define POKEMON_ARRAY_SIZE NUM_POKEMON + 1
 
+extern const byte gen_1_index_array[191];
 extern const u32 EXP_MAXIMUMS[6];
 extern const int GENDER_THRESHOLDS[2][8];
+extern const u8 EVOLUTIONS[POKEMON_ARRAY_SIZE];
 
 /**
  * Okay, here's the thing: to reduce the rom size, we compressed a bunch of data with ZX0
@@ -67,9 +69,7 @@ public:
     bool gender_ratios_loaded;
     bool num_abilities_loaded;
     bool first_moves_loaded;
-    bool evolutions_loaded;
     bool power_points_loaded;
-    bool gen_1_index_array_loaded;
     bool event_pkmn_loaded;
     bool types_loaded;
     // a number representing the unique combination of gen 1/2 and the specific language
@@ -83,9 +83,7 @@ public:
     u8 GENDER_RATIO[POKEMON_ARRAY_SIZE];
     bool NUM_ABILITIES[POKEMON_ARRAY_SIZE];
     byte FIRST_MOVES[POKEMON_ARRAY_SIZE];
-    u8 EVOLUTIONS[POKEMON_ARRAY_SIZE];
     u8 POWER_POINTS[252];
-    byte gen_1_index_array[191];
     byte EVENT_PKMN[8][80];
     u8 TYPES[POKEMON_ARRAY_SIZE][2];
     u16 input_charset[256];
@@ -98,9 +96,7 @@ public:
     void load_gender_ratios();
     void load_num_abilities();
     void load_first_moves();
-    void load_evolutions();
     void load_power_points();
-    void load_gen1_index_array();
     void load_event_pkmn();
     void load_types();
     void load_input_charset(byte gen, byte lang);
