@@ -1,12 +1,8 @@
 #include "pokemon_data.h"
 #include "common.h"
+#include "optimize_movesets.h"
 
-typedef unsigned char u8;
-typedef unsigned char byte;
-typedef unsigned short u16;
-
-#define NUM_POKEMON 252
-#define POKEMON_ARRAY_SIZE NUM_POKEMON + 1
+#include <cstdio>
 
 const u16 gen_1_charsets[4][256] {
     // gen_1_Jpn_char_array
@@ -3630,6 +3626,9 @@ const byte MOVESETS[POKEMON_ARRAY_SIZE][32] = {
     {0b00000000, 0b00000011, 0b00000000, 0b00000000, 0b00000010, 0b00000000, 0b00000000, 0b00000001, 0b00000000, 0b01001000, 0b00000000, 0b00001110, 0b00000010, 0b11000001, 0b01010010, 0b00000000, 0b01000000, 0b00100000, 0b00001000, 0b00001000, 0b00001000, 0b00000100, 0b00000010, 0b00000100, 0b00010000, 0b01110001, 0b00000011, 0b10110000, 0b00100000, 0b00000100, 0b11001011, 0b10000000}, // Celebi
     {0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000010, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000}, // Treecko
 };
+
+extern const size_t MOVESETS_size = sizeof(MOVESETS);
+
 const byte FIRST_MOVES[POKEMON_ARRAY_SIZE] = {
     // Data obtained through PokeAPI
     0,    // Offset the list to remove "off by one" errors
@@ -4966,13 +4965,19 @@ const u8 TYPES[POKEMON_ARRAY_SIZE][2]{
 
 void generate_pokemon_data()
 {
+    u8 optimized_movesets[MOVESETS_size];
+//    printf("Optimizing movesets table...");
+    optimize_moveset_result optimize_moveset_status = optimize_movesets(optimized_movesets, (const uint8_t*)(MOVESETS), MOVESETS_size);
+//    printf("done!\n\t-> unique rows: %hu, bytes: %hu\n", optimize_moveset_status.num_unique_rows, optimize_moveset_status.num_bytes);
+
     writeTable("gen_1_charsets.bin", (const uint8_t*)gen_1_charsets, sizeof(gen_1_charsets));
     writeTable("gen_2_charsets.bin", (const uint8_t*)gen_2_charsets, sizeof(gen_2_charsets));
     writeTable("gen_3_charsets.bin", (const uint8_t*)gen_3_charsets, sizeof(gen_3_charsets));
     writeTable("EXP_GROUPS.bin", EXP_GROUPS, sizeof(EXP_GROUPS));
     writeTable("GENDER_RATIO.bin", GENDER_RATIO, sizeof(GENDER_RATIO));
     writeTable("NUM_ABILITIES.bin", (const uint8_t*)(NUM_ABILITIES), sizeof(NUM_ABILITIES));
-    writeTable("MOVESETS.bin", (const uint8_t*)(MOVESETS), sizeof(MOVESETS));
+//    writeTable("MOVESETS.bin", (const uint8_t*)(MOVESETS), sizeof(MOVESETS));
+    writeTable("MOVESETS.bin", optimized_movesets, optimize_moveset_status.num_bytes);
     writeTable("FIRST_MOVES.bin", FIRST_MOVES, sizeof(FIRST_MOVES));
     writeTable("JPN_NAMES.bin", (const uint8_t*)JPN_NAMES, sizeof(JPN_NAMES));
     writeTable("POWER_POINTS.bin", POWER_POINTS, sizeof(POWER_POINTS));

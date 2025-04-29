@@ -947,7 +947,6 @@ void Pokemon::set_to_event(PokemonTables &data_tables, byte nature)
     enable_auto_random();
 
     // Determine and set Ability
-    data_tables.load_num_abilities();
     iv_egg_ability |= ((pid[0] & 0x1) ? data_tables.get_num_abilities(species_index_struct) : 0) << 31;
 
     // Set IVs, Egg, and Ability

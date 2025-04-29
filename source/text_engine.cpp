@@ -1,7 +1,6 @@
 #include <tonc.h>
 #include <string>
 #include <cstring>
-#include <stdio.h>
 
 #include "text_engine.h"
 #include "global_frame_controller.h"
