@@ -12,9 +12,6 @@ typedef uint8_t byte;
 typedef uint16_t u16;
 typedef uint32_t u32;
 
-extern const byte MOVESETS[POKEMON_ARRAY_SIZE][32];
-extern const size_t MOVESETS_size;
-
 void generate_pokemon_data();
 
 #endif
