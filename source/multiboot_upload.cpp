@@ -4,6 +4,7 @@
 #include "background_engine.h"
 #include "libraries/gba-link-connection/LinkCableMultiboot.hpp"
 #include "text_engine.h"
+#include "text_data_table.h"
 
 static void multiboot_show_textbox()
 {
@@ -13,9 +14,14 @@ static void multiboot_show_textbox()
 
 void multiboot_upload_screen()
 {
+	u8 general_text_table_buffer[2048];
+	text_data_table general_text(general_text_table_buffer);
 	LinkCableMultiboot linkCableMultiboot;
+
+	general_text.decompress(get_compressed_general_table());
+
 	multiboot_show_textbox();
-	ptgb_write(send_multiboot_instructions, true);
+	ptgb_write(general_text.get_text_entry(GENERAL_send_multiboot_instructions), true);
 
 	// wait for key press
 	do
@@ -31,7 +37,7 @@ void multiboot_upload_screen()
 
 	// start upload
 	multiboot_show_textbox();
-	ptgb_write(send_multiboot_wait, true);
+	ptgb_write(general_text.get_text_entry(GENERAL_send_multiboot_wait), true);
 	global_next_frame();
 
 	const u32 romSize = 256 * 1024; // EWRAM = 256 KB
@@ -49,11 +55,11 @@ void multiboot_upload_screen()
 	multiboot_show_textbox();
 	if (multibootResult == LinkCableMultiboot::Result::SUCCESS)
 	{
-		ptgb_write(send_multiboot_success, true);
+		ptgb_write(general_text.get_text_entry(GENERAL_send_multiboot_success), true);
 	}
 	else
 	{
-		ptgb_write(send_multiboot_failure, true);
+		ptgb_write(general_text.get_text_entry(GENERAL_send_multiboot_failure), true);
 	}
 
 	// wait for keypress again.

@@ -1,53 +1,40 @@
-#include <tonc.h>
-#include <string>
 #include "script_obj.h"
-#include "pokemon.h"
-#include "pokemon_party.h"
-#include "script_array.h"
-#include "translated_text.h"
 
-script_obj::script_obj(){};
-
-script_obj::script_obj(const byte* nText, uint16_t nNext)
+script_obj::script_obj()
+    : params_({0})
 {
-    text = nText;
-    next_index = nNext;
-    conditional_index = 0;
-    next_false_index = 0;
+};
+
+script_obj::script_obj(const script_obj_params &params)
+    : params_(params)
+{
 }
 
-script_obj::script_obj(uint16_t nRun, uint16_t nNext)
+bool script_obj::has_text() const
 {
-    text = nullptr;
-    next_index = nNext;
-    conditional_index = nRun;
-    next_false_index = nNext;
+    // So the thing is: when conditional_index is set, its value will always be higher than 0
+    // because the way these integer defines have been set up.
+    // So that means that if conditional_index IS 0, then we must have a text entry index defined instead!
+    // We can't base this check on the text_entry_index itself since unfortunately its value being zero can be legit.
+    return (params_.conditional_index == 0);
 }
 
-script_obj::script_obj(uint16_t nRun, uint16_t nNext_if_true, uint16_t nNext_if_false)
+u8 script_obj::get_text_entry_index() const
 {
-    text = nullptr;
-    next_index = nNext_if_true;
-    conditional_index = nRun;
-    next_false_index = nNext_if_false;
+    return params_.text_entry_index;
 }
 
-const byte* script_obj::get_text()
+u16 script_obj::get_true_index() const
 {
-    return text;
+    return params_.next_if_true;
 }
 
-uint16_t script_obj::get_true_index()
+u16 script_obj::get_false_index() const
 {
-    return next_index;
+    return params_.next_if_false;
 }
 
-uint16_t script_obj::get_false_index()
+u16 script_obj::get_cond_id() const
 {
-    return next_false_index;
-}
-
-uint16_t script_obj::get_cond_id()
-{
-    return conditional_index;
+    return params_.conditional_index;
 }

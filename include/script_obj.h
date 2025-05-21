@@ -1,28 +1,29 @@
 #ifndef SCRIPT_OBJ_H
 #define SCRIPT_OBJ_H
 
-#include <string>
-#include "pokemon_party.h"
+#include <tonc.h>
+typedef struct
+{
+    u16 text_entry_index;
+    u16 conditional_index;
+    u16 next_if_true;
+    u16 next_if_false;
+} script_obj_params;
 
 class script_obj
 {
 public:
     script_obj();
-    script_obj(const byte* nText, uint16_t nNext);               // For dialogue
-    script_obj(uint16_t nRun, uint16_t nNext);                             // For commands
-    script_obj(uint16_t nRun, uint16_t nNext_if_true, uint16_t nNext_if_false); // for conditionals
+    script_obj(const script_obj_params &params);
 
-    const byte* get_text();
-    uint16_t get_true_index();
-    uint16_t get_false_index();
-    uint16_t get_cond_id();
+    bool has_text() const;
+    u8 get_text_entry_index() const;
+    u16 get_true_index() const;
+    u16 get_false_index() const;
+    u16 get_cond_id() const;
 
 private:
-    const byte* text;
-    bool has_text = false;
-    uint16_t next_index;
-    uint16_t conditional_index;
-    uint16_t next_false_index;
+    script_obj_params params_;
 };
 
 #endif

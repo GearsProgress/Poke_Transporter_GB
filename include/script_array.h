@@ -59,11 +59,10 @@
 
 #define SCRIPT_SIZE COND_END
 
-extern script_obj transfer_script[];
-extern script_obj event_script[];
+extern const script_obj_params transfer_script_params[];
+extern const script_obj_params event_script_params[];
 extern rom_data curr_rom;
 
-void populate_script();
 void populate_lang_menu();
 void populate_game_menu(int lang);
 bool run_conditional(int index);

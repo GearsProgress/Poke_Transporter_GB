@@ -4,6 +4,6 @@
 #include <cstdint>
 #include <cstddef>
 
-void writeTable(const char* filename, const uint8_t *buffer, size_t buffer_size);
+void writeTable(const char *output_path, const char *filename, const uint8_t *buffer, size_t buffer_size);
 
 #endif

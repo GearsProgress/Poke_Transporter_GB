@@ -14,132 +14,681 @@
 #include "translated_text.h"
 
 int last_error;
-Pokemon_Party party_data = Pokemon_Party();
+Pokemon_Party party_data;
 
 Select_Menu langs(false, LANG_MENU, 18, 0);
 Select_Menu games(false, CART_MENU, 18, 0);
 Box_Menu box_viewer;
 
-script_obj transfer_script[SCRIPT_SIZE];
-script_obj event_script[SCRIPT_SIZE];
+// For documentation purposes, here's an overview of the categories of the transfer script:
+// -------- TRANSFER SCRIPT --------
+//
+// Check that the conditions are set for the transfer
+// T_SCRIPT_START
+// COND_TUTORIAL_COMPLETE
+// DIA_OPEN
+// CMD_SET_TUTOR_TRUE
+// COND_BEAT_E4
+// DIA_E4
+// COND_MG_ENABLED
+// COND_IS_FRLGE
+// DIA_MG_FRLGE
+// DIA_MG_RS
+// COND_MG_OTHER_EVENT
+// COND_PKMN_TO_COLLECT
+// DIA_MG_OTHER_EVENT
+// DIA_PKMN_TO_COLLECT
+//
+// Ask the user what game and language they're using
+// DIA_WHAT_GAME_TRANS
+// CMD_GAME_MENU
+// DIA_WHAT_LANG_TRANS
+// CMD_LANG_MENU
+// DIA_ASK_QUEST
+// CMD_SLIDE_PROF_LEFT
+// CMD_SLIDE_PROF_RIGHT
+// COND_GB_ROM_EXISTS
+// DIA_NO_GB_ROM
+// DIA_MENU_BACK
+//
+// Initiate the transfer and check for errors
+// DIA_LETS_START
+// DIA_START
+// CMD_START_LINK
+// COND_ERROR_TIMEOUT_ONE
+// DIA_ERROR_TIME_ONE
+// COND_ERROR_TIMEOUT_TWO
+// DIA_ERROR_TIME_TWO
+// COND_ERROR_COM_ENDED
+// DIA_ERROR_COM_ENDED
+// COND_ERROR_COLOSSEUM
+// DIA_ERROR_COLOSSEUM
+// COND_ERROR_DISCONNECT
+// DIA_ERROR_DISCONNECT
+//
+// Pause the transfer and show the user their box data
+// CMD_LOAD_SIMP
+// DIA_NO_VALID_PKMN
+// COND_SOME_INVALID_PKMN
+// DIA_SOME_INVALID_PKMN
+// COND_CHECK_MYTHIC
+// DIA_MYTHIC_CONVERT
+// CMD_MYTHIC_MENU
+// COND_CHECK_MISSINGNO
+// DIA_IS_MISSINGNO
+// DIA_IN_BOX
+// CMD_BOX_MENU
+// DIA_CANCEL
+// CMD_IMPORT_POKEMON
+// CMD_CONTINUE_LINK
+// CMD_CANCEL_LINK
+// CMD_END_MISSINGNO
+//
+// Complete the transfer and give messages based on the transfered Pokemon
+// DIA_TRANS_GOOD
+// COND_NEW_POKEMON
+// DIA_NEW_DEX
+// DIA_NO_NEW_DEX
+// COND_IS_HOENN_RS
+// COND_IS_HOENN_E
+// DIA_SEND_FRIEND_HOENN_RS
+// DIA_SEND_FRIEND_HOENN_E
+// DIA_SEND_FRIEND_KANTO
+// DIA_THANK
+//
+// Hide the dialogue and professor
+// CMD_END_SCRIPT
+// CMD_BACK_TO_MENU
 
-void populate_script()
-{
-    // -------- TRANSFER SCRIPT --------
-    // Check that the conditions are set for the transfer
-    transfer_script[T_SCRIPT_START] = script_obj(CMD_SHOW_PROF, COND_TUTORIAL_COMPLETE);
-    transfer_script[COND_TUTORIAL_COMPLETE] = script_obj(COND_TUTORIAL_COMPLETE, COND_BEAT_E4, DIA_OPEN);
-    transfer_script[DIA_OPEN] = script_obj(dialogue[DIA_OPEN], CMD_SET_TUTOR_TRUE);
-    transfer_script[CMD_SET_TUTOR_TRUE] = script_obj(CMD_SET_TUTOR_TRUE, CMD_END_SCRIPT);
-    transfer_script[COND_BEAT_E4] = script_obj(COND_BEAT_E4, COND_MG_ENABLED, DIA_E4);
-    transfer_script[DIA_E4] = script_obj(dialogue[DIA_E4], CMD_END_SCRIPT);
-    transfer_script[COND_MG_ENABLED] = script_obj(COND_MG_ENABLED, COND_MG_OTHER_EVENT, COND_IS_FRLGE);
-    transfer_script[COND_IS_FRLGE] = script_obj(COND_IS_FRLGE, DIA_MG_FRLGE, DIA_MG_RS);
-    transfer_script[DIA_MG_FRLGE] = script_obj(dialogue[DIA_MG_FRLGE], CMD_END_SCRIPT);
-    transfer_script[DIA_MG_RS] = script_obj(dialogue[DIA_MG_RS], CMD_END_SCRIPT);
-    transfer_script[COND_MG_OTHER_EVENT] = script_obj(COND_MG_OTHER_EVENT, DIA_MG_OTHER_EVENT, COND_PKMN_TO_COLLECT);
-    transfer_script[COND_PKMN_TO_COLLECT] = script_obj(COND_PKMN_TO_COLLECT, DIA_PKMN_TO_COLLECT, DIA_ASK_QUEST);
-    transfer_script[DIA_MG_OTHER_EVENT] = script_obj(dialogue[DIA_MG_OTHER_EVENT], DIA_ASK_QUEST);
-    transfer_script[DIA_PKMN_TO_COLLECT] = script_obj(dialogue[DIA_PKMN_TO_COLLECT], CMD_END_SCRIPT);
+// The array below is exactly in order of the DIA, commands and condition int values
+// So if adding a new dia, command or condition, make sure to add it in the right position/index.
+// defining it this way does not generate an expensive function. It's all stored as read-only data in EWRAM.
+const script_obj_params transfer_script_params[SCRIPT_SIZE] = {
+    // DIA_OPEN
+    {
+        .text_entry_index = DIA_OPEN,
+        .next_if_true = CMD_SET_TUTOR_TRUE
+    },
+    // DIA_E4
+    {
+        .text_entry_index = DIA_E4,
+        .next_if_true = CMD_END_SCRIPT
+    },
+    // DIA_MG_FRLGE
+    {
+        .text_entry_index = DIA_MG_FRLGE,
+        .next_if_true = CMD_END_SCRIPT
+    },
+    // DIA_MG_RS
+    {
+        .text_entry_index = DIA_MG_RS,
+        .next_if_true = CMD_END_SCRIPT
+    },
+    // DIA_LETS_START
+    {
+        .text_entry_index = DIA_LETS_START,
+        .next_if_true = DIA_START
+    },
+    // DIA_START
+    {
+        .text_entry_index = DIA_START,
+        .next_if_true = CMD_START_LINK
+    },
+    // DIA_TRANS_GOOD
+    {
+        .text_entry_index = DIA_TRANS_GOOD,
+        .next_if_true = COND_NEW_POKEMON
+    },
+    // DIA_NEW_DEX
+    {
+        .text_entry_index = DIA_NEW_DEX,
+        .next_if_true = COND_IS_HOENN_RS
+    },
+    // DIA_NO_NEW_DEX
+    {
+        .text_entry_index = DIA_NO_NEW_DEX,
+        .next_if_true = COND_IS_HOENN_RS
+    },
+    // DIA_SEND_FRIEND_KANTO
+    {
+        .text_entry_index = DIA_SEND_FRIEND_KANTO,
+        .next_if_true = DIA_THANK
+    },
+    // DIA_SEND_FRIEND_HOENN_RS
+    {
+        .text_entry_index = DIA_SEND_FRIEND_HOENN_RS,
+        .next_if_true = DIA_THANK
+    },
+    // DIA_SEND_FRIEND_HOENN_E
+    {
+        .text_entry_index = DIA_SEND_FRIEND_HOENN_E,
+        .next_if_true = DIA_THANK
+    },
+    // DIA_THANK
+    {
+        .text_entry_index = DIA_THANK,
+        .next_if_true = CMD_END_SCRIPT
+    },
+    // DIA_GET_MON (unused)
+    {
+        .text_entry_index = DIA_GET_MON,
+        .next_if_true = CMD_END_SCRIPT
+    },
+    // DIA_MG_OTHER_EVENT
+    {
+        .text_entry_index = DIA_MG_OTHER_EVENT,
+        .next_if_true = DIA_ASK_QUEST
+    },
+    // DIA_PKMN_TO_COLLECT
+    {
+        .text_entry_index = DIA_PKMN_TO_COLLECT,
+        .next_if_true = CMD_END_SCRIPT
+    },
+    // DIA_NO_VALID_PKMN
+    {
+        .text_entry_index = DIA_NO_VALID_PKMN,
+        .next_if_true = CMD_CANCEL_LINK
+    },
+    // DIA_ASK_QUEST
+    {
+        .text_entry_index = DIA_ASK_QUEST,
+        .next_if_true = CMD_SLIDE_PROF_LEFT
+    },
+    // DIA_WHAT_GAME_TRANS
+    {
+        .text_entry_index = DIA_WHAT_GAME_TRANS,
+        .next_if_true = CMD_GAME_MENU
+    },
+    // DIA_WHAT_LANG_TRANS
+    {
+        .text_entry_index = DIA_WHAT_LANG_TRANS,
+        .next_if_true = CMD_LANG_MENU
+    },
+    // DIA_NO_GB_ROM
+    {
+        .text_entry_index = DIA_NO_GB_ROM,
+        .next_if_true = DIA_WHAT_LANG_TRANS
+    },
+    // DIA_IN_BOX
+    {
+        .text_entry_index = DIA_IN_BOX,
+        .next_if_true = CMD_BOX_MENU
+    },
+    // DIA_MYTHIC_CONVERT
+    {
+        .text_entry_index = DIA_MYTHIC_CONVERT,
+        .next_if_true = CMD_MYTHIC_MENU
+    },
+    // DIA_CANCEL
+    {
+        .text_entry_index = DIA_CANCEL,
+        .next_if_true = CMD_CANCEL_LINK
+    },
+    // DIA_SOME_INVALID_PKMN
+    {
+        .text_entry_index = DIA_SOME_INVALID_PKMN,
+        .next_if_true = COND_CHECK_MYTHIC
+    },
+    // DIA_MENU_BACK
+    {
+        .text_entry_index = DIA_MENU_BACK,
+        .next_if_true = CMD_END_SCRIPT
+    },
+    // DIA_IS_MISSINGNO
+    {
+        .text_entry_index = DIA_IS_MISSINGNO,
+        .next_if_true = DIA_IN_BOX
+    },
+    // DIA_ERROR_COLOSSEUM
+    {
+        .text_entry_index = DIA_ERROR_COLOSSEUM,
+        .next_if_true = DIA_START
+    },
+    // DIA_ERROR_COM_ENDED
+    {
+        .text_entry_index = DIA_ERROR_COM_ENDED,
+        .next_if_true = DIA_START
+    },
+    // DIA_ERROR_DISCONNECT
+    {
+        .text_entry_index = DIA_ERROR_DISCONNECT,
+        .next_if_true = DIA_START
+    },
+    // DIA_ERROR_TIME_ONE
+    {
+        .text_entry_index = DIA_ERROR_TIME_ONE,
+        .next_if_true = DIA_START
+    },
+    // DIA_ERROR_TIME_TWO
+    {
+        .text_entry_index = DIA_ERROR_TIME_TWO,
+        .next_if_true = DIA_START
+    },
+    // DIA_WHAT_LANG_EVENT
+    {
+        .text_entry_index = DIA_WHAT_LANG_EVENT,
+        .next_if_true = CMD_LANG_MENU
+    },
+    // DIA_WHAT_GAME_EVENT
+    {
+        .text_entry_index = DIA_WHAT_GAME_EVENT,
+        .next_if_true = CMD_GAME_MENU
+    },
+    // DIA_K_DEX_NOT_FULL
+    {
+        .text_entry_index = DIA_K_DEX_NOT_FULL,
+        .next_if_true = CMD_END_SCRIPT
+    },
+    // DIA_J_DEX_NOT_FULL
+    {
+        .text_entry_index = DIA_J_DEX_NOT_FULL,
+        .next_if_true = CMD_END_SCRIPT
+    },
+    // T_SCRIPT_START
+    {
+        .conditional_index = CMD_SHOW_PROF,
+        .next_if_true = COND_TUTORIAL_COMPLETE
+    },
+    // E_SCRIPT_START
+    {
+        .conditional_index = CMD_SHOW_PROF,
+        .next_if_true = DIA_ASK_QUEST
+    },
+    // CMD_START_LINK
+    {
+        .conditional_index = CMD_START_LINK,
+        .next_if_true = COND_ERROR_TIMEOUT_ONE
+    },
+    // CMD_IMPORT_POKEMON
+    {
+        .conditional_index = CMD_IMPORT_POKEMON,
+        .next_if_true = CMD_CONTINUE_LINK
+    },
+    // CMD_BACK_TO_MENU
+    {
+        .conditional_index = CMD_BACK_TO_MENU,
+        .next_if_true = T_SCRIPT_START
+    },
+    // CMD_SHOW_PROF (unused in this manner (not used in a next_if_true). Therefore this is a dummy entry)
+    // we even need to define such unused values to keep the array element positions in order
+    {
+    },
+    // CMD_HIDE_PROF (unused in this manner (not used in a next_if_true). Therefore this is a dummy entry)
+    {
+    },
+    // CMD_SET_TUTOR_TRUE
+    {
+        .conditional_index = CMD_SET_TUTOR_TRUE,
+        .next_if_true = CMD_END_SCRIPT
+    },
+    // CMD_END_SCRIPT
+    {
+        .conditional_index = CMD_END_SCRIPT,
+        .next_if_true = CMD_BACK_TO_MENU
+    },
+    // CMD_GAME_MENU
+    {
+        .conditional_index = CMD_GAME_MENU,
+        .next_if_true = COND_GB_ROM_EXISTS,
+        .next_if_false = DIA_WHAT_LANG_TRANS
+    },
+    // CMD_LANG_MENU
+    {
+        .conditional_index = CMD_LANG_MENU,
+        .next_if_true = DIA_WHAT_GAME_TRANS
+    },
+    // CMD_SLIDE_PROF_LEFT
+    {
+        .conditional_index = CMD_SLIDE_PROF_LEFT,
+        .next_if_true = DIA_WHAT_LANG_TRANS
+    },
+    // CMD_SLIDE_PROF_RIGHT
+    {
+        .conditional_index = CMD_SLIDE_PROF_RIGHT,
+        .next_if_true = DIA_LETS_START
+    },
+    // CMD_CONTINUE_LINK
+    {
+        .conditional_index = CMD_CONTINUE_LINK,
+        .next_if_true = CMD_END_MISSINGNO
+    },
+    // CMD_BOX_MENU
+    {
+        .conditional_index = CMD_BOX_MENU,
+        .next_if_true = CMD_IMPORT_POKEMON,
+        .next_if_false = DIA_CANCEL
+    },
+    // CMD_MYTHIC_MENU
+    {
+        .conditional_index = CMD_MYTHIC_MENU,
+        .next_if_true = COND_CHECK_MISSINGNO
+    },
+    // CMD_LOAD_SIMP
+    {
+        .conditional_index = CMD_LOAD_SIMP,
+        .next_if_true = COND_SOME_INVALID_PKMN,
+        .next_if_false = DIA_NO_VALID_PKMN
+    },
+    // CMD_CANCEL_LINK
+    {
+        .conditional_index = CMD_CANCEL_LINK,
+        .next_if_true = CMD_END_SCRIPT
+    },
+    // CMD_END_MISSINGNO
+    {
+        .conditional_index = CMD_END_MISSINGNO,
+        .next_if_true = DIA_TRANS_GOOD
+    },
+    // COND_ERROR_TIMEOUT_ONE
+    {
+        .conditional_index = COND_ERROR_TIMEOUT_ONE,
+        .next_if_true = COND_ERROR_TIMEOUT_TWO,
+        .next_if_false = DIA_ERROR_TIME_ONE
+    },
+    // COND_ERROR_DISCONNECT
+    {
+        .conditional_index = COND_ERROR_DISCONNECT,
+        .next_if_true = CMD_LOAD_SIMP,
+        .next_if_false = DIA_ERROR_DISCONNECT
+    },
+    // COND_ERROR_COM_ENDED
+    {
+        .conditional_index = COND_ERROR_COM_ENDED,
+        .next_if_true = COND_ERROR_COLOSSEUM,
+        .next_if_false = DIA_ERROR_COM_ENDED
+    },
+    // COND_ERROR_TIMEOUT_TWO
+    {
+        .conditional_index = COND_ERROR_TIMEOUT_TWO,
+        .next_if_true = COND_ERROR_COM_ENDED,
+        .next_if_false = DIA_ERROR_TIME_TWO
+    },
+    // COND_ERROR_COLOSSEUM
+    {
+        .conditional_index = COND_ERROR_COLOSSEUM,
+        .next_if_true = COND_ERROR_DISCONNECT,
+        .next_if_false = DIA_ERROR_COLOSSEUM
+    },
+    // COND_BEAT_E4
+    {
+        .conditional_index = COND_BEAT_E4,
+        .next_if_true = COND_MG_ENABLED,
+        .next_if_false = DIA_E4
+    },
+    // COND_MG_ENABLED
+    {
+        .conditional_index = COND_MG_ENABLED,
+        .next_if_true = COND_MG_OTHER_EVENT,
+        .next_if_false = COND_IS_FRLGE
+    },
+    // COND_TUTORIAL_COMPLETE
+    {
+        .conditional_index = COND_TUTORIAL_COMPLETE,
+        .next_if_true = COND_BEAT_E4,
+        .next_if_false = DIA_OPEN
+    },
+    // COND_NEW_POKEMON
+    {
+        .conditional_index = COND_NEW_POKEMON,
+        .next_if_true = DIA_NEW_DEX,
+        .next_if_false = DIA_NO_NEW_DEX
+    },
+    // COND_IS_HOENN_RS
+    {
+        .conditional_index = COND_IS_HOENN_RS,
+        .next_if_true = DIA_SEND_FRIEND_HOENN_RS,
+        .next_if_false = DIA_SEND_FRIEND_KANTO
+    },
+    // COND_IS_FRLGE
+    {
+        .conditional_index = COND_IS_FRLGE,
+        .next_if_true = DIA_MG_FRLGE,
+        .next_if_false = DIA_MG_RS
+    },
+    // COND_MG_OTHER_EVENT
+    {
+        .conditional_index = COND_MG_OTHER_EVENT,
+        .next_if_true = DIA_MG_OTHER_EVENT,
+        .next_if_false = COND_PKMN_TO_COLLECT
+    },
+    // COND_PKMN_TO_COLLECT
+    {
+        .conditional_index = COND_PKMN_TO_COLLECT,
+        .next_if_true = DIA_PKMN_TO_COLLECT,
+        .next_if_false = DIA_ASK_QUEST
+    },
+    // COND_GB_ROM_EXISTS
+    {
+        .conditional_index = COND_GB_ROM_EXISTS,
+        .next_if_true = CMD_SLIDE_PROF_RIGHT,
+        .next_if_false = DIA_NO_GB_ROM
+    },
+    // COND_CHECK_MYTHIC
+    {
+        .conditional_index = COND_CHECK_MYTHIC,
+        .next_if_true = DIA_MYTHIC_CONVERT,
+        .next_if_false = COND_CHECK_MISSINGNO
+    },
+    // COND_CHECK_DEX
+    {
+        .conditional_index = COND_CHECK_DEX,
+        .next_if_true = 0,
+        .next_if_false = COND_CHECK_KANTO
+    },
+    // COND_CHECK_KANTO
+    {
+        .conditional_index = COND_CHECK_KANTO,
+        .next_if_true = DIA_K_DEX_NOT_FULL,
+        .next_if_false = DIA_J_DEX_NOT_FULL
+    },
+    // COND_SOME_INVALID_PKMN
+    {
+        .conditional_index = COND_SOME_INVALID_PKMN,
+        .next_if_true = DIA_SOME_INVALID_PKMN,
+        .next_if_false = COND_CHECK_MYTHIC
+    },
+    // COND_IS_HOENN_E
+    {
+        .conditional_index = COND_IS_HOENN_E,
+        .next_if_true = DIA_SEND_FRIEND_HOENN_E,
+        .next_if_false = DIA_SEND_FRIEND_KANTO
+    },
+    // COND_CHECK_MISSINGNO
+    {
+        .conditional_index = COND_CHECK_MISSINGNO,
+        .next_if_true = DIA_IS_MISSINGNO,
+        .next_if_false = DIA_IN_BOX
+    }
+};
 
-    // Ask the user what game and language they're using
-    transfer_script[DIA_WHAT_GAME_TRANS] = script_obj(dialogue[DIA_WHAT_GAME_TRANS], CMD_GAME_MENU);
-    transfer_script[CMD_GAME_MENU] = script_obj(CMD_GAME_MENU, COND_GB_ROM_EXISTS, DIA_WHAT_LANG_TRANS);
-    transfer_script[DIA_WHAT_LANG_TRANS] = script_obj(dialogue[DIA_WHAT_LANG_TRANS], CMD_LANG_MENU);
-    transfer_script[CMD_LANG_MENU] = script_obj(CMD_LANG_MENU, DIA_WHAT_GAME_TRANS, DIA_MENU_BACK);
-    transfer_script[DIA_ASK_QUEST] = script_obj(dialogue[DIA_ASK_QUEST], CMD_SLIDE_PROF_LEFT);
-    transfer_script[CMD_SLIDE_PROF_LEFT] = script_obj(CMD_SLIDE_PROF_LEFT, DIA_WHAT_LANG_TRANS);
-    transfer_script[CMD_SLIDE_PROF_RIGHT] = script_obj(CMD_SLIDE_PROF_RIGHT, DIA_LETS_START);
-    transfer_script[COND_GB_ROM_EXISTS] = script_obj(COND_GB_ROM_EXISTS, CMD_SLIDE_PROF_RIGHT, DIA_NO_GB_ROM);
-    transfer_script[DIA_NO_GB_ROM] = script_obj(dialogue[DIA_NO_GB_ROM], DIA_WHAT_LANG_TRANS);
-    transfer_script[DIA_MENU_BACK] = script_obj(dialogue[DIA_MENU_BACK], CMD_END_SCRIPT);
+// For documentation purposes, here's an overview of the categories of the events script:
+// -------- EVENTS SCRIPT --------
+// Start the dialogue and show the menu
+// E_SCRIPT_START
+// DIA_ASK_QUEST
+//
+// Ask the user what game and language they're using
+// DIA_WHAT_GAME_EVENT
+// CMD_GAME_MENU
+// DIA_WHAT_LANG_EVENT
+// CMD_LANG_MENU
+// DIA_ASK_QUEST
+// CMD_SLIDE_PROF_LEFT
+// CMD_SLIDE_PROF_RIGHT
+// COND_GB_ROM_EXISTS
+// DIA_NO_GB_ROM
+//
+// Check the player's dex
+// COND_CHECK_DEX
+// COND_CHECK_KANTO
+// DIA_K_DEX_NOT_FULL
+// DIA_J_DEX_NOT_FULL
+//
+// Hide the dialogue and professor
+// CMD_END_SCRIPT
+// CMD_BACK_TO_MENU
 
-    // Initiate the transfer and check for errors
-    transfer_script[DIA_LETS_START] = script_obj(dialogue[DIA_LETS_START], DIA_START);
-    transfer_script[DIA_START] = script_obj(dialogue[DIA_START], CMD_START_LINK);
-    transfer_script[CMD_START_LINK] = script_obj(CMD_START_LINK, COND_ERROR_TIMEOUT_ONE);
-    transfer_script[COND_ERROR_TIMEOUT_ONE] = script_obj(COND_ERROR_TIMEOUT_ONE, COND_ERROR_TIMEOUT_TWO, DIA_ERROR_TIME_ONE);
-    transfer_script[DIA_ERROR_TIME_ONE] = script_obj(dialogue[DIA_ERROR_TIME_ONE], DIA_START);
-    transfer_script[COND_ERROR_TIMEOUT_TWO] = script_obj(COND_ERROR_TIMEOUT_TWO, COND_ERROR_COM_ENDED, DIA_ERROR_TIME_TWO);
-    transfer_script[DIA_ERROR_TIME_TWO] = script_obj(dialogue[DIA_ERROR_TIME_TWO], DIA_START);
-    transfer_script[COND_ERROR_COM_ENDED] = script_obj(COND_ERROR_COM_ENDED, COND_ERROR_COLOSSEUM, DIA_ERROR_COM_ENDED);
-    transfer_script[DIA_ERROR_COM_ENDED] = script_obj(dialogue[DIA_ERROR_COM_ENDED], DIA_START);
-    transfer_script[COND_ERROR_COLOSSEUM] = script_obj(COND_ERROR_COLOSSEUM, COND_ERROR_DISCONNECT, DIA_ERROR_COLOSSEUM);
-    transfer_script[DIA_ERROR_COLOSSEUM] = script_obj(dialogue[DIA_ERROR_COLOSSEUM], DIA_START);
-    transfer_script[COND_ERROR_DISCONNECT] = script_obj(COND_ERROR_DISCONNECT, CMD_LOAD_SIMP, DIA_ERROR_DISCONNECT);
-    transfer_script[DIA_ERROR_DISCONNECT] = script_obj(dialogue[DIA_ERROR_DISCONNECT], DIA_START);
-
-    // Pause the transfer and show the user their box data
-    transfer_script[CMD_LOAD_SIMP] = script_obj(CMD_LOAD_SIMP, COND_SOME_INVALID_PKMN, DIA_NO_VALID_PKMN);
-    transfer_script[DIA_NO_VALID_PKMN] = script_obj(dialogue[DIA_NO_VALID_PKMN], CMD_CANCEL_LINK);
-    transfer_script[COND_SOME_INVALID_PKMN] = script_obj(COND_SOME_INVALID_PKMN, DIA_SOME_INVALID_PKMN, COND_CHECK_MYTHIC);
-    transfer_script[DIA_SOME_INVALID_PKMN] = script_obj(dialogue[DIA_SOME_INVALID_PKMN], COND_CHECK_MYTHIC);
-    transfer_script[COND_CHECK_MYTHIC] = script_obj(COND_CHECK_MYTHIC, DIA_MYTHIC_CONVERT, COND_CHECK_MISSINGNO);
-    transfer_script[DIA_MYTHIC_CONVERT] = script_obj(dialogue[DIA_MYTHIC_CONVERT], CMD_MYTHIC_MENU);
-    transfer_script[CMD_MYTHIC_MENU] = script_obj(CMD_MYTHIC_MENU, COND_CHECK_MISSINGNO);
-    transfer_script[COND_CHECK_MISSINGNO] = script_obj(COND_CHECK_MISSINGNO, DIA_IS_MISSINGNO, DIA_IN_BOX);
-    transfer_script[DIA_IS_MISSINGNO] = script_obj(dialogue[DIA_IS_MISSINGNO], DIA_IN_BOX);
-    transfer_script[DIA_IN_BOX] = script_obj(dialogue[DIA_IN_BOX], CMD_BOX_MENU);
-    transfer_script[CMD_BOX_MENU] = script_obj(CMD_BOX_MENU, CMD_IMPORT_POKEMON, DIA_CANCEL);
-    transfer_script[DIA_CANCEL] = script_obj(dialogue[DIA_CANCEL], CMD_CANCEL_LINK);
-    transfer_script[CMD_IMPORT_POKEMON] = script_obj(CMD_IMPORT_POKEMON, CMD_CONTINUE_LINK);
-    transfer_script[CMD_CONTINUE_LINK] = script_obj(CMD_CONTINUE_LINK, CMD_END_MISSINGNO);
-    transfer_script[CMD_CANCEL_LINK] = script_obj(CMD_CANCEL_LINK, CMD_END_SCRIPT);
-    transfer_script[CMD_END_MISSINGNO] = script_obj(CMD_END_MISSINGNO, DIA_TRANS_GOOD);
-
-    // Complete the transfer and give messages based on the transfered Pokemon
-    transfer_script[DIA_TRANS_GOOD] = script_obj(dialogue[DIA_TRANS_GOOD], COND_NEW_POKEMON);
-    transfer_script[COND_NEW_POKEMON] = script_obj(COND_NEW_POKEMON, DIA_NEW_DEX, DIA_NO_NEW_DEX);
-    transfer_script[DIA_NEW_DEX] = script_obj(dialogue[DIA_NEW_DEX], COND_IS_HOENN_RS);
-    transfer_script[DIA_NO_NEW_DEX] = script_obj(dialogue[DIA_NO_NEW_DEX], COND_IS_HOENN_RS);
-    transfer_script[COND_IS_HOENN_RS] = script_obj(COND_IS_HOENN_RS, DIA_SEND_FRIEND_HOENN_RS, COND_IS_HOENN_E);
-    transfer_script[COND_IS_HOENN_E] = script_obj(COND_IS_HOENN_E, DIA_SEND_FRIEND_HOENN_E, DIA_SEND_FRIEND_KANTO);
-    transfer_script[DIA_SEND_FRIEND_HOENN_RS] = script_obj(dialogue[DIA_SEND_FRIEND_HOENN_RS], DIA_THANK);
-    transfer_script[DIA_SEND_FRIEND_HOENN_E] = script_obj(dialogue[DIA_SEND_FRIEND_HOENN_E], DIA_THANK);
-    transfer_script[DIA_SEND_FRIEND_KANTO] = script_obj(dialogue[DIA_SEND_FRIEND_KANTO], DIA_THANK);
-    transfer_script[DIA_THANK] = script_obj(dialogue[DIA_THANK], CMD_END_SCRIPT);
-
-    // Hide the dialouge and professor
-    transfer_script[CMD_END_SCRIPT] = script_obj(CMD_END_SCRIPT, CMD_BACK_TO_MENU);
-    transfer_script[CMD_BACK_TO_MENU] = script_obj(CMD_BACK_TO_MENU, T_SCRIPT_START);
-
-    // -------- EVENTS SCRIPT --------
-    // Start the dialogue and show the menu
-    event_script[E_SCRIPT_START] = script_obj(CMD_SHOW_PROF, DIA_ASK_QUEST);
-    event_script[DIA_ASK_QUEST] = script_obj(dialogue[DIA_ASK_QUEST], CMD_SLIDE_PROF_LEFT);
-
-    // Ask the user what game and language they're using
-    event_script[DIA_WHAT_GAME_EVENT] = script_obj(dialogue[DIA_WHAT_GAME_EVENT], CMD_GAME_MENU);
-    event_script[CMD_GAME_MENU] = script_obj(CMD_GAME_MENU, COND_GB_ROM_EXISTS, DIA_WHAT_LANG_EVENT);
-    event_script[DIA_WHAT_LANG_EVENT] = script_obj(dialogue[DIA_WHAT_LANG_EVENT], CMD_LANG_MENU);
-    event_script[CMD_LANG_MENU] = script_obj(CMD_LANG_MENU, DIA_WHAT_GAME_EVENT);
-    event_script[DIA_ASK_QUEST] = script_obj(dialogue[DIA_ASK_QUEST], CMD_SLIDE_PROF_LEFT);
-    event_script[CMD_SLIDE_PROF_LEFT] = script_obj(CMD_SLIDE_PROF_LEFT, DIA_WHAT_LANG_EVENT);
-    event_script[CMD_SLIDE_PROF_RIGHT] = script_obj(CMD_SLIDE_PROF_RIGHT, COND_CHECK_DEX);
-    event_script[COND_GB_ROM_EXISTS] = script_obj(COND_GB_ROM_EXISTS, CMD_SLIDE_PROF_RIGHT, DIA_NO_GB_ROM);
-    event_script[DIA_NO_GB_ROM] = script_obj(dialogue[DIA_NO_GB_ROM], DIA_WHAT_LANG_EVENT);
-
-    // Check the player's dex
-    event_script[COND_CHECK_DEX] = script_obj(COND_CHECK_DEX, 0, COND_CHECK_KANTO);
-    event_script[COND_CHECK_KANTO] = script_obj(COND_CHECK_KANTO, DIA_K_DEX_NOT_FULL, DIA_J_DEX_NOT_FULL);
-    event_script[DIA_K_DEX_NOT_FULL] = script_obj(dialogue[DIA_K_DEX_NOT_FULL], CMD_END_SCRIPT);
-    event_script[DIA_J_DEX_NOT_FULL] = script_obj(dialogue[DIA_J_DEX_NOT_FULL], CMD_END_SCRIPT);
-
-    // Hide the dialouge and professor
-    event_script[CMD_END_SCRIPT] = script_obj(CMD_END_SCRIPT, CMD_BACK_TO_MENU);
-    event_script[CMD_BACK_TO_MENU] = script_obj(CMD_BACK_TO_MENU, T_SCRIPT_START);
+// The array below is exactly in order of the DIA, commands and condition int values
+// So if adding a new dia, command or condition, make sure to add it in the right position/index.
+// because things are in order, it also means we have to define every possible entry even if we don't use it.
+// defining it this way does not generate an expensive function. It's all stored as read-only data in EWRAM.
+// Although frankly given the small amount of defined entries, we ARE wasting a lot of space with this one. (probably around 500 bytes)
+const script_obj_params event_script_params[SCRIPT_SIZE] = {
+    {}, // DIA_OPEN
+    {}, // DIA_E4
+    {}, // DIA_MG_FRLGE
+    {}, // DIA_MG_RS
+    {}, // DIA_LETS_START
+    {}, // DIA_START
+    {}, // DIA_TRANS_GOOD
+    {}, // DIA_NEW_DEX
+    {}, // DIA_NO_NEW_DEX
+    {}, // DIA_SEND_FRIEND_KANTO
+    {}, // DIA_SEND_FRIEND_HOENN_RS
+    {}, // DIA_SEND_FRIEND_HOENN_E
+    {}, // DIA_THANK
+    {}, // DIA_GET_MON
+    {}, // DIA_MG_OTHER_EVENT
+    {}, // DIA_PKMN_TO_COLLECT
+    {}, // DIA_NO_VALID_PKMN
+    // DIA_ASK_QUEST
+    {
+        .text_entry_index = DIA_ASK_QUEST,
+        .next_if_true = CMD_SLIDE_PROF_LEFT
+    },
+    {}, // DIA_WHAT_GAME_TRANS
+    {}, // DIA_WHAT_LANG_TRANS
+    // DIA_NO_GB_ROM
+    {
+        .text_entry_index = DIA_NO_GB_ROM,
+        .next_if_true = DIA_WHAT_LANG_EVENT
+    },
+    {}, // DIA_IN_BOX
+    {}, // DIA_MYTHIC_CONVERT
+    {}, // DIA_CANCEL
+    {}, // DIA_SOME_INVALID_PKMN
+    {}, // DIA_MENU_BACK
+    {}, // DIA_IS_MISSINGNO
+    {}, // DIA_ERROR_COLOSSEUM
+    {}, // DIA_ERROR_COM_ENDED
+    {}, // DIA_ERROR_DISCONNECT
+    {}, // DIA_ERROR_TIME_ONE
+    {}, // DIA_ERROR_TIME_TWO
+    // DIA_WHAT_LANG_EVENT
+    {
+        .text_entry_index = DIA_WHAT_LANG_EVENT,
+        .next_if_true = CMD_LANG_MENU
+    },
+    // DIA_WHAT_GAME_EVENT
+    {
+        .text_entry_index = DIA_WHAT_GAME_EVENT,
+        .next_if_true = CMD_GAME_MENU
+    },
+    // DIA_K_DEX_NOT_FULL
+    {
+        .text_entry_index = DIA_K_DEX_NOT_FULL,
+        .next_if_true = CMD_END_SCRIPT
+    },
+    // DIA_J_DEX_NOT_FULL
+    {
+        .text_entry_index = DIA_J_DEX_NOT_FULL,
+        .next_if_true = CMD_END_SCRIPT
+    },
+    {}, // T_SCRIPT_START
+    // E_SCRIPT_START
+    {
+        .conditional_index = CMD_SHOW_PROF,
+        .next_if_true = DIA_ASK_QUEST
+    },
+    {}, // CMD_START_LINK
+    {}, // CMD_IMPORT_POKEMON
+    // CMD_BACK_TO_MENU
+    {
+        .conditional_index = CMD_BACK_TO_MENU,
+        .next_if_true = T_SCRIPT_START
+    },
+    {}, // CMD_SHOW_PROF
+    {}, // CMD_HIDE_PROF
+    {}, // CMD_SET_TUTOR_TRUE
+    // CMD_END_SCRIPT
+    {
+        .conditional_index = CMD_END_SCRIPT,
+        .next_if_true = CMD_BACK_TO_MENU
+    },
+    // CMD_GAME_MENU
+    {
+        .conditional_index = CMD_GAME_MENU,
+        .next_if_true = COND_GB_ROM_EXISTS,
+        .next_if_false = DIA_WHAT_LANG_EVENT
+    },
+    // CMD_LANG_MENU
+    {
+        .conditional_index = CMD_LANG_MENU,
+        .next_if_true = DIA_WHAT_GAME_EVENT
+    },
+    // CMD_SLIDE_PROF_LEFT
+    {
+        .conditional_index = CMD_SLIDE_PROF_LEFT,
+        .next_if_true = DIA_WHAT_LANG_EVENT
+    },
+    // CMD_SLIDE_PROF_RIGHT
+    {
+        .conditional_index = CMD_SLIDE_PROF_RIGHT,
+        .next_if_true = COND_CHECK_DEX
+    },
+    {}, // CMD_CONTINUE_LINK
+    {}, // CMD_BOX_MENU
+    {}, // CMD_MYTHIC_MENU
+    {}, // CMD_LOAD_SIMP
+    {}, // CMD_CANCEL_LINK
+    {}, // CMD_END_MISSINGNO
+    {}, // COND_ERROR_TIMEOUT_ONE
+    {}, // COND_ERROR_DISCONNECT
+    {}, // COND_ERROR_COM_ENDED
+    {}, // COND_ERROR_TIMEOUT_TWO
+    {}, // COND_ERROR_COLOSSEUM
+    {}, // COND_BEAT_E4
+    {}, // COND_MG_ENABLED
+    {}, // COND_TUTORIAL_COMPLETE
+    {}, // COND_NEW_POKEMON
+    {}, // COND_IS_HOENN_RS
+    {}, // COND_IS_FRLGE
+    {}, // COND_MG_OTHER_EVENT
+    {}, // COND_PKMN_TO_COLLECT
+    // COND_GB_ROM_EXISTS
+    {
+        .conditional_index = COND_GB_ROM_EXISTS,
+        .next_if_true = CMD_SLIDE_PROF_RIGHT,
+        .next_if_false = DIA_NO_GB_ROM
+    },
+    {}, // COND_CHECK_MYTHIC
+    // COND_CHECK_DEX
+    {
+        .conditional_index = COND_CHECK_DEX,
+        .next_if_true = 0,
+        .next_if_false = COND_CHECK_KANTO
+    },
+    // COND_CHECK_KANTO
+    {
+        .conditional_index = COND_CHECK_KANTO,
+        .next_if_true = DIA_K_DEX_NOT_FULL,
+        .next_if_false = DIA_J_DEX_NOT_FULL
+    },
+    {}, // COND_SOME_INVALID_PKMN
+    {}, // COND_IS_HOENN_E
+    {}, // COND_CHECK_MISSINGNO
 };
 
 void populate_lang_menu()
 {
-    langs.add_option(option_english, ENG_ID);
-    langs.add_option(option_japanese, JPN_ID);
-    langs.add_option(option_spanish, SPA_ID);
-    langs.add_option(option_french, FRE_ID);
-    langs.add_option(option_german, GER_ID);
-    langs.add_option(option_italian, ITA_ID);
-    langs.add_option(option_korean, KOR_ID);
-    langs.add_option(option_cancel, UINT8_MAX);
+    langs.add_option(GENERAL_option_english, ENG_ID);
+    langs.add_option(GENERAL_option_japanese, JPN_ID);
+    langs.add_option(GENERAL_option_spanish, SPA_ID);
+    langs.add_option(GENERAL_option_french, FRE_ID);
+    langs.add_option(GENERAL_option_german, GER_ID);
+    langs.add_option(GENERAL_option_italian, ITA_ID);
+    langs.add_option(GENERAL_option_korean, KOR_ID);
+    langs.add_option(GENERAL_option_cancel, UINT8_MAX);
 }
 
 void populate_game_menu(int lang)
@@ -147,32 +696,38 @@ void populate_game_menu(int lang)
     switch (lang)
     {
     case (JPN_ID):
-        games.add_option(option_red, RED_ID);
-        games.add_option(option_green, GREEN_ID);
-        games.add_option(option_blue, BLUE_ID);
-        games.add_option(option_yellow, YELLOW_ID);
-        games.add_option(option_gold, GOLD_ID);
-        games.add_option(option_silver, SILVER_ID);
-        games.add_option(option_crystal, CRYSTAL_ID);
-        games.add_option(option_cancel, UINT8_MAX);
+        games.add_option(GENERAL_option_red, RED_ID);
+        games.add_option(GENERAL_option_green, GREEN_ID);
+        games.add_option(GENERAL_option_blue, BLUE_ID);
+        games.add_option(GENERAL_option_yellow, YELLOW_ID);
+        games.add_option(GENERAL_option_gold, GOLD_ID);
+        games.add_option(GENERAL_option_silver, SILVER_ID);
+        games.add_option(GENERAL_option_crystal, CRYSTAL_ID);
+        games.add_option(GENERAL_option_cancel, UINT8_MAX);
         break;
 
     case (KOR_ID):
-        games.add_option(option_gold, GOLD_ID);
-        games.add_option(option_silver, SILVER_ID);
-        games.add_option(option_cancel, UINT8_MAX);
+        games.add_option(GENERAL_option_gold, GOLD_ID);
+        games.add_option(GENERAL_option_silver, SILVER_ID);
+        games.add_option(GENERAL_option_cancel, UINT8_MAX);
         break;
 
     default:
-        games.add_option(option_red, RED_ID);
-        games.add_option(option_blue, BLUE_ID);
-        games.add_option(option_yellow, YELLOW_ID);
-        games.add_option(option_gold, GOLD_ID);
-        games.add_option(option_silver, SILVER_ID);
-        games.add_option(option_crystal, CRYSTAL_ID);
-        games.add_option(option_cancel, UINT8_MAX);
+        games.add_option(GENERAL_option_red, RED_ID);
+        games.add_option(GENERAL_option_blue, BLUE_ID);
+        games.add_option(GENERAL_option_yellow, YELLOW_ID);
+        games.add_option(GENERAL_option_gold, GOLD_ID);
+        games.add_option(GENERAL_option_silver, SILVER_ID);
+        games.add_option(GENERAL_option_crystal, CRYSTAL_ID);
+        games.add_option(GENERAL_option_cancel, UINT8_MAX);
         break;
     }
+}
+
+static bool load_simple_party_data()
+{
+    PokemonTables data_tables;
+    return party_data.fill_simple_pkmn_array(data_tables);
 }
 
 bool run_conditional(int index)
@@ -348,10 +903,7 @@ bool run_conditional(int index)
         return true;
 
     case CMD_LOAD_SIMP:
-    {
-        PokemonTables data_tables;
-        return party_data.fill_simple_pkmn_array(data_tables);
-    }
+        return load_simple_party_data();
     case CMD_CANCEL_LINK:
         party_data.continue_link(true);
         return true;

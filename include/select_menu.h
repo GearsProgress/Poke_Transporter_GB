@@ -16,11 +16,11 @@ public:
     void hide_menu();
     void show_menu();
     void clear_options();
-    void add_option(const byte *option, u8 return_value);
+    void add_option(const u8 option, u8 return_value);
     void set_lang(u8 nLang);
 
 private:
-    ptgb::vector<const byte*> menu_options;
+    ptgb::vector<u8> menu_options;
     ptgb::vector<u8> return_values;
     u16 curr_selection;
     bool cancel_enabled;

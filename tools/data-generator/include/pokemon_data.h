@@ -12,6 +12,6 @@ typedef uint8_t byte;
 typedef uint16_t u16;
 typedef uint32_t u32;
 
-void generate_pokemon_data();
+void generate_pokemon_data(const char *output_path);
 
 #endif

@@ -4703,18 +4703,18 @@ const u8 TYPES[POKEMON_ARRAY_SIZE][2]{
     {0xc, 0xc},   // Treecko is grass/grass
 };
 
-void generate_pokemon_data()
+void generate_pokemon_data(const char *output_path)
 {
-    writeTable("gen_1_charsets.bin", (const uint8_t*)gen_1_charsets, sizeof(gen_1_charsets));
-    writeTable("gen_2_charsets.bin", (const uint8_t*)gen_2_charsets, sizeof(gen_2_charsets));
-    writeTable("gen_3_charsets.bin", (const uint8_t*)gen_3_charsets, sizeof(gen_3_charsets));
-    writeTable("EXP_GROUPS.bin", EXP_GROUPS, sizeof(EXP_GROUPS));
-    writeTable("GENDER_RATIO.bin", GENDER_RATIO, sizeof(GENDER_RATIO));
-    writeTable("NUM_ABILITIES.bin", (const uint8_t*)(NUM_ABILITIES), sizeof(NUM_ABILITIES));
-    writeTable("FIRST_MOVES.bin", FIRST_MOVES, sizeof(FIRST_MOVES));
-    writeTable("JPN_NAMES.bin", (const uint8_t*)JPN_NAMES, sizeof(JPN_NAMES));
-    writeTable("POWER_POINTS.bin", POWER_POINTS, sizeof(POWER_POINTS));
-    writeTable("MENU_SPRITE_PALS.bin", (const uint8_t*)MENU_SPRITE_PALS, sizeof(MENU_SPRITE_PALS));
-    writeTable("EVENT_PKMN.bin", (const uint8_t*)EVENT_PKMN, sizeof(EVENT_PKMN));
-    writeTable("TYPES.bin", (const uint8_t*)TYPES, sizeof(TYPES));
+    writeTable(output_path, "gen_1_charsets.bin", (const uint8_t*)gen_1_charsets, sizeof(gen_1_charsets));
+    writeTable(output_path, "gen_2_charsets.bin", (const uint8_t*)gen_2_charsets, sizeof(gen_2_charsets));
+    writeTable(output_path, "gen_3_charsets.bin", (const uint8_t*)gen_3_charsets, sizeof(gen_3_charsets));
+    writeTable(output_path, "EXP_GROUPS.bin", EXP_GROUPS, sizeof(EXP_GROUPS));
+    writeTable(output_path, "GENDER_RATIO.bin", GENDER_RATIO, sizeof(GENDER_RATIO));
+    writeTable(output_path, "NUM_ABILITIES.bin", (const uint8_t*)(NUM_ABILITIES), sizeof(NUM_ABILITIES));
+    writeTable(output_path, "FIRST_MOVES.bin", FIRST_MOVES, sizeof(FIRST_MOVES));
+    writeTable(output_path, "JPN_NAMES.bin", (const uint8_t*)JPN_NAMES, sizeof(JPN_NAMES));
+    writeTable(output_path, "POWER_POINTS.bin", POWER_POINTS, sizeof(POWER_POINTS));
+    writeTable(output_path, "MENU_SPRITE_PALS.bin", (const uint8_t*)MENU_SPRITE_PALS, sizeof(MENU_SPRITE_PALS));
+    writeTable(output_path, "EVENT_PKMN.bin", (const uint8_t*)EVENT_PKMN, sizeof(EVENT_PKMN));
+    writeTable(output_path, "TYPES.bin", (const uint8_t*)TYPES, sizeof(TYPES));
 }

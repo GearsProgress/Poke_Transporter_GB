@@ -64,6 +64,11 @@ public:
      * @brief This function reads <numBytes> of data into <outputBuffer>
      */
     IWRAM_CODE void read(uint32_t num_bytes);
+
+    /**
+     * @brief This function swaps out the current output buffer for the given one
+     */
+    IWRAM_CODE void swap_output_buffer(uint8_t *new_output_buffer);
 protected:
 private:
     IWRAM_CODE void read_next_command();
@@ -73,7 +78,7 @@ private:
     ZX0Command cur_command_;
     const uint8_t *input_data_;
     uint8_t *back_pos_;
-    uint8_t *cur_out;
+    uint8_t *cur_out_;
     uint32_t last_offset_;
 };
 
@@ -145,7 +150,7 @@ ZX0Decompressor::ZX0Decompressor()
     , cur_command_({ZX0OperationType::NONE, 0, 0, 0})
     , input_data_(nullptr)
     , back_pos_(nullptr)
-    , cur_out(nullptr)
+    , cur_out_(nullptr)
     , last_offset_(UINT32_MAX)
 {
 }
@@ -156,7 +161,7 @@ void ZX0Decompressor::start(uint8_t *output_buffer, const uint8_t *input_data)
     cur_command_ = {ZX0OperationType::NONE, 0, 0, 0};
     input_data_ = input_data;
     back_pos_ = nullptr;
-    cur_out = output_buffer;
+    cur_out_ = output_buffer;
     last_offset_ = UINT32_MAX;
 }
 
@@ -183,6 +188,13 @@ IWRAM_CODE void ZX0Decompressor::read(uint32_t num_bytes)
         const uint32_t bytes_read = copy_block(num_bytes);
         num_bytes -= bytes_read;
     }
+}
+
+IWRAM_CODE void ZX0Decompressor::swap_output_buffer(uint8_t *new_output_buffer)
+{
+    const uint32_t current_offset = cur_out_ - back_pos_;
+    cur_out_ = new_output_buffer;
+    back_pos_ = new_output_buffer - current_offset;
 }
 
 IWRAM_CODE inline void ZX0Decompressor::read_next_command()
@@ -226,10 +238,10 @@ IWRAM_CODE uint32_t ZX0Decompressor::copy_block(uint32_t num_bytes)
     {
         // Literal copy
 
-        // Align cur_out first
-        while (bytes_remaining && ((uintptr_t)cur_out & 3))
+        // Align cur_out_ first
+        while (bytes_remaining && ((uintptr_t)cur_out_ & 3))
         {
-            (*cur_out++) = reader_.read(8);
+            (*cur_out_++) = reader_.read(8);
             bytes_remaining--;
         }
 
@@ -239,27 +251,27 @@ IWRAM_CODE uint32_t ZX0Decompressor::copy_block(uint32_t num_bytes)
             // we need to swap again, because the data was originally stored in big endian format
             // BitReader converted it to little endian format to make reading easier.
             // and now we need to convert it back to big endian format.
-            *(uint32_t*)cur_out = __builtin_bswap32(reader_.read(32));
-            cur_out += 4;
+            *(uint32_t*)cur_out_ = __builtin_bswap32(reader_.read(32));
+            cur_out_ += 4;
             bytes_remaining -= 4;
         }
         // Handle remaining bytes
         while (bytes_remaining--)
         {
-            (*cur_out++) = reader_.read(8);
+            (*cur_out_++) = reader_.read(8);
         }
     }
     else
     {
         if(!cur_command_.byte_pos)
         {
-            back_pos_ = cur_out - cur_command_.offset;
+            back_pos_ = cur_out_ - cur_command_.offset;
         }
 
-        // try to get cur_out and back_pos aligned to 32 bit accesses first
-        while (bytes_remaining && (((uintptr_t)cur_out & 3) || ((uintptr_t)back_pos_ & 3)))
+        // try to get cur_out_ and back_pos aligned to 32 bit accesses first
+        while (bytes_remaining && (((uintptr_t)cur_out_ & 3) || ((uintptr_t)back_pos_ & 3)))
         {
-            (*cur_out++) = (*back_pos_++);
+            (*cur_out_++) = (*back_pos_++);
             bytes_remaining--;
         }
 
@@ -268,15 +280,15 @@ IWRAM_CODE uint32_t ZX0Decompressor::copy_block(uint32_t num_bytes)
         {
             // these don't need to be byteswapped, because the data is being read with the same endianness as it is being written.
             // this is different when reading from BitReader.
-            *(uint32_t*)cur_out = *((uint32_t*)back_pos_);
-            cur_out += 4;
+            *(uint32_t*)cur_out_ = *((uint32_t*)back_pos_);
+            cur_out_ += 4;
             back_pos_ += 4;
             bytes_remaining -= 4;
         }
 
         while(bytes_remaining--)
         {
-            (*cur_out++) = (*back_pos_++);
+            (*cur_out_++) = (*back_pos_++);
         }
     }
     
@@ -304,4 +316,11 @@ void zx0_decompressor_read(uint32_t num_bytes)
 {
     decompressor.read(num_bytes);
 }
+
+void zx0_decompressor_read_partial(uint8_t *output_buffer, uint16_t num_bytes)
+{
+    decompressor.swap_output_buffer(output_buffer);
+    decompressor.read(num_bytes);
+}
+
 }

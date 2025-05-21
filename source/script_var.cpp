@@ -153,28 +153,17 @@ void textbox_var::set_virtual_start()
     start_location_in_script = *curr_loc_ptr - 4;
 }
 
-void textbox_var::insert_text(const u16 *charset, u8 mg_array[])
+void textbox_var::insert_text(const u16 *charset, u8 mg_array[], bool should_set_virtual_start)
 {
-    set_start();
-    for (int parser = 0; parser < text_length; parser++)
+    if(!should_set_virtual_start)
     {
-        if (curr_rom.is_hoenn() && (text[parser] == 0xFC) && (get_char_from_charset(charset, (char16_t)(text[parser + 1])) == 0x01)) // Removes colored text
-        {
-            parser += 2;
-        }
-        else
-        {
-            mg_array[*curr_loc_ptr] = text[parser];
-            (*curr_loc_ptr)++;
-        }
+        set_start();
     }
-    mg_array[*curr_loc_ptr] = 0xFF; // End string
-    (*curr_loc_ptr)++;
-}
+    else
+    {
+        set_virtual_start();
+    }
 
-void textbox_var::insert_virtual_text(const u16 *charset, u8 mg_array[])
-{
-    set_virtual_start();
     for (int parser = 0; parser < text_length; parser++)
     {
         if (curr_rom.is_hoenn() && (text[parser] == 0xFC) && (get_char_from_charset(charset, (char16_t)(text[parser + 1])) == 0x01)) // Removes colored text

@@ -1,5 +1,7 @@
 #include "select_menu.h"
 #include "sprite_data.h"
+#include "translated_text.h"
+#include "text_data_table.h"
 
 #define TEXT_HEIGHT 10
 #define TEXT_WIDTH 8
@@ -14,7 +16,7 @@ Select_Menu::Select_Menu(bool enable_cancel, u8 nMenu_type, int nStartTileX, int
     startTileY = nStartTileY;
 }
 
-void Select_Menu::add_option(const byte *option, u8 return_value)
+void Select_Menu::add_option(const u8 option, u8 return_value)
 {
     menu_options.push_back(option);
     return_values.push_back(return_value);
@@ -101,11 +103,15 @@ int Select_Menu::select_menu_main()
 
 void Select_Menu::show_menu()
 {
+    u8 decompression_buffer[2048];
+    text_data_table text_data(decompression_buffer);
+    text_data.decompress(get_compressed_general_table());
+
     add_menu_box(menu_options.size(), startTileX, startTileY);
     for (unsigned int i = 0; i < menu_options.size(); i++)
     {
         tte_set_pos((startTileX + 2) * TEXT_WIDTH, (startTileY + 1) * TILE_HEIGHT + (i * TEXT_HEIGHT));
-        ptgb_write(menu_options[i], true);
+        ptgb_write(text_data.get_text_entry(menu_options[i]), true);
     }
     obj_unhide(point_arrow, 0);
     // obj_set_pos(point_arrow, startTileX + (2 * TEXT_WIDTH), (1 + i) * TEXT_HEIGHT);

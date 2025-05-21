@@ -11,6 +11,7 @@
 #include "sprite_data.h"
 #include "latin_short.h"
 #include "japanese_small.h"
+#include "text_data_table.h"
 
 #define TEXT_CBB 0
 #define TEXT_SBB 10
@@ -55,17 +56,23 @@ void init_text_engine()
 
 int text_loop(int script)
 {
+    u8 text_decompression_buffer[3072];
+    u8 index_buffer[100];
+    streamed_text_data_table dialogue_table(text_decompression_buffer, sizeof(text_decompression_buffer), index_buffer);
+
+    dialogue_table.decompress(get_compressed_PTGB_table());
     switch (script)
     {
     case BTN_TRANSFER:
-        curr_line = transfer_script[T_SCRIPT_START];
+        curr_line = transfer_script_params[T_SCRIPT_START];
         break;
 
     case BTN_EVENTS:
-        curr_line = event_script[E_SCRIPT_START];
+        curr_line = event_script_params[E_SCRIPT_START];
         break;
     }
-    curr_text = curr_line.get_text();
+
+    curr_text = (curr_line.has_text()) ? dialogue_table.get_text_entry(curr_line.get_text_entry_index()) : NULL;
 
     REG_BG1CNT = (REG_BG1CNT && !BG_PRIO_MASK) | BG_PRIO(2); // Show Fennel
     show_text_box();
@@ -85,13 +92,14 @@ int text_loop(int script)
         switch (script)
         {
         case BTN_TRANSFER:
-            curr_line = transfer_script[text_next_obj_id(curr_line)];
+            curr_line = transfer_script_params[text_next_obj_id(curr_line)];
             break;
         case BTN_EVENTS:
-            curr_line = event_script[text_next_obj_id(curr_line)];
+            curr_line = event_script_params[text_next_obj_id(curr_line)];
             break;
         }
-        curr_text = curr_line.get_text();
+
+        curr_text = (curr_line.has_text()) ? dialogue_table.get_text_entry(curr_line.get_text_entry_index()) : NULL;
         char_index = 0;
 
         if (text_exit)
@@ -153,14 +161,6 @@ int ptgb_write(const byte *text, bool instant, int length)
     TTC *tc = tte_get_context();
     TFont *font;
     int num = 0;
-
-    if (curr_text[char_index] == 0xFB) // This will need to be moved
-    {
-        line_char_index += char_index;
-        line_char_index++;
-        // Low key kinda scuffed, but it works to split the string
-        curr_text = &curr_line.get_text()[line_char_index];
-    }
 
     while ((ch = *str) != 0xFF && num < length)
     {

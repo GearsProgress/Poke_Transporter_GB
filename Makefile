@@ -45,8 +45,8 @@ CFLAGS	:=	-Wall -O2\
 		-mcpu=arm7tdmi -mtune=arm7tdmi -masm-syntax-unified\
 		$(ARCH) 
 
-CFLAGS	+=	$(INCLUDE) -ffunction-sections -fdata-sections -Os -Wall -mthumb -mcpu=arm7tdmi -mtune=arm7tdmi
-CXXFLAGS	:=	$(CFLAGS) -g0 -fno-rtti -fno-exceptions -fdata-sections -ffunction-sections -std=c++20 -Wno-volatile -D_GLIBCXX_USE_CXX20_ABI=0
+CFLAGS	+=	$(INCLUDE) -ffunction-sections -fdata-sections -Os -Wall -mthumb -mcpu=arm7tdmi -mtune=arm7tdmi -fstack-usage
+CXXFLAGS	:=	$(CFLAGS) -g0 -fno-rtti -fno-exceptions -fdata-sections -ffunction-sections -std=c++20 -Wno-volatile -D_GLIBCXX_USE_CXX20_ABI=0 -fstack-usage
 
 ifeq ($(BUILD_TYPE), debug)
 	CFLAGS += -g -DDEBUG
@@ -144,10 +144,12 @@ all: $(BUILD)
 
 generate_data:
 	mkdir -p data
+	mkdir -p to_compress
 	@env -i PATH=$(PATH) $(MAKE) -C tools/compressZX0
 	@env -i PATH=$(PATH) $(MAKE) -C tools/data-generator
-	@cd tools/data-generator && ./data-generator
-	@find tools/data-generator -name *.bin | xargs -i tools/compressZX0/compressZX0 {} data/
+	@tools/data-generator/data-generator to_compress
+	@python3 text_helper/main.py
+	@find to_compress -name "*.bin" | xargs -i tools/compressZX0/compressZX0 {} data/
 
 #---------------------------------------------------------------------------------
 $(BUILD): generate_data
@@ -163,7 +165,7 @@ clean:
 	@$(MAKE) -C tools/compressZX0 clean
 	@$(MAKE) -C tools/data-generator clean
 	@$(MAKE) -C loader clean
-	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).gba data/
+	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).gba data/ to_compress/
 
 
 #---------------------------------------------------------------------------------
