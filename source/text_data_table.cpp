@@ -66,7 +66,7 @@ uint16_t streamed_text_data_table::get_number_of_text_entries() const
 
 const uint8_t* streamed_text_data_table::get_text_entry(uint8_t index)
 {
-    const uint8_t num_text_entries = get_number_of_text_entries();
+    const uint16_t num_text_entries = get_number_of_text_entries();
     const uint16_t entries_start_offset = get_entries_start_offset_of(num_text_entries);
     const uint16_t entry_offset = get_entry_offset_by_index(index_buffer_, index);
     const uint16_t entry_byte_offset = entries_start_offset + entry_offset;
@@ -89,7 +89,7 @@ const uint8_t* streamed_text_data_table::get_text_entry(uint8_t index)
     else
     {
         // we don't have a next entry. So we need to consider the end of the file
-        const uint32_t decompressed_size = zx0_decompressor_get_decompressed_size();
+        const uint16_t decompressed_size = static_cast<uint16_t>(zx0_decompressor_get_decompressed_size());
         entry_size_in_bytes = decompressed_size - entry_byte_offset;
     }
     entry_end_byte_offset = entry_byte_offset + entry_size_in_bytes;

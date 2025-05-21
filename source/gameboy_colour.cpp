@@ -75,24 +75,25 @@ bool end_of_data;
 byte data_packet[PACKET_SIZE];
 
 #define SPI_TEXT_OUT_ARRAY_ELEMENT_SIZE 64
-// 10 elements of 64 bytes, zero-initialized.
-char spi_text_out_array[10][SPI_TEXT_OUT_ARRAY_ELEMENT_SIZE] = {
-  {0},
-  {0},
-  {0},
-  {0},
-  {0},
-  {0},
-  {0},
-  {0},
-  {0},
-  {0}
-};
 
 void print(const char* format, ...)
 {
   va_list args;
   va_start(args, format);
+
+  // 10 elements of 64 bytes, zero-initialized.
+  char spi_text_out_array[10][SPI_TEXT_OUT_ARRAY_ELEMENT_SIZE] = {
+    {0},
+    {0},
+    {0},
+    {0},
+    {0},
+    {0},
+    {0},
+    {0},
+    {0},
+    {0}
+  };
 
   for (int i = 10; i > 0; i--)
   {

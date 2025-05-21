@@ -9,7 +9,7 @@
 #include "box_menu.h"
 #include "payload_builder.h"
 
-const GB_ROM *list_of_gb_roms[NUM_GB_ROMS] = {
+static const GB_ROM *list_of_gb_roms[NUM_GB_ROMS] = {
 	&ENG_RED,
 	&ENG_BLUE,
 	&ENG_YELLOW,
@@ -21,7 +21,7 @@ const GB_ROM *list_of_gb_roms[NUM_GB_ROMS] = {
 	&FRE_YELLOW
 };
 
-byte gen1_rb_debug_box_data[0x462] = {
+static const byte gen1_rb_debug_box_data[0x462] = {
 	// Num of Pokemon
 	0x14,
 	// Pokemon 1-20
@@ -90,7 +90,7 @@ byte gen1_rb_debug_box_data[0x462] = {
 	0x91, 0x80, 0x93, 0x93, 0x80, 0x93, 0x80, 0x50, 0x50, 0x50, 0x50,
 	0x8F, 0x88, 0x83, 0x86, 0x84, 0x98, 0x50, 0x50, 0x50, 0x50, 0x50};
 
-byte gen2_debug_box_data[0x44E] = {
+static const byte gen2_debug_box_data[0x44E] = {
 	// Num of Pokemon
 	0x14,
 	// Pokemon 1-20
