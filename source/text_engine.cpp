@@ -155,6 +155,7 @@ int ptgb_write(const byte *text, bool instant, int length)
     TFont *font;
     int num = 0;
 
+/*
     if (curr_text[char_index] == 0xFB) // This will need to be moved
     {
         line_char_index += char_index;
@@ -162,7 +163,7 @@ int ptgb_write(const byte *text, bool instant, int length)
         // Low key kinda scuffed, but it works to split the string
         curr_text = &curr_line.get_text()[line_char_index];
     }
-
+*/
     while ((ch = *str) != 0xFF && num < length)
     {
         if (get_frame_count() % 2 == 0 || key_held(KEY_B) || key_held(KEY_A) || instant)

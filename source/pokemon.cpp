@@ -287,29 +287,12 @@ void Pokemon::convert_to_gen_three(Conversion_Types conv_type, bool simplified, 
          ((dvs[0] & 0xF) == 0b1010) &&  // Checks if the Defense DVs equal 10
          ((dvs[0] & 0b00100000) >> 5)); // Checks if the second bit of the Attack DV is true
 
-    byte e_arr[7] = {0xBF, 0xC6, 0xC6, 0xC3, 0xC9, 0xCE, 0xFF};
-    byte p_arr[8] = {0xCA, 0xBF, 0xCE, 0xCF, 0xC8, 0xC3, 0xBB, 0xFF};
-    byte a_arr[7] = {0xBB, 0xCF, 0xCD, 0xCE, 0xC3, 0xC8, 0xFF};
-
-    int e = fnv1a_hash(e_arr, 7);
-    int p = fnv1a_hash(p_arr, 8);
-    int a = fnv1a_hash(a_arr, 7);
-
     if (species_index_struct == 52 && fnv1a_hash(nickname, 7) == 1515822901 &&
-        (fnv1a_hash(trainer_name, 7) == -1623517410 || fnv1a_hash(trainer_name, 7) == 1342961308))
+        (fnv1a_hash(trainer_name, 7) == 2671449886 || fnv1a_hash(trainer_name, 7) == 1342961308))
     {
         is_shiny = true;
         dvs[0] = 0xFF;
         dvs[1] = 0xFF;
-    }
-
-    int val = e + p + a;
-    if (val > 10)
-    {
-        while (true)
-        {
-            val++;
-        }
     }
 
     if (species_index_struct == 201) // Checks if the Pokemon is Unown
@@ -425,15 +408,17 @@ void Pokemon::convert_to_gen_three(Conversion_Types conv_type, bool simplified, 
     if (ENABLE_MATCH_PID)
     {
         n_pid = generate_pid_iv_match(species_index_struct, nature_mod, &dvs[0]);
-
-        u16 curr_rand = get_rand_u16();
-        ivs[0] = (curr_rand >> 0) & 0b11111;
-        ivs[1] = (curr_rand >> 5) & 0b11111;
-        ivs[2] = (curr_rand >> 10) & 0b11111;
-        curr_rand = get_rand_u16();
-        ivs[3] = (curr_rand >> 0) & 0b11111;
-        ivs[4] = (curr_rand >> 5) & 0b11111;
-        ivs[5] = (curr_rand >> 10) & 0b11111;
+        ///n_pid = generate_pid_iv_legendary(species_index_struct, &dvs[0], &ivs[0]);
+        
+                u16 curr_rand = get_rand_u16();
+                ivs[0] = (curr_rand >> 0) & 0b11111;
+                ivs[1] = (curr_rand >> 5) & 0b11111;
+                ivs[2] = (curr_rand >> 10) & 0b11111;
+                curr_rand = get_rand_u16();
+                ivs[3] = (curr_rand >> 0) & 0b11111;
+                ivs[4] = (curr_rand >> 5) & 0b11111;
+                ivs[5] = (curr_rand >> 10) & 0b11111;
+        
         iv_egg_ability = 0;
         for (int i = 0; i < 6; i++)
         {
@@ -842,6 +827,68 @@ u32 Pokemon::generate_pid_iv_match(byte pid_species_index, byte nature, byte *pi
              : true)));
 
     return new_pid;
+}
+
+u32 Pokemon::generate_pid_iv_legendary(byte pid_species_index, byte *pid_dvs, byte *out_ivs)
+{
+    // Convert and set IVs
+
+    // This stores the DVs in the IV order
+    byte ivs[6] = {
+        (((dvs[0] >> 4) & 0b1) << 3) |
+            (((dvs[0] >> 0) & 0b1) << 2) |
+            (((dvs[1] >> 4) & 0b1) << 1) |
+            (((dvs[1] >> 0) & 0b1) << 0),
+
+        (dvs[0] >> 4) & 0b1111, // Attack
+        (dvs[0] >> 0) & 0b1111, // Defense
+        (dvs[1] >> 4) & 0b1111, // Speed
+        (dvs[1] >> 0) & 0b1111, // Special Attack
+        (dvs[1] >> 0) & 0b1111, // Special Defense
+    };
+
+    u32 iv_low_rng;
+    u32 iv_high_rng;
+    u32 pid_high_rng;
+    u32 pid_low_rng;
+    u32 pid;
+    u32 seed;
+
+    u32 comp;
+    u32 n_val;
+    u32 n_comp;
+
+    for (int i = 0; i < 65535; i++)
+    {
+        // Generate the low IV byte, being the SpD, SpA, Spe
+        iv_low_rng = (i % 2) << 31 | (ivs[5] << 27) | (ivs[4] << 22) | (ivs[3] << 17) | (i >> 1);
+        iv_high_rng = get_rev_rand_u32(iv_low_rng);
+        pid_high_rng = get_rev_rand_u32(iv_high_rng);
+        pid_low_rng = get_rev_rand_u32(pid_high_rng);
+        seed = get_rev_rand_u32(pid_low_rng);
+        pid = ((pid_high_rng & 0xFFFF0000) << 0) | (pid_low_rng & 0xFFFF0000) >> 16;
+
+        // Test it against the high IV byte, being the Def, Atk, HP
+        comp = (ivs[2] << 11) | (ivs[1] << 6) | (ivs[0] << 1);
+        n_val = (iv_high_rng >> 16) & 0b0111101111011110;
+        n_comp = comp & 0b0111101111011110;
+
+        if (n_comp == n_val)
+        {
+            if ((pid % 25) % 6 == 0)
+            {
+                out_ivs[0] = (iv_low_rng >> 0) & 0b11111; // HP
+                out_ivs[1] = (iv_low_rng >> 5) & 0b11111; // Atk
+                out_ivs[2] = (iv_low_rng >> 10) & 0b11111; // Def
+                out_ivs[3] = (iv_high_rng >> 5) & 0b11111; // SpA
+                out_ivs[4] = (iv_high_rng >> 10) & 0b11111; // SpD
+                out_ivs[5] = (iv_high_rng >> 0) & 0b11111; // Spe
+
+                return pid_low_rng | seed;
+            }
+        }
+    }
+    return 0;
 }
 
 u8 Pokemon::get_letter_from_pid(u32 pid)
