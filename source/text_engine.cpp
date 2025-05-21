@@ -22,6 +22,29 @@ uint line_char_index;
 const byte *curr_text;
 bool text_exit;
 
+// This function was separated from text_loop to reduce the scope of the text_decompression_buffer.
+// if we didn't do this, the decompression_buffer would be kept on the stack (=IWRAM) for the entire duration of the
+// text_loop() call. This is particularly bad because the whole mystery_gift_builder sequence is being triggered from within
+// text_loop(). And there we need all the IWRAM we can muster.
+// Doing it this way does mean that we need to completely restart decompression whenever we switch from dialog entry.
+// but given that it requires user input to do so, I believe it's worth it and not time-critical.
+// attribute noinline was used to make sure the compiler doesn't inline this code back into text_loop()
+static __attribute__((noinline)) const u8* read_dialogue_text_entry(uint8_t index, u8 *output_buffer)
+{
+    u8 text_decompression_buffer[3072];
+    u8 index_buffer[100];
+    const u8 *text_entry;
+
+    streamed_text_data_table dialogue_table(text_decompression_buffer, sizeof(text_decompression_buffer), index_buffer);
+
+    dialogue_table.decompress(get_compressed_PTGB_table());
+
+    text_entry = dialogue_table.get_text_entry(index);
+    memcpy(output_buffer, text_entry, dialogue_table.get_text_entry_size(index));
+
+    return output_buffer;
+}
+
 void init_text_engine()
 {
     // Load the TTE
@@ -56,11 +79,9 @@ void init_text_engine()
 
 int text_loop(int script)
 {
-    u8 text_decompression_buffer[3072];
-    u8 index_buffer[100];
-    streamed_text_data_table dialogue_table(text_decompression_buffer, sizeof(text_decompression_buffer), index_buffer);
-
-    dialogue_table.decompress(get_compressed_PTGB_table());
+    // we have restricted the dialog entries to 1024 bytes in the text_helper main.py
+    // so we shouldn't run into problems when we only use 1 KB to contain a text entry.
+    u8 diag_entry_text_buffer[1024];
     switch (script)
     {
     case BTN_TRANSFER:
@@ -72,7 +93,7 @@ int text_loop(int script)
         break;
     }
 
-    curr_text = (curr_line.has_text()) ? dialogue_table.get_text_entry(curr_line.get_text_entry_index()) : NULL;
+    curr_text = (curr_line.has_text()) ? read_dialogue_text_entry(curr_line.get_text_entry_index(), diag_entry_text_buffer) : NULL;
 
     REG_BG1CNT = (REG_BG1CNT && !BG_PRIO_MASK) | BG_PRIO(2); // Show Fennel
     show_text_box();
@@ -99,7 +120,7 @@ int text_loop(int script)
             break;
         }
 
-        curr_text = (curr_line.has_text()) ? dialogue_table.get_text_entry(curr_line.get_text_entry_index()) : NULL;
+        curr_text = (curr_line.has_text()) ? read_dialogue_text_entry(curr_line.get_text_entry_index(), diag_entry_text_buffer) : NULL;
         char_index = 0;
 
         if (text_exit)

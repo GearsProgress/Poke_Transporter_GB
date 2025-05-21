@@ -7,6 +7,7 @@ import requests
 from collections import defaultdict
 import copy
 import math
+import sys
 
 update = True
 
@@ -389,6 +390,11 @@ def write_text_bin_file(filename, dictionary):
             linedata = bytes.fromhex(dictionary[key]['bytes'])
             bindata.extend(linedata)
             current_offset += len(linedata)
+
+            if len(linedata) > 1024:
+                print(f"Error: entry '{key}' numBytes exceeds 1024 (got {len(linedata)})", file=sys.stderr)
+                sys.exit(1)
+
             num += 1
 
         # Write the index and bindata to the file

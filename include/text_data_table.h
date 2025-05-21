@@ -32,7 +32,12 @@ public:
     /**
      * This function returns a pointer to a text entry in the decompression_buffer
      */
-    const uint8_t* get_text_entry(uint8_t index) const;
+    const uint8_t* get_text_entry(uint16_t index) const;
+
+    /**
+     * This function returns the text entry size in bytes at the given index
+     */
+    uint16_t get_text_entry_size(uint16_t index) const;
 private:
     uint8_t *decompression_buffer_;
 };
@@ -66,7 +71,12 @@ public:
     /**
      * This function returns a pointer to a text entry in the decompression_buffer
      */
-    const uint8_t* get_text_entry(uint8_t index);
+    const uint8_t* get_text_entry(uint16_t index);
+
+    /**
+     * This function returns the text entry size in bytes at the given index
+     */
+    uint16_t get_text_entry_size(uint16_t index) const;
 private:
     uint8_t* get_window_start() const;
     uint8_t* get_window_end() const;

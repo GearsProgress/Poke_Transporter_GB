@@ -2,7 +2,7 @@
 #include "zx0_decompressor.h"
 #include <cstring>
 
-static uint16_t get_entry_offset_by_index(const uint8_t *text_table, uint8_t index)
+static uint16_t get_entry_offset_by_index(const uint8_t *text_table, uint16_t index)
 {
     return *((uint16_t*)(text_table + 2 + index * 2));
 }
@@ -11,6 +11,32 @@ static uint16_t get_entries_start_offset_of(uint8_t num_text_entries)
 {
     // This returns the byte offset to skip the table index and reach the start of the actual entries.
     return 2 + (num_text_entries * 2);
+}
+
+static uint16_t get_num_text_entries(const uint8_t *index_buffer)
+{
+    return *((uint16_t*)index_buffer);
+}
+
+static uint16_t get_entry_size_in_bytes(const uint8_t *index_buffer, uint16_t index)
+{
+    const uint16_t entry_offset = get_entry_offset_by_index(index_buffer, index);
+    const uint16_t num_text_entries = get_num_text_entries(index_buffer);
+    uint16_t entry_size_in_bytes;
+
+    if(index != num_text_entries - 1)
+    {
+        const uint16_t next_entry_offset = get_entry_offset_by_index(index_buffer, index + 1);
+        entry_size_in_bytes = next_entry_offset - entry_offset;
+    }
+    else
+    {
+        const uint16_t entry_byte_offset = get_entries_start_offset_of(num_text_entries) + entry_offset;
+        // we don't have a next entry. So we need to consider the end of the file
+        const uint16_t decompressed_size = static_cast<uint16_t>(zx0_decompressor_get_decompressed_size());
+        entry_size_in_bytes = decompressed_size - entry_byte_offset;
+    }
+    return entry_size_in_bytes;
 }
 
 text_data_table::text_data_table(uint8_t *decompression_buffer)
@@ -26,13 +52,18 @@ void text_data_table::decompress(const uint8_t *compressed_table)
 
 uint16_t text_data_table::get_number_of_text_entries() const
 {
-    return *((uint16_t*)decompression_buffer_);
+    return get_num_text_entries(decompression_buffer_);
 }
 
-const uint8_t* text_data_table::get_text_entry(uint8_t index) const
+const uint8_t* text_data_table::get_text_entry(uint16_t index) const
 {
     const uint16_t entry_offset = get_entry_offset_by_index(decompression_buffer_, index);
     return decompression_buffer_ + get_entries_start_offset_of(get_number_of_text_entries()) + entry_offset;
+}
+
+uint16_t text_data_table::get_text_entry_size(uint16_t index) const
+{
+    return get_entry_size_in_bytes(decompression_buffer_, index);
 }
 
 streamed_text_data_table::streamed_text_data_table(uint8_t *decompression_buffer, uint32_t decompression_buffer_size, uint8_t *index_buffer)
@@ -64,34 +95,20 @@ uint16_t streamed_text_data_table::get_number_of_text_entries() const
     return *((uint16_t*)index_buffer_);
 }
 
-const uint8_t* streamed_text_data_table::get_text_entry(uint8_t index)
+const uint8_t* streamed_text_data_table::get_text_entry(uint16_t index)
 {
     const uint16_t num_text_entries = get_number_of_text_entries();
-    const uint16_t entries_start_offset = get_entries_start_offset_of(num_text_entries);
-    const uint16_t entry_offset = get_entry_offset_by_index(index_buffer_, index);
-    const uint16_t entry_byte_offset = entries_start_offset + entry_offset;
+    const uint16_t entry_byte_offset = get_entries_start_offset_of(num_text_entries) + get_entry_offset_by_index(index_buffer_, index);
+    const uint16_t entry_size_in_bytes = get_text_entry_size(index);
     const uint16_t space_remaining_outside_lookback_window = decompression_buffer_size_ - ZX0_DEFAULT_WINDOW_SIZE;
-    const uint16_t current_window_size = get_current_zx0_window_size();
-    const uint16_t window_start_offset = bytes_decompressed_ - current_window_size;
+    const uint16_t window_start_offset = bytes_decompressed_ - get_current_zx0_window_size();
     uint16_t bytes_to_decompress;
     uint16_t chunk_size;
-    uint16_t entry_size_in_bytes;
     uint16_t entry_end_byte_offset;
 
     // figure out how many bytes we need to read to have the entire text entry
     // unfortunately ZX0 doesn't have random access, so we need to linearly decompress
     // until we have reached the bytes we actually want.
-    if(index != num_text_entries - 1)
-    {
-        const uint16_t next_entry_offset = get_entry_offset_by_index(index_buffer_, index + 1);
-        entry_size_in_bytes = next_entry_offset - entry_offset;
-    }
-    else
-    {
-        // we don't have a next entry. So we need to consider the end of the file
-        const uint16_t decompressed_size = static_cast<uint16_t>(zx0_decompressor_get_decompressed_size());
-        entry_size_in_bytes = decompressed_size - entry_byte_offset;
-    }
     entry_end_byte_offset = entry_byte_offset + entry_size_in_bytes;
 
     if(entry_end_byte_offset < bytes_decompressed_)
@@ -131,6 +148,11 @@ const uint8_t* streamed_text_data_table::get_text_entry(uint8_t index)
     // we know the last byte we decompressed should be the last byte of the entry
     // so we need to count backwards to get to the beginning
     return decompression_buffer_ + ZX0_DEFAULT_WINDOW_SIZE + last_chunk_size_ - entry_size_in_bytes;
+}
+
+uint16_t streamed_text_data_table::get_text_entry_size(uint16_t index) const
+{
+    return get_entry_size_in_bytes(index_buffer_, index);
 }
 
 uint8_t* streamed_text_data_table::get_window_start() const
