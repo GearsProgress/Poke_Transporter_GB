@@ -3,12 +3,23 @@
 
 #include <tonc.h>
 
-#define erratic_max (u32)600000
-#define fast_max (u32)800000
 #define med_fast_max (u32)1000000
+// Slightly Fast goes unused
+// Slightly Slow goes unused
 #define med_slow_max (u32)1059860
+#define fast_max (u32)800000
 #define slow_max (u32)1250000
-#define flux_max (u32)1640000
+// Erractic is Gen 3+
+// Fluctuating is Gen 3+
+
+#define EXP_FAST 0
+// Slightly Fast goes unused
+// Slightly Slow goes unused
+#define EXP_MED_SLOW 3
+#define EXP_MED_FAST 4
+#define EXP_SLOW 5
+// Erractic is Gen 3+
+// Fluctuating is Gen 3+
 
 #define JPN_ID 1
 #define ENG_ID 2
