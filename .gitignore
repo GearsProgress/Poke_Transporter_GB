@@ -8,3 +8,4 @@ build/
 .vscode/
 source/payload_builder.exe
 source/test_payload.txt
+loader/data/multiboot_rom.bin

@@ -53,9 +53,10 @@ public:
     byte get_gen_3_data(int index);
     byte *get_full_gen_3_array();
     byte get_unencrypted_data(int index);
-    byte *convert_text(PokemonTables& data_tables, byte *text_array, int size);
-    u32 generate_pid_save_iv(PokemonTables &data_tables, byte pid_species_index, byte nature, byte *pid_dvs);
+    byte *convert_text(PokemonTables& data_tables, byte *text_array, int size, int gen, int lang);
+    u32 generate_pid_save_iv(PokemonTables& data_tables, byte pid_species_index, byte nature, byte *pid_dvs);
     u32 generate_pid_iv_match(PokemonTables& data_tables, byte pid_species_index, byte nature, byte *pid_dvs);
+    u32 generate_pid_iv_legendary(PokemonTables& data_tables, byte pid_species_index, byte *pid_dvs, byte *out_ivs);
     byte rand_reverse_mod(byte modulo_divisor, byte target_mod);
     byte get_rand_gender_byte(PokemonTables &data_tables, byte index_num, byte attack_DVs);
     byte get_dex_number();
