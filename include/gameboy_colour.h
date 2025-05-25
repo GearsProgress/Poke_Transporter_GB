@@ -4,7 +4,6 @@
 #define GAMEBOY_COLOUR_H_
 
 #include <tonc.h>
-#include <string>
 #include "libraries/gba-link-connection/LinkSPI.hpp"
 #include "pokemon_party.h"
 

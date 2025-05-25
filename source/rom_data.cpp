@@ -9,6 +9,7 @@
 #include "gba_rom_values/ger_gba_rom_values.h"
 #include "gba_rom_values/ita_gba_rom_values.h"
 #include "gba_rom_values/spa_gba_rom_values.h"
+#include "libraries/nanoprintf/nanoprintf.h"
 
 extern rom_data curr_rom;
 
@@ -162,31 +163,34 @@ bool rom_data::is_ruby_sapphire()
 
 void rom_data::print_rom_info()
 {
-    std::string out;
+    char buffer[64];
+    char gameTypeChar;
     switch (gamecode)
     {
     case (RUBY_ID):
-        out += "R";
+        gameTypeChar = 'R';
         break;
     case (SAPPHIRE_ID):
-        out += "S";
+        gameTypeChar = 'S';
         break;
     case (FIRERED_ID):
-        out += "F";
+        gameTypeChar = 'F';
         break;
     case (LEAFGREEN_ID):
-        out += "L";
+        gameTypeChar = 'L';
         break;
     case (EMERALD_ID):
-        out += "E";
+        gameTypeChar = 'E';
+        break;
+    default:
+        gameTypeChar = '0';
         break;
     }
-    out += "-";
-    out += std::to_string(version);
-    out += "-";
-    out += char(language);
+
+    npf_snprintf(buffer, sizeof(buffer), "%c-%d-%c", gameTypeChar, version, language);
+
     tte_set_pos(0, 8);
-    ptgb_write(out.c_str());
+    ptgb_write(buffer);
 }
 
 bool rom_data::verify_rom()

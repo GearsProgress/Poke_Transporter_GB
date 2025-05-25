@@ -73,8 +73,9 @@ typedef enum
 
 #define GB_LINK_H
 #include <tonc.h>
+//#include <string>
 
-void log(std::string text);
+//void log(std::string text);
 void wait(u32 verticalLines);
 inline void VBLANK() {}
 void init();

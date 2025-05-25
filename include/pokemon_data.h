@@ -2,7 +2,6 @@
 #define POKEMON_DATA_H
 
 #include <tonc.h>
-#include <string>
 
 #define med_fast_max (u32)1000000
 // Slightly Fast goes unused

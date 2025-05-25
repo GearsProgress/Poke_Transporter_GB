@@ -1,10 +1,29 @@
 #include "z80_asm.h"
-#include <stdexcept>
-#include <string>
-#include <vector>
+#include <stdarg.h>
+#include "libraries/nanoprintf/nanoprintf.h"
+#include "libstd_replacements.h"
 
 #define DIRECT false
 #define RELATIVE true
+
+// this function generates an error message based on vsnprintf
+// and throws it.
+static void throw_error(const char* format, ...)
+{
+    // reserved 33 bytes for 2 ints alongside a format string
+    char error_msg_buffer[96];
+    va_list args;
+
+    va_start(args, format);
+    npf_vsnprintf(error_msg_buffer, sizeof(error_msg_buffer), format, args);
+    va_end(args);
+
+    // we should avoid exceptions and <stdexcept>
+    // throw std::runtime_error(message);
+    while (true)
+    {
+    }
+}
 
 z80_asm_handler::z80_asm_handler(int data_size, int mem_offset)
 {
@@ -42,15 +61,6 @@ void z80_asm_handler::generate_patchlist(z80_asm_handler *bytes_to_patch){
         }
     }
     add_byte(0xFF);
-}
-
-void z80_asm_handler::throw_error(std::string message)
-{
-
-    // throw std::runtime_error(message);
-    while (true)
-    {
-    }
 }
 
 /* Figuring out pointers automatically is tricky since there are two seperate sections where our code is going. One is wSerialEnemyDataBlock, and the other is wSerialPartyMonsPatchList (0xC5D0)
@@ -129,7 +139,7 @@ void z80_asm_handler::LD(int destination, int source)
     }
     else
     {
-        throw_error("Invalid Z80 LD command: " + std::to_string(source) + ", " + std::to_string(destination));
+        throw_error("Invalid Z80 LD command: %d, %d", source, destination);
     }
 }
 void z80_asm_handler::HALT()
@@ -163,7 +173,7 @@ void z80_asm_handler::ADD(int destination, int source)
     }
     else
     {
-        throw_error("Invalid Z80 ADD command: " + std::to_string(source) + ", " + std::to_string(destination));
+        throw_error("Invalid Z80 ADD command: %d, %d", source, destination);
     }
 }
 void z80_asm_handler::ADC(int destination, int source)
@@ -181,7 +191,7 @@ void z80_asm_handler::ADC(int destination, int source)
     }
     else
     {
-        throw_error("Invalid Z80 ADC command: " + std::to_string(source) + ", " + std::to_string(destination));
+        throw_error("Invalid Z80 ADC command: %d, %d", source, destination);
     }
 }
 void z80_asm_handler::SUB(int destination, int source)
@@ -199,7 +209,7 @@ void z80_asm_handler::SUB(int destination, int source)
     }
     else
     {
-        throw_error("Invalid Z80 SUB command: " + std::to_string(source) + ", " + std::to_string(destination));
+        throw_error("Invalid Z80 SUB command: %d, %d", source, destination);
     }
 }
 void z80_asm_handler::SBC(int destination, int source)
@@ -217,7 +227,7 @@ void z80_asm_handler::SBC(int destination, int source)
     }
     else
     {
-        throw_error("Invalid Z80 SBC command: " + std::to_string(source) + ", " + std::to_string(destination));
+        throw_error("Invalid Z80 SBC command: %d, %d", source, destination);
     }
 }
 void z80_asm_handler::AND(int destination, int source)
@@ -235,7 +245,7 @@ void z80_asm_handler::AND(int destination, int source)
     }
     else
     {
-        throw_error("Invalid Z80 AND command: " + std::to_string(source) + ", " + std::to_string(destination));
+        throw_error("Invalid Z80 AND command: %d, %d", source, destination);
     }
 }
 void z80_asm_handler::XOR(int destination, int source)
@@ -253,7 +263,7 @@ void z80_asm_handler::XOR(int destination, int source)
     }
     else
     {
-        throw_error("Invalid Z80 XOR command: " + std::to_string(source) + ", " + std::to_string(destination));
+        throw_error("Invalid Z80 XOR command: %d, %d", source, destination);
     }
 }
 void z80_asm_handler::OR(int destination, int source)
@@ -271,7 +281,7 @@ void z80_asm_handler::OR(int destination, int source)
     }
     else
     {
-        throw_error("Invalid Z80 OR command: " + std::to_string(source) + ", " + std::to_string(destination));
+        throw_error("Invalid Z80 OR command: %d, %d", source, destination);
     }
 }
 void z80_asm_handler::CP(int destination, int source)
@@ -289,7 +299,7 @@ void z80_asm_handler::CP(int destination, int source)
     }
     else
     {
-        throw_error("Invalid Z80 CP command: " + std::to_string(source) + ", " + std::to_string(destination));
+        throw_error("Invalid Z80 CP command: %d, %d", source, destination);
     }
 }
 void z80_asm_handler::NOP()
@@ -316,7 +326,7 @@ void z80_asm_handler::INC(int reg)
     }
     else
     {
-        throw_error("Invalid Z80 INC command: " + std::to_string(reg));
+        throw_error("Invalid Z80 INC command: %d", reg);
     }
 }
 void z80_asm_handler::DEC(int reg)
@@ -333,7 +343,7 @@ void z80_asm_handler::DEC(int reg)
     }
     else
     {
-        throw_error("Invalid Z80 DEC command: " + std::to_string(reg));
+        throw_error("Invalid Z80 DEC command: %d", reg);
     }
 }
 void z80_asm_handler::RLC(int reg)
@@ -366,7 +376,7 @@ void z80_asm_handler::ROT(int reg, int info)
     }
     else
     {
-        throw_error("Invalid Z80 ROT command: " + std::to_string(reg));
+        throw_error("Invalid Z80 ROT command: %d", reg);
     }
 }
 void z80_asm_handler::JR(int distance)
@@ -379,7 +389,7 @@ void z80_asm_handler::JR(int distance)
     }
     else
     {
-        throw_error("Invalid Z80 JR command: " + std::to_string(distance));
+        throw_error("Invalid Z80 JR command: %d", distance);
     }
 }
 void z80_asm_handler::JR(int flag, int distance)
@@ -392,7 +402,7 @@ void z80_asm_handler::JR(int flag, int distance)
     }
     else
     {
-        throw_error("Invalid Z80 JR command: " + std::to_string(flag) + ", " + std::to_string(distance));
+        throw_error("Invalid Z80 JR command: %d, %d", flag, distance);
     }
 }
 void z80_asm_handler::DDA()
@@ -423,7 +433,7 @@ void z80_asm_handler::RET(int flag)
     }
     else
     {
-        throw_error("Invalid Z80 RET command: " + std::to_string(flag));
+        throw_error("Invalid Z80 RET command: %d", flag);
     }
 };
 void z80_asm_handler::RETI()
@@ -438,7 +448,7 @@ void z80_asm_handler::PUSH(int source)
     }
     else
     {
-        throw_error("Invalid Z80 PUSH command: " + std::to_string(source));
+        throw_error("Invalid Z80 PUSH command: %d", source);
     }
 }
 void z80_asm_handler::POP(int destination)
@@ -449,7 +459,7 @@ void z80_asm_handler::POP(int destination)
     }
     else
     {
-        throw_error("Invalid Z80 PUSH command: " + std::to_string(destination));
+        throw_error("Invalid Z80 PUSH command: %d", destination);
     }
 }
 void z80_asm_handler::JP(int destination)
@@ -468,7 +478,7 @@ void z80_asm_handler::JP(int destination)
     }
     else
     {
-        throw_error("Invalid Z80 JP command: " + std::to_string(destination));
+        throw_error("Invalid Z80 JP command: %d", destination);
     }
 }
 void z80_asm_handler::JP(int flag, int destination)
@@ -482,7 +492,7 @@ void z80_asm_handler::JP(int flag, int destination)
     }
     else
     {
-        throw_error("Invalid Z80 JP command: " + std::to_string(flag) + ", " + std::to_string(destination));
+        throw_error("Invalid Z80 JP command: %d, %d", flag, destination);
     }
 }
 void z80_asm_handler::CALL(int destination)
@@ -496,7 +506,7 @@ void z80_asm_handler::CALL(int destination)
     }
     else
     {
-        throw_error("Invalid Z80 CALL command: " + std::to_string(destination));
+        throw_error("Invalid Z80 CALL command: %d", destination);
     }
 }
 void z80_asm_handler::CALL(int flag, int destination)
@@ -510,7 +520,7 @@ void z80_asm_handler::CALL(int flag, int destination)
     }
     else
     {
-        throw_error("Invalid Z80 CALL command: " + std::to_string(flag) + ", " + std::to_string(destination));
+        throw_error("Invalid Z80 CALL command: %d, %d", flag, destination);
     }
 }
 void z80_asm_handler::RST(int value)
@@ -521,7 +531,7 @@ void z80_asm_handler::RST(int value)
     }
     else
     {
-        throw_error("Invalid Z80 RST command: " + std::to_string(value));
+        throw_error("Invalid Z80 RST command: %d", value);
     }
 }
 void z80_asm_handler::LDH(int source, int destination)
@@ -550,7 +560,7 @@ void z80_asm_handler::LDH(int source, int destination)
     }
     else
     {
-        throw_error("Invalid Z80 LDH command: " + std::to_string(source) + ", " + std::to_string(destination));
+        throw_error("Invalid Z80 LDH command: %d, %d", source, destination);
     }
 }
 void z80_asm_handler::DI()
@@ -571,7 +581,7 @@ void z80_asm_handler::LDHL(int offset)
     }
     else
     {
-        throw_error("Invalid Z80 LDHL command: " + std::to_string(offset));
+        throw_error("Invalid Z80 LDHL command: %d", offset);
     }
 }
 void z80_asm_handler::SLA(int reg)
@@ -583,7 +593,7 @@ void z80_asm_handler::SLA(int reg)
     }
     else
     {
-        throw_error("Invalid Z80 SLA command: " + std::to_string(reg));
+        throw_error("Invalid Z80 SLA command: %d", reg);
     }
 }
 void z80_asm_handler::SRA(int reg)
@@ -595,7 +605,7 @@ void z80_asm_handler::SRA(int reg)
     }
     else
     {
-        throw_error("Invalid Z80 SRA command: " + std::to_string(reg));
+        throw_error("Invalid Z80 SRA command: %d", reg);
     }
 }
 void z80_asm_handler::SWAP(int reg)
@@ -607,7 +617,7 @@ void z80_asm_handler::SWAP(int reg)
     }
     else
     {
-        throw_error("Invalid Z80 SWAP command: " + std::to_string(reg));
+        throw_error("Invalid Z80 SWAP command: %d", reg);
     }
 }
 void z80_asm_handler::SRL(int reg)
@@ -619,7 +629,7 @@ void z80_asm_handler::SRL(int reg)
     }
     else
     {
-        throw_error("Invalid Z80 SRL command: " + std::to_string(reg));
+        throw_error("Invalid Z80 SRL command: %d", reg);
     }
 }
 void z80_asm_handler::BIT(int bit, int reg)
@@ -631,7 +641,7 @@ void z80_asm_handler::BIT(int bit, int reg)
     }
     else
     {
-        throw_error("Invalid Z80 BIT command: " + std::to_string(reg));
+        throw_error("Invalid Z80 BIT command: %d", reg);
     }
 }
 void z80_asm_handler::RES(int bit, int reg)
@@ -643,7 +653,7 @@ void z80_asm_handler::RES(int bit, int reg)
     }
     else
     {
-        throw_error("Invalid Z80 RES command: " + std::to_string(reg));
+        throw_error("Invalid Z80 RES command: %d", reg);
     }
 }
 void z80_asm_handler::SET(int bit, int reg)
@@ -655,16 +665,16 @@ void z80_asm_handler::SET(int bit, int reg)
     }
     else
     {
-        throw_error("Invalid Z80 SET command: " + std::to_string(reg));
+        throw_error("Invalid Z80 SET command: %d", reg);
     }
 }
 
-z80_variable::z80_variable(std::vector<z80_variable *> *var_vec)
+z80_variable::z80_variable(ptgb::vector<z80_variable *> *var_vec)
 {
     var_vec->push_back(this);
 }
 
-z80_variable::z80_variable(std::vector<z80_variable *> *var_vec, int data_size, ...)
+z80_variable::z80_variable(ptgb::vector<z80_variable *> *var_vec, int data_size, ...)
 {
     var_vec->push_back(this);
     data.resize(data_size);
@@ -713,7 +723,7 @@ void z80_variable::update_ptrs()
     }
 }
 
-z80_jump::z80_jump(std::vector<z80_jump *> *jump_vec)
+z80_jump::z80_jump(ptgb::vector<z80_jump *> *jump_vec)
 {
     jump_vec->push_back(this);
 }

@@ -1,9 +1,8 @@
 #ifndef Z80_ASM_H
 #define Z80_ASM_H
 
-#include <string>
 #include <stdarg.h>
-#include <vector>
+#include "libstd_replacements.h"
 
 /*
 All registers are above 16 to not confuse them with u8 or u16
@@ -56,7 +55,7 @@ class z80_asm_handler
 public:
     int index;
     int memory_offset;
-    std::vector<byte> data_vector;
+    ptgb::vector<byte> data_vector;
 
     z80_asm_handler(int data_size, int mem_offset);
     void add_byte(u8 value);
@@ -110,31 +109,30 @@ public:
 
 private:
     void ROT(int reg, int info);
-    void throw_error(std::string message);
 };
 
 class z80_variable
 {
 public:
-    std::vector<byte> data;
+    ptgb::vector<byte> data;
     int size;
-    z80_variable(std::vector<z80_variable*> *var_vec, int data_size, ...);
-    z80_variable(std::vector<z80_variable*> *var_vec);
+    z80_variable(ptgb::vector<z80_variable*> *var_vec, int data_size, ...);
+    z80_variable(ptgb::vector<z80_variable*> *var_vec);
     void load_data(int data_size, byte array_data[]);
     int place_ptr(z80_asm_handler *z80_instance);
     void insert_variable(z80_asm_handler *var);
     void update_ptrs();
 
 private:
-    std::vector<int> ptr_locations;
-    std::vector<z80_asm_handler *> asm_handlers;
+    ptgb::vector<int> ptr_locations;
+    ptgb::vector<z80_asm_handler *> asm_handlers;
     int var_mem_location;
 };
 
 class z80_jump
 {
 public:
-    z80_jump(std::vector<z80_jump*> *jump_vec);
+    z80_jump(ptgb::vector<z80_jump*> *jump_vec);
     int place_relative_jump(z80_asm_handler *z80_instance);
     int place_direct_jump(z80_asm_handler *z80_instance);
     int place_pointer(z80_asm_handler *z80_instance);
@@ -142,9 +140,9 @@ public:
     void update_jumps();
 
 private:
-    std::vector<int> ptr_locations;
-    std::vector<z80_asm_handler *> asm_handlers;
-    std::vector<bool> jump_types;
+    ptgb::vector<int> ptr_locations;
+    ptgb::vector<z80_asm_handler *> asm_handlers;
+    ptgb::vector<bool> jump_types;
     int jump_mem_location;
 };
 
