@@ -180,6 +180,7 @@ bool run_conditional(int index)
     // Here is most of the logic that drives what lines show up where. It's probably not the best way to code it, but it works
     int game;
     int lang;
+    bool ret;
     switch (index)
     {
 
@@ -341,7 +342,10 @@ bool run_conditional(int index)
         return true;
 
     case CMD_BOX_MENU:
-        return (box_viewer.box_main(party_data) == CONFIRM_BUTTON);
+        hide_text_box();
+        ret = (box_viewer.box_main(party_data) == CONFIRM_BUTTON);
+        show_text_box();
+        return ret;
 
     case CMD_MYTHIC_MENU:
         party_data.set_mythic_stabilization(yes_no_menu.button_main());

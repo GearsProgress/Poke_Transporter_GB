@@ -18,7 +18,6 @@ int Box_Menu::box_main(Pokemon_Party party_data)
     load_flex_background(BG_BOX, 2);
     REG_BG1VOFS = 0;
     REG_BG1HOFS = 0;
-    REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
     load_temp_box_sprites(&party_data);
     Button cancel_button(button_cancel_left, button_cancel_right, 64);
     Button confirm_button(button_confirm_left, button_confirm_right, 64);
