@@ -465,7 +465,7 @@ void load_temp_box_sprites(Pokemon_Party *party_data)
 {
     u32 curr_tile_id = global_tile_id_end;
 
-    if (!IGNORE_GAME_PAK)
+    if (!(IGNORE_GAME_PAK || IGNORE_GAME_PAK_SPRITES))
     {
         for (int i = 0; i < 30; i++)
         {
@@ -855,7 +855,7 @@ void update_y_offset()
 
 void update_front_box_sprite(Simplified_Pokemon *curr_pkmn)
 {
-    if (IGNORE_GAME_PAK)
+    if (IGNORE_GAME_PAK || IGNORE_GAME_PAK_SPRITES)
     {
         return; // We don't want to look into garbage data, get out of here.
     }
@@ -897,7 +897,7 @@ void update_front_box_sprite(Simplified_Pokemon *curr_pkmn)
 
 void update_menu_sprite(Pokemon_Party *party_data, int index, int frame)
 {
-    if (IGNORE_GAME_PAK)
+    if (IGNORE_GAME_PAK || IGNORE_GAME_PAK_SPRITES)
     {
         return; // We don't want to look into garbage data, get out of here.
     }

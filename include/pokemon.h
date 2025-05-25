@@ -54,6 +54,7 @@ public:
     byte *convert_text(byte *text_array, int size, int gen, int lang);
     u32 generate_pid_save_iv(byte pid_species_index, byte nature, byte *pid_dvs);
     u32 generate_pid_iv_match(byte pid_species_index, byte nature, byte *pid_dvs);
+    u32 generate_pid_iv_legendary(byte pid_species_index, byte *pid_dvs, byte *out_ivs);
     byte rand_reverse_mod(byte modulo_divisor, byte target_mod);
     byte get_rand_gender_byte(byte index_num, byte attack_DVs);
     byte get_dex_number();

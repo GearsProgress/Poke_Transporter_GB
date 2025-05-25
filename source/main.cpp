@@ -102,7 +102,8 @@ void load_graphics()
 	tte_erase_rect(0, 0, H_MAX, V_MAX);
 	// Load opening background first so it hides everything else
 	load_flex_background(BG_OPENING, 1);
-	load_background();	load_textbox_background();
+	load_background();
+	load_textbox_background();
 	load_eternal_sprites();
 
 	// Set up global yes no button
