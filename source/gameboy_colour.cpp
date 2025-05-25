@@ -123,7 +123,7 @@ void setup()
   end_of_data = false;
 
   create_textbox(0, 0, 80, 80, true);
-  tte_erase_screen();
+  //tte_erase_screen();
   tte_set_pos(40, 24);
   ptgb_write("\n\n\n   Connecting to\n      GameBoy");
 }
