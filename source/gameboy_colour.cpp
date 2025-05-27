@@ -146,7 +146,7 @@ void setup()
   create_textbox(0, 0, 80, 80, true);
   //tte_erase_screen();
   tte_set_pos(40, 24);
-  ptgb_write("\n\n\n   Connecting to\n      GameBoy");
+  ptgb_write_debug("\n\n\n   Connecting to\n      GameBoy", true);
 }
 
 byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, Simplified_Pokemon *curr_simple_array, bool cancel_connection)
@@ -197,9 +197,9 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
   {
     if (in == 0x60 || in == 0x61)
     {
-      tte_erase_screen();
+      tte_erase_rect(0, 0, H_MAX, V_MAX);
       tte_set_pos(40, 24);
-      ptgb_write(curr_gb_rom->version != YELLOW_ID ? "\n\n\nLink was successful!\n\n  Waiting for trade" : "\n\n\nLink was successful!\n\n Waiting for battle");
+      ptgb_write_debug(curr_gb_rom->version != YELLOW_ID ? "\n\n\nLink was successful!\n\n  Waiting for trade" : "\n\n\nLink was successful!\n\n Waiting for battle", true);
       link_animation_state(STATE_NO_ANIM);
       state = pretrade;
       data_counter = 0;
@@ -242,9 +242,9 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
   {
     if (in == 0xfd)
     {
-      tte_erase_screen();
+      tte_erase_rect(0, 0, H_MAX, V_MAX);
       tte_set_pos(40, 24);
-      ptgb_write("\n\n\nTransferring data...\n    please wait!");
+      ptgb_write_debug("\n\n\nTransferring data...\n    please wait!", true);
       link_animation_state(STATE_TRANSFER);
       mosi_delay = 1;
       state = party_preamble;
