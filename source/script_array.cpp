@@ -724,7 +724,7 @@ void populate_game_menu(int lang)
     }
 }
 
-static bool load_simple_party_data()
+static bool __attribute__((noinline)) load_simple_party_data()
 {
     PokemonTables data_tables;
     return party_data.fill_simple_pkmn_array(data_tables);
