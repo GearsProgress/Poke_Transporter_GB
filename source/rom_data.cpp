@@ -124,6 +124,7 @@ void rom_data::fill_values(const ROM_DATA *rom_values)
     loc_gMonFrontPicTable = rom_values->loc_gMonFrontPicTable;
     loc_gMonPaletteTable = rom_values->loc_gMonPaletteTable;
     loc_gMonShinyPaletteTable = rom_values->loc_gMonShinyPaletteTable;
+    loc_gMonIconTable = rom_values->loc_gMonIconTable;
 
     offset_ramscript = rom_values->offset_ramscript;
     offset_flags = rom_values->offset_flags;

@@ -21,6 +21,11 @@ const struct ROM_DATA ENG_RUBY_v0 = {
     .loc_voicegroup = 0x084401E8,
     .loc_sPicTable_NPC = 0x0836E788,
 
+    .loc_gMonFrontPicTable = 0x081E8354,
+    .loc_gMonPaletteTable = 0x081EA5B4,
+    .loc_gMonShinyPaletteTable = 0x081EB374,
+    .loc_gMonIconTable = 0x083BBD20,
+
     // The following should be consistant across languages and revisions.
     .loc_gSaveBlock1 = 0x02025734,
     .loc_gSaveDataBuffer = 0x02000000, // Known as "gSharedMem" in RS
@@ -481,6 +486,10 @@ const struct ROM_DATA ENG_LEAFGREEN_v1 = {
     .loc_voicegroup = 0x084981C4,
     .loc_sPicTable_NPC = 0x083A0B08,
 
+    .loc_gMonFrontPicTable = 0x08301418,
+    .loc_gMonPaletteTable = 0x08303678,
+    .loc_gMonShinyPaletteTable = 0x08304438,
+
     // The following should be consistant across languages and revisions.
     .loc_gSaveDataBuffer = 0x02039A38, // The location of the saveDataBuffer
     .loc_gSpecialVar_0x8000 = 0x020370B8,
@@ -537,6 +546,7 @@ const struct ROM_DATA ENG_EMERALD_v0 = {
     .loc_gMonFrontPicTable = 0x08301418,
     .loc_gMonPaletteTable = 0x08303678,
     .loc_gMonShinyPaletteTable = 0x08304438,
+    .loc_gMonIconTable = 0x0857BCA8,
 
     // The following should be consistant across languages and revisions.
     .loc_gSaveDataBuffer = 0x0203ABBC, // The location of the saveDataBuffer

@@ -914,9 +914,7 @@ void update_menu_sprite(Pokemon_Party *party_data, int index, int frame)
     {
         dex_num = 0;
     }
-
-    u32 sprite_table = 0x0857bca8;
-
-    u32 sprite_location = (*(u32 *)(sprite_table + (dex_num * 4))) + (frame == 0 ? 0 : 512);
+    
+    u32 sprite_location = (*(u32 *)(curr_rom.loc_gMonIconTable + (dex_num * 4))) + (frame == 0 ? 0 : 512);
     tonccpy(&tile_mem[SPRITE_CHAR_BLOCK][curr_tile_id], (const unsigned int *)sprite_location, 512);
 }

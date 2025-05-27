@@ -46,6 +46,7 @@ struct ROM_DATA
     int loc_gMonFrontPicTable; // gMonStillFrontPicTable in Emerald
     int loc_gMonPaletteTable;
     int loc_gMonShinyPaletteTable;
+    int loc_gMonIconTable;
 
     int loc_gSaveBlock1;     // Only used in R/S
     int loc_gSaveDataBuffer; // The location of the saveDataBuffer
