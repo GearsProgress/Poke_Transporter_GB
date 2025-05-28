@@ -100,7 +100,8 @@ namespace ptgb
         {
             if(newSize < count_)
             {
-                for(size_t i=0; i < (count_ - newSize); ++i)
+                const size_t num_erase = (count_ - newSize);
+                for(size_t i=0; i < num_erase; ++i)
                 {
                     pop_back();
                 }
@@ -108,7 +109,8 @@ namespace ptgb
             else if(newSize > count_)
             {
                 reserve(newSize);
-                for(size_t i=0; i < (newSize - count_); ++i)
+                const size_t num_fill = (newSize - count_);
+                for(size_t i=0; i < num_fill; ++i)
                 {
                     push_back(value);
                 }
