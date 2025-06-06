@@ -25,6 +25,8 @@ const struct ROM_DATA ENG_RUBY_v0 = {
     .loc_gMonPaletteTable = 0x081EA5B4,
     .loc_gMonShinyPaletteTable = 0x081EB374,
     .loc_gMonIconTable = 0x083BBD20,
+    .loc_gMonIconPaletteIndices = 0x083BC400,
+    .loc_gMonIconPalettes = 0x08E966D8,
 
     // The following should be consistant across languages and revisions.
     .loc_gSaveBlock1 = 0x02025734,
@@ -76,6 +78,13 @@ const struct ROM_DATA ENG_SAPPHIRE_v0 = {
     .loc_voicegroup = 0x08445644,
     .loc_sPicTable_NPC = 0x0836E718,
 
+    .loc_gMonFrontPicTable = 0x081E82E4,
+    .loc_gMonPaletteTable = 0x081EA544,
+    .loc_gMonShinyPaletteTable = 0x081EB304,
+    .loc_gMonIconTable = 0x083BBD78,
+    .loc_gMonIconPaletteIndices = 0x083BC458,
+    .loc_gMonIconPalettes = 0x08E966D8,
+
     // The following should be consistant across languages and revisions.
     .loc_gSaveBlock1 = 0x02025734,
     .loc_gSaveDataBuffer = 0x02000000, // Known as "gSharedMem" in RS
@@ -125,6 +134,13 @@ const struct ROM_DATA ENG_RUBY_v1 = {
     .loc_CreateFanfareTask = 0x08074F68,
     .loc_voicegroup = 0x084401FC,
     .loc_sPicTable_NPC = 0x0836E7A0,
+
+    .loc_gMonFrontPicTable = 0x081E836C,
+    .loc_gMonPaletteTable = 0x081EA5CC,
+    .loc_gMonShinyPaletteTable = 0x081EB38C,
+    .loc_gMonIconTable = 0x083BBD3C,
+    .loc_gMonIconPaletteIndices = 0x083BC41C,
+    .loc_gMonIconPalettes = 0x08E966D8,
 
     // The following should be consistant across languages and revisions.
     .loc_gSaveBlock1 = 0x02025734,
@@ -176,6 +192,13 @@ const struct ROM_DATA ENG_SAPPHIRE_v1 = {
     .loc_voicegroup = 0x0844025C,
     .loc_sPicTable_NPC = 0x0836E730,
 
+    .loc_gMonFrontPicTable = 0x081E82FC,
+    .loc_gMonPaletteTable = 0x081EA55C,
+    .loc_gMonShinyPaletteTable = 0x081EB31C,
+    .loc_gMonIconTable = 0x083BBD98,
+    .loc_gMonIconPaletteIndices = 0x083BC478,
+    .loc_gMonIconPalettes = 0x08E966D8,
+
     // The following should be consistant across languages and revisions.
     .loc_gSaveBlock1 = 0x02025734,
     .loc_gSaveDataBuffer = 0x02000000, // Known as "gSharedMem" in RS
@@ -225,6 +248,13 @@ const struct ROM_DATA ENG_RUBY_v2 = {
     .loc_CreateFanfareTask = 0x08074F68,
     .loc_voicegroup = 0x084401FC,
     .loc_sPicTable_NPC = 0x0836E7A0,
+
+    .loc_gMonFrontPicTable = 0x081E836C,
+    .loc_gMonPaletteTable = 0x081EA5CC,
+    .loc_gMonShinyPaletteTable = 0x081EB38C,
+    .loc_gMonIconTable = 0x083BBD3C,
+    .loc_gMonIconPaletteIndices = 0x083BC41C,
+    .loc_gMonIconPalettes = 0x08E966D8,
 
     // The following should be consistant across languages and revisions.
     .loc_gSaveBlock1 = 0x02025734,
@@ -276,6 +306,13 @@ const struct ROM_DATA ENG_SAPPHIRE_v2 = {
     .loc_voicegroup = 0x0844025C,
     .loc_sPicTable_NPC = 0x0836E730,
 
+    .loc_gMonFrontPicTable = 0x081E82FC,
+    .loc_gMonPaletteTable = 0x081EA55C,
+    .loc_gMonShinyPaletteTable = 0x081EB31C,
+    .loc_gMonIconTable = 0x083BBD98,
+    .loc_gMonIconPaletteIndices = 0x083BC478,
+    .loc_gMonIconPalettes = 0x08E966D8,
+
     // The following should be consistant across languages and revisions.
     .loc_gSaveBlock1 = 0x02025734,
     .loc_gSaveDataBuffer = 0x02000000, // Known as "gSharedMem" in RS
@@ -326,6 +363,13 @@ const struct ROM_DATA ENG_FIRERED_v0 = {
     .loc_CreateFanfareTask = 0x08071CEC,
     .loc_voicegroup = 0x08498878,
     .loc_sPicTable_NPC = 0x083A0AB8,
+
+    .loc_gMonFrontPicTable = 0x082350AC,
+    .loc_gMonPaletteTable = 0x0823730C,
+    .loc_gMonShinyPaletteTable = 0x082380CC,
+    .loc_gMonIconTable = 0x083D37A0,
+    .loc_gMonIconPaletteIndices = 0x083D3E80,
+    .loc_gMonIconPalettes = 0x083D3740,
 
     // The following should be consistant across languages and revisions.
     .loc_gSaveDataBuffer = 0x02039A38, // The location of the saveDataBuffer
@@ -380,6 +424,13 @@ const struct ROM_DATA ENG_LEAFGREEN_v0 = {
     .loc_voicegroup = 0x08498154,
     .loc_sPicTable_NPC = 0x083A0A98,
 
+    .loc_gMonFrontPicTable = 0x08235088,
+    .loc_gMonPaletteTable = 0x082372E8,
+    .loc_gMonShinyPaletteTable = 0x082380A8,
+    .loc_gMonIconTable = 0x083D35DC,
+    .loc_gMonIconPaletteIndices = 0x083D3CBC,
+    .loc_gMonIconPalettes = 0x083D357C,
+
     // The following should be consistant across languages and revisions.
     .loc_gSaveDataBuffer = 0x02039A38, // The location of the saveDataBuffer
     .loc_gSpecialVar_0x8000 = 0x020370B8,
@@ -432,6 +483,13 @@ const struct ROM_DATA ENG_FIRERED_v1 = {
     .loc_CreateFanfareTask = 0x08071D00,
     .loc_voicegroup = 0x084988D8,
     .loc_sPicTable_NPC = 0x083A0B28,
+
+    .loc_gMonFrontPicTable = 0x0823511C,
+    .loc_gMonPaletteTable = 0x0823737C,
+    .loc_gMonShinyPaletteTable = 0x0823813C,
+    .loc_gMonIconTable = 0x083D3810,
+    .loc_gMonIconPaletteIndices = 0x083D3EF0,
+    .loc_gMonIconPalettes = 0x083D37B0,
 
     // The following should be consistant across languages and revisions.
     .loc_gSaveDataBuffer = 0x02039A38, // The location of the saveDataBuffer
@@ -486,9 +544,12 @@ const struct ROM_DATA ENG_LEAFGREEN_v1 = {
     .loc_voicegroup = 0x084981C4,
     .loc_sPicTable_NPC = 0x083A0B08,
 
-    .loc_gMonFrontPicTable = 0x08301418,
-    .loc_gMonPaletteTable = 0x08303678,
-    .loc_gMonShinyPaletteTable = 0x08304438,
+    .loc_gMonFrontPicTable = 0x082350F8,
+    .loc_gMonPaletteTable = 0x08237358,
+    .loc_gMonShinyPaletteTable = 0x08238118,
+    .loc_gMonIconTable = 0x083D364C,
+    .loc_gMonIconPaletteIndices = 0x083D3D2C,
+    .loc_gMonIconPalettes = 0x083D35EC,
 
     // The following should be consistant across languages and revisions.
     .loc_gSaveDataBuffer = 0x02039A38, // The location of the saveDataBuffer
@@ -547,6 +608,8 @@ const struct ROM_DATA ENG_EMERALD_v0 = {
     .loc_gMonPaletteTable = 0x08303678,
     .loc_gMonShinyPaletteTable = 0x08304438,
     .loc_gMonIconTable = 0x0857BCA8,
+    .loc_gMonIconPaletteIndices = 0x0857C388,
+    .loc_gMonIconPalettes = 0x08DDE1F8,
 
     // The following should be consistant across languages and revisions.
     .loc_gSaveDataBuffer = 0x0203ABBC, // The location of the saveDataBuffer

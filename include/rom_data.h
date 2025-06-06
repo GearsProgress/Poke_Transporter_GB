@@ -52,12 +52,14 @@ public:
     int loc_sFanfareCounter;
     int loc_gPlttBufferFaded;
     int loc_gSprites;
+    int loc_gMonIconPalettes;
     int loc_voicegroup;
     int loc_sPicTable_NPC;
     int loc_gMonFrontPicTable;
     int loc_gMonPaletteTable;
     int loc_gMonShinyPaletteTable;
     int loc_gMonIconTable;
+    int loc_gMonIconPaletteIndices;
     int offset_ramscript; // Ramscript offset as found within the SaveBlock1 struct in global.h
     int offset_flags;     // Flag offset as found within the SaveBlock1 struct in global.h
     int offset_wondercard;

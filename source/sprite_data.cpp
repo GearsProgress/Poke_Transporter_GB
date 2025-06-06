@@ -482,11 +482,8 @@ void load_temp_box_sprites(Pokemon_Party *party_data)
                     dex_num = 0;
                 }
 
-                u32 gMonIconPaletteIndices = 0x0857c388;
-                u32 sprite_table = 0x0857bca8;
-
-                u32 sprite_location = (*(u32 *)(sprite_table + (dex_num * 4)));
-                int pal_num = *(byte *)(gMonIconPaletteIndices + dex_num);
+                u32 sprite_location = (*(u32 *)(curr_rom.loc_gMonIconTable + (dex_num * 4)));
+                int pal_num = *(byte *)(curr_rom.loc_gMonIconPaletteIndices + dex_num);
                 load_sprite(party_sprites[i], (const unsigned int *)sprite_location, 512, curr_tile_id, MENU_PAL_RED + pal_num, ATTR0_SQUARE, ATTR1_SIZE_32x32, 1);
                 obj_set_pos(party_sprites[i], ((BOXMENU_SPRITE_WIDTH + BOXMENU_HSPACE) * (i % BOXMENU_HNUM)) + (BOXMENU_LEFT + BOXMENU_SPRITE_HOFFSET), ((BOXMENU_SPRITE_HEIGHT + BOXMENU_VSPACE) * (i / BOXMENU_HNUM)) + (BOXMENU_TOP + BOXMENU_SPRITE_VOFFSET));
                 obj_unhide(party_sprites[i], 0);
@@ -497,10 +494,9 @@ void load_temp_box_sprites(Pokemon_Party *party_data)
             }
         }
         // Load the menu sprite palettes. Should this be done somewhere else?
-        u32 gMonIconPalettes = 0x08dde1f8;
         for (int i = 0; i < 3; i++)
         {
-            tonccpy((pal_obj_mem + ((MENU_PAL_RED + i) * 16)), (const unsigned short *)(gMonIconPalettes + (i * 32)), 32);
+            tonccpy((pal_obj_mem + ((MENU_PAL_RED + i) * 16)), (const unsigned short *)(curr_rom.loc_gMonIconPalettes + (i * 32)), 32);
         }
 
         load_sprite_compressed(grabbed_front_sprite, (const unsigned int *)*(u32 *)(curr_rom.loc_gMonFrontPicTable + (0 * 8)), curr_tile_id, PULLED_SPRITE_PAL, ATTR0_SQUARE, ATTR1_SIZE_64x64, 1);
