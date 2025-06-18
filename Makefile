@@ -46,7 +46,7 @@ CFLAGS	:=	-g -Wall -O2\
 		$(ARCH) 
 
 CFLAGS	+=	$(INCLUDE) -ffunction-sections -fdata-sections -Os -Wall -mthumb -mcpu=arm7tdmi -mtune=arm7tdmi
-CXXFLAGS	:=	$(CFLAGS) -g0 -fno-rtti -fno-exceptions -std=c++20 -Wno-volatile -D_GLIBCXX_USE_CXX20_ABI=0
+CXXFLAGS	:=	$(CFLAGS) -g0 -fno-rtti -fno-exceptions -fdata-sections -ffunction-sections -std=c++20 -Wno-volatile -D_GLIBCXX_USE_CXX20_ABI=0
 
 ifeq ($(BUILD_TYPE), debug)
 	CFLAGS += -g -DDEBUG
@@ -57,7 +57,7 @@ else ifeq ($(BUILD_TYPE), release)
 endif
 
 ASFLAGS	:=	-g $(ARCH)
-LDFLAGS	=	-Os -g $(ARCH) -Wl,-Map,$(notdir $*.map) -Wl,--gc-sections -mthumb -mcpu=arm7tdmi -mtune=arm7tdmi
+LDFLAGS	=	-Os -g $(ARCH) -Wl,-Map,$(notdir $*.map) -Wl,--gc-sections -mthumb -mcpu=arm7tdmi -mtune=arm7tdmi -Wl,-Map,output.map,--cref -nodefaultlibs
 
 CFLAGS += -flto
 LDFLAGS += -flto
@@ -65,7 +65,7 @@ LDFLAGS += -flto
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
-LIBS	:= -lmm -ltonc -lgba -lc -lgcc
+LIBS	:= -lmm -ltonc -lgba -lc -lgcc -lsysbase
 
 
 #---------------------------------------------------------------------------------

@@ -2,8 +2,7 @@
 #define SELECT_MENU_H
 
 #include <tonc.h>
-#include <vector>
-#include <string>
+#include "libstd_replacements.h"
 #include "text_engine.h"
 
 #define LANG_MENU 1
@@ -21,8 +20,8 @@ public:
     void set_lang(int nLang);
 
 private:
-    std::vector<const byte*> menu_options;
-    std::vector<int> return_values;
+    ptgb::vector<const byte*> menu_options;
+    ptgb::vector<int> return_values;
     unsigned int curr_selection;
     bool cancel_enabled;
     int menu_type;
