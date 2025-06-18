@@ -45,7 +45,12 @@ static void __attribute__((noinline)) handle_old_event(Pokemon_Party &incoming_b
 
 bool inject_mystery(Pokemon_Party &incoming_box_data)
 {
-    mystery_gift_script script;
+    // WARNING: Look right here: we're passing global_memory_buffer to mystery_gift_script to be used as its save_section_30 buffer.
+    // Since we're going to be reusing global_memory_buffer later, we need to be careful about the timing/sequence of operations.
+    // The goal is to use write that save_section_30 to the save as soon as we can.
+    mystery_gift_script script(global_memory_buffer);
+    u32 checksum = 0;
+
     if (ENABLE_OLD_EVENT)
     {
         // script.build_script_old(incoming_box_data);
@@ -54,7 +59,7 @@ bool inject_mystery(Pokemon_Party &incoming_box_data)
     {
         script.build_script(incoming_box_data);
     }
-    u32 checksum = 0;
+
     if (curr_rom.is_ruby_sapphire())
     {
         checksum = script.calc_checksum32();
@@ -64,6 +69,29 @@ bool inject_mystery(Pokemon_Party &incoming_box_data)
         checksum = script.calc_crc16();
     }
 
+    // Add in Pokemon and Dex data
+    // We need to do this NOW, because mystery_gift_script::build_script() actually fills the global_memory_buffer.
+    // In the steps after this, we will be recycling the global_memory_buffer to read and write data to other sections of the save.
+    // So we really MUST write the generated data now, before we lose it.
+    if (ENABLE_OLD_EVENT)
+    {
+        int dex_nums[MAX_PKMN_IN_BOX] = {};
+        int curr_index = 0;
+        copy_save_to_ram(0x1E000, &global_memory_buffer[0], 0x1000);
+        handle_old_event(incoming_box_data, curr_index, dex_nums);
+    }
+    else
+    {
+        memcpy(global_memory_buffer, script.get_section30(), 0x1000);
+    }
+
+    update_memory_buffer_checksum(false);
+    erase_sector(0x1E000);
+    copy_ram_to_save(&global_memory_buffer[0], 0x1E000, 0x1000);
+
+    // section_30 data has been stored, so now we can safely re-use the global_memory_buffer for other sections.
+    // Let's move on to the next step.
+    
     // Add in Wonder Card
     copy_save_to_ram(memory_section_array[4], &global_memory_buffer[0], 0x1000);
     switch (curr_rom.gamecode)
@@ -74,17 +102,11 @@ bool inject_mystery(Pokemon_Party &incoming_box_data)
         break;
     case FIRERED_ID:
     case LEAFGREEN_ID:
-        for (int i = 0; i < 0x14E; i++)
-        {
-            global_memory_buffer[curr_rom.offset_wondercard + i] = frlg_wonder_card[i];
-        }
+        memcpy(global_memory_buffer + curr_rom.offset_wondercard, frlg_wonder_card, 0x14E);
         break;
     case EMERALD_ID:
     default:
-        for (int i = 0; i < 0x14E; i++)
-        {
-            global_memory_buffer[curr_rom.offset_wondercard + i] = em_wonder_card[i];
-        }
+        memcpy(global_memory_buffer + curr_rom.offset_wondercard, em_wonder_card, 0x14E);
         break;
     }
 
@@ -95,36 +117,11 @@ bool inject_mystery(Pokemon_Party &incoming_box_data)
     global_memory_buffer[curr_rom.offset_script + 3] = checksum >> 24;
 
     // Add in Mystery Script data
-    for (int i = 0; i < MG_SCRIPT_SIZE; i++)
-    {
-        global_memory_buffer[curr_rom.offset_script + 4 + i] = script.get_script_value_at(i);
-    }
+    memcpy(global_memory_buffer + curr_rom.offset_script + 4, script.get_script(), MG_SCRIPT_SIZE);
 
     update_memory_buffer_checksum(false);
     erase_sector(memory_section_array[4]);
     copy_ram_to_save(&global_memory_buffer[0], memory_section_array[4], 0x1000);
-
-    // Add in Pokemon and Dex data
-    copy_save_to_ram(0x1E000, &global_memory_buffer[0], 0x1000);
-    int curr_index = 0;
-    int dex_nums[MAX_PKMN_IN_BOX] = {};
-
-    if (ENABLE_OLD_EVENT)
-    {
-        handle_old_event(incoming_box_data, curr_index, dex_nums);
-    }
-    else
-    {
-        for (int i = 0; i < 0x1000; i++) // Copy over the save data section
-        {
-            global_memory_buffer[curr_index] = script.get_section30_value_at(i);
-            curr_index++;
-        }
-    }
-
-    update_memory_buffer_checksum(false);
-    erase_sector(0x1E000);
-    copy_ram_to_save(&global_memory_buffer[0], 0x1E000, 0x1000);
 
     if (WRITE_CABLE_DATA_TO_SAVE)
     {

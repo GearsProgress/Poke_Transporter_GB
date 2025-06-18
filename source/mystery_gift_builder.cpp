@@ -79,11 +79,14 @@ union decompressed_data_storage_union
     ~decompressed_data_storage_union(){}
 };
 
-mystery_gift_script::mystery_gift_script()
+mystery_gift_script::mystery_gift_script(u8 *save_section_30_buffer)
+    : curr_mg_index(NPC_LOCATION_OFFSET)
+    , curr_section30_index(0)
+    , save_section_30(save_section_30_buffer)
+    , mg_script()
+    , value_buffer()
+    , four_align_value(0)
 {
-    curr_mg_index = NPC_LOCATION_OFFSET;
-    curr_section30_index = 0;
-
     ptr_call_check_flag = (curr_rom.loc_gSpecialVar_0x8000 + 0x08);
     ptr_call_return_2 = (curr_rom.loc_gSpecialVar_0x8000 + 0x0A);
     ptr_box_return = (curr_rom.loc_gSpecialVar_0x8000 + 0x0C);
@@ -323,7 +326,7 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     // const byte track_unused[] = {0xBC, 0x00, 0xBD, 0x7E, 0xC4, 0x00, 0xBE, 0x53, 0xBF, 0x40, 0xD4, 0x24, 0x70, 0x8C, 0xD4, 0x98, 0x32, 0x86, 0xD4, 0x86, 0x30, 0x86, 0xD4, 0x86, 0xD4, 0x86, 0xD4, 0x86, 0x2D, 0x86, 0xD4, 0x86, 0xD4, 0x86, 0xD4, 0x85, 0xB1};
     // songLooker.add_track(track_unused, sizeof(track_unused));
 
-    int dex_nums[MAX_PKMN_IN_BOX] = {};
+    u8 dex_nums[MAX_PKMN_IN_BOX] = {};
 
     // placement new is required to run the constructor of PokemonTables for the decompressed_store's instance
     // it won't get called automatically because it's part of the union (and neither will the destructor)
@@ -333,11 +336,8 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
         Pokemon curr_pkmn = incoming_box_data.get_converted_pkmn(decompressed_store.tables.data, i);
         if (curr_pkmn.get_validity())
         {
-            for (int curr_byte = 0; curr_byte < POKEMON_SIZE; curr_byte++)
-            {
-                save_section_30[curr_section30_index] = curr_pkmn.get_gen_3_data(curr_byte);
-                curr_section30_index++;
-            }
+            memcpy(save_section_30 + curr_section30_index, curr_pkmn.get_full_gen_3_array(), POKEMON_SIZE);
+            curr_section30_index += POKEMON_SIZE;
             dex_nums[i] = curr_pkmn.get_dex_number();
         }
         else
@@ -354,11 +354,9 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     // but let's do it anyway for the sake of being explicit after having used placement new
     decompressed_store.tables.data.~PokemonTables();
 
-    for (int i = 0; i < MAX_PKMN_IN_BOX; i++) // Add in the dex numbers
-    {
-        save_section_30[curr_section30_index] = dex_nums[i];
-        curr_section30_index++;
-    }
+    // Add in the dex numbers
+    memcpy(save_section_30 + curr_section30_index, dex_nums, MAX_PKMN_IN_BOX);
+    curr_section30_index += MAX_PKMN_IN_BOX;
 
     // insert text
 
@@ -1095,14 +1093,15 @@ void mystery_gift_script::build_script_old(Pokemon_Party &incoming_box_data)
     }
 };
 */
-u8 mystery_gift_script::get_script_value_at(int i)
+
+const u8* mystery_gift_script::get_script() const
 {
-    return mg_script[i];
+    return mg_script;
 }
 
-u8 mystery_gift_script::get_section30_value_at(int i)
+const u8* mystery_gift_script::get_section30() const
 {
-    return save_section_30[i];
+    return save_section_30;
 }
 
 u16 mystery_gift_script::rev_endian(u16 num)

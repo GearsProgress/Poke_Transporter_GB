@@ -1,5 +1,4 @@
 #include <tonc.h>
-#include <string>
 #include <cstring>
 
 #include "text_engine.h"
@@ -141,7 +140,9 @@ int text_next_obj_id(script_obj current_line)
     }
     else
     {
-        if (run_conditional(current_line.get_cond_id()))
+        const bool ret = run_conditional(current_line.get_cond_id());
+        VBlankIntrWait(); // this is needed to handle interrupts
+        if (ret)
         {
             return current_line.get_true_index();
         }

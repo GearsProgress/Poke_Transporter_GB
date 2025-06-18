@@ -1,5 +1,5 @@
 #include <tonc.h>
-#include <cstring>
+#include <cstdlib>
 // #include <maxmod.h> //Music
 #include "libstd_replacements.h"
 #include "flash_mem.h"
@@ -246,7 +246,7 @@ int test_decompress()
 	create_textbox(4, 1, 160, 80, true);
 
 	ptgb_write_debug(charset, "Test results:\n\nDecompress: ", true);
-	ptgb_write_debug(charset, ptgb::to_string(ticks * 1000 / 16777), true);
+	ptgb_write_debug(charset, ptgb::to_string(static_cast<unsigned>(ticks * 1000 / 16777)), true);
 	ptgb_write_debug(charset, " usec\n", true);
 
 

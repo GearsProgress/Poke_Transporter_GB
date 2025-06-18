@@ -4,6 +4,7 @@
 #include "background_engine.h"
 #include "libraries/gba-link-connection/LinkCableMultiboot.hpp"
 #include "text_engine.h"
+#include "translated_text.h"
 #include "text_data_table.h"
 
 static void multiboot_show_textbox()

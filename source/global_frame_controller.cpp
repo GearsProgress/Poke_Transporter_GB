@@ -8,6 +8,7 @@
 #include "sprite_data.h"
 #include "string.h"
 #include "text_data_table.h"
+#include "translated_text.h"
 
 int global_frame_count = 0;
 bool rand_enabled = true;

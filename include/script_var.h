@@ -1,6 +1,5 @@
 #include <tonc.h>
 #include "libstd_replacements.h"
-#include <string>
 #include "rom_data.h"
 
 class script_var

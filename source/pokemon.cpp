@@ -654,10 +654,7 @@ void Pokemon::copy_from_to(const byte *source, byte *destination, int size, bool
     }
     else
     {
-        for (int i = 0; i < size; i++)
-        {
-            destination[i] = source[i];
-        }
+        memcpy(destination, source, size);
     }
 }
 

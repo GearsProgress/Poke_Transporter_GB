@@ -2,9 +2,6 @@
 #define MYSTERY_GIFT_BUILDER_H
 
 #include <tonc.h>
-#include <string>
-#include <map>
-#include <vector>
 #include "pokemon_party.h"
 #include "debug_mode.h"
 #include "save_data_manager.h"
@@ -258,17 +255,27 @@ class mystery_gift_script
 {
     int curr_mg_index;
     int curr_section30_index;
-    u8 mg_script[MG_SCRIPT_SIZE] = {};
-    u8 save_section_30[0x1000] = {};
+    u8 *save_section_30;
+    u8 mg_script[MG_SCRIPT_SIZE];
     u8 value_buffer[9];
-    u8 four_align_value = 0;
+    u8 four_align_value;
 
 public:
-    mystery_gift_script();
+    /**
+     * @brief Construct a new mystery gift script object
+     * 
+     * @param save_section_30_buffer This needs to be a 4KB buffer to store the section 30 data.
+     * It was done this way to pass the global_memory_buffer to this class, thereby saving IWRAM.
+     * 
+     * Be careful of what you do with this buffer after running build_script(). 
+     * Especially if you're using global_memory_buffer!
+     * You're in control!
+     */
+    mystery_gift_script(u8 *save_section_30_buffer);
     void build_script(Pokemon_Party &incoming_box_data);
     //void build_script_old(Pokemon_Party &incoming_box_data);
-    u8 get_script_value_at(int index);
-    u8 get_section30_value_at(int index);
+    const u8 *get_script() const;
+    const u8 * get_section30() const;
     u32 calc_checksum32();
     u16 calc_crc16();
 

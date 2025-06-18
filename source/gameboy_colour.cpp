@@ -41,8 +41,8 @@
 
 const int MODE = 1; // mode=0 will transfer pokemon data from pokemon.h
                     // mode=1 will copy pokemon party data being received
-
-LinkSPI *linkSPI = new LinkSPI();
+LinkSPI linkSPIInstance;
+LinkSPI *linkSPI = &linkSPIInstance;
 
 uint8_t in_data;
 uint8_t out_data;

@@ -55,7 +55,7 @@ void initalize_memory_locations()
         copy_save_to_ram(memory_section_array[mem_section], &global_memory_buffer[0], 0x1000);
         tte_set_pos(8, 0);
         tte_write("loc: ");
-        tte_write(ptgb::to_string(memory_section_array[mem_section] + mem_start));
+        tte_write(ptgb::to_string(static_cast<unsigned>(memory_section_array[mem_section] + mem_start)));
         tte_write("\n");
         for (int i = mem_start; i < (128 + mem_start); i++)
         {

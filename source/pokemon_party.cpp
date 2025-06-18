@@ -185,12 +185,12 @@ void Pokemon_Party::start_link()
 		u16 debug_charset[256];
 
 		load_localized_charset(debug_charset, 3, ENG_ID);
+		init_payload(curr_gb_rom, TRANSFER, false);
+
 		setup(debug_charset);
-		for (int i = 0; i < curr_gb_rom.box_data_size; i++)
-		{
-			box_data_array[i] = 0;
-		}
-		last_error = loop(&box_data_array[0], generate_payload(curr_gb_rom, TRANSFER, false), &curr_gb_rom, simple_pkmn_array, debug_charset, false);
+		memset(box_data_array, 0, curr_gb_rom.box_data_size);
+
+		last_error = loop(&box_data_array[0], get_payload(), &curr_gb_rom, simple_pkmn_array, debug_charset, false);
 	}
 }
 
@@ -201,7 +201,8 @@ void Pokemon_Party::continue_link(bool cancel_connection)
 		u16 debug_charset[256];
 
 		load_localized_charset(debug_charset, 3, ENG_ID);
-		last_error = loop(&box_data_array[0], generate_payload(curr_gb_rom, TRANSFER, false), &curr_gb_rom, simple_pkmn_array, debug_charset, cancel_connection);
+
+		last_error = loop(&box_data_array[0], get_payload(), &curr_gb_rom, simple_pkmn_array, debug_charset, cancel_connection);
 	}
 }
 

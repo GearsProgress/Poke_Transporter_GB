@@ -1,12 +1,8 @@
 #ifndef TEXT_ENGINE_H
 #define TEXT_ENGINE_H
 
-#include <tonc.h>
-#include <string>
-
 #include "script_obj.h"
-#include "script_array.h"
-#include "pokemon_data.h"
+#include <cstdarg>
 
 #define H_MAX 240
 #define V_MAX 160
