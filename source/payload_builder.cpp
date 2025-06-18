@@ -953,14 +953,13 @@ byte* get_payload()
     return payload_buffer;
 }
 
-// Uncomment to send the payload to test_payload.txt
-#if 0
+#if PAYLOAD_EXPORT_TEST
 #include <cstdio>
-int main()
+int main() // Rename to "main" to send the payload to test_payload.txt
 {
     freopen("test_payload.txt", "w", stdout);
     printf("\n");
-    init_payload(ENG_RED, TRANSFER, true);
+    init_payload(ENG_GOLD, TRANSFER, true);
     byte *payload = get_payload();
     if (true)
     {
