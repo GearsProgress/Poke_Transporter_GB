@@ -1,10 +1,19 @@
 #ifndef PAYLOAD_H
 #define PAYLOAD_H
 
+#include "debug_mode.h"
+
+#if PAYLOAD_EXPORT_TEST
+typedef unsigned char u8, byte, uchar, echar;
+typedef unsigned short u16, hword, ushort, eshort;
+typedef unsigned int u32, word, uint, eint;
+typedef unsigned long long u64;
+#else
 extern "C"
 {
-#include <tonc_types.h>
+   #include <tonc_types.h>
 }
+#endif
 
 #define JPN_ID 1
 #define ENG_ID 2
