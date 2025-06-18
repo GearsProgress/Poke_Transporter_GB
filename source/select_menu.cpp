@@ -1,12 +1,14 @@
 #include "select_menu.h"
 #include "sprite_data.h"
+#include "translated_text.h"
+#include "text_data_table.h"
 
 #define TEXT_HEIGHT 10
 #define TEXT_WIDTH 8
 #define TILE_HEIGHT 8
 #define TILE_WIDTH 8
 
-Select_Menu::Select_Menu(bool enable_cancel, int nMenu_type, int nStartTileX, int nStartTileY)
+Select_Menu::Select_Menu(bool enable_cancel, u8 nMenu_type, int nStartTileX, int nStartTileY)
 {
     cancel_enabled = enable_cancel;
     menu_type = nMenu_type;
@@ -14,7 +16,7 @@ Select_Menu::Select_Menu(bool enable_cancel, int nMenu_type, int nStartTileX, in
     startTileY = nStartTileY;
 }
 
-void Select_Menu::add_option(const byte *option, int return_value)
+void Select_Menu::add_option(const u8 option, u8 return_value)
 {
     menu_options.push_back(option);
     return_values.push_back(return_value);
@@ -66,7 +68,7 @@ int Select_Menu::select_menu_main()
 
         if (update)
         {
-            if (return_values[curr_selection] == -1)
+            if (return_values[curr_selection] == UINT8_MAX)
             {
                 switch (menu_type)
                 {
@@ -101,11 +103,15 @@ int Select_Menu::select_menu_main()
 
 void Select_Menu::show_menu()
 {
+    u8 decompression_buffer[2048];
+    text_data_table text_data(decompression_buffer);
+    text_data.decompress(get_compressed_general_table());
+
     add_menu_box(menu_options.size(), startTileX, startTileY);
     for (unsigned int i = 0; i < menu_options.size(); i++)
     {
         tte_set_pos((startTileX + 2) * TEXT_WIDTH, (startTileY + 1) * TILE_HEIGHT + (i * TEXT_HEIGHT));
-        ptgb_write(menu_options[i], true);
+        ptgb_write(text_data.get_text_entry(menu_options[i]), true);
     }
     obj_unhide(point_arrow, 0);
     // obj_set_pos(point_arrow, startTileX + (2 * TEXT_WIDTH), (1 + i) * TEXT_HEIGHT);
@@ -140,7 +146,7 @@ void Select_Menu::clear_options()
     return_values.clear();
 }
 
-void Select_Menu::set_lang(int nLang)
+void Select_Menu::set_lang(u8 nLang)
 {
     lang = nLang;
 }

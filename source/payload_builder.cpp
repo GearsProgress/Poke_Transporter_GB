@@ -6,9 +6,9 @@
 
 #define DATA_LOC (SHOW_DATA_PACKETS ? curr_rom.transferStringLocation : curr_rom.wEnemyMonSpecies)
 
-byte out_array[PAYLOAD_SIZE] = {};
+static byte payload_buffer[PAYLOAD_SIZE];
 
-byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
+void init_payload(GB_ROM curr_rom, int type, bool debug)
 {
     /*  10 RNG bytes
         8 Preamble bytes
@@ -18,7 +18,6 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
 
         637 / 660 total bytes
         */
-
     if ((curr_rom.generation == 1 && curr_rom.version != YELLOW_ID))
     {
         ptgb::vector<z80_jump *> jump_vector;
@@ -26,7 +25,7 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
 
         z80_asm_handler z80_rng_seed(0x0A, curr_rom.wSerialOtherGameboyRandomNumberListBlock + 8);
         z80_asm_handler z80_payload(0x1AA, curr_rom.wSerialEnemyDataBlock);
-        z80_asm_handler z80_patchlist(0xEC, curr_rom.wSerialEnemyMonsPatchList);
+        z80_asm_handler z80_patchlist(0xC9, curr_rom.wSerialEnemyMonsPatchList);
 
         z80_jump asm_start(&jump_vector);
         z80_jump save_box(&jump_vector);
@@ -276,18 +275,15 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
         }
 
         // Combine the vectors into the full payload
-        ptgb::vector<byte> full_data;
-        full_data.reserve(z80_rng_seed.data_vector.size() + z80_payload.data_vector.size() + z80_patchlist.data_vector.size());
-        full_data.insert(z80_rng_seed.data_vector);
-        full_data.insert(z80_payload.data_vector);
-        full_data.insert(z80_patchlist.data_vector);
+        u8 *cur_out = payload_buffer;
+        memcpy(cur_out, z80_rng_seed.data_vector.data(), z80_rng_seed.data_vector.size());
+        cur_out += z80_rng_seed.data_vector.size();
+        memcpy(cur_out, z80_payload.data_vector.data(), z80_payload.data_vector.size());
+        cur_out += z80_payload.data_vector.size();
+        memcpy(cur_out, z80_patchlist.data_vector.data(), z80_patchlist.data_vector.size());
+        cur_out += z80_patchlist.data_vector.size();
 
-        for(size_t i=0; i < full_data.size(); ++i)
-        {
-            out_array[i] = full_data[i];
-        }
-
-        return out_array;
+        return;
     }
 
     else if ((curr_rom.generation == 1 && curr_rom.version == YELLOW_ID))
@@ -297,7 +293,7 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
 
         z80_asm_handler z80_rng_seed(0x0A, curr_rom.wSerialOtherGameboyRandomNumberListBlock + 8);
         z80_asm_handler z80_payload(0x1AA, curr_rom.wSerialEnemyDataBlock - 8); // Subtracting 8 is because the data is shifted after patching, removing part of the enemy name. May change depending on language
-        z80_asm_handler z80_patchlist(0xEC, curr_rom.wSerialEnemyMonsPatchList);
+        z80_asm_handler z80_patchlist(0xC9, curr_rom.wSerialEnemyMonsPatchList);
 
         z80_jump asm_start(&jump_vector);
         z80_jump save_box(&jump_vector);
@@ -590,18 +586,15 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
         }
 
         // Combine the vectors into the full payload
-        ptgb::vector<byte> full_data;
-        full_data.reserve(z80_rng_seed.data_vector.size() + z80_payload.data_vector.size() + z80_patchlist.data_vector.size());
-        full_data.insert(z80_rng_seed.data_vector);
-        full_data.insert(z80_payload.data_vector);
-        full_data.insert(z80_patchlist.data_vector);
+        u8 *cur_out = payload_buffer;
+        memcpy(cur_out, z80_rng_seed.data_vector.data(), z80_rng_seed.data_vector.size());
+        cur_out += z80_rng_seed.data_vector.size();
+        memcpy(cur_out, z80_payload.data_vector.data(), z80_payload.data_vector.size());
+        cur_out += z80_payload.data_vector.size();
+        memcpy(cur_out, z80_patchlist.data_vector.data(), z80_patchlist.data_vector.size());
+        cur_out += z80_patchlist.data_vector.size();
 
-        for(size_t i=0; i < full_data.size(); ++i)
-        {
-            out_array[i] = full_data[i];
-        }
-
-        return out_array;
+        return;
 
         /*
         else if (type == EVENT)
@@ -671,7 +664,7 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
 
         z80_asm_handler z80_rng_seed(0x0A, curr_rom.wSerialOtherGameboyRandomNumberListBlock);
         z80_asm_handler z80_payload(0x1CD, curr_rom.wSerialEnemyDataBlock);      // wOTPartyData
-        z80_asm_handler z80_patchlist(0xEC, curr_rom.wSerialEnemyMonsPatchList); // wOTPatchLists
+        z80_asm_handler z80_patchlist(0xC9, curr_rom.wSerialEnemyMonsPatchList); // wOTPatchLists
 
         /*
         Initally the entire wLinkData is copied into the data section at D26B.
@@ -937,26 +930,28 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
         }
 
         // Combine the vectors into the full payload
-        ptgb::vector<byte> full_data;
-        full_data.reserve(z80_rng_seed.data_vector.size() + z80_payload.data_vector.size() + z80_patchlist.data_vector.size());
-        full_data.insert(z80_rng_seed.data_vector);
-        full_data.insert(z80_payload.data_vector);
-        full_data.insert(z80_patchlist.data_vector);
+        u8 *cur_out = payload_buffer;
+        memcpy(cur_out, z80_rng_seed.data_vector.data(), z80_rng_seed.data_vector.size());
+        cur_out += z80_rng_seed.data_vector.size();
+        memcpy(cur_out, z80_payload.data_vector.data(), z80_payload.data_vector.size());
+        cur_out += z80_payload.data_vector.size();
+        memcpy(cur_out, z80_patchlist.data_vector.data(), z80_patchlist.data_vector.size());
+        cur_out += z80_patchlist.data_vector.size();
 
-        for(size_t i = 0; i < full_data.size(); ++i)
-        {
-            out_array[i] = full_data[i];
-        }
-
-        return out_array;
+        return;
 
         // This payload works by placing Pokemon ID 0xFC's name in the stack, and causing a return to CD8E,
         // which is part of the RNG seed. From there we can jump anywhere- and we choose to jump to D887,
         // which is the rival's name. This code fixes the stack and jumps to the patchlist, which is where
         // our final code is.
     }
-    return nullptr;
+    memset(payload_buffer, 0x00, PAYLOAD_SIZE);
 };
+
+byte* get_payload()
+{
+    return payload_buffer;
+}
 
 #if PAYLOAD_EXPORT_TEST
 #include <cstdio>
@@ -964,7 +959,8 @@ int main() // Rename to "main" to send the payload to test_payload.txt
 {
     freopen("test_payload.txt", "w", stdout);
     printf("\n");
-    byte *payload = generate_payload(ENG_GOLD, TRANSFER, true);
+    init_payload(ENG_GOLD, TRANSFER, true);
+    byte *payload = get_payload();
     if (true)
     {
         for (int i = 0; i < 0x2A0; i++)

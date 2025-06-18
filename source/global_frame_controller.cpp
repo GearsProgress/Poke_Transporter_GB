@@ -7,6 +7,8 @@
 #include "text_engine.h"
 #include "sprite_data.h"
 #include "string.h"
+#include "text_data_table.h"
+#include "translated_text.h"
 
 int global_frame_count = 0;
 bool rand_enabled = true;
@@ -16,6 +18,18 @@ int fennel_blink_timer = 0;
 int fennel_blink_state = 0;
 bool missingno_enabled = false;
 bool treecko_enabled = false;
+
+// split off from global_next_frame to limit the stack usage of the general_text_table_buffer to
+// the execution of this function
+// the noinline attribute prevents the compiler from inlining this function back into the global_next_frame function
+static void __attribute__((noinline)) show_pulled_cart_error()
+{
+    u8 general_text_table_buffer[2048];
+    text_data_table general_text(general_text_table_buffer);
+
+    general_text.decompress(get_compressed_general_table());
+    ptgb_write(general_text.get_text_entry(GENERAL_pulled_cart_error), true);
+}
 
 void global_next_frame()
 {
@@ -41,7 +55,9 @@ void global_next_frame()
             tte_set_pos(40, 24);
             create_textbox(4, 1, 160, 80, true);
             obj_hide_multi(ptgb_logo_l, num_sprites);
-            ptgb_write(pulled_cart_error, true);
+
+            show_pulled_cart_error();
+
             oam_copy(oam_mem, obj_buffer, num_sprites);
             while (true)
             {
@@ -116,7 +132,7 @@ void set_menu_sprite_pal(int frame)
     }
 }
 
-int path[12][2] = {{19, 18}, {19, 19}, {18, 19}, {17, 19}, {16, 19}, {15, 19}, {14, 19}, {13, 19}, {12, 19}, {11, 19}, {10, 19}, {24, 24}};
+static const int path[12][2] = {{19, 18}, {19, 19}, {18, 19}, {17, 19}, {16, 19}, {15, 19}, {14, 19}, {13, 19}, {12, 19}, {11, 19}, {10, 19}, {24, 24}};
 
 void run_link_cable_animation(int frame)
 {

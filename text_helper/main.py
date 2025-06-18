@@ -7,17 +7,18 @@ import requests
 from collections import defaultdict
 import copy
 import math
+import sys
 
 update = True
 
-print ("\n\n\n\n\n---------------")
+print ("\nRunning text_helper:\n\n\n\n---------------")
 
 if (update == True):
 
     url = 'https://docs.google.com/spreadsheets/d/14LLs5lLqWasFcssBmJdGXjjYxARAJBa_QUOUhXZt4v8/export?format=xlsx'
 
     response = requests.get(url)
-    file_Path = 'text_helper\\text.xlsx'
+    file_Path = 'text_helper/text.xlsx'
 
     if response.status_code == 200:
         with open(file_Path, 'wb') as file:
@@ -272,7 +273,7 @@ class Languages(Enum):
     SpanishLA = 6
 
 # read by default 1st sheet of an excel file
-dir = os.curdir + "\\text_helper"
+dir = os.curdir + "/text_helper"
 
 mainDict = {}
 
@@ -357,18 +358,62 @@ def convert_item(ogDict):
     else:
         arr = engCharArray
     for char in outStr[:-1]:
-        byteStr += hex(convertByte(ord(char), arr)) + ", "
+        byteStr += f"{convertByte(ord(char), arr):02x} "
     if (len(outStr) > 0 and outStr[-1] != ' '): # Check if the last char is a space
-        byteStr += hex(convertByte(ord(outStr[-1]), arr)) + ", "
+        byteStr += f"{convertByte(ord(outStr[-1]), arr):02x} "
         
-    byteStr += "0xff" 
+    byteStr += "ff"
     
     ogDict["bytes"] = byteStr
     return ogDict
 
+def write_text_bin_file(filename, dictionary):
+    with open(filename, 'wb') as binFile:
+        # Let the first byte indicate the number of entries
+        dict_size = len(dictionary)
+        # We need to store 2 bytes instead of one, because not aligning the data to 16 bits will cause corruption on the gba.
+        binFile.write(bytes([dict_size & 0xFF, (dict_size >> 8) & 0xFF]))
+        # After this initial byte, we will read the offset (16 bit) of each line (relative to the last index byte)
+        index = bytearray(len(dictionary) * 2)
+        # bindata will contain the binary data of each entry
+        bindata = bytearray()
+        current_offset = 0
+
+        num = 0
+        # Append every line's binary data to bindata
+        # keep an index of the binary offset within bindata at which each line starts
+        for key, line in dictionary.items():
+            dictionary[key] = convert_item(line)
+            # store the offset of the line in the index as a 16 bit little endian value
+            index[num * 2] = (current_offset & 0xFF)
+            index[num * 2 + 1] = (current_offset >> 8) & 0xFF
+            linedata = bytes.fromhex(dictionary[key]['bytes'])
+            bindata.extend(linedata)
+            current_offset += len(linedata)
+
+            if len(linedata) > 1024:
+                print(f"Error: entry '{key}' numBytes exceeds 1024 (got {len(linedata)})", file=sys.stderr)
+                sys.exit(1)
+
+            num += 1
+
+        # Write the index and bindata to the file
+        binFile.write(index)
+        binFile.write(bindata)
+        binFile.close()
+
+def write_enum_to_header_file(hFile, prefix, dictionary):
+    num = 0
+    for key, line in dictionary.items():
+        hFile.write(f"#define {prefix}{key} {num}\n")
+        num += 1
+    hFile.write("\n")
+    return num
+
+
 print("\n\nStarting parse: \n")
 
-currSheet = pd.read_excel(dir + "\\text.xlsx", sheet_name="Translations")
+currSheet = pd.read_excel(dir + "/text.xlsx", sheet_name="Translations")
 for row in currSheet.iterrows():
     #print(row)
     for lang in Languages:
@@ -383,99 +428,118 @@ for row in currSheet.iterrows():
                                                                     "pixelsInLine" : currRow.iloc[4],
                                                                     "includeBoxBreaks": currRow.iloc[5],
                                                                     }
-                
-with open(os.curdir + '\\source\\translated_text.cpp', 'w') as cppFile:   
-    cppFile.write("#include \"translated_text.h\"\n#include \"debug_mode.h\"\n#include \"pokemon_data.h\"\n")
-    for lang in Languages: # putting this here is a really silly way to loop through all the CPP values but only write to H once
-        with open (os.curdir + '\\include\\translated_text.h', 'w') as hFile:
-            hFile.write("#ifndef DIALOGUE_H\n#define DIALOGUE_H\n\n#include <string>\n#include <tonc.h>\n\n")
-            cppFile.write(f"#if PTGB_BUILD_LANGUAGE == {lang.value + 1}\n")
 
+# generate the header file
+with open (os.curdir + '/include/translated_text.h', 'w') as hFile:
+    hFile.write("#ifndef DIALOGUE_H\n#define DIALOGUE_H\n\n#include <tonc.h>\n\n")
 
-            # PTGB
-            PTGB = mainDict[lang.name]["PTGB"]
-            
-            num = 0
-            for key, line in PTGB.items():
-                #print("--------")
-                PTGB[key] = convert_item(line)
-                cppFile.write("\nconst byte dialogueLine" + str(num) + "[] = {" + PTGB[key]["bytes"] + "};")
-                hFile.write(f"#define {key} {num}\n")
-                num += 1
-                
-            cppFile.write("\n")
-            hFile.write(f"\n#define DIA_SIZE {num}\n#define DIA_END DIA_SIZE\n\n")
+    # PTGB
+    num = write_enum_to_header_file(hFile, "", mainDict[lang.name]["PTGB"])
+    hFile.write(f"\n#define DIA_SIZE {num}\n#define DIA_END DIA_SIZE\n\n")
 
-            cppFile.write("\n\nconst byte *dialogue[DIA_SIZE] = {")
-            for i in range(num):
-                cppFile.write("\ndialogueLine" + str(i) + ", ")
-            cppFile.write("\n};\n")
-            hFile.write("extern const byte *dialogue[DIA_SIZE];\n")
+    # RSEFRLG
+    write_enum_to_header_file(hFile, "RSEFRLG_", mainDict[lang.name]["RSEFRLG"])
 
-            # RSEFRLG
-            RSEFRLG = mainDict[lang.name]["RSEFRLG"]
-            for key, line in RSEFRLG.items():
-                RSEFRLG[key] = convert_item(line)
-                cppFile.write(f"\nconst byte {key}[] = {{{RSEFRLG[key]["bytes"]}}};")
-                hFile.write(f"\nextern const byte {key}[];")
+    # GENERAL
+    write_enum_to_header_file(hFile, "GENERAL_", mainDict[lang.name]["GENERAL"])
 
-            # General
-            GENERAL = mainDict[lang.name]["GENERAL"]
-            for key, line in GENERAL.items():
-                GENERAL[key] = convert_item(line)
-                cppFile.write(f"const byte {key}[] = {{{GENERAL[key]["bytes"]}}};\n")
-                hFile.write(f"extern const byte {key}[];\n")
-            
-            # Credits
-            CREDITS = mainDict[lang.name]["CREDITS"]
-            for key, line in CREDITS.items():
-                CREDITS[key] = convert_item(line)
-                cppFile.write(f"const byte {key}[] = {{{CREDITS[key]["bytes"]}}};\n")
-                hFile.write(f"extern const byte {key}[];\n")
-            cppFile.write("\n")
-                
-            # Pokemon Names
-            PKMN_NAMES = mainDict[lang.name]["PKMN_NAMES"]
-            
-            num = 0
-            for key, line in PKMN_NAMES.items():
-                #print("--------")
-                PKMN_NAMES[key] = convert_item(line)
-                cppFile.write("const byte PKMN_NAMES" + str(num) + "[] = {" + PKMN_NAMES[key]["bytes"] + "};\n")
-                num += 1
-                
-            cppFile.write("\n")
+    # CREDITS
+    write_enum_to_header_file(hFile, "CREDITS_", mainDict[lang.name]["CREDITS"])
 
-            cppFile.write(f"\n\nconst byte *PKMN_NAMES[{num}] = " + "{")
-            for i in range(num):
-                cppFile.write("\nPKMN_NAMES" + str(i) + ", ")
-            cppFile.write("\n};\n")
-            hFile.write(f"extern const byte *PKMN_NAMES[{num}];\n")
+    # PKMN_NAMES
+    write_enum_to_header_file(hFile, "PKMN_NAMES_", mainDict[lang.name]["PKMN_NAMES"])
 
-                
-            
-            
-            
-            cppFile.write("\n")
-            cppFile.write(f"#endif\n\n\n")
-            
-            hFile.write("\n#endif")
+    hFile.write("/** Returns the ZX0 compressed PTGB text table.*/\n")
+    hFile.write("const u8* get_compressed_PTGB_table();\n\n")
+    hFile.write("/** Returns the ZX0 compressed RSEFRLG text table.*/\n")
+    hFile.write("const u8* get_compressed_rsefrlg_table();\n\n")
+    hFile.write("/** Returns the ZX0 compressed GENERAL text table.*/\n")
+    hFile.write("const u8* get_compressed_general_table();\n\n")
+    hFile.write("/** Returns the ZX0 compressed CREDITS text table.*/\n")
+    hFile.write("const u8* get_compressed_credits_table();\n\n")
+    hFile.write("/** Returns the ZX0 compressed PKMN_NAMES text table.*/\n")
+    hFile.write("const u8* get_compressed_pkmn_names_table();\n\n")
+
+    hFile.write("\n#endif")
+    hFile.close()
+
+# now generate the text tables
+for lang in Languages:
+    # PTGB
+    table_file = os.curdir + '/to_compress/PTGB_' + lang.name.lower() + '.bin'
+    write_text_bin_file(table_file, mainDict[lang.name]["PTGB"])
+
+    # RSEFRLG
+    table_file = os.curdir + '/to_compress/RSEFRLG_' + lang.name.lower() + '.bin'
+    write_text_bin_file(table_file, mainDict[lang.name]["RSEFRLG"])
+
+    # GENERAL
+    table_file = os.curdir + '/to_compress/GENERAL_' + lang.name.lower() + '.bin'
+    write_text_bin_file(table_file, mainDict[lang.name]["GENERAL"])
+
+    # CREDITS
+    table_file = os.curdir + '/to_compress/CREDITS_' + lang.name.lower() + '.bin'
+    write_text_bin_file(table_file, mainDict[lang.name]["CREDITS"])
+
+    # PKMN_NAMES
+    table_file = os.curdir + '/to_compress/PKMN_NAMES_' + lang.name.lower() + '.bin'
+    write_text_bin_file(table_file, mainDict[lang.name]["PKMN_NAMES"])
+
+# now generate the cpp file.
+with open(os.curdir + '/source/translated_text.cpp', 'w') as cppFile:
+    cppFile.write("#include \"translated_text.h\"\n#include \"debug_mode.h\"\n#include \"pokemon_data.h\"\n#include \"zx0_decompressor.h\"\n")
+    # generate includes for each language
+    for lang in Languages:
+        for cat in mainDict[lang.name]:
+            if cat in {"PTGB", "RSEFRLG", "GENERAL", "CREDITS", "PKMN_NAMES"}:
+                cppFile.write("#include \"" + cat.upper() + "_" + lang.name.lower() + "_zx0_bin.h\"\n")
+
+    for lang in Languages:
+        cppFile.write(f"\n#if PTGB_BUILD_LANGUAGE == {lang.value + 1}\n")
+        # PTGB
+        cppFile.write("const u8* get_compressed_PTGB_table()\n")
+        cppFile.write("{\n")
+        cppFile.write("\treturn PTGB_" + lang.name.lower() + "_zx0_bin;\n")
+        cppFile.write("}\n\n")
+        # RSEFRLG
+        cppFile.write("const u8* get_compressed_rsefrlg_table()\n")
+        cppFile.write("{\n")
+        cppFile.write("\treturn RSEFRLG_" + lang.name.lower() + "_zx0_bin;\n")
+        cppFile.write("}\n\n")
+        # GENERAL
+        cppFile.write("const u8* get_compressed_general_table()\n")
+        cppFile.write("{\n")
+        cppFile.write("\treturn GENERAL_" + lang.name.lower() + "_zx0_bin;\n")
+        cppFile.write("}\n\n")
+        # CREDITS
+        cppFile.write("const u8* get_compressed_credits_table()\n")
+        cppFile.write("{\n")
+        cppFile.write("\treturn CREDITS_" + lang.name.lower() + "_zx0_bin;\n")
+        cppFile.write("}\n\n")
+        # PKMN_NAMES
+        cppFile.write("const u8* get_compressed_pkmn_names_table()\n")
+        cppFile.write("{\n")
+        cppFile.write("\treturn PKMN_NAMES_" + lang.name.lower() + "_zx0_bin;\n")
+        cppFile.write("}\n\n")
+
+        cppFile.write(f"#endif\n\n\n")
+
 
 for lang in Languages:
     for cat in mainDict[lang.name]:
         if cat in {"PTGB", "RSEFRLG", "GENERAL", "CREDITS", "PKMN_NAMES"}:
             for item in mainDict[lang.name][cat]:
-                string = mainDict[lang.name][cat][item]["bytes"].split(", ")
+                string = mainDict[lang.name][cat][item]["bytes"].split(" ")
                 outText = ""
                 if lang == Languages.Japanese:
                     arr = jpnCharArray
                 else:
                     arr = engCharArray
                 for byte in string:
-                    byte = engCharArray[int(byte, 0)]
+                    byte = engCharArray[int(byte, 16)]
                     outText += chr(byte)
                 mainDict[lang.name][cat][item]["text"] = outText
     
-with open(dir + '\\output.json', 'w') as jsonFile:
+with open(dir + '/output.json', 'w') as jsonFile:
     jsonFile.write(json.dumps(mainDict))
     

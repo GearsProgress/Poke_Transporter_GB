@@ -41,8 +41,8 @@
 
 const int MODE = 1; // mode=0 will transfer pokemon data from pokemon.h
                     // mode=1 will copy pokemon party data being received
-
-LinkSPI *linkSPI = new LinkSPI();
+LinkSPI linkSPIInstance;
+LinkSPI *linkSPI = &linkSPIInstance;
 
 uint8_t in_data;
 uint8_t out_data;
@@ -75,24 +75,25 @@ bool end_of_data;
 byte data_packet[PACKET_SIZE];
 
 #define SPI_TEXT_OUT_ARRAY_ELEMENT_SIZE 64
-// 10 elements of 64 bytes, zero-initialized.
-char spi_text_out_array[10][SPI_TEXT_OUT_ARRAY_ELEMENT_SIZE] = {
-  {0},
-  {0},
-  {0},
-  {0},
-  {0},
-  {0},
-  {0},
-  {0},
-  {0},
-  {0}
-};
 
 void print(const char* format, ...)
 {
   va_list args;
   va_start(args, format);
+
+  // 10 elements of 64 bytes, zero-initialized.
+  char spi_text_out_array[10][SPI_TEXT_OUT_ARRAY_ELEMENT_SIZE] = {
+    {0},
+    {0},
+    {0},
+    {0},
+    {0},
+    {0},
+    {0},
+    {0},
+    {0},
+    {0}
+  };
 
   for (int i = 10; i > 0; i--)
   {
@@ -111,7 +112,7 @@ void print(const char* format, ...)
   }
 }
 
-void setup()
+void setup(const u16 *debug_charset)
 {
   interrupt_init();
   interrupt_set_handler(INTR_SERIAL, LINK_SPI_ISR_SERIAL);
@@ -146,10 +147,10 @@ void setup()
   create_textbox(0, 0, 80, 80, true);
   //tte_erase_screen();
   tte_set_pos(40, 24);
-  ptgb_write_debug("\n\n\n   Connecting to\n      GameBoy", true);
+  ptgb_write_debug(debug_charset, "\n\n\n   Connecting to\n      GameBoy", true);
 }
 
-byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, Simplified_Pokemon *curr_simple_array, bool cancel_connection)
+byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, Simplified_Pokemon *curr_simple_array, const u16 *debug_charset, bool cancel_connection)
 {
   // TODO: Change to a switch statement
   if (state == hs)
@@ -199,7 +200,7 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
     {
       tte_erase_rect(0, 0, H_MAX, V_MAX);
       tte_set_pos(40, 24);
-      ptgb_write_debug(curr_gb_rom->version != YELLOW_ID ? "\n\n\nLink was successful!\n\n  Waiting for trade" : "\n\n\nLink was successful!\n\n Waiting for battle", true);
+      ptgb_write_debug(debug_charset, curr_gb_rom->version != YELLOW_ID ? "\n\n\nLink was successful!\n\n  Waiting for trade" : "\n\n\nLink was successful!\n\n Waiting for battle", true);
       link_animation_state(STATE_NO_ANIM);
       state = pretrade;
       data_counter = 0;
@@ -244,7 +245,7 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
     {
       tte_erase_rect(0, 0, H_MAX, V_MAX);
       tte_set_pos(40, 24);
-      ptgb_write_debug("\n\n\nTransferring data...\n    please wait!", true);
+      ptgb_write_debug(debug_charset, "\n\n\nTransferring data...\n    please wait!", true);
       link_animation_state(STATE_TRANSFER);
       mosi_delay = 1;
       state = party_preamble;
@@ -324,9 +325,10 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
   return in;
 }
 
-int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, Simplified_Pokemon *curr_simple_array, bool cancel_connection)
+int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, Simplified_Pokemon *curr_simple_array, const u16 *debug_charset, bool cancel_connection)
 {
   int counter = 0;
+
   while (true)
   {
     // TODO: Restore Errors
@@ -337,7 +339,7 @@ int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, Simpli
       tte_set_margins(0, 0, H_MAX, V_MAX);
       print("%d: [%d][%d][%" PRIu8 "][%" PRIu8 "]\n\n", counter, data_counter, state, in_data, out_data);
     }
-    out_data = handleIncomingByte(in_data, box_data_storage, curr_payload, curr_gb_rom, curr_simple_array, cancel_connection);
+    out_data = handleIncomingByte(in_data, box_data_storage, curr_payload, curr_gb_rom, curr_simple_array, debug_charset, cancel_connection);
 
     if (FF_count > (15 * 60))
     {

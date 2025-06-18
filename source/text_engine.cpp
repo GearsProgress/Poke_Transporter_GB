@@ -1,7 +1,5 @@
 #include <tonc.h>
-#include <string>
 #include <cstring>
-#include <stdio.h>
 
 #include "text_engine.h"
 #include "global_frame_controller.h"
@@ -12,6 +10,7 @@
 #include "sprite_data.h"
 #include "latin_short.h"
 #include "japanese_small.h"
+#include "text_data_table.h"
 
 #define TEXT_CBB 0
 #define TEXT_SBB 10
@@ -21,6 +20,29 @@ uint char_index;
 uint line_char_index;
 const byte *curr_text;
 bool text_exit;
+
+// This function was separated from text_loop to reduce the scope of the text_decompression_buffer.
+// if we didn't do this, the decompression_buffer would be kept on the stack (=IWRAM) for the entire duration of the
+// text_loop() call. This is particularly bad because the whole mystery_gift_builder sequence is being triggered from within
+// text_loop(). And there we need all the IWRAM we can muster.
+// Doing it this way does mean that we need to completely restart decompression whenever we switch from dialog entry.
+// but given that it requires user input to do so, I believe it's worth it and not time-critical.
+// attribute noinline was used to make sure the compiler doesn't inline this code back into text_loop()
+static __attribute__((noinline)) const u8* read_dialogue_text_entry(uint8_t index, u8 *output_buffer)
+{
+    u8 text_decompression_buffer[3072];
+    u8 index_buffer[100];
+    const u8 *text_entry;
+
+    streamed_text_data_table dialogue_table(text_decompression_buffer, sizeof(text_decompression_buffer), index_buffer);
+
+    dialogue_table.decompress(get_compressed_PTGB_table());
+
+    text_entry = dialogue_table.get_text_entry(index);
+    memcpy(output_buffer, text_entry, dialogue_table.get_text_entry_size(index));
+
+    return output_buffer;
+}
 
 void init_text_engine()
 {
@@ -56,17 +78,21 @@ void init_text_engine()
 
 int text_loop(int script)
 {
+    // we have restricted the dialog entries to 1024 bytes in the text_helper main.py
+    // so we shouldn't run into problems when we only use 1 KB to contain a text entry.
+    u8 diag_entry_text_buffer[1024];
     switch (script)
     {
     case BTN_TRANSFER:
-        curr_line = transfer_script[T_SCRIPT_START];
+        curr_line = transfer_script_params[T_SCRIPT_START];
         break;
 
     case BTN_EVENTS:
-        curr_line = event_script[E_SCRIPT_START];
+        curr_line = event_script_params[E_SCRIPT_START];
         break;
     }
-    curr_text = curr_line.get_text();
+
+    curr_text = (curr_line.has_text()) ? read_dialogue_text_entry(curr_line.get_text_entry_index(), diag_entry_text_buffer) : NULL;
 
     REG_BG1CNT = (REG_BG1CNT && !BG_PRIO_MASK) | BG_PRIO(2); // Show Fennel
     show_text_box();
@@ -86,13 +112,14 @@ int text_loop(int script)
         switch (script)
         {
         case BTN_TRANSFER:
-            curr_line = transfer_script[text_next_obj_id(curr_line)];
+            curr_line = transfer_script_params[text_next_obj_id(curr_line)];
             break;
         case BTN_EVENTS:
-            curr_line = event_script[text_next_obj_id(curr_line)];
+            curr_line = event_script_params[text_next_obj_id(curr_line)];
             break;
         }
-        curr_text = curr_line.get_text();
+
+        curr_text = (curr_line.has_text()) ? read_dialogue_text_entry(curr_line.get_text_entry_index(), diag_entry_text_buffer) : NULL;
         char_index = 0;
 
         if (text_exit)
@@ -113,7 +140,9 @@ int text_next_obj_id(script_obj current_line)
     }
     else
     {
-        if (run_conditional(current_line.get_cond_id()))
+        const bool ret = run_conditional(current_line.get_cond_id());
+        VBlankIntrWait(); // this is needed to handle interrupts
+        if (ret)
         {
             return current_line.get_true_index();
         }
@@ -224,7 +253,7 @@ int ptgb_write(const byte *text, bool instant, int length)
     return 0; // str - text;
 }
 // This is mostly used for debug stuff, I shouldn't rely it on it much.
-int ptgb_write_debug(const char *text, bool instant)
+int ptgb_write_debug(const u16* charset, const char *text, bool instant)
 {
     byte temp_holding[256];
     int i;
@@ -241,7 +270,7 @@ int ptgb_write_debug(const char *text, bool instant)
         }
         else
         {
-            temp_holding[i] = get_gen_3_char(text[i], false);
+            temp_holding[i] = get_char_from_charset(charset, text[i]);
         }
     }
     return ptgb_write(temp_holding, instant);

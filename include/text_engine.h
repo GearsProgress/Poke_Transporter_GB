@@ -1,12 +1,8 @@
 #ifndef TEXT_ENGINE_H
 #define TEXT_ENGINE_H
 
-#include <tonc.h>
-#include <string>
-
 #include "script_obj.h"
-#include "script_array.h"
-#include "pokemon_data.h"
+#include <cstdarg>
 
 #define H_MAX 240
 #define V_MAX 160
@@ -28,7 +24,7 @@ void set_text_exit();
 int ptgb_write(const char *text);
 int ptgb_write(const byte *text, bool instant);
 int ptgb_write(const byte *text, bool instant, int length);
-int ptgb_write_debug(const char *text, bool instant);
+int ptgb_write_debug(const u16* charset, const char *text, bool instant);
 void wait_for_user_to_continue(bool clear_text);
 
 #endif

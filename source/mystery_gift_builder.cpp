@@ -5,6 +5,7 @@
 #include "pokemon_data.h"
 #include "rom_data.h"
 #include "translated_text.h"
+#include "text_data_table.h"
 
 #define MG_SCRIPT false
 #define S30_SCRIPT true
@@ -40,11 +41,52 @@ int var_script_ptr_low = (VAR_ID_START + 0x01);
 int var_script_ptr_high = (VAR_ID_START + 0x02);
 int var_call_return_1 = (VAR_ID_START + 0x03);
 
-mystery_gift_script::mystery_gift_script()
-{
-    curr_mg_index = NPC_LOCATION_OFFSET;
-    curr_section30_index = 0;
+// the below structs and union are a scheme to reuse stack (IWRAM) memory of the
+// PokemonTables instance for storing decompressed text data once it's no longer needed.
+// The reason is that depending on the optimization level (-O0 specifically), the compiler may not do so automatically
+// if you'd use anonymous scopes for that purpose.
+// Having a union forces this behaviour.
 
+// this struct is used to hold the PokemonTables data
+// within the decompressed_store union
+struct decompressed_data_tables
+{
+    // This is about 3,4 KB
+    PokemonTables data;
+};
+
+// this struct is used to hold decompressed text data
+// within the decompressed_store union
+struct decompressed_text_data
+{
+    // the buffer is specifically chosen to be -at least- the size of PokemonTables
+    // to ensure that writing to gen3_charset_eng FROM the PokemonTables instance of the
+    // union doesn't overwrite said instance during the copy
+    u8 buffer[sizeof(PokemonTables)];
+    u16 gen3_charset[256];
+};
+
+// This union is used to hold the PokemonTables data on the stack when it's needed,
+// and reclaim the memory for decompressed text data when it's not.
+union decompressed_data_storage_union
+{
+    decompressed_data_tables tables;
+    decompressed_text_data text;
+
+    // constructor and destructor are needed to make the compiler stop complaining
+    // about the decompressed_data_tables struct not being trivial
+    decompressed_data_storage_union(){}
+    ~decompressed_data_storage_union(){}
+};
+
+mystery_gift_script::mystery_gift_script(u8 *save_section_30_buffer)
+    : curr_mg_index(NPC_LOCATION_OFFSET)
+    , curr_section30_index(0)
+    , save_section_30(save_section_30_buffer)
+    , mg_script()
+    , value_buffer()
+    , four_align_value(0)
+{
     ptr_call_check_flag = (curr_rom.loc_gSpecialVar_0x8000 + 0x08);
     ptr_call_return_2 = (curr_rom.loc_gSpecialVar_0x8000 + 0x0A);
     ptr_box_return = (curr_rom.loc_gSpecialVar_0x8000 + 0x0C);
@@ -63,6 +105,8 @@ mystery_gift_script::mystery_gift_script()
 
 void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
 {
+    decompressed_data_storage_union decompressed_store;
+    text_data_table decompressed_text_table(decompressed_store.text.buffer);
     ptgb::vector<script_var *> mg_variable_list;
     ptgb::vector<script_var *> sec30_variable_list;
 
@@ -139,51 +183,6 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
             break;
         }
     }
-
-    // Ş = Wait for button and scroll text
-    // ȼ = Wait for button and clear text
-    // Ȇ = Escape character
-    //      À = Change text color
-    //          Ç = Red
-    //          É = Green
-    //          Ë = Blue
-    // Ʋ = Variable escape sequence
-    //      À = Player name
-    // Ň = New line
-    // ƞ = string terminator
-    
-    switch (curr_rom.gamecode)
-    {
-    case RUBY_ID:
-        textGreet.set_text(dia_textGreet_rse);
-        textMoveBox.set_text(dia_textMoveBox_rs);
-        textWeHere.set_text(dia_textWeHere_r);
-        break;
-    case SAPPHIRE_ID:
-        textGreet.set_text(dia_textGreet_rse);
-        textMoveBox.set_text(dia_textMoveBox_rs);
-        textWeHere.set_text(dia_textWeHere_s);
-        break;
-    case FIRERED_ID:
-    case LEAFGREEN_ID:
-        textGreet.set_text(dia_textGreet_frlg);
-        textMoveBox.set_text(dia_textMoveBox_frlg);
-        textWeHere.set_text(dia_textWeHere_frlg);
-        break;
-    case EMERALD_ID:
-        textGreet.set_text(dia_textGreet_rse);
-        textMoveBox.set_text(dia_textMoveBox_e);
-        textWeHere.set_text(dia_textWeHere_e);
-        break;
-    }
-    textReceived.set_text(dia_textRecieved);
-    textYouMustBe.set_text(first_time ? dia_textYouMustBe_first : dia_textYouMustBe_second);
-    textIAm.set_text(first_time ? dia_textIAm_first : dia_textIAm_second);
-    textPCConvo.set_text(dia_textPCConvo); // ȼDon’t worry ƲÀ,Ňyou won’t have to do a thing!");
-    textPCThanks.set_text(dia_textPCThanks);
-    textThank.set_text(dia_textThank);
-    textPCFull.set_text(dia_textPCFull);
-    textLookerFull.set_text(dia_textLookerFull);
 
     const int movementSlowSpinArray[16] = {
         MOVEMENT_ACTION_FACE_LEFT,
@@ -327,18 +326,18 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     // const byte track_unused[] = {0xBC, 0x00, 0xBD, 0x7E, 0xC4, 0x00, 0xBE, 0x53, 0xBF, 0x40, 0xD4, 0x24, 0x70, 0x8C, 0xD4, 0x98, 0x32, 0x86, 0xD4, 0x86, 0x30, 0x86, 0xD4, 0x86, 0xD4, 0x86, 0xD4, 0x86, 0x2D, 0x86, 0xD4, 0x86, 0xD4, 0x86, 0xD4, 0x85, 0xB1};
     // songLooker.add_track(track_unused, sizeof(track_unused));
 
-    int dex_nums[MAX_PKMN_IN_BOX] = {};
+    u8 dex_nums[MAX_PKMN_IN_BOX] = {};
 
+    // placement new is required to run the constructor of PokemonTables for the decompressed_store's instance
+    // it won't get called automatically because it's part of the union (and neither will the destructor)
+    new (&decompressed_store.tables.data) PokemonTables();
     for (int i = 0; i < MAX_PKMN_IN_BOX; i++) // Add in the Pokemon data
     {
-        Pokemon curr_pkmn = incoming_box_data.get_converted_pkmn(i);
+        Pokemon curr_pkmn = incoming_box_data.get_converted_pkmn(decompressed_store.tables.data, i);
         if (curr_pkmn.get_validity())
         {
-            for (int curr_byte = 0; curr_byte < POKEMON_SIZE; curr_byte++)
-            {
-                save_section_30[curr_section30_index] = curr_pkmn.get_gen_3_data(curr_byte);
-                curr_section30_index++;
-            }
+            memcpy(save_section_30 + curr_section30_index, curr_pkmn.get_full_gen_3_array(), POKEMON_SIZE);
+            curr_section30_index += POKEMON_SIZE;
             dex_nums[i] = curr_pkmn.get_dex_number();
         }
         else
@@ -346,22 +345,77 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
             curr_section30_index += POKEMON_SIZE;
         }
     }
+    // the PokemonTables instance is no longer needed, but we do need to keep the english gen3 charset around
+    // for our insert_text() calls
+    decompressed_store.tables.data.load_gen3_charset(ENG_ID);
+    // we specifically defined the decompressed_text_data struct to ensure the memcpy shouldn't overlap
+    memcpy(decompressed_store.text.gen3_charset, decompressed_store.tables.data.gen3_charset, sizeof(decompressed_store.text.gen3_charset));
+    // calling the destructor is nothing more than a formality for our PokemonTables class,
+    // but let's do it anyway for the sake of being explicit after having used placement new
+    decompressed_store.tables.data.~PokemonTables();
 
-    for (int i = 0; i < MAX_PKMN_IN_BOX; i++) // Add in the dex numbers
-    {
-        save_section_30[curr_section30_index] = dex_nums[i];
-        curr_section30_index++;
-    }
+    // Add in the dex numbers
+    memcpy(save_section_30 + curr_section30_index, dex_nums, MAX_PKMN_IN_BOX);
+    curr_section30_index += MAX_PKMN_IN_BOX;
 
     // insert text
-    textThank.insert_text(save_section_30);
-    textPCFull.insert_text(save_section_30);
-    textWeHere.insert_text(save_section_30);
-    textPCConvo.insert_text(save_section_30);
-    textPCThanks.insert_text(save_section_30);
-    textLookerFull.insert_text(save_section_30);
-    textMoveBox.insert_text(save_section_30);
-    textReceived.insert_text(save_section_30);
+
+    // Ş = Wait for button and scroll text
+    // ȼ = Wait for button and clear text
+    // Ȇ = Escape character
+    //      À = Change text color
+    //          Ç = Red
+    //          É = Green
+    //          Ë = Blue
+    // Ʋ = Variable escape sequence
+    //      À = Player name
+    // Ň = New line
+    // ƞ = string terminator
+
+    // this decompresses the ZX0 compressed text table into the buffer inside of the decompressed_store union
+    // thereby reusing the stack (=IWRAM) memory used earlier for the PokemonTables instance we used above
+    decompressed_text_table.decompress(get_compressed_rsefrlg_table());
+    switch (curr_rom.gamecode)
+    {
+    case RUBY_ID:
+        textGreet.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textGreet_rse));
+        textMoveBox.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textMoveBox_rs));
+        textWeHere.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textWeHere_r));
+        break;
+    case SAPPHIRE_ID:
+        textGreet.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textGreet_rse));
+        textMoveBox.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textMoveBox_rs));
+        textWeHere.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textWeHere_s));
+        break;
+    case FIRERED_ID:
+    case LEAFGREEN_ID:
+        textGreet.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textGreet_frlg));
+        textMoveBox.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textMoveBox_frlg));
+        textWeHere.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textWeHere_frlg));
+        break;
+    case EMERALD_ID:
+        textGreet.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textGreet_rse));
+        textMoveBox.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textMoveBox_e));
+        textWeHere.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textWeHere_e));
+        break;
+    }
+    textReceived.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textRecieved));
+    textYouMustBe.set_text(decompressed_text_table.get_text_entry(first_time ? RSEFRLG_dia_textYouMustBe_first : RSEFRLG_dia_textYouMustBe_second));
+    textIAm.set_text(decompressed_text_table.get_text_entry(first_time ? RSEFRLG_dia_textIAm_first : RSEFRLG_dia_textIAm_second));
+    textPCConvo.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textPCConvo)); // ȼDon’t worry ƲÀ,Ňyou won’t have to do a thing!");
+    textPCThanks.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textPCThanks));
+    textThank.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textThank));
+    textPCFull.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textPCFull));
+    textLookerFull.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textLookerFull));
+
+    textThank.insert_text(decompressed_store.text.gen3_charset, save_section_30);
+    textPCFull.insert_text(decompressed_store.text.gen3_charset, save_section_30);
+    textWeHere.insert_text(decompressed_store.text.gen3_charset, save_section_30);
+    textPCConvo.insert_text(decompressed_store.text.gen3_charset, save_section_30);
+    textPCThanks.insert_text(decompressed_store.text.gen3_charset, save_section_30);
+    textLookerFull.insert_text(decompressed_store.text.gen3_charset, save_section_30);
+    textMoveBox.insert_text(decompressed_store.text.gen3_charset, save_section_30);
+    textReceived.insert_text(decompressed_store.text.gen3_charset, save_section_30);
 
     movementSlowSpin.insert_movement(save_section_30);
     movementFastSpin.insert_movement(save_section_30);
@@ -783,9 +837,10 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     add_word(flashBuffer_ptr.place_word());
     add_word(readFlashSector_ptr.place_word());
 
-    textGreet.insert_virtual_text(mg_script);
-    textYouMustBe.insert_virtual_text(mg_script);
-    textIAm.insert_virtual_text(mg_script);
+    constexpr bool should_set_virtual_start = true;
+    textGreet.insert_text(decompressed_store.text.gen3_charset, mg_script, should_set_virtual_start);
+    textYouMustBe.insert_text(decompressed_store.text.gen3_charset, mg_script, should_set_virtual_start);
+    textIAm.insert_text(decompressed_store.text.gen3_charset, mg_script, should_set_virtual_start);
 
     for (unsigned int i = 0; i < mg_variable_list.size(); i++) // Fill all the refrences for script variables in the mg
     {
@@ -1038,14 +1093,15 @@ void mystery_gift_script::build_script_old(Pokemon_Party &incoming_box_data)
     }
 };
 */
-u8 mystery_gift_script::get_script_value_at(int i)
+
+const u8* mystery_gift_script::get_script() const
 {
-    return mg_script[i];
+    return mg_script;
 }
 
-u8 mystery_gift_script::get_section30_value_at(int i)
+const u8* mystery_gift_script::get_section30() const
 {
-    return save_section_30[i];
+    return save_section_30;
 }
 
 u16 mystery_gift_script::rev_endian(u16 num)

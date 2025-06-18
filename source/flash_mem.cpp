@@ -2,6 +2,7 @@
 #include "libstd_replacements.h"
 #include "flash_mem.h"
 #include "pokemon.h"
+#include "pokemon_data.h"
 #include "rom_data.h"
 #include "libraries/Pokemon-Gen3-to-Gen-X/include/save.h"
 #include "text_engine.h"
@@ -54,7 +55,7 @@ void initalize_memory_locations()
         copy_save_to_ram(memory_section_array[mem_section], &global_memory_buffer[0], 0x1000);
         tte_set_pos(8, 0);
         tte_write("loc: ");
-        tte_write(ptgb::to_string(memory_section_array[mem_section] + mem_start));
+        tte_write(ptgb::to_string(static_cast<unsigned>(memory_section_array[mem_section] + mem_start)));
         tte_write("\n");
         for (int i = mem_start; i < (128 + mem_start); i++)
         {
@@ -96,10 +97,14 @@ void initalize_memory_locations()
 void print_mem_section()
 {
     return; // This function isn't really needed now
+    uint16_t charset[256];
     byte out[4] = {0, 0, 0, 0xFF};
-    out[0] = get_gen_3_char(mem_name, false);
-    out[1] = get_gen_3_char('-', false);
-    out[2] = get_gen_3_char(mem_id + 0xA1, false); // Kinda a dumb way to 
+
+    load_localized_charset(charset, 3, ENG_ID);
+
+    out[0] = get_char_from_charset(charset, mem_name);
+    out[1] = get_char_from_charset(charset, '-');
+    out[2] = get_char_from_charset(charset, mem_id + 0xA1); // Kinda a dumb way to 
     tte_set_pos(0, 0);
     ptgb_write(out, true);
 }

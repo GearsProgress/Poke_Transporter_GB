@@ -6,7 +6,6 @@
 #define TEST 3
 
 #include "gb_rom_values/base_gb_rom_struct.h"
-#include <vector>
 
 #define DATA_PER_PACKET 8
 #define PACKET_DATA_START 2
@@ -20,6 +19,9 @@
 #define PACKET_SIZE (1 + 1 + (2 * DATA_PER_PACKET) + 1 + 2) // Originally 13
 
 
-byte* generate_payload(GB_ROM curr_rom, int type, bool debug);
+void init_payload(GB_ROM curr_rom, int type, bool debug);
+
+/// @brief Note: call @see init_payload before using this function.
+byte* get_payload();
 
 #endif

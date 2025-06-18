@@ -1,5 +1,5 @@
 #include <tonc.h>
-#include <cstring>
+#include <cstdlib>
 // #include <maxmod.h> //Music
 #include "libstd_replacements.h"
 #include "flash_mem.h"
@@ -11,6 +11,7 @@
 #include "text_engine.h"
 #include "background_engine.h"
 #include "pokemon_party.h"
+#include "pokemon_data.h"
 #include "script_array.h"
 #include "sprite_data.h"
 #include "button_handler.h"
@@ -28,6 +29,7 @@
 #include "multiboot_upload.h"
 #include "rom_data.h"
 #include "libraries/Pokemon-Gen3-to-Gen-X/include/save.h"
+#include "text_data_table.h"
 
 /*
 
@@ -134,8 +136,7 @@ void initalization_script(void)
 	oam_init(obj_buffer, 128);
 	load_graphics();
 
-	// Prepare dialouge
-	populate_script();
+	// Prepare text engine for dialogue
 	init_text_engine();
 
 	// Set the random seed
@@ -153,7 +154,15 @@ void game_load_error(void)
 	REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(1);
 
 	create_textbox(4, 1, 152, 100, true);
-	ptgb_write(cart_load_error, true);
+
+	{
+		u8 general_text_table_buffer[2048];
+		text_data_table general_text(general_text_table_buffer);
+
+		general_text.decompress(get_compressed_general_table());
+		ptgb_write(general_text.get_text_entry(GENERAL_cart_load_error), true);
+	}
+
 	key_poll();
 	do
 	{
@@ -187,7 +196,15 @@ void first_load_message(void)
 	tte_set_margins(8, 8, H_MAX - 8, V_MAX);
 	tte_set_pos(8, 8);
 	tte_set_ink(INK_ROM_COLOR);
-	ptgb_write(intro_first, true);
+
+	{
+		u8 general_text_table_buffer[2048];
+		text_data_table general_text(general_text_table_buffer);
+
+		general_text.decompress(get_compressed_general_table());
+		ptgb_write(general_text.get_text_entry(GENERAL_intro_first), true);
+	}
+
 	while (!key_hit(KEY_A))
 	{
 		global_next_frame();
@@ -197,32 +214,11 @@ void first_load_message(void)
 
 int credits()
 {
-	char hexBuffer[16];
-#define CREDITS_ARRAY_SIZE 19
+	u8 text_decompression_buffer[2048];
+	text_data_table credits_text_table(text_decompression_buffer);
 	int curr_credits_num = 0;
-	const byte *credits_array[CREDITS_ARRAY_SIZE] = {
-		credits_page_1,
-		credits_page_2,
-		credits_page_3,
-		credits_page_4,
-		credits_page_5,
-		credits_page_6,
-		credits_page_7,
-		credits_page_8,
-		credits_page_9,
-		credits_page_10,
-		credits_page_11,
-		credits_page_12,
-		credits_page_13,
-		credits_page_14,
-		credits_page_15,
-		credits_page_16,
-		credits_page_17,
-		credits_page_18,
-		credits_page_19,
-		// Add translators
-	};
 
+	credits_text_table.decompress(get_compressed_credits_table());
 	bool update = true;
 
 	global_next_frame();
@@ -232,7 +228,7 @@ int credits()
 		{
 			create_textbox(4, 1, 160, 80, true);
 			show_text_box();
-			ptgb_write(credits_array[curr_credits_num], true);
+			ptgb_write(credits_text_table.get_text_entry(curr_credits_num), true);
 			update = false;
 		}
 
@@ -247,13 +243,16 @@ int credits()
 			curr_credits_num--;
 			update = true;
 		}
-		if (key_hit(KEY_RIGHT) && curr_credits_num < (CREDITS_ARRAY_SIZE - 1))
+		if (key_hit(KEY_RIGHT) && curr_credits_num < (credits_text_table.get_number_of_text_entries() - 1))
 		{
 			curr_credits_num++;
 			update = true;
 		}
 		if (ENABLE_DEBUG_SCREEN && key_hit(KEY_SELECT))
 		{
+			char hexBuffer[16];
+			uint16_t charset[256];
+			load_localized_charset(charset, 3, ENG_ID);
 			if (key_held(KEY_UP) && key_held(KEY_L) && key_held(KEY_R))
 			{
 				set_treecko(true);
@@ -271,48 +270,48 @@ int credits()
 			int def_lang = get_def_lang_num();
 
 			create_textbox(4, 1, 160, 80, true);
-			ptgb_write_debug("Debug info:\n\nG: ", true);
-			ptgb_write_debug(ptgb::to_string(curr_rom.language), true);
+			ptgb_write_debug(charset, "Debug info:\n\nG: ", true);
+			ptgb_write_debug(charset, ptgb::to_string(curr_rom.language), true);
 			switch (curr_rom.gamecode)
 			{
 			case RUBY_ID:
-				ptgb_write_debug("-R-", true);
+				ptgb_write_debug(charset, "-R-", true);
 				break;
 			case SAPPHIRE_ID:
-				ptgb_write_debug("-S-", true);
+				ptgb_write_debug(charset, "-S-", true);
 				break;
 			case FIRERED_ID:
-				ptgb_write_debug("-F-", true);
+				ptgb_write_debug(charset, "-F-", true);
 				break;
 			case LEAFGREEN_ID:
-				ptgb_write_debug("-L-", true);
+				ptgb_write_debug(charset, "-L-", true);
 				break;
 			case EMERALD_ID:
-				ptgb_write_debug("-E-", true);
+				ptgb_write_debug(charset, "-E-", true);
 				break;
 			}
 
-			ptgb_write_debug(ptgb::to_string(curr_rom.version), true);
+			ptgb_write_debug(charset, ptgb::to_string(curr_rom.version), true);
 
-			ptgb_write_debug("\nF: ", true);
-			ptgb_write_debug(ptgb::to_string(e4_flag), true);
-			ptgb_write_debug(ptgb::to_string(mg_flag), true);
-			ptgb_write_debug(ptgb::to_string(all_collected_flag), true);
-			ptgb_write_debug("-", true);
+			ptgb_write_debug(charset, "\nF: ", true);
+			ptgb_write_debug(charset, ptgb::to_string(e4_flag), true);
+			ptgb_write_debug(charset, ptgb::to_string(mg_flag), true);
+			ptgb_write_debug(charset, ptgb::to_string(all_collected_flag), true);
+			ptgb_write_debug(charset, "-", true);
 
 			n2hexstr(hexBuffer, pkmn_flags);
-			ptgb_write_debug(hexBuffer, true);
-			ptgb_write_debug("\nS:   ", true);
-			ptgb_write_debug(ptgb::to_string(tutorial), true);
-			ptgb_write_debug("-", true);
+			ptgb_write_debug(charset, hexBuffer, true);
+			ptgb_write_debug(charset, "\nS:   ", true);
+			ptgb_write_debug(charset, ptgb::to_string(tutorial), true);
+			ptgb_write_debug(charset, "-", true);
 			n2hexstr(hexBuffer, def_lang);
-			ptgb_write_debug(hexBuffer, true);
+			ptgb_write_debug(charset, hexBuffer, true);
 
-			ptgb_write_debug("\n", true);
-			ptgb_write_debug(VERSION, true);
+			ptgb_write_debug(charset, "\n", true);
+			ptgb_write_debug(charset, VERSION, true);
 			if (get_treecko_enabled())
 			{
-				ptgb_write_debug(".T", true);
+				ptgb_write_debug(charset, ".T", true);
 			}
 			while (true)
 			{
@@ -325,6 +324,7 @@ int credits()
 				global_next_frame();
 			}
 		}
+
 		global_next_frame();
 	}
 };
@@ -333,10 +333,16 @@ int credits()
 
 int main_menu_loop()
 {
+	uint8_t general_text_table_buffer[2048];
+	text_data_table general_text(general_text_table_buffer);
 	bool update = true;
-	const byte *menu_options[NUM_MENU_OPTIONS] = {option_transfer, option_dreamdex, option_credits};
+	const uint8_t menu_options[NUM_MENU_OPTIONS] = {GENERAL_option_transfer, GENERAL_option_dreamdex, GENERAL_option_credits};
+	const uint8_t *text_entry;
 	int return_values[NUM_MENU_OPTIONS] = {BTN_TRANSFER, BTN_POKEDEX, BTN_CREDITS};
 	u16 test = 0;
+
+	general_text.decompress(get_compressed_general_table());
+
 	while (true)
 	{
 		if (update)
@@ -344,7 +350,8 @@ int main_menu_loop()
 			tte_erase_rect(0, 80, 240, 160);
 			for (int i = 0; i < NUM_MENU_OPTIONS; i++)
 			{
-				int size = get_string_length(menu_options[i]);
+				text_entry = general_text.get_text_entry(menu_options[i]);
+				int size = get_string_length(text_entry);
 				int char_width = (PTGB_BUILD_LANGUAGE == JPN_ID ? 8 : 6);
 				int x = ((240 - (size * char_width)) / 2);
 				tte_set_pos(x, ((i * 17) + 80));
@@ -356,7 +363,7 @@ int main_menu_loop()
 				{
 					tte_set_ink(INK_ROM_COLOR);
 				}
-				ptgb_write(menu_options[i], true);
+				ptgb_write(text_entry, true);
 				test++;
 			}
 		}
@@ -385,6 +392,93 @@ int main_menu_loop()
 	}
 }
 
+// Legal mumbo jumbo
+static void show_legal_text(const u8* intro_text)
+{
+	tte_set_margins(8, 8, H_MAX - 8, V_MAX - 8);
+	tte_set_pos(8, 8);
+	tte_set_ink(INK_ROM_COLOR);
+	ptgb_write(intro_text, true);
+	bool wait = true;
+	while (wait)
+	{
+		global_next_frame();
+		if (key_hit(KEY_A))
+		{
+			wait = false;
+		}
+	}
+}
+
+// Gears of Progress
+static void show_gears_of_progress()
+{
+	tte_erase_rect(0, 0, 240, 160);
+	REG_BG1VOFS = 0;
+	delay_counter = 0;
+	while (delay_counter < (15 * 60))
+	{
+		global_next_frame();
+		delay_counter++;
+		if (key_hit(KEY_A))
+		{
+			delay_counter = (15 * 60);
+		}
+	}
+}
+
+// split off from the main function in order to keep the scope of the variables limited to the execution of this function
+// otherwise they stick around for the entire runtime of the program
+// the attribute noinline is used to prevent the compiler from inlining this function back into the main function
+// this decision was based on the output of build/main.su after adding the -fstack-usage compile flag
+static void __attribute__((noinline)) show_intro()
+{
+	bool start_pressed = false;
+	u8 general_text_table_buffer[2048];
+	u8 press_start_text[32];
+	u8 press_start_text_length;
+
+	text_data_table general_text(general_text_table_buffer);
+	const u8 *text_entry;
+
+	general_text.decompress(get_compressed_general_table());
+
+	text_entry = general_text.get_text_entry(GENERAL_press_start);
+	press_start_text_length = get_string_length(text_entry);
+	memcpy(press_start_text, text_entry, press_start_text_length + 1);
+	text_entry = general_text.get_text_entry(GENERAL_intro_legal);
+
+	show_legal_text(text_entry);
+	show_gears_of_progress();
+
+	REG_BG1CNT = REG_BG1CNT | BG_PRIO(3);
+
+	key_poll(); // Reset the keys
+	curr_rom.load_rom();
+
+	obj_set_pos(ptgb_logo_l, 56, 12);
+	obj_set_pos(ptgb_logo_r, 56 + 64, 12);
+	obj_unhide_multi(ptgb_logo_l, 1, 2);
+
+	REG_BLDCNT = BLD_BUILD(BLD_BG3, BLD_BG0, 1);
+
+	int char_width = (PTGB_BUILD_LANGUAGE == JPN_ID ? 8 : 6);
+	int x = ((240 - (press_start_text_length * char_width)) / 2);
+	tte_set_pos(x, 12 * 8);
+
+	tte_set_ink(INK_DARK_GREY);
+	ptgb_write(press_start_text, true);
+
+	int fade = 0;
+	while (!start_pressed)
+	{
+		fade = abs(((get_frame_count() / 6) % 24) - 12);
+		global_next_frame();
+		start_pressed = key_hit(KEY_START) | key_hit(KEY_A);
+		REG_BLDALPHA = BLDA_BUILD(0b10000, fade);
+	};
+}
+
 int main(void)
 {
 	initalization_script();
@@ -398,60 +492,8 @@ int main(void)
 		first_load_message();
 	}*/
 
-	// Legal mumbo jumbo
-	tte_set_margins(8, 8, H_MAX - 8, V_MAX - 8);
-	tte_set_pos(8, 8);
-	tte_set_ink(INK_ROM_COLOR);
-	ptgb_write(intro_legal, true);
-	bool wait = true;
-	while (wait)
-	{
-		global_next_frame();
-		if (key_hit(KEY_A))
-		{
-			wait = false;
-		}
-	}
+	show_intro();
 
-	// Gears of Progress
-	tte_erase_rect(0, 0, 240, 160);
-	REG_BG1VOFS = 0;
-	delay_counter = 0;
-	while (delay_counter < (15 * 60))
-	{
-		global_next_frame();
-		delay_counter++;
-		if (key_hit(KEY_A))
-		{
-			delay_counter = (15 * 60);
-		}
-	}
-	REG_BG1CNT = REG_BG1CNT | BG_PRIO(3);
-
-	key_poll(); // Reset the keys
-	curr_rom.load_rom();
-
-	obj_set_pos(ptgb_logo_l, 56, 12);
-	obj_set_pos(ptgb_logo_r, 56 + 64, 12);
-	obj_unhide_multi(ptgb_logo_l, 1, 2);
-	bool start_pressed = false;
-	REG_BLDCNT = BLD_BUILD(BLD_BG3, BLD_BG0, 1);
-
-	int size = get_string_length(press_start);
-	int char_width = (PTGB_BUILD_LANGUAGE == JPN_ID ? 8 : 6);
-	int x = ((240 - (size * char_width)) / 2);
-	tte_set_pos(x, 12 * 8);
-
-	tte_set_ink(INK_DARK_GREY);
-	ptgb_write(press_start, true);
-	int fade = 0;
-	while (!start_pressed)
-	{
-		fade = abs(((get_frame_count() / 6) % 24) - 12);
-		global_next_frame();
-		start_pressed = key_hit(KEY_START) | key_hit(KEY_A);
-		REG_BLDALPHA = BLDA_BUILD(0b10000, fade);
-	};
 	key_poll();
 	tte_erase_rect(0, 0, H_MAX, V_MAX);
 	REG_BLDALPHA = BLDA_BUILD(0b10000, 0); // Reset fade

@@ -2,7 +2,6 @@
 #define BOX_MENU_H
 
 #include <tonc.h>
-#include <vector>
 #include "string.h"
 #include "button_handler.h"
 #include "pokemon.h"

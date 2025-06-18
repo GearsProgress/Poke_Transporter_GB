@@ -43,6 +43,12 @@ void z80_asm_handler::add_bytes(int num_bytes, ...)
     va_end(pargs);
 }
 
+void z80_asm_handler::add_bytes(const u8 *data, u16 data_size)
+{
+    memcpy(data_vector.data() + index, data, data_size);
+    index += data_size;
+}
+
 void z80_asm_handler::add_byte(u8 value)
 {
     data_vector.at(index++) = value;
@@ -691,20 +697,14 @@ z80_variable::z80_variable(ptgb::vector<z80_variable *> *var_vec, int data_size,
 void z80_variable::load_data(int data_size, byte array_data[])
 {
     data.resize(data_size);
-    for (int i = 0; i < data_size; i++)
-    {
-        data.at(i) = array_data[i];
-    }
+    memcpy(data.data(), array_data, data_size);
     size = data_size;
 }
 
 void z80_variable::insert_variable(z80_asm_handler *var)
 {
     var_mem_location = (var->index - 1) + var->memory_offset;
-    for (int i = 0; i < size; i++)
-    {
-        var->add_byte(data.at(i));
-    }
+    var->add_bytes(data.data(), size);
 }
 
 int z80_variable::place_ptr(z80_asm_handler *z80_instance)

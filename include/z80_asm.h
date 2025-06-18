@@ -60,6 +60,7 @@ public:
     z80_asm_handler(int data_size, int mem_offset);
     void add_byte(u8 value);
     void add_bytes(int num_bytes, ...);
+    void add_bytes(const u8 *data, u16 data_size);
     void generate_patchlist(z80_asm_handler *bytes_to_patch);
     void LD(int destination, int source);
     void HALT();

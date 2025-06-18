@@ -9,7 +9,7 @@
 #include "box_menu.h"
 #include "payload_builder.h"
 
-const GB_ROM *list_of_gb_roms[NUM_GB_ROMS] = {
+static const GB_ROM *list_of_gb_roms[NUM_GB_ROMS] = {
 	&ENG_RED,
 	&ENG_BLUE,
 	&ENG_YELLOW,
@@ -21,7 +21,7 @@ const GB_ROM *list_of_gb_roms[NUM_GB_ROMS] = {
 	&FRE_YELLOW
 };
 
-byte gen1_rb_debug_box_data[0x462] = {
+static const byte gen1_rb_debug_box_data[0x462] = {
 	// Num of Pokemon
 	0x14,
 	// Pokemon 1-20
@@ -90,7 +90,7 @@ byte gen1_rb_debug_box_data[0x462] = {
 	0x91, 0x80, 0x93, 0x93, 0x80, 0x93, 0x80, 0x50, 0x50, 0x50, 0x50,
 	0x8F, 0x88, 0x83, 0x86, 0x84, 0x98, 0x50, 0x50, 0x50, 0x50, 0x50};
 
-byte gen2_debug_box_data[0x44E] = {
+static const byte gen2_debug_box_data[0x44E] = {
 	// Num of Pokemon
 	0x14,
 	// Pokemon 1-20
@@ -182,12 +182,15 @@ void Pokemon_Party::start_link()
 	}
 	else
 	{
-		setup();
-		for (int i = 0; i < curr_gb_rom.box_data_size; i++)
-		{
-			box_data_array[i] = 0;
-		}
-		last_error = loop(&box_data_array[0], generate_payload(curr_gb_rom, TRANSFER, false), &curr_gb_rom, simple_pkmn_array, false);
+		u16 debug_charset[256];
+
+		load_localized_charset(debug_charset, 3, ENG_ID);
+		init_payload(curr_gb_rom, TRANSFER, false);
+
+		setup(debug_charset);
+		memset(box_data_array, 0, curr_gb_rom.box_data_size);
+
+		last_error = loop(&box_data_array[0], get_payload(), &curr_gb_rom, simple_pkmn_array, debug_charset, false);
 	}
 }
 
@@ -195,7 +198,11 @@ void Pokemon_Party::continue_link(bool cancel_connection)
 {
 	if (!IGNORE_LINK_CABLE)
 	{
-		last_error = loop(&box_data_array[0], generate_payload(curr_gb_rom, TRANSFER, false), &curr_gb_rom, simple_pkmn_array, cancel_connection);
+		u16 debug_charset[256];
+
+		load_localized_charset(debug_charset, 3, ENG_ID);
+
+		last_error = loop(&box_data_array[0], get_payload(), &curr_gb_rom, simple_pkmn_array, debug_charset, cancel_connection);
 	}
 }
 
@@ -204,11 +211,11 @@ int Pokemon_Party::get_last_error()
 	return last_error;
 }
 
-Pokemon Pokemon_Party::get_converted_pkmn(int index)
+Pokemon Pokemon_Party::get_converted_pkmn(PokemonTables& data_tables, int index)
 {
 	Pokemon converted_mon;
 	converted_mon.load_data(index, box_data_array, game, lang);
-	converted_mon.convert_to_gen_three(Legal, false, stabilize_mythic);
+	converted_mon.convert_to_gen_three(data_tables, Legal, false, stabilize_mythic);
 	has_new_pkmn = has_new_pkmn || converted_mon.get_is_new();
 	simple_pkmn_array[index] = converted_mon.get_simple_pkmn();
 	return converted_mon;
@@ -281,14 +288,14 @@ Simplified_Pokemon Pokemon_Party::get_simple_pkmn(int index)
 	return simple_pkmn_array[index];
 }
 
-bool Pokemon_Party::fill_simple_pkmn_array()
+bool Pokemon_Party::fill_simple_pkmn_array(PokemonTables &data_tables)
 {
 	contains_mythical = false;
 	for (int index = 0; index < get_num_pkmn(); index++)
 	{
 		Pokemon converted_mon;
 		converted_mon.load_data(index, box_data_array, game, lang);
-		converted_mon.convert_to_gen_three(Legal, true, stabilize_mythic);
+		converted_mon.convert_to_gen_three(data_tables, Legal, true, stabilize_mythic);
 		has_new_pkmn = has_new_pkmn || converted_mon.get_is_new();
 		contains_mythical = contains_mythical ||
 							converted_mon.get_dex_number() == 151 || converted_mon.get_dex_number() == 251;

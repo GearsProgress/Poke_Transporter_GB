@@ -1,5 +1,4 @@
 #include <tonc.h>
-#include <string>
 #include <cmath>
 
 #include "pokedex.h"
@@ -11,6 +10,9 @@
 #include "button_handler.h"
 #include "translated_text.h"
 #include "text_engine.h"
+#include "zx0_decompressor.h"
+#include "text_data_table.h"
+#include "TYPES_zx0_bin.h"
 
 Dex dex_array[DEX_MAX];
 int dex_shift = 0;
@@ -27,6 +29,24 @@ int johto_offset;
 bool mew_caught;
 bool celebi_caught;
 bool missingno_caught = false;
+
+static void load_text_entry_into_buffer(text_data_table& data_table, u8 *output_buffer, u8 entry_index)
+{
+    const u8 *entry = data_table.get_text_entry(entry_index);
+    const u8 *entry_end = (const u8*)strchr((const char*)entry, 0xFF);
+
+    // copy the text_entry including the 0xFF at the end
+    memcpy(output_buffer, entry, entry_end + 1 - entry);
+}
+
+static void load_general_table_text_entries(u8 *decompression_buffer, u8 *kanto_buffer, u8 *johto_buffer)
+{
+    text_data_table data_table(decompression_buffer);
+    data_table.decompress(get_compressed_general_table());
+
+    load_text_entry_into_buffer(data_table, kanto_buffer, GENERAL_kanto_name);
+    load_text_entry_into_buffer(data_table, johto_buffer, GENERAL_johto_name);
+}
 
 void pokedex_init()
 {
@@ -69,13 +89,33 @@ void pokedex_init()
     obj_hide(down_arrow);
 }
 
+#include "gen_3_charsets_zx0_bin.h"
+#include "libstd_replacements.h"
+
 int pokedex_loop()
 {
+    u8 TYPES[POKEMON_ARRAY_SIZE][2];
+    u8 kanto_name[12];
+    u8 johto_name[12];
+    u8 decompression_buffer[3072];
+    u16 charset[256];
+
+    zx0_decompressor_start((u8*)TYPES, TYPES_zx0_bin);
+    zx0_decompressor_read(zx0_decompressor_get_decompressed_size());
+
+    zx0_decompressor_start((u8*)charset, gen_3_charsets_zx0_bin);
+    zx0_decompressor_read(zx0_decompressor_get_decompressed_size());
+
+    load_general_table_text_entries(decompression_buffer, kanto_name, johto_name);
+
+    text_data_table PKMN_NAMES(decompression_buffer);
+    PKMN_NAMES.decompress(get_compressed_pkmn_names_table());
+
     pokedex_init();
     pokedex_show();
     bool update = true;
 
-    byte undiscovered_text[] = {0xAE, 0xAE, 0xAE, 0xAE, 0xAE, 0xAE, 0xAE, 0xAE, 0xAE, 0xAE, 0xFF};
+    const byte undiscovered_text[] = {0xAE, 0xAE, 0xAE, 0xAE, 0xAE, 0xAE, 0xAE, 0xAE, 0xAE, 0xAE, 0xFF};
     byte temp_string[4] = {}; // Should never be longer than 4 characters (including endline)
                               // TODO: For some reason there is screen tearing here. Probably not noticable on console,
                               // but it should be removed at some point
@@ -192,13 +232,14 @@ int pokedex_loop()
                 ptgb_write(temp_string, true);
 
                 tte_set_pos(dex_x_cord + (7 * 8), (i * 8 * 2) + 32);
-                ptgb_write(is_caught(dex_shift + i + 1 + mythic_skip) ? PKMN_NAMES[dex_shift + i + 1 + mythic_skip] : undiscovered_text, true);
+                ptgb_write(is_caught(dex_shift + i + 1 + mythic_skip) ? PKMN_NAMES.get_text_entry(dex_shift + i + 1 + mythic_skip) : undiscovered_text, true);
+
             }
             global_next_frame(); // This is a bit silly, but it works. Makes the types one frame off from the text, but that's 'fine'
             // Eventually it could be optimized to move the labels around, but this honestly makes the most sense. Less code but one frame different
             for (int i = 0; i < DEX_MAX; i++)
             {
-                load_type_sprites(dex_shift + i + 1 + mythic_skip, i, is_caught(dex_shift + i + 1 + mythic_skip));
+                load_type_sprites((const u8*)TYPES, dex_shift + i + 1 + mythic_skip, i, is_caught(dex_shift + i + 1 + mythic_skip));
             }
             update = false;
         }

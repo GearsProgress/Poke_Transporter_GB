@@ -9,11 +9,16 @@
 #include "pokemon_data.h"
 #include "text_engine.h"
 #include "translated_text.h"
+#include "text_data_table.h"
+#include "zx0_decompressor.h"
 
 Box_Menu::Box_Menu() {};
 
 int Box_Menu::box_main(Pokemon_Party party_data)
 {
+    u8 names_decompression_buffer[3072];
+    text_data_table PKMN_NAMES(names_decompression_buffer);
+
     tte_erase_screen();
     load_flex_background(BG_BOX, 2);
     REG_BG1VOFS = 0;
@@ -31,6 +36,9 @@ int Box_Menu::box_main(Pokemon_Party party_data)
     bool update_pos = true;
     obj_unhide(box_select, 0);
     int index = 0;
+
+    PKMN_NAMES.decompress(get_compressed_pkmn_names_table());
+
     while (true)
     {
         if (get_frame_count() % 20 == 0)
@@ -139,12 +147,12 @@ int Box_Menu::box_main(Pokemon_Party party_data)
                 tte_set_pos(14, 98);
                 if (curr_pkmn.is_missingno)
                 {
-                    ptgb_write(PKMN_NAMES[0], true);
+                    ptgb_write(PKMN_NAMES.get_text_entry(0), true);
                 }
 
                 else
                 {
-                    ptgb_write(PKMN_NAMES[curr_pkmn.dex_number], true);
+                    ptgb_write(PKMN_NAMES.get_text_entry(curr_pkmn.dex_number), true);
                 }
                 tte_set_pos(6, 108);
                 val[0] = 0xC6; // L

@@ -1,6 +1,5 @@
 #include <tonc.h>
 #include "libstd_replacements.h"
-#include <string>
 #include "rom_data.h"
 
 class script_var
@@ -49,9 +48,8 @@ class textbox_var : public xse_var
 public:
     using xse_var::xse_var;
     void set_text(const byte nText[]);
-    void insert_text(u8 mg_array[]);
+    void insert_text(const u16 *charset, u8 mg_array[], bool should_set_virtual_start = false);
     void set_start();
-    void insert_virtual_text(u8 mg_array[]);
     void set_virtual_start();
     const byte *text;
     int text_length;

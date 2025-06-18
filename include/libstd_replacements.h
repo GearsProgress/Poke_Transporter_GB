@@ -4,6 +4,7 @@
 #include <inttypes.h>
 #include <cstring>
 #include <new>
+#include <utility>
 
 // To reduce the binary size, we need to get rid of libstdc++
 // But we were happily using some functions that made life easier.
@@ -43,23 +44,44 @@ namespace ptgb
     class vector
     {
     public:
-        static constexpr size_t default_capacity = 10;
+        static constexpr uint16_t default_capacity = 2;
 
         vector()
             : buffer_()
             , capacity_(default_capacity)
             , count_(0)
         {
-            buffer_ = static_cast<ValueType*>(::operator new(capacity_ * sizeof(ValueType)));
+            buffer_ = static_cast<ValueType*>(::operator new(sizeof(ValueType) * capacity_));
+            if(!buffer_)
+            {
+                return; // allocation failed
+            }
         }
 
-        vector(const ValueType* valueList, size_t listSize)
+        vector(const ValueType* valueList, uint16_t listSize)
             : buffer_()
             , capacity_(listSize)
             , count_(0)
         {
-            buffer_ = static_cast<ValueType*>(::operator new(capacity_ * sizeof(ValueType)));
+            buffer_ = static_cast<ValueType*>(::operator new(sizeof(ValueType) * capacity_));
+            if(!buffer_)
+            {
+                return; // allocation failed
+            }
             insert(valueList, listSize);
+        }
+
+        vector(const vector<ValueType>& otherList)
+            : buffer_()
+            , capacity_(otherList.capacity_)
+            , count_(0)
+        {
+            buffer_ = static_cast<ValueType*>(::operator new(sizeof(ValueType) * capacity_));
+            if(!buffer_)
+            {
+                return; // allocation failed
+            }
+            insert(otherList);
         }
 
         ~vector()
@@ -68,40 +90,42 @@ namespace ptgb
             ::operator delete(buffer_);
         }
 
-        void reserve(size_t newSize)
+        void reserve(uint16_t newSize)
         {
-            ValueType *oldValue;
-            ValueType *oldBuffer;
             if(newSize <= capacity_)
             {
                 return;
             }
-            oldBuffer = buffer_;
-            buffer_ = static_cast<ValueType*>(::operator new(newSize * sizeof(ValueType)));
-            capacity_ = newSize;
-
-            for (size_t i = 0; i < count_; ++i)
+            ValueType* new_buffer = static_cast<ValueType*>(::operator new(sizeof(ValueType) * newSize));
+            if(!new_buffer)
             {
-                oldValue = oldBuffer + i;
-
-                new(buffer_ + i) ValueType(*oldValue);
-                oldValue->~ValueType();
+                return; // allocation failed, keep the old buffer
             }
 
-            ::operator delete(oldBuffer);
+            // copy data from the old buffer to the new one
+            for (uint16_t i = 0; i < count_; ++i)
+            {
+                new (new_buffer + i) ValueType(std::move(buffer_[i]));
+                buffer_[i].~ValueType();
+            }
+
+            ::operator delete(buffer_);
+
+            buffer_ = new_buffer;
+            capacity_ = newSize;
         }
 
-        void resize(size_t newSize)
+        void resize(uint16_t newSize)
         {
             resize(newSize, ValueType());
         }
 
-        void resize(size_t newSize, const ValueType& value)
+        void resize(uint16_t newSize, const ValueType& value)
         {
             if(newSize < count_)
             {
-                const size_t num_erase = (count_ - newSize);
-                for(size_t i=0; i < num_erase; ++i)
+                const uint16_t num_erase = (count_ - newSize);
+                for(uint16_t i=0; i < num_erase; ++i)
                 {
                     pop_back();
                 }
@@ -109,8 +133,8 @@ namespace ptgb
             else if(newSize > count_)
             {
                 reserve(newSize);
-                const size_t num_fill = (newSize - count_);
-                for(size_t i=0; i < num_fill; ++i)
+                const uint16_t num_fill = (newSize - count_);
+                for(uint16_t i=0; i < num_fill; ++i)
                 {
                     push_back(value);
                 }
@@ -129,22 +153,23 @@ namespace ptgb
 
         void pop_back()
         {
-            ValueType *value = buffer_ + ((count_ - 1));
+            if (count_ == 0) return;
+            ValueType *value = buffer_ + (count_ - 1);
             value->~ValueType();
             --count_;
         }
 
-        void insert(vector<ValueType>& otherList)
+        void insert(const vector<ValueType>& otherList)
         {
             reserve(count_ + otherList.size());
 
-            for(size_t i=0; i < otherList.size(); ++i)
+            for(uint16_t i=0; i < otherList.size(); ++i)
             {
                 push_back(otherList.at(i));
             }
         }
 
-        void insert(const ValueType* list, size_t listSize)
+        void insert(const ValueType* list, uint16_t listSize)
         {
             reserve(count_ + listSize);
             for(size_t i=0; i < listSize; ++i)
@@ -158,32 +183,42 @@ namespace ptgb
             resize(0);
         }
 
-        size_t size() const { return count_; }
-        size_t capacity() const { return capacity_; }
+        uint16_t size() const { return count_; }
+        uint16_t capacity() const { return capacity_; }
 
-        ValueType& at(size_t index)
+        ValueType* data() const
+        {
+            return buffer_;
+        }
+
+        ValueType* data()
+        {
+            return buffer_;
+        }
+
+        ValueType& at(uint16_t index)
         {
             return operator[](index);
         }
 
-        const ValueType& at(size_t index) const
+        const ValueType& at(uint16_t index) const
         {
             return operator[](index);
         }
         
-        ValueType& operator[](size_t index)
+        ValueType& operator[](uint16_t index)
         {
             return *(buffer_ + index);
         }
         
-        const ValueType& operator[](size_t index) const
+        const ValueType& operator[](uint16_t index) const
         {
             return *(buffer_ + index);
         }
     private:
         ValueType *buffer_;
-        size_t capacity_;
-        size_t count_;
+        uint16_t capacity_;
+        uint16_t count_;
     };
 }
 
