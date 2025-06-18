@@ -958,15 +958,13 @@ byte *generate_payload(GB_ROM curr_rom, int type, bool debug)
     return nullptr;
 };
 
-
-// Uncomment to send the payload to test_payload.txt
-#if 0
+#if PAYLOAD_EXPORT_TEST
 #include <cstdio>
-int main()
+int main() // Rename to "main" to send the payload to test_payload.txt
 {
     freopen("test_payload.txt", "w", stdout);
     printf("\n");
-    byte *payload = generate_payload(ENG_RED, TRANSFER, true);
+    byte *payload = generate_payload(ENG_GOLD, TRANSFER, true);
     if (true)
     {
         for (int i = 0; i < 0x2A0; i++)
