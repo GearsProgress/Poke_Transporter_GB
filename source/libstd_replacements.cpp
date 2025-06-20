@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <stdarg.h>
 #include <ctype.h>
+#include "custom_malloc.h"
 
 // recommended for a 32 bit system to have at least 33 bytes available
 // source: https://cplusplus.com/reference/cstdlib/itoa/
@@ -26,34 +27,34 @@ const char* ptgb::to_string(unsigned int wordVal)
 // when compiling with -nostdlib++, we need to provide our own operator new and delete implementations
 // Regular operator new
 void* operator new(std::size_t size) {
-    void* ptr = std::malloc(size);
+    void* ptr = malloc(size);
     if (!ptr) {
         // mimic standard behavior: throw std::bad_alloc
         // but we can't use std::bad_alloc without libstdc++
         // so instead we can abort or return nullptr
         // You can also implement a custom exception if needed
-        std::abort();
+        return NULL;
     }
     return ptr;
 }
 
 // nothrow version
 void* operator new(std::size_t size, const std::nothrow_t&) noexcept {
-    return std::malloc(size);
+    return malloc(size);
 }
 
 // operator delete
 void operator delete(void* ptr) noexcept {
-    std::free(ptr);
+    free(ptr);
 }
 
 // nothrow delete
 void operator delete(void* ptr, const std::nothrow_t&) noexcept {
-    std::free(ptr);
+    free(ptr);
 }
 
 // sized delete (optional, for C++14 and newer)
 void operator delete(void* ptr, std::size_t size) noexcept {
     (void)size;
-    std::free(ptr);
+    free(ptr);
 }
