@@ -30,6 +30,7 @@
 #include "rom_data.h"
 #include "libraries/Pokemon-Gen3-to-Gen-X/include/save.h"
 #include "text_data_table.h"
+#include "custom_malloc.h"
 
 /*
 
@@ -481,6 +482,7 @@ static void __attribute__((noinline)) show_intro()
 
 int main(void)
 {
+	malloc_init_default_pool();
 	initalization_script();
 
 	// Set colors based on current ROM
