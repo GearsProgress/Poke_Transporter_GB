@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <cstdint>
 #include <cstring>
+#include <libgen.h>
 
 // @author risingPhil
 // This file implements the zx0 compression algorithm.

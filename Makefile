@@ -145,8 +145,8 @@ all: $(BUILD)
 generate_data:
 	mkdir -p data
 	mkdir -p to_compress
-	@env -i PATH=$(PATH) $(MAKE) -C tools/compressZX0
-	@env -i PATH=$(PATH) $(MAKE) -C tools/data-generator
+	@env -i "PATH=$(PATH)" $(MAKE) -C tools/compressZX0
+	@env -i "PATH=$(PATH)" $(MAKE) -C tools/data-generator
 	@tools/data-generator/data-generator to_compress
 	@python3 text_helper/main.py
 	@find to_compress -name "*.bin" | xargs -i tools/compressZX0/compressZX0 {} data/
@@ -173,7 +173,7 @@ else
 
 BINFILES	:=	$(foreach dir,../$(DATA),$(notdir $(wildcard $(dir)/*.*)))
 export OFILES_BIN := $(addsuffix .o,$(BINFILES))
-OFILES += $(OFILES_BIN)
+OFILES := $(OFILES_BIN) $(OFILES)
 
 # Optimize zx0_decompressor for speed
 zx0_decompressor.o: CXXFLAGS += -O2
