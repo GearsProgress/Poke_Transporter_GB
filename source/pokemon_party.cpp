@@ -4,22 +4,13 @@
 #include "flash_mem.h"
 #include "debug_mode.h"
 #include "mystery_gift_injector.h"
-#include "gb_rom_values/base_gb_rom_struct.h"
+#include "gb_rom_values/gb_rom_values.h"
 #include "sprite_data.h"
 #include "box_menu.h"
 #include "payload_builder.h"
-
-static const GB_ROM *list_of_gb_roms[NUM_GB_ROMS] = {
-	&ENG_RED,
-	&ENG_BLUE,
-	&ENG_YELLOW,
-	&ENG_GOLD,
-	&ENG_SILVER,
-	&ENG_CRYSTAL,
-	&FRE_RED,
-	&FRE_BLUE,
-	&FRE_YELLOW
-};
+#include "zx0_decompressor.h"
+#include "gb_rom_values_eng_zx0_bin.h"
+#include "gb_rom_values_fre_zx0_bin.h"
 
 static const byte gen1_rb_debug_box_data[0x462] = {
 	// Num of Pokemon
@@ -271,15 +262,42 @@ int Pokemon_Party::get_lang()
 
 bool Pokemon_Party::load_gb_rom()
 {
-	for (int i = 0; i < NUM_GB_ROMS; i++)
+	u8 gb_rom_table_buffer[1024];
+	const u8 *compressed_rom_table;
+	u32 rom_table_size;
+	const u8 *cur;
+
+	switch(lang)
 	{
-		if (lang == list_of_gb_roms[i]->language &&
-			game == list_of_gb_roms[i]->version)
+	case ENG_ID:
+		compressed_rom_table = gb_rom_values_eng_zx0_bin;
+		break;
+	case FRE_ID:
+		compressed_rom_table = gb_rom_values_fre_zx0_bin;
+		break;
+	default:
+		// no rom table for this language
+		return false;
+	}
+
+	zx0_decompressor_start(gb_rom_table_buffer, compressed_rom_table);
+	rom_table_size = zx0_decompressor_get_decompressed_size();
+	zx0_decompressor_read(rom_table_size);
+
+	cur = gb_rom_table_buffer;
+	while(cur < gb_rom_table_buffer + rom_table_size)
+	{
+		const GB_ROM *rom_values = reinterpret_cast<const GB_ROM *>(cur);
+		if (lang == rom_values->language &&
+			game == rom_values->version)
 		{
-			curr_gb_rom = *list_of_gb_roms[i];
+			curr_gb_rom = *rom_values;
 			return true;
 		}
+
+		cur += sizeof(struct GB_ROM);
 	}
+
 	return false;
 }
 

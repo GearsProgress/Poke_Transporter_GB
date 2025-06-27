@@ -1,6 +1,5 @@
 #include "payload_builder.h"
 #include "gb_rom_values/base_gb_rom_struct.h"
-#include "gb_rom_values/gb_rom_wrapper.h"
 #include "debug_mode.h"
 #include "z80_asm.h"
 

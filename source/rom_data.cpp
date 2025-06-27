@@ -3,74 +3,26 @@
 #include "pokemon_party.h"
 #include "pokemon_data.h"
 #include "text_engine.h"
-#include "gba_rom_values/eng_gba_rom_values.h"
-#include "gba_rom_values/jpn_gba_rom_values.h"
-#include "gba_rom_values/fre_gba_rom_values.h"
-#include "gba_rom_values/ger_gba_rom_values.h"
-#include "gba_rom_values/ita_gba_rom_values.h"
-#include "gba_rom_values/spa_gba_rom_values.h"
+#include "gba_rom_values/gba_rom_values.h"
 #include "libraries/nanoprintf/nanoprintf.h"
+#include "zx0_decompressor.h"
+#include "gba_rom_values_eng_zx0_bin.h"
+#include "gba_rom_values_fre_zx0_bin.h"
+#include "gba_rom_values_ger_zx0_bin.h"
+#include "gba_rom_values_ita_zx0_bin.h"
+#include "gba_rom_values_jpn_zx0_bin.h"
+#include "gba_rom_values_spa_zx0_bin.h"
 
 extern rom_data curr_rom;
 
 rom_data::rom_data() {}
 bool rom_data::load_rom()
 {
-    const ROM_DATA *list_of_roms[NUM_ROMS] = {
-        &ENG_RUBY_v0,
-        &ENG_SAPPHIRE_v0,
-        &ENG_RUBY_v1,
-        &ENG_SAPPHIRE_v1,
-        &ENG_RUBY_v2,
-        &ENG_SAPPHIRE_v2,
-        &ENG_FIRERED_v0,
-        &ENG_LEAFGREEN_v0,
-        &ENG_FIRERED_v1,
-        &ENG_LEAFGREEN_v1,
-        &ENG_EMERALD_v0,
+    u8 rom_list_buffer[2048];
+    u32 rom_list_size;
+    const u8 *compressed_rom_list;
+    const u8* cur;
 
-        &JPN_RUBY_v0,
-        &JPN_SAPPHIRE_v0,
-        &JPN_RUBY_v1,
-        &JPN_SAPPHIRE_v1,
-        &JPN_FIRERED_v0,
-        &JPN_LEAFGREEN_v0,
-        &JPN_FIRERED_v1,
-        &JPN_LEAFGREEN_v1,
-        &JPN_EMERALD_v0,
-
-        &FRE_RUBY_v0,
-        &FRE_SAPPHIRE_v0,
-        &FRE_RUBY_v1,
-        &FRE_SAPPHIRE_v1,
-        &FRE_FIRERED_v0,
-        &FRE_LEAFGREEN_v0,
-        &FRE_EMERALD_v0,
-
-        &GER_RUBY_v0,
-        &GER_SAPPHIRE_v0,
-        &GER_RUBY_v1,
-        &GER_SAPPHIRE_v1,
-        &GER_FIRERED_v0,
-        &GER_LEAFGREEN_v0,
-        &GER_EMERALD_v0,
-
-        &ITA_RUBY_v0,
-        &ITA_SAPPHIRE_v0,
-        &ITA_RUBY_v1,
-        &ITA_SAPPHIRE_v1,
-        &ITA_FIRERED_v0,
-        &ITA_LEAFGREEN_v0,
-        &ITA_EMERALD_v0,
-
-        &SPA_RUBY_v0,
-        &SPA_SAPPHIRE_v0,
-        &SPA_RUBY_v1,
-        &SPA_SAPPHIRE_v1,
-        &SPA_FIRERED_v0,
-        &SPA_LEAFGREEN_v0,
-        &SPA_EMERALD_v0,
-    };
 
     if (IGNORE_GAME_PAK)
     {
@@ -87,18 +39,48 @@ bool rom_data::load_rom()
         version = (*(vu8 *)(0x80000BC));
     }
 
-    for (int i = 0; i < NUM_ROMS; i++)
+    switch(language)
     {
-        if (gamecode == list_of_roms[i]->gamecode &&
-            language == list_of_roms[i]->language &&
-            version == list_of_roms[i]->version &&
-            list_of_roms[i]->is_valid)
+    case LANG_JPN:
+        compressed_rom_list = gba_rom_values_jpn_zx0_bin;
+        break;
+    case LANG_ENG:
+        compressed_rom_list = gba_rom_values_eng_zx0_bin;
+        break;
+    case LANG_FRE:
+        compressed_rom_list = gba_rom_values_fre_zx0_bin;
+        break;
+    case LANG_GER:
+        compressed_rom_list = gba_rom_values_ger_zx0_bin;
+        break;
+    case LANG_ITA:
+        compressed_rom_list = gba_rom_values_ita_zx0_bin;
+        break;
+    case LANG_SPA:
+        compressed_rom_list = gba_rom_values_spa_zx0_bin;
+        break;
+    default:
+        return false; // Unsupported language
+    }
+
+    zx0_decompressor_start(rom_list_buffer, compressed_rom_list);
+    rom_list_size = zx0_decompressor_get_decompressed_size();
+    zx0_decompressor_read(rom_list_size);
+    cur = rom_list_buffer;
+
+    while(cur < rom_list_buffer + rom_list_size)
+    {
+        const ROM_DATA *rom_values = reinterpret_cast<const ROM_DATA *>(cur);
+        if (rom_values->is_valid && rom_values->gamecode == gamecode &&
+            rom_values->version == version)
         {
-            fill_values(list_of_roms[i]);
+            fill_values(rom_values);
             rom_loaded = true;
             return true;
         }
+        cur += sizeof(ROM_DATA);
     }
+    // If we reach here, no matching ROM_DATA was found
     return false;
 }
 

@@ -13,7 +13,6 @@
 #include "interrupt.h"
 #include "text_engine.h"
 #include "global_frame_controller.h"
-#include "gb_rom_values/gb_rom_wrapper.h"
 #include "background_engine.h"
 #include "sprite_data.h"
 #include "payload_builder.h"
@@ -75,6 +74,11 @@ bool end_of_data;
 byte data_packet[PACKET_SIZE];
 
 #define SPI_TEXT_OUT_ARRAY_ELEMENT_SIZE 64
+
+// Here's a compilation check to ensure that the size of these structs match our expectations.
+// Just update it if you changed the struct members. The data-generator process prints their actual sizes.
+static_assert(sizeof(struct GB_ROM) == 132);
+static_assert(sizeof(struct ROM_DATA) == 160);
 
 void print(const char* format, ...)
 {
