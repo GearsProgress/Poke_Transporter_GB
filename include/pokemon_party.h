@@ -3,7 +3,7 @@
 
 #include <tonc.h>
 #include "pokemon.h"
-#include "gb_rom_values/gb_rom_wrapper.h"
+#include "gb_rom_values/base_gb_rom_struct.h"
 class Pokemon_Party
 {
 public:
