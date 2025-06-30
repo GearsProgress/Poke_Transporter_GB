@@ -13,6 +13,7 @@ int y_offset = 0;
 int y_offset_timer = 0;
 int y_offset_direction = 1;
 // BACKGROUNDS
+#define QF(x) ((unsigned)(x * 65536.0f))
 
 #include "background.h"
 void load_background()
@@ -79,10 +80,12 @@ void set_background_pal(int curr_rom_id, bool dark, bool fade)
     }
     if (fade)
     {
-#define NUM_CYCLES 30.0
+
+#define NUM_CYCLES 30
         COLOR curr_pal_bg[8];
         COLOR old_pal[3];
         COLOR new_pal[3];
+        unsigned INV_NUM_CYCLES = QF(1.0 / NUM_CYCLES);
         tonccpy(curr_pal_bg, &pal_bg_mem[0], 16);
         for (int n = 0; n <= NUM_CYCLES; n++)
         {
@@ -94,9 +97,9 @@ void set_background_pal(int curr_rom_id, bool dark, bool fade)
                     new_pal[b] = (new_pal_bg[i] >> (b * 5)) & 0b11111;
                 }
                 pal_bg_mem[i] = RGB15(
-                    (((NUM_CYCLES - n) / NUM_CYCLES) * old_pal[0]) + ((n / NUM_CYCLES) * new_pal[0]),
-                    (((NUM_CYCLES - n) / NUM_CYCLES) * old_pal[1]) + ((n / NUM_CYCLES) * new_pal[1]),
-                    (((NUM_CYCLES - n) / NUM_CYCLES) * old_pal[2]) + ((n / NUM_CYCLES) * new_pal[2]));
+                    ((((NUM_CYCLES - n) * INV_NUM_CYCLES) * old_pal[0]) + ((n * INV_NUM_CYCLES) * new_pal[0])) >> 16,
+                    ((((NUM_CYCLES - n) * INV_NUM_CYCLES) * old_pal[1]) + ((n * INV_NUM_CYCLES) * new_pal[1])) >> 16,
+                    ((((NUM_CYCLES - n) * INV_NUM_CYCLES) * old_pal[2]) + ((n * INV_NUM_CYCLES) * new_pal[2])) >> 16);
             }
             global_next_frame();
         }
@@ -879,10 +882,10 @@ void update_front_box_sprite(Simplified_Pokemon *curr_pkmn)
     LZ77UnCompWram((const unsigned short *)palette_location, buffer); // This is a little silly, but it's being weird with bytes vs shorts when we copy it directly
     for (int i = 0; i < 16; i++)
     {
-        double red = (buffer[i] >> 0) & 0b11111;
-        double green = (buffer[i] >> 5) & 0b11111;
-        double blue = (buffer[i] >> 10) & 0b11111;
-        int grey = (0.299 * red) + (0.587 * green) + (0.114 * blue);
+        unsigned red = (buffer[i] >> 0) & 0b11111;
+        unsigned green = (buffer[i] >> 5) & 0b11111;
+        unsigned blue = (buffer[i] >> 10) & 0b11111;
+        unsigned grey = ((QF(0.299f) * red) + (QF(0.587f) * green) + (QF(0.114f) * blue)) >> 16;
 
         // buffer[i] = RGB15_SAFE(red, ((int)green >> 1), 0);
         buffer[i] = RGB15_SAFE(grey, (grey >> 1), 0);
