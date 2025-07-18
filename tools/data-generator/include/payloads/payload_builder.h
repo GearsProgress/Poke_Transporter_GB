@@ -19,9 +19,6 @@
 #define PACKET_SIZE (1 + 1 + (2 * DATA_PER_PACKET) + 1 + 2) // Originally 13
 
 
-void init_payload(GB_ROM curr_rom, int type, bool debug);
-
-/// @brief Note: call @see init_payload before using this function.
-byte* get_payload();
+void init_payload(byte *payload_buffer, const GB_ROM& curr_rom, int type, bool debug);
 
 #endif

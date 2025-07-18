@@ -44,6 +44,13 @@ extern "C"
 
 #define GB_TILE_WIDTH 20
 
+// TODO? : Since we moved payload_builder into data-generator, we no longer need most of the fields of GB_ROM in our PTGB rom.
+// It might be better to split it up into a struct that contains everything for data-generator and a separate one that gets
+// included into the ptgb rom, which only includes whatever PTGB needs at runtime. (which is probably a fraction of the data)
+// However, right now the compressed gb_rom_values_eng file is only 353 bytes and the gb_rom_values_fre is only 351 bytes.
+// Therefore we'd save at most about 0,5 KB if we do this optimization. So it might not be worth it right now.
+// If we expand the data at some point, however, it might be!
+
 // WARNING: We must be explicit in the type declarations of the struct members here.
 // After all: data-generator runs on x86 and the structs will be read by the GBA's ARM processor.
 // So we must ensure the sizes of the struct members, as well as padding, remains consistent across platforms.
