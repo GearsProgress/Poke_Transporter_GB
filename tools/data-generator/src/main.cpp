@@ -2,7 +2,14 @@
 #include "common.h"
 #include "gba_rom_values/gba_rom_values.h"
 #include "gb_rom_values/gb_rom_values.h"
+#include "payloads/payload_file_writer.h"
+#include "payloads/payload_file_reader.h"
+#include "payloads/binary_patch_generator.h"
+#include "payloads/payload_builder.h"
 #include <cstdio>
+#include <cstring>
+#include <cstdlib>
+
 // This application holds the various long static data arrays that Poke Transporter GB uses
 // and it writes them to .bin files that can be compressed with compressZX0 later.
 // it's useful to do it this way because it keeps this data easy to view, edit and document
@@ -16,6 +23,176 @@ void generate_gba_rom_value_tables(const char *output_path, const char *filename
 void generate_gb_rom_value_tables(const char *output_path, const char *filename, const struct GB_ROM *rom_data_values, u16 num_elements)
 {
     writeTable(output_path, filename, reinterpret_cast<const char*>(rom_data_values), num_elements * sizeof(struct GB_ROM));
+}
+
+/**
+ * Generates the payloads for the specific pokémon generation.
+ * Note: yellow_version indicates that we'd want to generate the payloads for pokémon yellow.
+ * The reason we single out pokémon yellow, is because the binary patch diff is significant compared to Blue, Red and Green.
+ * It's easier to compress the data if we generate it into a separate file.
+ */
+void generate_payloads_for(uint8_t generation, bool yellow_version, const char* output_path, const char* filename)
+{
+    uint8_t base_payload_buffer[PAYLOAD_SIZE];
+    uint8_t other_payload_buffer[PAYLOAD_SIZE];
+    payload_file_writer payload_writer;
+    binary_patch_generator patch_generator;
+    u16 rom_set_index;
+    u16 base_payload_index;
+    u16 index;
+
+    char full_path[4096];
+
+    if(output_path[0] != '\0')
+    {
+        snprintf(full_path, sizeof(full_path), "%s/%s", output_path, filename);
+    }
+    else
+    {
+        strncpy(full_path, filename, sizeof(full_path));
+    }
+
+    const struct GB_ROM *rom_value_sets[] = {
+        gb_rom_values_eng,
+        gb_rom_values_fre
+    };
+
+    const u16 rom_value_sizes[] = {
+        gb_rom_values_eng_size,
+        gb_rom_values_fre_size
+    };
+
+    const u8 num_elements = sizeof(rom_value_sizes) / sizeof(u16);
+
+    // search for the first english GB_ROM struct for the given generation
+    for(base_payload_index = 0; base_payload_index < gb_rom_values_eng_size; ++base_payload_index)
+    {
+        if(gb_rom_values_eng[base_payload_index].generation == generation)
+        {
+            if((!yellow_version && gb_rom_values_eng[base_payload_index].version != YELLOW_ID) || (yellow_version && gb_rom_values_eng[base_payload_index].version == YELLOW_ID))
+            {
+                break;
+            }
+        }
+    }
+
+    memset(base_payload_buffer, 0, sizeof(base_payload_buffer));
+
+    // initialize the found GB_ROM struct as the base payload
+    init_payload(base_payload_buffer, gb_rom_values_eng[base_payload_index], TRANSFER, false);
+    payload_writer.set_base_payload(gb_rom_values_eng[base_payload_index].language, gb_rom_values_eng[base_payload_index].version, base_payload_buffer, gb_rom_values_eng[base_payload_index].payload_size);
+
+    for(rom_set_index = 0; rom_set_index < num_elements; ++rom_set_index)
+    {
+        for(index = 0; index < rom_value_sizes[rom_set_index]; ++index)
+        {
+            const struct GB_ROM *curr_rom = &rom_value_sets[rom_set_index][index];
+            if(curr_rom->generation != generation || 
+                (rom_set_index == 0 && index == base_payload_index) || 
+                (yellow_version && curr_rom->version != YELLOW_ID) || 
+                (!yellow_version && curr_rom->version == YELLOW_ID))
+            {
+                // skip if:
+                // - the generation does not match
+                // - if it's the base payload
+                // - if we specified yellow_version == true and the current rom is not a pokémon yellow rom.
+                // - if we specified yellow_version == false and the current rom IS a pokémon yellow rom.
+                continue; 
+            }
+
+            // add the binary patches for this ROM
+            memset(other_payload_buffer, 0, PAYLOAD_SIZE);
+            init_payload(other_payload_buffer, *curr_rom, TRANSFER, false);
+            binary_patch_list patches = patch_generator.diff(base_payload_buffer, other_payload_buffer, PAYLOAD_SIZE);
+            payload_writer.add_binary_patches(curr_rom->language, curr_rom->version, patches);
+        }
+    }
+
+    payload_writer.write_to_file(full_path);
+}
+
+void test_payloads(const char* output_path, const char* filename)
+{
+    char full_path[4096];
+    uint8_t buffer[2048]; // 2048 bytes is enough for the payloads
+    uint8_t reference_payload_buffer[PAYLOAD_SIZE];
+    uint8_t reconstructed_payload_buffer[PAYLOAD_SIZE];
+    FILE *file;
+    size_t size;
+    u16 rom_set_index;
+    u16 index;
+
+    if(output_path[0] != '\0')
+    {
+        snprintf(full_path, sizeof(full_path), "%s/%s", output_path, filename);
+    }
+    else
+    {
+        strncpy(full_path, filename, sizeof(full_path));
+    }
+
+    file = fopen(full_path,"rb"); /*open file*/
+    fseek(file, 0, SEEK_END); 
+    size = ftell(file);         /*calc the size needed*/
+    fseek(file, 0, SEEK_SET);
+
+    payload_file_reader payload_reader(buffer, size);
+    
+    const struct GB_ROM *rom_value_sets[] = {
+        gb_rom_values_eng,
+        gb_rom_values_fre
+    };
+
+    const u16 rom_value_sizes[] = {
+        gb_rom_values_eng_size,
+        gb_rom_values_fre_size
+    };
+
+    const u8 num_elements = sizeof(rom_value_sizes) / sizeof(u16);
+
+    fread(&buffer, 1, size, file);
+
+    for(rom_set_index = 0; rom_set_index < num_elements; ++rom_set_index)
+    {
+        for(index = 0; index < rom_value_sizes[rom_set_index]; ++index)
+        {
+            const struct GB_ROM *curr_rom = &rom_value_sets[rom_set_index][index];
+            
+            // first generate the reference payload
+            memset(reference_payload_buffer, 0, PAYLOAD_SIZE);
+            init_payload(reference_payload_buffer, *curr_rom, TRANSFER, false);
+
+            // now read the payload from the file
+            memset(reconstructed_payload_buffer, 0, PAYLOAD_SIZE);
+
+            // okay, so, the given file may or may not contain the desired payload.
+            // we should just skip if the read call returns false
+            if(!payload_reader.read_payload(reconstructed_payload_buffer, curr_rom->language, curr_rom->version))
+            {
+                continue; // skip if the payload was not found
+            }
+
+            printf("Testing payload from file %s for language %u, variant %u: ", full_path, curr_rom->language, curr_rom->version);
+            if(!memcmp(reference_payload_buffer, reconstructed_payload_buffer, PAYLOAD_SIZE))
+            {
+                printf("PASS!\n");
+            }
+            else
+            {
+                printf("FAILED!\n");
+                // print the differences
+                for(size_t i = 0; i < PAYLOAD_SIZE; ++i)
+                {
+                    if(reference_payload_buffer[i] != reconstructed_payload_buffer[i])
+                    {
+                        printf("Byte %zu: expected 0x%02X, got 0x%02X\n", i, reference_payload_buffer[i], reconstructed_payload_buffer[i]);
+                    }
+                }
+                abort(); // stop execution on failure
+            }
+
+        }
+    }
 }
 
 int main(int argc, char **argv)
@@ -33,9 +210,13 @@ int main(int argc, char **argv)
 
     generate_gb_rom_value_tables(output_path, "gb_rom_values_eng.bin", gb_rom_values_eng, gb_rom_values_eng_size);
     generate_gb_rom_value_tables(output_path, "gb_rom_values_fre.bin", gb_rom_values_fre, gb_rom_values_fre_size);
-    
-    printf("sizeof ROM_DATA: %zu\n", sizeof(struct ROM_DATA));
-    printf("sizeof GB_ROM: %zu\n", sizeof(struct GB_ROM));
+
+    generate_payloads_for(1, false, output_path, "gb_gen1_payloads_RB.bin");
+    test_payloads(output_path, "gb_gen1_payloads_RB.bin");
+    generate_payloads_for(1, true, output_path, "gb_gen1_payloads_Y.bin");
+    test_payloads(output_path, "gb_gen1_payloads_Y.bin");
+    generate_payloads_for(2, false, output_path, "gb_gen2_payloads.bin");
+    test_payloads(output_path, "gb_gen2_payloads.bin");
 
     return 0;
 }

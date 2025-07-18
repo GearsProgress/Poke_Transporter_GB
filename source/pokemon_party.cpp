@@ -7,10 +7,13 @@
 #include "gb_rom_values/gb_rom_values.h"
 #include "sprite_data.h"
 #include "box_menu.h"
-#include "payload_builder.h"
 #include "zx0_decompressor.h"
+#include "payload_file_reader.h"
 #include "gb_rom_values_eng_zx0_bin.h"
 #include "gb_rom_values_fre_zx0_bin.h"
+#include "gb_gen1_payloads_RB_zx0_bin.h"
+#include "gb_gen1_payloads_Y_zx0_bin.h"
+#include "gb_gen2_payloads_zx0_bin.h"
 
 static const byte gen1_rb_debug_box_data[0x462] = {
 	// Num of Pokemon
@@ -176,12 +179,12 @@ void Pokemon_Party::start_link()
 		u16 debug_charset[256];
 
 		load_localized_charset(debug_charset, 3, ENG_ID);
-		init_payload(curr_gb_rom, TRANSFER, false);
+		init_payload();
 
 		setup(debug_charset);
 		memset(box_data_array, 0, curr_gb_rom.box_data_size);
 
-		last_error = loop(&box_data_array[0], get_payload(), &curr_gb_rom, simple_pkmn_array, debug_charset, false);
+		last_error = loop(&box_data_array[0], current_payload, &curr_gb_rom, simple_pkmn_array, debug_charset, false);
 	}
 }
 
@@ -193,7 +196,7 @@ void Pokemon_Party::continue_link(bool cancel_connection)
 
 		load_localized_charset(debug_charset, 3, ENG_ID);
 
-		last_error = loop(&box_data_array[0], get_payload(), &curr_gb_rom, simple_pkmn_array, debug_charset, cancel_connection);
+		last_error = loop(&box_data_array[0], current_payload, &curr_gb_rom, simple_pkmn_array, debug_charset, cancel_connection);
 	}
 }
 
@@ -338,4 +341,34 @@ bool Pokemon_Party::get_contains_invalid()
 bool Pokemon_Party::get_contains_missingno()
 {
 	return contains_missingno;
+}
+
+void Pokemon_Party::init_payload()
+{
+	u8 decompression_buffer[1512];
+	const u8 *payload_src;
+
+	//WARNING: Ensure sure decompression_buffer is large enough!
+
+	if(curr_gb_rom.generation == 1)
+	{
+		if(curr_gb_rom.version == YELLOW_ID)
+		{
+			payload_src = gb_gen1_payloads_Y_zx0_bin;
+		}
+		else
+		{
+			payload_src = gb_gen1_payloads_RB_zx0_bin;
+		}
+	}
+	else // if(curr_gb_rom.generation == 2)
+	{
+		payload_src = gb_gen2_payloads_zx0_bin;
+	}
+
+	zx0_decompressor_start(decompression_buffer, payload_src);
+	zx0_decompressor_read(zx0_decompressor_get_decompressed_size());
+
+	payload_file_reader payload_reader(decompression_buffer, zx0_decompressor_get_decompressed_size());
+	payload_reader.read_payload(current_payload, curr_gb_rom.language, curr_gb_rom.version);
 }

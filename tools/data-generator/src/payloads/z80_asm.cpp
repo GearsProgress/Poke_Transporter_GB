@@ -1,7 +1,8 @@
-#include "z80_asm.h"
+#include "payloads/z80_asm.h"
+
 #include <stdarg.h>
-#include "libraries/nanoprintf/nanoprintf.h"
-#include "libstd_replacements.h"
+#include <cstdio>
+#include <cstring>
 
 #define DIRECT false
 #define RELATIVE true
@@ -15,7 +16,7 @@ static void throw_error(const char* format, ...)
     va_list args;
 
     va_start(args, format);
-    npf_vsnprintf(error_msg_buffer, sizeof(error_msg_buffer), format, args);
+    vsnprintf(error_msg_buffer, sizeof(error_msg_buffer), format, args);
     va_end(args);
 
     // we should avoid exceptions and <stdexcept>
@@ -675,12 +676,12 @@ void z80_asm_handler::SET(int bit, int reg)
     }
 }
 
-z80_variable::z80_variable(ptgb::vector<z80_variable *> *var_vec)
+z80_variable::z80_variable(std::vector<z80_variable *> *var_vec)
 {
     var_vec->push_back(this);
 }
 
-z80_variable::z80_variable(ptgb::vector<z80_variable *> *var_vec, int data_size, ...)
+z80_variable::z80_variable(std::vector<z80_variable *> *var_vec, int data_size, ...)
 {
     var_vec->push_back(this);
     data.resize(data_size);
@@ -723,7 +724,7 @@ void z80_variable::update_ptrs()
     }
 }
 
-z80_jump::z80_jump(ptgb::vector<z80_jump *> *jump_vec)
+z80_jump::z80_jump(std::vector<z80_jump *> *jump_vec)
 {
     jump_vec->push_back(this);
 }

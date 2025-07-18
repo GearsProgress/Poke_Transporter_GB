@@ -1,14 +1,14 @@
-#include "payload_builder.h"
+#include "payloads/payload_builder.h"
 #include "gb_rom_values/base_gb_rom_struct.h"
-#include "debug_mode.h"
-#include "z80_asm.h"
+#include "payloads/z80_asm.h"
+#include "../../../include/debug_mode.h"
+#include <cstring>
 
 #define DATA_LOC (SHOW_DATA_PACKETS ? curr_rom.transferStringLocation : curr_rom.wEnemyMonSpecies)
 
-static byte payload_buffer[PAYLOAD_SIZE];
-
-void init_payload(GB_ROM curr_rom, int type, bool debug)
+void init_payload(byte *payload_buffer, const GB_ROM& curr_rom, int type, bool debug)
 {
+    (void)type;
     /*  10 RNG bytes
         8 Preamble bytes
         418 / 441 Party bytes
@@ -19,8 +19,8 @@ void init_payload(GB_ROM curr_rom, int type, bool debug)
         */
     if ((curr_rom.generation == 1 && curr_rom.version != YELLOW_ID))
     {
-        ptgb::vector<z80_jump *> jump_vector;
-        ptgb::vector<z80_variable *> var_vector;
+        std::vector<z80_jump *> jump_vector;
+        std::vector<z80_variable *> var_vector;
 
         z80_asm_handler z80_rng_seed(0x0A, curr_rom.wSerialOtherGameboyRandomNumberListBlock + 8);
         z80_asm_handler z80_payload(0x1AA, curr_rom.wSerialEnemyDataBlock);
@@ -287,8 +287,8 @@ void init_payload(GB_ROM curr_rom, int type, bool debug)
 
     else if ((curr_rom.generation == 1 && curr_rom.version == YELLOW_ID))
     {
-        ptgb::vector<z80_jump *> jump_vector;
-        ptgb::vector<z80_variable *> var_vector;
+        std::vector<z80_jump *> jump_vector;
+        std::vector<z80_variable *> var_vector;
 
         z80_asm_handler z80_rng_seed(0x0A, curr_rom.wSerialOtherGameboyRandomNumberListBlock + 8);
         z80_asm_handler z80_payload(0x1AA, curr_rom.wSerialEnemyDataBlock - 8); // Subtracting 8 is because the data is shifted after patching, removing part of the enemy name. May change depending on language
@@ -658,8 +658,8 @@ void init_payload(GB_ROM curr_rom, int type, bool debug)
 
     else if (curr_rom.generation == 2)
     {
-        ptgb::vector<z80_jump *> jump_vector;
-        ptgb::vector<z80_variable *> var_vector;
+        std::vector<z80_jump *> jump_vector;
+        std::vector<z80_variable *> var_vector;
 
         z80_asm_handler z80_rng_seed(0x0A, curr_rom.wSerialOtherGameboyRandomNumberListBlock);
         z80_asm_handler z80_payload(0x1CD, curr_rom.wSerialEnemyDataBlock);      // wOTPartyData
@@ -946,11 +946,6 @@ void init_payload(GB_ROM curr_rom, int type, bool debug)
     }
     memset(payload_buffer, 0x00, PAYLOAD_SIZE);
 };
-
-byte* get_payload()
-{
-    return payload_buffer;
-}
 
 #if PAYLOAD_EXPORT_TEST
 #include <cstdio>

@@ -33,6 +33,9 @@ public:
     byte box_data_array[0x462];
 
 private:
+    void init_payload();
+
+    u8 current_payload[PAYLOAD_SIZE];
     int last_error;
     bool has_new_pkmn = false;
     bool contains_mythical = false;

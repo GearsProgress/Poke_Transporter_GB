@@ -45,6 +45,7 @@ const struct GB_ROM gb_rom_values_fre[] = {
         .textBorderUppLeft = 0xC42F,
         .textBorderWidth = 12,
         .textBorderHeight = 1,
+        .padding_2 = 0
     },
     { // FRE_BLUE
         .language = FRE_ID,
@@ -90,6 +91,7 @@ const struct GB_ROM gb_rom_values_fre[] = {
         .textBorderUppLeft = 0xC42F,
         .textBorderWidth = 12,
         .textBorderHeight = 1,
+        .padding_2 = 0
     },
     { // FRE_YELLOW
         .language = FRE_ID,
@@ -135,6 +137,7 @@ const struct GB_ROM gb_rom_values_fre[] = {
         .textBorderUppLeft = 0xC42F,
         .textBorderWidth = 12,
         .textBorderHeight = 1,
+        .padding_2 = 0
     },
     { // FRE_GOLD
         .language = FRE_ID,
@@ -180,6 +183,7 @@ const struct GB_ROM gb_rom_values_fre[] = {
         .textBorderUppLeft = 0xC42F,
         .textBorderWidth = 12,
         .textBorderHeight = 1,
+        .padding_2 = 0
     },
     { // FRE_SILVER
         .language = FRE_ID,
@@ -225,6 +229,7 @@ const struct GB_ROM gb_rom_values_fre[] = {
         .textBorderUppLeft = 0xC42F,
         .textBorderWidth = 12,
         .textBorderHeight = 1,
+        .padding_2 = 0
     },
     {
         .language = FRE_ID,
@@ -270,6 +275,7 @@ const struct GB_ROM gb_rom_values_fre[] = {
         .textBorderUppLeft = 0xC52F,
         .textBorderWidth = 12,
         .textBorderHeight = 1,
+        .padding_2 = 0
     }
 };
 
