@@ -30,11 +30,10 @@ bool text_exit;
 // attribute noinline was used to make sure the compiler doesn't inline this code back into text_loop()
 static __attribute__((noinline)) const u8* read_dialogue_text_entry(uint8_t index, u8 *output_buffer)
 {
-    u8 text_decompression_buffer[3072];
-    u8 index_buffer[100];
+    u8 text_decompression_buffer[6144];
     const u8 *text_entry;
 
-    streamed_text_data_table dialogue_table(text_decompression_buffer, sizeof(text_decompression_buffer), index_buffer);
+    text_data_table dialogue_table(text_decompression_buffer);
 
     dialogue_table.decompress(get_compressed_PTGB_table());
 

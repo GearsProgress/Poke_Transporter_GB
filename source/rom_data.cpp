@@ -5,13 +5,12 @@
 #include "text_engine.h"
 #include "gba_rom_values/gba_rom_values.h"
 #include "libraries/nanoprintf/nanoprintf.h"
-#include "zx0_decompressor.h"
-#include "gba_rom_values_eng_zx0_bin.h"
-#include "gba_rom_values_fre_zx0_bin.h"
-#include "gba_rom_values_ger_zx0_bin.h"
-#include "gba_rom_values_ita_zx0_bin.h"
-#include "gba_rom_values_jpn_zx0_bin.h"
-#include "gba_rom_values_spa_zx0_bin.h"
+#include "gba_rom_values_eng_lz10_bin.h"
+#include "gba_rom_values_fre_lz10_bin.h"
+#include "gba_rom_values_ger_lz10_bin.h"
+#include "gba_rom_values_ita_lz10_bin.h"
+#include "gba_rom_values_jpn_lz10_bin.h"
+#include "gba_rom_values_spa_lz10_bin.h"
 
 extern rom_data curr_rom;
 
@@ -42,30 +41,31 @@ bool rom_data::load_rom()
     switch(language)
     {
     case LANG_JPN:
-        compressed_rom_list = gba_rom_values_jpn_zx0_bin;
+        compressed_rom_list = gba_rom_values_jpn_lz10_bin;
         break;
     case LANG_ENG:
-        compressed_rom_list = gba_rom_values_eng_zx0_bin;
+        compressed_rom_list = gba_rom_values_eng_lz10_bin;
         break;
     case LANG_FRE:
-        compressed_rom_list = gba_rom_values_fre_zx0_bin;
+        compressed_rom_list = gba_rom_values_fre_lz10_bin;
         break;
     case LANG_GER:
-        compressed_rom_list = gba_rom_values_ger_zx0_bin;
+        compressed_rom_list = gba_rom_values_ger_lz10_bin;
         break;
     case LANG_ITA:
-        compressed_rom_list = gba_rom_values_ita_zx0_bin;
+        compressed_rom_list = gba_rom_values_ita_lz10_bin;
         break;
     case LANG_SPA:
-        compressed_rom_list = gba_rom_values_spa_zx0_bin;
+        compressed_rom_list = gba_rom_values_spa_lz10_bin;
         break;
     default:
         return false; // Unsupported language
     }
 
-    zx0_decompressor_start(rom_list_buffer, compressed_rom_list);
-    rom_list_size = zx0_decompressor_get_decompressed_size();
-    zx0_decompressor_read(rom_list_size);
+    // byte 2-4 of the compressed data store the decompressed size
+	rom_list_size = compressed_rom_list[1] | (compressed_rom_list[2] << 8) | (compressed_rom_list[3] << 16);
+	LZ77UnCompWram(compressed_rom_list, rom_list_buffer);
+
     cur = rom_list_buffer;
 
     while(cur < rom_list_buffer + rom_list_size)

@@ -146,11 +146,10 @@ all: $(BUILD)
 generate_data:
 	mkdir -p data
 	mkdir -p to_compress
-	@env -i "PATH=$(PATH)" $(MAKE) -C tools/compressZX0
 	@env -i "PATH=$(PATH)" $(MAKE) -C tools/data-generator
 	@tools/data-generator/data-generator to_compress
 	@python3 text_helper/main.py
-	@find to_compress -name "*.bin" | xargs -i tools/compressZX0/compressZX0 {} data/
+	@find to_compress -name "*.bin" -print0 | xargs -0 -n1 ./compress_lz10.sh
 
 #---------------------------------------------------------------------------------
 $(BUILD): generate_data
@@ -163,7 +162,6 @@ $(BUILD): generate_data
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@$(MAKE) -C tools/compressZX0 clean
 	@$(MAKE) -C tools/data-generator clean
 	@$(MAKE) -C loader clean
 	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).gba data/ to_compress/
@@ -175,9 +173,6 @@ else
 BINFILES	:=	$(foreach dir,../$(DATA),$(notdir $(wildcard $(dir)/*.*)))
 export OFILES_BIN := $(addsuffix .o,$(BINFILES))
 OFILES := $(OFILES_BIN) $(OFILES)
-
-# Optimize zx0_decompressor for speed
-zx0_decompressor.o: CXXFLAGS += -O2
 
 #---------------------------------------------------------------------------------
 # main targets

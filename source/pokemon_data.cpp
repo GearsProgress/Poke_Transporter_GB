@@ -1,15 +1,14 @@
 #include "pokemon_data.h"
-#include "zx0_decompressor.h"
-#include "EXP_GROUPS_zx0_bin.h"
-#include "GENDER_RATIO_zx0_bin.h"
-#include "NUM_ABILITIES_zx0_bin.h"
-#include "FIRST_MOVES_zx0_bin.h"
-#include "POWER_POINTS_zx0_bin.h"
-#include "EVENT_PKMN_zx0_bin.h"
-#include "TYPES_zx0_bin.h"
-#include "gen_1_charsets_zx0_bin.h"
-#include "gen_2_charsets_zx0_bin.h"
-#include "gen_3_charsets_zx0_bin.h"
+#include "EXP_GROUPS_lz10_bin.h"
+#include "GENDER_RATIO_lz10_bin.h"
+#include "NUM_ABILITIES_lz10_bin.h"
+#include "FIRST_MOVES_lz10_bin.h"
+#include "POWER_POINTS_lz10_bin.h"
+#include "EVENT_PKMN_lz10_bin.h"
+#include "TYPES_lz10_bin.h"
+#include "gen_1_charsets_lz10_bin.h"
+#include "gen_2_charsets_lz10_bin.h"
+#include "gen_3_charsets_lz10_bin.h"
 #include <tonc.h>
 #include <cstring>
 
@@ -744,8 +743,7 @@ static void load_table(u8 *table, const u8* source, bool &loadedBool)
     {
         return;
     }
-    zx0_decompressor_start(table, source);
-    zx0_decompressor_read(zx0_decompressor_get_decompressed_size());
+    LZ77UnCompWram(source, table);
     loadedBool = true;
 }
 
@@ -764,37 +762,37 @@ PokemonTables::PokemonTables()
 
 void PokemonTables::load_exp_groups()
 {
-    load_table(EXP_GROUPS, EXP_GROUPS_zx0_bin, exp_groups_loaded);
+    load_table(EXP_GROUPS, EXP_GROUPS_lz10_bin, exp_groups_loaded);
 }
 
 void PokemonTables::load_gender_ratios()
 {
-    load_table(GENDER_RATIO, GENDER_RATIO_zx0_bin, gender_ratios_loaded);
+    load_table(GENDER_RATIO, GENDER_RATIO_lz10_bin, gender_ratios_loaded);
 }
 
 void PokemonTables::load_num_abilities()
 {
-    load_table((uint8_t*)NUM_ABILITIES, NUM_ABILITIES_zx0_bin, num_abilities_loaded);
+    load_table((uint8_t*)NUM_ABILITIES, NUM_ABILITIES_lz10_bin, num_abilities_loaded);
 }
 
 void PokemonTables::load_first_moves()
 {
-    load_table(FIRST_MOVES, FIRST_MOVES_zx0_bin, first_moves_loaded);
+    load_table(FIRST_MOVES, FIRST_MOVES_lz10_bin, first_moves_loaded);
 }
 
 void PokemonTables::load_power_points()
 {
-    load_table(POWER_POINTS, POWER_POINTS_zx0_bin, power_points_loaded);
+    load_table(POWER_POINTS, POWER_POINTS_lz10_bin, power_points_loaded);
 }
 
 void PokemonTables::load_event_pkmn()
 {
-    load_table((uint8_t*)EVENT_PKMN, EVENT_PKMN_zx0_bin, event_pkmn_loaded);
+    load_table((uint8_t*)EVENT_PKMN, EVENT_PKMN_lz10_bin, event_pkmn_loaded);
 }
 
 void PokemonTables::load_types()
 {
-    load_table((uint8_t*)TYPES, TYPES_zx0_bin, types_loaded);
+    load_table((uint8_t*)TYPES, TYPES_lz10_bin, types_loaded);
 }
 
 void PokemonTables::load_input_charset(byte gen, byte lang)
@@ -909,21 +907,20 @@ void load_localized_charset(u16 *output_char_array, byte gen, byte lang)
     switch(gen)
     {
     case 1:
-        input_data = gen_1_charsets_zx0_bin;
+        input_data = gen_1_charsets_lz10_bin;
         break;
     case 2:
-        input_data = gen_2_charsets_zx0_bin;
+        input_data = gen_2_charsets_lz10_bin;
         break;
     case 3:
-        input_data = gen_3_charsets_zx0_bin;
+        input_data = gen_3_charsets_lz10_bin;
         break;
     default:
         // Invalid generation, return without doing anything
         return;
     }
 
-    zx0_decompressor_start(generation_charsets, input_data);
-    zx0_decompressor_read(zx0_decompressor_get_decompressed_size());
+    LZ77UnCompWram(input_data, generation_charsets);
 
     memcpy(output_char_array, generation_charsets + (lang_index * 256 * sizeof(u16)), 256 * sizeof(u16)); // copy the charset into the output array   
 }

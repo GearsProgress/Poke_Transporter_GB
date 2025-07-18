@@ -7,13 +7,12 @@
 #include "gb_rom_values/gb_rom_values.h"
 #include "sprite_data.h"
 #include "box_menu.h"
-#include "zx0_decompressor.h"
 #include "payload_file_reader.h"
-#include "gb_rom_values_eng_zx0_bin.h"
-#include "gb_rom_values_fre_zx0_bin.h"
-#include "gb_gen1_payloads_RB_zx0_bin.h"
-#include "gb_gen1_payloads_Y_zx0_bin.h"
-#include "gb_gen2_payloads_zx0_bin.h"
+#include "gb_rom_values_eng_lz10_bin.h"
+#include "gb_rom_values_fre_lz10_bin.h"
+#include "gb_gen1_payloads_RB_lz10_bin.h"
+#include "gb_gen1_payloads_Y_lz10_bin.h"
+#include "gb_gen2_payloads_lz10_bin.h"
 
 static const byte gen1_rb_debug_box_data[0x462] = {
 	// Num of Pokemon
@@ -273,19 +272,19 @@ bool Pokemon_Party::load_gb_rom()
 	switch(lang)
 	{
 	case ENG_ID:
-		compressed_rom_table = gb_rom_values_eng_zx0_bin;
+		compressed_rom_table = gb_rom_values_eng_lz10_bin;
 		break;
 	case FRE_ID:
-		compressed_rom_table = gb_rom_values_fre_zx0_bin;
+		compressed_rom_table = gb_rom_values_fre_lz10_bin;
 		break;
 	default:
 		// no rom table for this language
 		return false;
 	}
 
-	zx0_decompressor_start(gb_rom_table_buffer, compressed_rom_table);
-	rom_table_size = zx0_decompressor_get_decompressed_size();
-	zx0_decompressor_read(rom_table_size);
+	// byte 2-4 of the compressed data store the decompressed size
+	rom_table_size = compressed_rom_table[1] | (compressed_rom_table[2] << 8) | (compressed_rom_table[3] << 16);
+	LZ77UnCompWram(compressed_rom_table, gb_rom_table_buffer);
 
 	cur = gb_rom_table_buffer;
 	while(cur < gb_rom_table_buffer + rom_table_size)
@@ -347,6 +346,7 @@ void Pokemon_Party::init_payload()
 {
 	u8 decompression_buffer[1512];
 	const u8 *payload_src;
+	u32 payload_file_size;
 
 	//WARNING: Ensure sure decompression_buffer is large enough!
 
@@ -354,21 +354,22 @@ void Pokemon_Party::init_payload()
 	{
 		if(curr_gb_rom.version == YELLOW_ID)
 		{
-			payload_src = gb_gen1_payloads_Y_zx0_bin;
+			payload_src = gb_gen1_payloads_Y_lz10_bin;
 		}
 		else
 		{
-			payload_src = gb_gen1_payloads_RB_zx0_bin;
+			payload_src = gb_gen1_payloads_RB_lz10_bin;
 		}
 	}
 	else // if(curr_gb_rom.generation == 2)
 	{
-		payload_src = gb_gen2_payloads_zx0_bin;
+		payload_src = gb_gen2_payloads_lz10_bin;
 	}
 
-	zx0_decompressor_start(decompression_buffer, payload_src);
-	zx0_decompressor_read(zx0_decompressor_get_decompressed_size());
+	// byte 2-4 of the compressed data store the decompressed size
+	payload_file_size = payload_src[1] | (payload_src[2] << 8) | (payload_src[3] << 16);
+	LZ77UnCompWram(payload_src, decompression_buffer);
 
-	payload_file_reader payload_reader(decompression_buffer, zx0_decompressor_get_decompressed_size());
+	payload_file_reader payload_reader(decompression_buffer, payload_file_size);
 	payload_reader.read_payload(current_payload, curr_gb_rom.language, curr_gb_rom.version);
 }

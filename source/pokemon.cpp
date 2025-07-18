@@ -6,8 +6,7 @@
 #include "save_data_manager.h"
 #include "debug_mode.h"
 #include "text_engine.h"
-#include "zx0_decompressor.h"
-#include "JPN_NAMES_zx0_bin.h"
+#include "JPN_NAMES_lz10_bin.h"
 
 Pokemon::Pokemon() {};
 
@@ -215,9 +214,8 @@ void Pokemon::convert_to_gen_three(PokemonTables& data_tables, Conversion_Types 
         u16 cur_char;
 
         data_tables.load_gen3_charset(language);
-        // setup the zx0 decompressor to decompress the JPN_NAMES table
-        zx0_decompressor_start((u8*)JPN_NAMES, JPN_NAMES_zx0_bin);
-        zx0_decompressor_read(zx0_decompressor_get_decompressed_size());
+
+        LZ77UnCompWram(JPN_NAMES_lz10_bin, (u8*)JPN_NAMES);
 
         for (int i = 0; i < 6; i++)
         { // Read the JPN name and convert it

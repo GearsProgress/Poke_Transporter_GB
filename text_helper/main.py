@@ -449,15 +449,15 @@ with open (os.curdir + '/include/translated_text.h', 'w') as hFile:
     # PKMN_NAMES
     write_enum_to_header_file(hFile, "PKMN_NAMES_", mainDict[lang.name]["PKMN_NAMES"])
 
-    hFile.write("/** Returns the ZX0 compressed PTGB text table.*/\n")
+    hFile.write("/** Returns the LZ10 compressed PTGB text table.*/\n")
     hFile.write("const u8* get_compressed_PTGB_table();\n\n")
-    hFile.write("/** Returns the ZX0 compressed RSEFRLG text table.*/\n")
+    hFile.write("/** Returns the LZ10 compressed RSEFRLG text table.*/\n")
     hFile.write("const u8* get_compressed_rsefrlg_table();\n\n")
-    hFile.write("/** Returns the ZX0 compressed GENERAL text table.*/\n")
+    hFile.write("/** Returns the LZ10 compressed GENERAL text table.*/\n")
     hFile.write("const u8* get_compressed_general_table();\n\n")
-    hFile.write("/** Returns the ZX0 compressed CREDITS text table.*/\n")
+    hFile.write("/** Returns the LZ10 compressed CREDITS text table.*/\n")
     hFile.write("const u8* get_compressed_credits_table();\n\n")
-    hFile.write("/** Returns the ZX0 compressed PKMN_NAMES text table.*/\n")
+    hFile.write("/** Returns the LZ10 compressed PKMN_NAMES text table.*/\n")
     hFile.write("const u8* get_compressed_pkmn_names_table();\n\n")
 
     hFile.write("\n#endif")
@@ -487,39 +487,39 @@ for lang in Languages:
 
 # now generate the cpp file.
 with open(os.curdir + '/source/translated_text.cpp', 'w') as cppFile:
-    cppFile.write("#include \"translated_text.h\"\n#include \"debug_mode.h\"\n#include \"pokemon_data.h\"\n#include \"zx0_decompressor.h\"\n")
+    cppFile.write("#include \"translated_text.h\"\n#include \"debug_mode.h\"\n#include \"pokemon_data.h\"\n")
     # generate includes for each language
     for lang in Languages:
         for cat in mainDict[lang.name]:
             if cat in {"PTGB", "RSEFRLG", "GENERAL", "CREDITS", "PKMN_NAMES"}:
-                cppFile.write("#include \"" + cat.upper() + "_" + lang.name.lower() + "_zx0_bin.h\"\n")
+                cppFile.write("#include \"" + cat.upper() + "_" + lang.name.lower() + "_lz10_bin.h\"\n")
 
     for lang in Languages:
         cppFile.write(f"\n#if PTGB_BUILD_LANGUAGE == {lang.value + 1}\n")
         # PTGB
         cppFile.write("const u8* get_compressed_PTGB_table()\n")
         cppFile.write("{\n")
-        cppFile.write("\treturn PTGB_" + lang.name.lower() + "_zx0_bin;\n")
+        cppFile.write("\treturn PTGB_" + lang.name.lower() + "_lz10_bin;\n")
         cppFile.write("}\n\n")
         # RSEFRLG
         cppFile.write("const u8* get_compressed_rsefrlg_table()\n")
         cppFile.write("{\n")
-        cppFile.write("\treturn RSEFRLG_" + lang.name.lower() + "_zx0_bin;\n")
+        cppFile.write("\treturn RSEFRLG_" + lang.name.lower() + "_lz10_bin;\n")
         cppFile.write("}\n\n")
         # GENERAL
         cppFile.write("const u8* get_compressed_general_table()\n")
         cppFile.write("{\n")
-        cppFile.write("\treturn GENERAL_" + lang.name.lower() + "_zx0_bin;\n")
+        cppFile.write("\treturn GENERAL_" + lang.name.lower() + "_lz10_bin;\n")
         cppFile.write("}\n\n")
         # CREDITS
         cppFile.write("const u8* get_compressed_credits_table()\n")
         cppFile.write("{\n")
-        cppFile.write("\treturn CREDITS_" + lang.name.lower() + "_zx0_bin;\n")
+        cppFile.write("\treturn CREDITS_" + lang.name.lower() + "_lz10_bin;\n")
         cppFile.write("}\n\n")
         # PKMN_NAMES
         cppFile.write("const u8* get_compressed_pkmn_names_table()\n")
         cppFile.write("{\n")
-        cppFile.write("\treturn PKMN_NAMES_" + lang.name.lower() + "_zx0_bin;\n")
+        cppFile.write("\treturn PKMN_NAMES_" + lang.name.lower() + "_lz10_bin;\n")
         cppFile.write("}\n\n")
 
         cppFile.write(f"#endif\n\n\n")
