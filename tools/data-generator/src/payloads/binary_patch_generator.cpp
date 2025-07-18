@@ -1,6 +1,6 @@
 #include "payloads/binary_patch_generator.h"
 
-#include <cstdio>
+//#include <cstdio>
 binary_patch_list binary_patch_generator::diff(const uint8_t* buffer1, const uint8_t* buffer2, size_t size) const
 {
     binary_patch_list patches;
@@ -26,14 +26,14 @@ binary_patch_list binary_patch_generator::diff(const uint8_t* buffer1, const uin
         else if(diff_started)
         {
             // If we were in a diff and found a match, finalize the current patch
-          printf("Generated patch: offset: %hu, size: %zu\n", current_patch.offset, current_patch.data.size());
+//          printf("Generated patch: offset: %hu, size: %zu\n", current_patch.offset, current_patch.data.size());
             patches.push_back(current_patch);
             current_patch.data.clear();
             diff_started = false;
         }
     }
 
-  printf("Finished generating binary patches... num=%zu\n", patches.size());
+//  printf("Finished generating binary patches... num=%zu\n", patches.size());
     return patches;
 }
 

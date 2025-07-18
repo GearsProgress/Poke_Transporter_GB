@@ -217,10 +217,6 @@ int main(int argc, char **argv)
     test_payloads(output_path, "gb_gen1_payloads_Y.bin");
     generate_payloads_for(2, false, output_path, "gb_gen2_payloads.bin");
     test_payloads(output_path, "gb_gen2_payloads.bin");
-    
-    
-    printf("sizeof ROM_DATA: %zu\n", sizeof(struct ROM_DATA));
-    printf("sizeof GB_ROM: %zu\n", sizeof(struct GB_ROM));
 
     return 0;
 }
