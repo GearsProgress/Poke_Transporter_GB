@@ -213,59 +213,6 @@ void first_load_message(void)
 	tte_erase_rect(0, 0, H_MAX, V_MAX);
 }
 
-#include "translated_text.h"
-
-#define TIMER_ENABLE 0x80
-#define TIMER_CASCADE 0x4
-#define TIMER_FREQ_1 0x0    // 16.78 MHz
-#define TIMER_FREQ_64 0x1   // 262,144 Hz
-#define TIMER_FREQ_256 0x2  // 65,536 Hz
-#define TIMER_FREQ_1024 0x3 // 16,384 Hz
-
-int test_decompress()
-{
-	uint16_t charset[256];
-
-    // Reset both timers
-    REG_TM0CNT = 0;
-    REG_TM1CNT = 0;
-    REG_TM0D = 0;
-    REG_TM1D = 0;
-
-	// Set up TIMER0: count with no prescaler
-	REG_TM0CNT = TIMER_ENABLE | TIMER_FREQ_1;
-	// Set up TIMER1: cascade mode (increment when TIMER0 overflows)
-	REG_TM1CNT = TIMER_ENABLE | TIMER_CASCADE;
-
-	load_localized_charset(charset, 3, ENG_ID);
-
-    // Read combined 32-bit timer value
-    const u32 ticks = ((u32)REG_TM1D << 16) | REG_TM0D;
-
-    // Stop timers
-    REG_TM0CNT = 0;
-    REG_TM1CNT = 0;
-
-	create_textbox(4, 1, 160, 80, true);
-
-	ptgb_write_debug(charset, "Test results:\n\nDecompress: ", true);
-	ptgb_write_debug(charset, ptgb::to_string(ticks * 1000 / 16777), true);
-	ptgb_write_debug(charset, " usec\n", true);
-
-
-	while (true)
-	{
-		if (key_hit(KEY_B))
-		{
-			hide_text_box();
-			reset_textbox();
-			return 0;
-		}
-		global_next_frame();
-	}
-	return 0;
-}
-
 int credits()
 {
 	u8 text_decompression_buffer[2048];
@@ -302,11 +249,6 @@ int credits()
 			curr_credits_num++;
 			update = true;
 		}
-		if(key_hit(KEY_SELECT))
-		{
-			return test_decompress();
-		}
-	#if 0
 		if (ENABLE_DEBUG_SCREEN && key_hit(KEY_SELECT))
 		{
 			char hexBuffer[16];
@@ -383,7 +325,6 @@ int credits()
 				global_next_frame();
 			}
 		}
-#endif
 
 		global_next_frame();
 	}
