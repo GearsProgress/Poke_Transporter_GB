@@ -40,7 +40,15 @@ u16 get_rev_rand_u16(u32 input)
     return (get_rev_rand_u32(input) >> 16);
 }
 
-unsigned int get_rand_range(unsigned int inc_min, unsigned int exc_max)
+// Force ARM mode. In Thumb mode this imports __aeabi_lmul.
+__attribute__((target("arm"), noinline))
+static unsigned multiply_high(unsigned x, unsigned y)
 {
-    return ((double)((get_rand_u32() / (double)0x100000000) * (exc_max - inc_min)) + inc_min);
+    return ((unsigned long long)x * y) >> 32;    // umull
+}
+
+unsigned get_rand_range(unsigned inc_min, unsigned exc_max)
+{
+    // fixed point: get_rand_u32() / (float)0x100000000 * (exc_max - inc_min) + inc_min
+    return multiply_high(get_rand_u32(), exc_max - inc_min) + inc_min;
 }

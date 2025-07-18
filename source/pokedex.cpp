@@ -220,7 +220,7 @@ int pokedex_loop()
 
                 if (is_caught(dex_shift + i + 1 + mythic_skip))
                 {
-                    tte_set_pos(dex_x_cord + (1.5 * 8), (i * 8 * 2) + 32);
+                    tte_set_pos(dex_x_cord + (3 * 8 / 2), (i * 8 * 2) + 32);
                     temp_string[0] = 0xF7;
                     temp_string[1] = 0xF8;
                     temp_string[2] = 0xFF;
