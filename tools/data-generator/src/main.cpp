@@ -11,7 +11,7 @@
 #include <cstdlib>
 
 // This application holds the various long static data arrays that Poke Transporter GB uses
-// and it writes them to .bin files that can be compressed with compressZX0 later.
+// and it writes them to .bin files that can be compressed with gbalzss later.
 // it's useful to do it this way because it keeps this data easy to view, edit and document
 
 // This function generates a binary file containing the specified list of ROM_DATA structs

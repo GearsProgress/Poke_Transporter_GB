@@ -10,7 +10,6 @@
 #include "text_engine.h"
 #include "translated_text.h"
 #include "text_data_table.h"
-#include "zx0_decompressor.h"
 
 Box_Menu::Box_Menu() {};
 

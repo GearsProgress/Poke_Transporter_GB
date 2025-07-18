@@ -10,9 +10,8 @@
 #include "button_handler.h"
 #include "translated_text.h"
 #include "text_engine.h"
-#include "zx0_decompressor.h"
 #include "text_data_table.h"
-#include "TYPES_zx0_bin.h"
+#include "TYPES_lz10_bin.h"
 
 Dex dex_array[DEX_MAX];
 int dex_shift = 0;
@@ -89,7 +88,7 @@ void pokedex_init()
     obj_hide(down_arrow);
 }
 
-#include "gen_3_charsets_zx0_bin.h"
+#include "gen_3_charsets_lz10_bin.h"
 #include "libstd_replacements.h"
 
 int pokedex_loop()
@@ -100,11 +99,8 @@ int pokedex_loop()
     u8 decompression_buffer[3072];
     u16 charset[256];
 
-    zx0_decompressor_start((u8*)TYPES, TYPES_zx0_bin);
-    zx0_decompressor_read(zx0_decompressor_get_decompressed_size());
-
-    zx0_decompressor_start((u8*)charset, gen_3_charsets_zx0_bin);
-    zx0_decompressor_read(zx0_decompressor_get_decompressed_size());
+    LZ77UnCompWram(TYPES_lz10_bin, (u8*)TYPES);
+    LZ77UnCompWram(gen_3_charsets_lz10_bin, (u8*)charset);
 
     load_general_table_text_entries(decompression_buffer, kanto_name, johto_name);
 
