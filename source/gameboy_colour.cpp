@@ -15,6 +15,7 @@
 #include "global_frame_controller.h"
 #include "background_engine.h"
 #include "sprite_data.h"
+#include "text_data_table.h"
 
 #define DATA_PER_PACKET 8
 #define PACKET_DATA_START 2
@@ -158,10 +159,16 @@ void setup(const u16 *debug_charset)
   init_packet = true;
   end_of_data = false;
 
-  create_textbox(0, 0, 80, 80, true);
-  //tte_erase_screen();
-  tte_set_pos(40, 24);
-  ptgb_write_debug(debug_charset, "\n\n\n   Connecting to\n      GameBoy", true);
+  //create_textbox(0, 0, 80, 80, true);
+  create_textbox(4, 1, 152, 100, true);
+
+	{
+		u8 general_text_table_buffer[2048];
+		text_data_table general_text(general_text_table_buffer);
+
+		general_text.decompress(get_compressed_general_table());
+		ptgb_write(general_text.get_text_entry(GENERAL_connecting), true);
+	}
 }
 
 byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, Simplified_Pokemon *curr_simple_array, const u16 *debug_charset, bool cancel_connection)

@@ -335,7 +335,8 @@ const script_obj_params transfer_script_params[SCRIPT_SIZE] = {
     // CMD_LANG_MENU
     {
         .conditional_index = CMD_LANG_MENU,
-        .next_if_true = DIA_WHAT_GAME_TRANS
+        .next_if_true = DIA_WHAT_GAME_TRANS,
+        .next_if_false = DIA_CANCEL
     },
     // CMD_SLIDE_PROF_LEFT
     {
@@ -688,7 +689,9 @@ void populate_lang_menu()
     langs.add_option(GENERAL_option_german, GER_ID);
     langs.add_option(GENERAL_option_italian, ITA_ID);
     langs.add_option(GENERAL_option_korean, KOR_ID);
-    langs.add_option(GENERAL_option_cancel, UINT8_MAX);
+    // Removing the cancel option for the time being, since canceling the 
+    // link trade when there is no link connection crashes the game
+    // langs.add_option(GENERAL_option_cancel, UINT8_MAX); 
 }
 
 void populate_game_menu(int lang)
@@ -908,6 +911,7 @@ bool run_conditional(int index)
 
     case CMD_LOAD_SIMP:
         return load_simple_party_data();
+
     case CMD_CANCEL_LINK:
         party_data.continue_link(true);
         return true;

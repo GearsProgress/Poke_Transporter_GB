@@ -13,7 +13,7 @@
 #define BTN_CREDITS 4
 #define BTN_OPENING 5
 
-#define BUTTON_CANCEL -1
+#define BUTTON_CANCEL UINT8_MAX
 
 class Button_Menu
 {

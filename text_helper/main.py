@@ -16,16 +16,21 @@ print ("\nRunning text_helper:\n\n\n\n---------------")
 if (update == True):
 
     url = 'https://docs.google.com/spreadsheets/d/14LLs5lLqWasFcssBmJdGXjjYxARAJBa_QUOUhXZt4v8/export?format=xlsx'
-
-    response = requests.get(url)
     file_Path = 'text_helper/text.xlsx'
 
-    if response.status_code == 200:
-        with open(file_Path, 'wb') as file:
-            file.write(response.content)
-        print('File downloaded successfully')
-    else:
-        print('Failed to download file')
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()
+        if response.status_code == 200:
+            with open(file_Path, 'wb') as file:
+                file.write(response.content)
+            print('File downloaded successfully')
+    except requests.exceptions.ReadTimeout as errrt:
+        print("Connection Error. Continuing with previously downloaded file.")
+    except requests.exceptions.ConnectionError as conerr:
+        print("Connection Error. Continuing with previously downloaded file.")
+
+
 
 engCharArray = [
 0x20, 	0xC0, 	0xC1, 	0xC2, 	0xC7, 	0xC8, 	0xC9, 	0xCA, 	0xCB, 	0xCC, 	0x20, 	0xCE, 	0xCF, 	0xD2, 	0xD3, 	0xD4, 
