@@ -159,8 +159,7 @@ void setup(const u16 *debug_charset)
   init_packet = true;
   end_of_data = false;
 
-  //create_textbox(0, 0, 80, 80, true);
-  create_textbox(4, 1, 152, 100, true);
+  create_textbox(5, 1, 128, 60, true);
 
 	{
 		u8 general_text_table_buffer[2048];
