@@ -8,28 +8,51 @@ from collections import defaultdict
 import copy
 import math
 import sys
+import filecmp
 
 update = True
 
-print ("\nRunning text_helper:\n\n\n\n---------------")
+print ("Running text_helper:")
 
 if (update == True):
 
     url = 'https://docs.google.com/spreadsheets/d/14LLs5lLqWasFcssBmJdGXjjYxARAJBa_QUOUhXZt4v8/export?format=xlsx'
-    file_Path = 'text_helper/text.xlsx'
+    new_file_path = 'text_helper/new_text.xlsx'
+    old_file_path = 'text_helper/text.xlsx'
+    json_file_path = 'text_helper/output.json'
 
     try:
-        response = requests.get(url, timeout=10)
+        response = requests.get(url, timeout=5)
         response.raise_for_status()
         if response.status_code == 200:
-            with open(file_Path, 'wb') as file:
+            with open(new_file_path, 'wb') as file:
                 file.write(response.content)
             print('File downloaded successfully')
     except requests.exceptions.ReadTimeout as errrt:
-        print("Connection Error. Continuing with previously downloaded file.")
+        if os.path.exists(old_file_path):
+            print("Connection timed out. Continuing with locally downloaded file.")
+        else:
+            print("xlsx file is missing and connection timed out. Exiting...")
     except requests.exceptions.ConnectionError as conerr:
-        print("Connection Error. Continuing with previously downloaded file.")
-
+        if os.path.exists(old_file_path):
+            print("Connection error. Continuing with locally downloaded file.")
+        else:
+            print("xlsx file is missing and connection timed out. Exiting...")
+            
+            
+if os.path.exists(old_file_path):
+    new_file = pd.read_excel(new_file_path, sheet_name="Translations")
+    old_file = pd.read_excel(old_file_path, sheet_name="Translations")
+    if new_file.equals(old_file):
+        if os.path.exists(json_file_path):
+            print("Downloaded file is identical. Skipping parse\n")
+            os.rename(new_file_path, old_file_path)
+            exit()
+        print("json file missing - forcing rebuild.")
+    os.remove(new_file_path)
+else:
+    print("xlsx file missing - forcing rebuild.")
+    os.rename(new_file_path, old_file_path)
 
 
 engCharArray = [
@@ -210,13 +233,13 @@ def SplitSentenceIntoLines(sentence, offset, pixelsPerChar, pixelsInLine):
 
 # -*- coding: utf-8 -*-
 import re
-alphabets= "([A-Za-z])"
-prefixes = "(Mr|St|Mrs|Ms|Dr)[.]"
-suffixes = "(Inc|Ltd|Jr|Sr|Co)"
-starters = "(Mr|Mrs|Ms|Dr|Prof|Capt|Cpt|Lt|He\s|She\s|It\s|They\s|Their\s|Our\s|We\s|But\s|However\s|That\s|This\s|Wherever)"
-acronyms = "([A-Z][.][A-Z][.](?:[A-Z][.])?)"
-websites = "[.](com|net|org|io|gov|edu|me)"
-digits = "([0-9])"
+alphabets= r"([A-Za-z])"
+prefixes = r"(Mr|St|Mrs|Ms|Dr)[.]"
+suffixes = r"(Inc|Ltd|Jr|Sr|Co)"
+starters = r"(Mr|Mrs|Ms|Dr|Prof|Capt|Cpt|Lt|He\s|She\s|It\s|They\s|Their\s|Our\s|We\s|But\s|However\s|That\s|This\s|Wherever)"
+acronyms = r"([A-Z][.][A-Z][.](?:[A-Z][.])?)"
+websites = r"[.](com|net|org|io|gov|edu|me)"
+digits = r"([0-9])"
 multiple_dots = r'\.{2,}'
 
 def split_into_sentences(text: str) -> list[str]:
@@ -239,7 +262,7 @@ def split_into_sentences(text: str) -> list[str]:
     text = re.sub(digits + "[.]" + digits,"\\1<prd>\\2",text)
     text = re.sub(multiple_dots, lambda match: "<prd>" * len(match.group(0)) + "<stop>", text)
     if "Ph.D" in text: text = text.replace("Ph.D.","Ph<prd>D<prd>")
-    text = re.sub("\s" + alphabets + "[.] "," \\1<prd> ",text)
+    text = re.sub(r"\s" + alphabets + "[.] "," \\1<prd> ",text)
     text = re.sub(acronyms+" "+starters,"\\1<stop> \\2",text)
     text = re.sub(alphabets + "[.]" + alphabets + "[.]" + alphabets + "[.]","\\1<prd>\\2<prd>\\3<prd>",text)
     text = re.sub(alphabets + "[.]" + alphabets + "[.]","\\1<prd>\\2<prd>",text)
@@ -416,7 +439,7 @@ def write_enum_to_header_file(hFile, prefix, dictionary):
     return num
 
 
-print("\n\nStarting parse: \n")
+print("Starting parse:")
 
 currSheet = pd.read_excel(dir + "/text.xlsx", sheet_name="Translations")
 for row in currSheet.iterrows():
@@ -548,3 +571,4 @@ for lang in Languages:
 with open(dir + '/output.json', 'w') as jsonFile:
     jsonFile.write(json.dumps(mainDict))
     
+print("Parse finished!\n")

@@ -1,5 +1,5 @@
 # # Compiler flags
-CXXFLAGS := -std=c++11 -fno-rtti -fno-exceptions -fno-unwind-tables -Wall -Wextra -I $(CURDIR)/include -g
+CXXFLAGS := -std=c++20 -fno-rtti -fno-exceptions -fno-unwind-tables -Wall -Wextra -I $(CURDIR)/include -g
 
 # Source files directory
 SRC_DIR := ./src

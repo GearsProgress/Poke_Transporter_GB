@@ -2,22 +2,39 @@
 
 #include <cstdio>
 #include <cstring>
+#include <filesystem>
 
-void writeTable(const char* output_path, const char *filename, const char *buffer, size_t buffer_size)
+void writeTable(const char *input_path, const char *output_path, const char *filename, const char *buffer, size_t buffer_size)
 {
-    char full_path[4096];
-    FILE* f;
+    char full_output_path[4096];
 
-    if(output_path[0] != '\0')
+    FILE *f;
+
+    if (output_path[0] != '\0')
     {
-        snprintf(full_path, sizeof(full_path), "%s/%s", output_path, filename);
+        snprintf(full_output_path, sizeof(full_output_path), "%s/%s", output_path, filename);
     }
     else
     {
-        strncpy(full_path, filename, sizeof(full_path));
+        strncpy(full_output_path, filename, sizeof(full_output_path));
     }
 
-    f = fopen(full_path, "wb+");
+    if (std::filesystem::exists(full_output_path))
+    {
+
+        std::filesystem::file_time_type inf_time = std::filesystem::last_write_time(input_path);
+        std::filesystem::file_time_type outf_time = std::filesystem::last_write_time(full_output_path);
+
+        if (outf_time > inf_time)
+        {
+            //printf("File %s is newer than %s, skipping\n", full_output_path, input_path);
+            printf("S");
+            return;
+        }
+    }
+
+    f = fopen(full_output_path, "wb+");
     fwrite(buffer, 1, buffer_size, f);
     fclose(f);
+    printf("B");
 }

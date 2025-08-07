@@ -147,9 +147,19 @@ generate_data:
 	mkdir -p data
 	mkdir -p to_compress
 	@env -i "PATH=$(PATH)" $(MAKE) -C tools/data-generator
+	@echo
+	@echo "----------------------------------------------------------------"
+	@echo
 	@tools/data-generator/data-generator to_compress
 	@python3 text_helper/main.py
+	@echo "Compressing bin files!" 
+	@echo -n "["
 	@find to_compress -name "*.bin" -print0 | xargs -0 -n1 ./compress_lz10.sh
+	@echo "]"
+	@echo "Compressing finished!"
+	@echo
+	@echo "----------------------------------------------------------------"
+	@echo
 
 #---------------------------------------------------------------------------------
 $(BUILD): generate_data
@@ -165,6 +175,8 @@ clean:
 	@$(MAKE) -C tools/data-generator clean
 	@$(MAKE) -C loader clean
 	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).gba data/ to_compress/
+	@rm text_helper/output.json
+
 
 
 #---------------------------------------------------------------------------------
