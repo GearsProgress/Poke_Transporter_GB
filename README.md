@@ -3,7 +3,7 @@ Poké Transporter GB is a tool created to transfer Pokémon from Pokémon Red, B
 
 _Poké Transporter GB WILL modify both your generation 3 and generation 1/2 save file. The program is designed to not corrupt anything, but if you do not wish to modify your save file then you should bypass this experience._
 
-_**Please note that although Poké Transporter GB is no longer in beta, save file backups of both games are still recommended before using... just in case!**._
+_**Please note that although Poké Transporter GB is no longer in beta, save file backups of both games are still HIGHLY recommended before using... just in case!**._
 
 ## Notes
 Pokémon Transfered using Poké Transporter GB *will* be removed from Red, Blue, Yellow, Gold, Silver, or Crystal.
