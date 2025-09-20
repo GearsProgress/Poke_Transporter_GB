@@ -46,10 +46,11 @@ if os.path.exists(old_file_path):
     if new_file.equals(old_file):
         if os.path.exists(json_file_path):
             print("Downloaded file is identical. Skipping parse\n")
-            os.rename(new_file_path, old_file_path)
+            os.remove(new_file_path)
             exit()
         print("json file missing - forcing rebuild.")
-    os.remove(new_file_path)
+    os.remove(old_file_path)
+    os.rename(new_file_path, old_file_path)
 else:
     print("xlsx file missing - forcing rebuild.")
     os.rename(new_file_path, old_file_path)

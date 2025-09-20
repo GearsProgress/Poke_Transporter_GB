@@ -13,7 +13,7 @@
 #define CONFIRM_BUTTON 2
 
 // Box is 144 x 104, top left is 88 32, sprite is 16x16, sprites are not centered
-#define BOXMENU_TOP 32
+#define BOXMENU_TOP (32 - 12)
 #define BOXMENU_LEFT 88
 #define BOXMENU_VSPACE -4
 #define BOXMENU_HSPACE -10

@@ -25,8 +25,8 @@ int Box_Menu::box_main(Pokemon_Party party_data)
     load_temp_box_sprites(&party_data);
     Button cancel_button(button_cancel_left, button_cancel_right, 64);
     Button confirm_button(button_confirm_left, button_confirm_right, 64);
-    cancel_button.set_location(88, 144);
-    confirm_button.set_location(160, 144);
+    cancel_button.set_location(88, 124);
+    confirm_button.set_location(160, 124);
     cancel_button.show();
     confirm_button.show();
     curr_button = 0;
@@ -139,7 +139,7 @@ int Box_Menu::box_main(Pokemon_Party party_data)
                 if (curr_pkmn.is_shiny)
                 {
                     tte_set_pos(64, 16);
-                    val[0] = 0xF7;
+                    val[0] = 0xF9;
                     val[1] = 0xFF;
                     ptgb_write(val, true);
                 }

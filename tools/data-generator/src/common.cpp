@@ -4,6 +4,8 @@
 #include <cstring>
 #include <filesystem>
 
+// Data pulled from https://docs.google.com/spreadsheets/d/14LLs5lLqWasFcssBmJdGXjjYxARAJBa_QUOUhXZt4v8/edit
+
 void writeTable(const char *input_path, const char *output_path, const char *filename, const char *buffer, size_t buffer_size)
 {
     char full_output_path[4096];

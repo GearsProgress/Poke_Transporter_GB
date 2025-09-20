@@ -513,7 +513,7 @@ void load_temp_box_sprites(Pokemon_Party *party_data)
     load_sprite_compressed(button_confirm_right, button_edgeTiles, curr_tile_id, BTN_PAL, ATTR0_TALL, ATTR1_SIZE_8x32, 1);
 }
 
-void load_type_sprites(const u8* pkmn_type_table, int pkmn_index, int dex_offset, bool is_caught)
+void load_type_sprites(const u8 *pkmn_type_table, int pkmn_index, int dex_offset, bool is_caught)
 {
     if (is_caught)
     {
@@ -907,13 +907,16 @@ void update_menu_sprite(Pokemon_Party *party_data, int index, int frame)
     int dex_num = curr_pkmn.dex_number;
     if (dex_num == 201)
     {
-        dex_num = POKEMON_ARRAY_SIZE + curr_pkmn.unown_letter;
+        if (curr_pkmn.unown_letter != 0)
+        {
+            dex_num = 0x19C + curr_pkmn.unown_letter;
+        }
     }
     else if (curr_pkmn.is_missingno)
     {
         dex_num = 0;
     }
-    
+
     u32 sprite_location = (*(u32 *)(curr_rom.loc_gMonIconTable + (dex_num * 4))) + (frame == 0 ? 0 : 512);
     tonccpy(&tile_mem[SPRITE_CHAR_BLOCK][curr_tile_id], (const unsigned int *)sprite_location, 512);
 }

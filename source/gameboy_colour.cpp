@@ -91,24 +91,23 @@ byte data_packet[PACKET_SIZE];
 static_assert(sizeof(struct GB_ROM) == 132);
 static_assert(sizeof(struct ROM_DATA) == 160);
 
-void print(const char* format, ...)
+void print(const char *format, ...)
 {
   va_list args;
   va_start(args, format);
 
   // 10 elements of 64 bytes, zero-initialized.
   char spi_text_out_array[10][SPI_TEXT_OUT_ARRAY_ELEMENT_SIZE] = {
-    {0},
-    {0},
-    {0},
-    {0},
-    {0},
-    {0},
-    {0},
-    {0},
-    {0},
-    {0}
-  };
+      {0},
+      {0},
+      {0},
+      {0},
+      {0},
+      {0},
+      {0},
+      {0},
+      {0},
+      {0}};
 
   for (int i = 10; i > 0; i--)
   {
@@ -161,13 +160,13 @@ void setup(const u16 *debug_charset)
 
   create_textbox(5, 1, 128, 60, true);
 
-	{
-		u8 general_text_table_buffer[2048];
-		text_data_table general_text(general_text_table_buffer);
+  {
+    u8 general_text_table_buffer[2048];
+    text_data_table general_text(general_text_table_buffer);
 
-		general_text.decompress(get_compressed_general_table());
-		ptgb_write(general_text.get_text_entry(GENERAL_connecting), true);
-	}
+    general_text.decompress(get_compressed_general_table());
+    ptgb_write(general_text.get_text_entry(GENERAL_connecting), true);
+  }
 }
 
 byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, Simplified_Pokemon *curr_simple_array, const u16 *debug_charset, bool cancel_connection)
@@ -220,7 +219,14 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
     {
       tte_erase_rect(0, 0, H_MAX, V_MAX);
       tte_set_pos(40, 24);
-      ptgb_write_debug(debug_charset, curr_gb_rom->version != YELLOW_ID ? "\n\n\nLink was successful!\n\n  Waiting for trade" : "\n\n\nLink was successful!\n\n Waiting for battle", true);
+      {
+        u8 general_text_table_buffer[2048];
+        text_data_table general_text(general_text_table_buffer);
+
+        general_text.decompress(get_compressed_general_table());
+        ptgb_write(general_text.get_text_entry(curr_gb_rom->version != YELLOW_ID ? GENERAL_link_success_yellow : GENERAL_link_success), true);
+      }
+
       link_animation_state(STATE_NO_ANIM);
       state = pretrade;
       data_counter = 0;
@@ -265,7 +271,14 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
     {
       tte_erase_rect(0, 0, H_MAX, V_MAX);
       tte_set_pos(40, 24);
-      ptgb_write_debug(debug_charset, "\n\n\nTransferring data...\n    please wait!", true);
+      {
+        u8 general_text_table_buffer[2048];
+        text_data_table general_text(general_text_table_buffer);
+
+        general_text.decompress(get_compressed_general_table());
+        ptgb_write(general_text.get_text_entry(GENERAL_transferring), true);
+      }
+
       link_animation_state(STATE_TRANSFER);
       mosi_delay = 1;
       state = party_preamble;
