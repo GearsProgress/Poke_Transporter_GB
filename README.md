@@ -4,6 +4,7 @@ Poké Transporter GB is a tool created to transfer Pokémon from Pokémon Red, B
 _Poké Transporter GB WILL modify both your generation 3 and generation 1/2 save file. The program is designed to not corrupt anything, but if you do not wish to modify your save file then you should bypass this experience._
 
 _**Please note that although Poké Transporter GB is no longer in beta, save file backups of both games are still recommended before using... just in case!**._
+_**Poké Transporter GB is also NOT compatible with bootleg versions of any Pokémon game. Using a bootleg version WILL cause your Pokémon to disappear!**._
 
 ## Notes
 Pokémon Transfered using Poké Transporter GB *will* be removed from Red, Blue, Yellow, Gold, Silver, or Crystal.
@@ -28,22 +29,7 @@ Please note that transfering Pokémon will only work with a Game Boy Color Link 
 
 ## Modifications to Transfered Pokémon
 
-Due to limitations of the transfer process, some Pokémon will not be considered legal until they reach certain generations:
-
-|Pokémon|Generation III|Generation IV|Generation V|Passes through Pokémon Bank|Generation VI|Generation VII+|Passes through Pokémon HOME|
-|---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-|Standard Pokémon from Generation I|No<br>(Illegal Met Location)|Yes|Yes|Yes|Yes|Yes|Yes|
-|Standard Pokémon from Generation II|No<br>(Illegal Met Location, Illegal Game of Origin)|No<br>(Illegal Encounter type)|No<br>(Illegal Encounter type)|Yes|No<br>(Illegal Encounter type)|Yes|Yes|
-|Legendary Pokémon from Generation I|No<br>(Illegal Met Location)|Yes|Yes|Yes|Yes|Yes|Yes|
-|Legendary Pokémon from Generation II|No<br>(Illegal Met Location, Illegal Game of Origin)|No<br>(Illegal Encounter type)|No<br>(Illegal Encounter type)|Yes|No<br>(Illegal Encounter type)|Yes|Yes|
-|Mew from Generation I/II|No<br>(Does not match event)|No<br>(Does not match event)|No<br>(Does not match event)|?<br>(? if Shiny)|No<br>(Does not match event)|No<br>(Does not match event)|?|
-|Celebi from Generation II|No<br>(Does not match event)|No<br>(Does not match event)|No<br>(Does not match event)|?<br>(? if Shiny)|No<br>(Does not match event)|No<br>(Does not match event)|?|
-|Stabilized Mew|Yes|Yes|Yes|Yes|Yes|Yes|Yes|
-|Stabilized Celebi|Yes|Yes|Yes|Yes|Yes|Yes|Yes|
-
-Due to Mew and Celebi being illegal, an option is given to the player to "stabilize" them. This will convert the Pokémon into a legal event version of the mythical Pokémon. This event will be randomly generated and will not copy any of the data from generation 1/2- ***including shininess***. The mythical Pokémon will still be removed from the generation 1/2 game.
-
-A full list of modifications made to transfered Pokémon can be found [here](https://github.com/Starport75/Pokemon_Mirror/blob/master/modifications.md)!
+Poké Transporter GB utilizes the Pokémon Community Conversion Standard for converting Pokémon from Generation 1 and 2 to Generation 3. You can view the documentation for the PCCS [here]([url](https://github.com/GearsProgress/Pokemon-Community-Conversion-Standard))!
 
 ## Screenshots and Video
 
@@ -120,6 +106,10 @@ One of my favorite aspects of the Pokémon franchise is the ability to send Pok�
 - [TimoVM](https://x.com/Timo_VM)
 - [MrCheeze](https://x.com/mrcheeze_)
 
+# Data Compression:
+- [EasyAsPi314](https://github.com/easyaspi314)
+- [RisingPhil](https://github.com/risingPhil)
+
 ## License
 All Pokémon names, sprites, names of related resources are © Nintendo/Creatures Inc./GAME FREAK Inc.
 
@@ -129,3 +119,4 @@ _This project is not endorsed or supported by GameFreak or Nintendo. Please supp
 
 ## Special Mentions
 A huge thank you to Goppier for being the first one to bridge the gap between generation 2 and generation 3 and for providing extremely useful documentation about both versions of the Link Cable, and a huge thank you to Lorenzooone for being the direct inspiration for this project, as well as answering questions I had during development. This project would never have happened without either of them, and I cannot thank them enough.
+
