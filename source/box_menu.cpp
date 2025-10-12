@@ -1,5 +1,4 @@
 #include <tonc.h>
-#include "pccs/typeDefs.h"
 #include "button_menu.h"
 #include "button_handler.h"
 #include "save_data_manager.h"
@@ -7,26 +6,21 @@
 #include "string"
 #include "sprite_data.h"
 #include "box_menu.h"
-#include "text_engine.h"
-#include "translated_text.h"
-#include "text_data_table.h"
+#include "pokemon_data.h"
 
 Box_Menu::Box_Menu() {};
 
-int Box_Menu::box_main(PokeBox* box)
+int Box_Menu::box_main(Pokemon_Party party_data)
 {
-    u8 names_decompression_buffer[3072];
-    text_data_table PKMN_NAMES(names_decompression_buffer);
-
     tte_erase_screen();
-    load_flex_background(BG_BOX, 2);
-    REG_BG1VOFS = 0;
-    REG_BG1HOFS = 0;
-    load_temp_box_sprites(box);
+    load_flex_background(BG_FENNEL, 3);
+    REG_BG2VOFS = BG2VOF_LARGE_TEXTBOX;
+    REG_BG2VOFS = 0;
+    load_temp_box_sprites(party_data);
     Button cancel_button(button_cancel_left, button_cancel_right, 64);
     Button confirm_button(button_confirm_left, button_confirm_right, 64);
-    cancel_button.set_location(88, 124);
-    confirm_button.set_location(160, 124);
+    cancel_button.set_location(32, 112);
+    confirm_button.set_location(136, 112);
     cancel_button.show();
     confirm_button.show();
     curr_button = 0;
@@ -34,19 +28,8 @@ int Box_Menu::box_main(PokeBox* box)
     y = 0;
     bool update_pos = true;
     obj_unhide(box_select, 0);
-    int index = 0;
-
-    PKMN_NAMES.decompress(get_compressed_pkmn_names_table());
-
     while (true)
     {
-        if (get_frame_count() % 20 == 0)
-        {
-            for (int i = 0; i < box->getNumInBox(); i++)
-            {
-                update_menu_sprite(box, i, get_frame_count() % 40);
-            }
-        }
         if (curr_button == 0)
         {
             if (key_hit(KEY_LEFT) && (x > 0))
@@ -54,7 +37,7 @@ int Box_Menu::box_main(PokeBox* box)
                 x--;
                 update_pos = true;
             }
-            else if (key_hit(KEY_RIGHT) && (x < 5))
+            else if (key_hit(KEY_RIGHT) && (x < 9))
             {
                 x++;
                 update_pos = true;
@@ -64,15 +47,15 @@ int Box_Menu::box_main(PokeBox* box)
                 y--;
                 update_pos = true;
             }
-            else if (key_hit(KEY_DOWN) && (y < 4))
+            else if (key_hit(KEY_DOWN) && (y < 2))
             {
                 y++;
                 update_pos = true;
             }
-            else if (key_hit(KEY_DOWN) && (y == 4))
+            else if (key_hit(KEY_DOWN) && (y == 2))
             {
                 obj_hide(box_select);
-                if (x < 3)
+                if (x < 5)
                 {
                     cancel_button.set_highlight(true);
                     curr_button = CANCEL_BUTTON;
@@ -91,14 +74,14 @@ int Box_Menu::box_main(PokeBox* box)
                 curr_button = CANCEL_BUTTON;
                 cancel_button.set_highlight(true);
                 confirm_button.set_highlight(false);
-                x -= 3;
+                x -= 5;
             }
             else if (key_hit(KEY_RIGHT) && (curr_button == CANCEL_BUTTON))
             {
                 curr_button = CONFIRM_BUTTON;
                 cancel_button.set_highlight(false);
                 confirm_button.set_highlight(true);
-                x += 3;
+                x += 5;
             }
             else if (key_hit(KEY_UP))
             {
@@ -125,46 +108,33 @@ int Box_Menu::box_main(PokeBox* box)
         }
         if (update_pos)
         {
-            index = x + (y * BOXMENU_HNUM);
-            obj_set_pos(box_select, BOXMENU_LEFT + (x * (BOXMENU_SPRITE_WIDTH + BOXMENU_HSPACE)), BOXMENU_TOP + (y * (BOXMENU_SPRITE_HEIGHT + BOXMENU_VSPACE)));
-            tte_erase_rect(6, 16, 80, 152);
-            GBPokemon* curr_pkmn = box->getGBPokemon(index);
-            obj_hide(grabbed_front_sprite);
-            if (index < box->getNumInBox() && curr_pkmn->isValid)
+            int index = x + (y * 10);
+            obj_set_pos(box_select, 40 + (x * 16), 24 + (y * 16));
+            tte_erase_rect(40, 72, 220, 88);
+            Simplified_Pokemon curr_pkmn = party_data.get_simple_pkmn(index);
+            if (curr_pkmn.is_valid)
             {
-                byte val[11];
-                tte_set_pos(6, 88);
-                curr_pkmn->externalConvertNickname(val);
-                ptgb_write(val, true);
-                if (curr_pkmn->getIsShiny())
+                char nickname[11] = {' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', '\0'};
+                for (int i = 0; i < 10; i++)
                 {
-                    tte_set_pos(64, 16);
-                    val[0] = 0xF9;
-                    val[1] = 0xFF;
-                    ptgb_write(val, true);
+                    nickname[i] = gen_3_Intern_char_array[curr_pkmn.nickname[i]];
+                    if (curr_pkmn.nickname[i] == 0xFF)
+                    {
+                        i = 10;
+                    }
                 }
-                tte_set_pos(14, 98);
-                if (curr_pkmn->getSpeciesIndexNumber() == MISSINGNO)
+                tte_set_pos(40, 72);
+                tte_write(nickname);
+                if (curr_pkmn.is_shiny)
                 {
-                    ptgb_write(PKMN_NAMES.get_text_entry(0), true);
+                    tte_set_pos(40, 80);
+                    tte_write("*");
                 }
-
-                else
-                {
-                    ptgb_write(PKMN_NAMES.get_text_entry(curr_pkmn->getSpeciesIndexNumber()), true);
-                }
-                tte_set_pos(6, 108);
-                val[0] = 0xC6; // L
-                val[1] = 0xEA; // v
-                val[2] = 0xF0; // :
-                val[3] = 0x00; // " "
-                val[4] = 0xFF; // endline
-                ptgb_write(val, true);
-                convert_int_to_ptgb_str(curr_pkmn->getLevel(), val); // Val should never go out of bounds
-                ptgb_write(val, true);
-
-                update_front_box_sprite(curr_pkmn);
-                obj_unhide(grabbed_front_sprite, 0);
+                tte_set_pos(48, 80);
+                tte_write(curr_pkmn.is_missingno ? "MissingNo" : NAMES[curr_pkmn.dex_number].data());
+                tte_set_pos(146, 80);
+                tte_write("Lv: ");
+                tte_write(std::to_string(curr_pkmn.met_level).c_str());
                 update_pos = false;
             }
         }

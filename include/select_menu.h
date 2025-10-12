@@ -2,8 +2,8 @@
 #define SELECT_MENU_H
 
 #include <tonc.h>
-#include "libstd_replacements.h"
-#include "text_engine.h"
+#include <vector>
+#include <string>
 
 #define LANG_MENU 1
 #define CART_MENU 2
@@ -11,23 +11,21 @@
 class Select_Menu
 {
 public:
-    Select_Menu(bool enable_cancel, u8 nMenu_type, int nStartX, int nStartY);
+    Select_Menu(bool enable_cancel, int nMenu_type);
     int select_menu_main();
     void hide_menu();
     void show_menu();
     void clear_options();
-    void add_option(const u8 option, u8 return_value);
-    void set_lang(u8 nLang);
+    void add_option(std::string option, int return_value);
+    void set_lang(int nLang);
 
 private:
-    ptgb::vector<u8> menu_options;
-    ptgb::vector<u8> return_values;
-    u16 curr_selection;
+    std::vector<std::string> menu_options;
+    std::vector<int> return_values;
+    unsigned int curr_selection;
     bool cancel_enabled;
-    u8 menu_type;
-    u8 lang;
-    int startTileX;
-    int startTileY;
+    int menu_type;
+    int lang;
 };
 
 #endif

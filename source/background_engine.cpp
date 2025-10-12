@@ -1,6 +1,7 @@
 #include <tonc.h>
-#include "pokemon_data.h"
-#include "background_engine.h"
+
+#include "sprite_data.h"
+#include "text_engine.h"
 
 #define CBB 0
 #define SBB 24
@@ -18,26 +19,18 @@ void background_frame(int global_frame_count)
         }
 }
 
-// This could honestly be an object... might want to do that in the future, depending on how complex using this gets
-void create_textbox(int startTileX, int startTileY, int text_space_width, int text_space_height, bool eraseMainBox)
+void set_textbox_large()
 {
-        if (eraseMainBox)
-        {
-                erase_textbox_tiles();
-        }
-        add_menu_box(startTileX, startTileY, text_space_width + 16, text_space_height + 16);
-        tte_set_pos((startTileX + 1) * 8, (startTileY + 1) * 8);
-        tte_set_margins((startTileX + 1) * 8, (startTileY + 1) * 8,
-                        (startTileX + text_space_width) * 8, (startTileY + text_space_height) * 8);
+        tte_set_pos(40, 24);
+        tte_set_margins(40, 24, 206, 104);
         tte_erase_rect(0, 0, H_MAX, V_MAX);
+        REG_BG2VOFS = 0;
 }
-
-void reset_textbox()
+void set_textbox_small()
 {
-        tte_erase_rect(0, 0, H_MAX, V_MAX);
-        reload_textbox_background();
-        tte_set_pos(1 * 8, 14 * 8);
         tte_set_margins(LEFT, TOP, RIGHT, BOTTOM);
+        tte_erase_rect(0, 0, H_MAX, V_MAX);
+        REG_BG2VOFS = 96;
 }
 
 void show_textbox()

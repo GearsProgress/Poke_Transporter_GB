@@ -2,7 +2,7 @@
 #define MAIN_MENU_H
 
 #include <tonc.h>
-#include "libstd_replacements.h"
+#include <vector>
 
 #include "button_handler.h"
 
@@ -13,7 +13,7 @@
 #define BTN_CREDITS 4
 #define BTN_OPENING 5
 
-#define BUTTON_CANCEL UINT8_MAX
+#define BUTTON_CANCEL -1
 
 class Button_Menu
 {
@@ -33,8 +33,8 @@ public:
     void clear_vector();
 
 private:
-    ptgb::vector<Button> button_vector;
-    ptgb::vector<int> return_values;
+    std::vector<Button> button_vector;
+    std::vector<int> return_values;
     int columns;
     int rows;
     int button_height;
