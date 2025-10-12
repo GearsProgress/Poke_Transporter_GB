@@ -2,26 +2,73 @@
 #include "mystery_gift_builder.h"
 #include "pokemon_party.h"
 #include "pokemon_data.h"
-#include "text_engine.h"
-#include "save_data_manager.h"
-#include "gba_rom_values/gba_rom_values.h"
-#include "libraries/nanoprintf/nanoprintf.h"
-#include "gba_rom_values_eng_lz10_bin.h"
-#include "gba_rom_values_fre_lz10_bin.h"
-#include "gba_rom_values_ger_lz10_bin.h"
-#include "gba_rom_values_ita_lz10_bin.h"
-#include "gba_rom_values_jpn_lz10_bin.h"
-#include "gba_rom_values_spa_lz10_bin.h"
+#include "gba_rom_values/eng_gba_rom_values.h"
+#include "gba_rom_values/jpn_gba_rom_values.h"
+#include "gba_rom_values/fre_gba_rom_values.h"
+#include "gba_rom_values/ger_gba_rom_values.h"
+#include "gba_rom_values/ita_gba_rom_values.h"
+#include "gba_rom_values/spa_gba_rom_values.h"
 
-extern rom_data curr_GBA_rom;
+extern rom_data curr_rom;
 
 rom_data::rom_data() {}
 bool rom_data::load_rom()
 {
-    u8 rom_list_buffer[2048];
-    u32 rom_list_size;
-    const u8 *compressed_rom_list;
-    const u8 *cur;
+    const ROM_DATA *list_of_roms[NUM_ROMS] = {
+        &ENG_RUBY_v0,
+        &ENG_SAPPHIRE_v0,
+        &ENG_RUBY_v1,
+        &ENG_SAPPHIRE_v1,
+        &ENG_RUBY_v2,
+        &ENG_SAPPHIRE_v2,
+        &ENG_FIRERED_v0,
+        &ENG_LEAFGREEN_v0,
+        &ENG_FIRERED_v1,
+        &ENG_LEAFGREEN_v1,
+        &ENG_EMERALD_v0,
+
+        &JPN_RUBY_v0,
+        &JPN_SAPPHIRE_v0,
+        &JPN_RUBY_v1,
+        &JPN_SAPPHIRE_v1,
+        &JPN_FIRERED_v0,
+        &JPN_LEAFGREEN_v0,
+        &JPN_FIRERED_v1,
+        &JPN_LEAFGREEN_v1,
+        &JPN_EMERALD_v0,
+
+        &FRE_RUBY_v0,
+        &FRE_SAPPHIRE_v0,
+        &FRE_RUBY_v1,
+        &FRE_SAPPHIRE_v1,
+        &FRE_FIRERED_v0,
+        &FRE_LEAFGREEN_v0,
+        &FRE_EMERALD_v0,
+
+        &GER_RUBY_v0,
+        &GER_SAPPHIRE_v0,
+        &GER_RUBY_v1,
+        &GER_SAPPHIRE_v1,
+        &GER_FIRERED_v0,
+        &GER_LEAFGREEN_v0,
+        &GER_EMERALD_v0,
+
+        &ITA_RUBY_v0,
+        &ITA_SAPPHIRE_v0,
+        &ITA_RUBY_v1,
+        &ITA_SAPPHIRE_v1,
+        &ITA_FIRERED_v0,
+        &ITA_LEAFGREEN_v0,
+        &ITA_EMERALD_v0,
+
+        &SPA_RUBY_v0,
+        &SPA_SAPPHIRE_v0,
+        &SPA_RUBY_v1,
+        &SPA_SAPPHIRE_v1,
+        &SPA_FIRERED_v0,
+        &SPA_LEAFGREEN_v0,
+        &SPA_EMERALD_v0,
+    };
 
     if (IGNORE_GAME_PAK)
     {
@@ -38,55 +85,18 @@ bool rom_data::load_rom()
         version = (*(vu8 *)(0x80000BC));
     }
 
-    switch (language)
+    for (int i = 0; i < NUM_ROMS; i++)
     {
-    case LANG_JPN:
-        compressed_rom_list = gba_rom_values_jpn_lz10_bin;
-        break;
-    case LANG_ENG:
-        compressed_rom_list = gba_rom_values_eng_lz10_bin;
-        break;
-    case LANG_FRE:
-        compressed_rom_list = gba_rom_values_fre_lz10_bin;
-        break;
-    case LANG_GER:
-        compressed_rom_list = gba_rom_values_ger_lz10_bin;
-        break;
-    case LANG_ITA:
-        compressed_rom_list = gba_rom_values_ita_lz10_bin;
-        break;
-    case LANG_SPA:
-        compressed_rom_list = gba_rom_values_spa_lz10_bin;
-        break;
-    default:
-        return false; // Unsupported language
-    }
-
-    // Game looks good, let's make sure it can save.
-    /*if (!check_can_save())
-    {
-        return false;
-    }*/
-
-    // byte 2-4 of the compressed data store the decompressed size
-    rom_list_size = compressed_rom_list[1] | (compressed_rom_list[2] << 8) | (compressed_rom_list[3] << 16);
-    LZ77UnCompWram(compressed_rom_list, rom_list_buffer);
-
-    cur = rom_list_buffer;
-
-    while (cur < rom_list_buffer + rom_list_size)
-    {
-        const ROM_DATA *rom_values = reinterpret_cast<const ROM_DATA *>(cur);
-        if (rom_values->is_valid && rom_values->gamecode == gamecode &&
-            rom_values->version == version)
+        if (gamecode == list_of_roms[i]->gamecode &&
+            language == list_of_roms[i]->language &&
+            version == list_of_roms[i]->version &&
+            list_of_roms[i]->is_valid)
         {
-            fill_values(rom_values);
+            fill_values(list_of_roms[i]);
             rom_loaded = true;
             return true;
         }
-        cur += sizeof(ROM_DATA);
     }
-    // If we reach here, no matching ROM_DATA was found
     return false;
 }
 
@@ -110,13 +120,6 @@ void rom_data::fill_values(const ROM_DATA *rom_values)
     loc_voicegroup = rom_values->loc_voicegroup;
     loc_sPicTable_NPC = rom_values->loc_sPicTable_NPC;
 
-    loc_gMonFrontPicTable = rom_values->loc_gMonFrontPicTable;
-    loc_gMonPaletteTable = rom_values->loc_gMonPaletteTable;
-    loc_gMonShinyPaletteTable = rom_values->loc_gMonShinyPaletteTable;
-    loc_gMonIconTable = rom_values->loc_gMonIconTable;
-    loc_gMonIconPaletteIndices = rom_values->loc_gMonIconPaletteIndices;
-    loc_gMonIconPalettes = rom_values->loc_gMonIconPalettes;
-
     offset_ramscript = rom_values->offset_ramscript;
     offset_flags = rom_values->offset_flags;
     offset_wondercard = rom_values->offset_wondercard;
@@ -130,9 +133,9 @@ void rom_data::fill_values(const ROM_DATA *rom_values)
     all_collected_flag = rom_values->unused_flag_start;            // The flag for if everything has been collected
     pkmn_collected_flag_start = rom_values->unused_flag_start + 1; // The beginning of the flags for each of the Pokemon
 
-    map_bank = rom_values->map_bank;
-    map_id = rom_values->map_id;
-    npc_id = rom_values->npc_id;
+    map_bank = (ENABLE_OLD_EVENT ? rom_values->old_map_bank : rom_values->map_bank);
+    map_id = (ENABLE_OLD_EVENT ? rom_values->old_map_id : rom_values->map_id);
+    npc_id = (ENABLE_OLD_EVENT ? rom_values->old_npc_id : rom_values->npc_id);
     npc_palette = rom_values->npc_palette;
 
     def_map_bank = rom_values->def_map_bank;
@@ -140,6 +143,7 @@ void rom_data::fill_values(const ROM_DATA *rom_values)
     def_npc_id = rom_values->def_npc_id;
 
     loc_gSaveBlock1PTR = rom_values->loc_gSaveBlock1PTR; // TODO: Only used for old script, can be removed later
+
 }
 
 bool rom_data::is_hoenn()
@@ -154,34 +158,31 @@ bool rom_data::is_ruby_sapphire()
 
 void rom_data::print_rom_info()
 {
-    char buffer[64];
-    char gameTypeChar;
+    std::string out;
     switch (gamecode)
     {
     case (RUBY_ID):
-        gameTypeChar = 'R';
+        out += "R";
         break;
     case (SAPPHIRE_ID):
-        gameTypeChar = 'S';
+        out += "S";
         break;
     case (FIRERED_ID):
-        gameTypeChar = 'F';
+        out += "F";
         break;
     case (LEAFGREEN_ID):
-        gameTypeChar = 'L';
+        out += "L";
         break;
     case (EMERALD_ID):
-        gameTypeChar = 'E';
-        break;
-    default:
-        gameTypeChar = '0';
+        out += "E";
         break;
     }
-
-    npf_snprintf(buffer, sizeof(buffer), "%c-%d-%c", gameTypeChar, version, language);
-
+    out += "-";
+    out += std::to_string(version);
+    out += "-";
+    out += char(language);
     tte_set_pos(0, 8);
-    ptgb_write(buffer);
+    tte_write(out.c_str());
 }
 
 bool rom_data::verify_rom()

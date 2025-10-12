@@ -1,16 +1,17 @@
 #include <tonc.h>
-#include <cstdlib>
+#include <string>
+#include <cstring>
 // #include <maxmod.h> //Music
-#include "libstd_replacements.h"
+
 #include "flash_mem.h"
 #include "interrupt.h"
 #include "gb_link.h"
 #include "gameboy_colour.h"
+#include "pokemon.h"
 #include "random.h"
 #include "text_engine.h"
 #include "background_engine.h"
 #include "pokemon_party.h"
-#include "pokemon_data.h"
 #include "script_array.h"
 #include "sprite_data.h"
 #include "button_handler.h"
@@ -25,11 +26,8 @@
 #include "save_data_manager.h"
 #include "mystery_gift_injector.h"
 #include "mystery_gift_builder.h"
-#include "multiboot_upload.h"
 #include "rom_data.h"
 #include "libraries/Pokemon-Gen3-to-Gen-X/include/save.h"
-#include "text_data_table.h"
-#include "custom_malloc.h"
 
 /*
 
@@ -50,7 +48,7 @@ TODO:
 int delay_counter = 0;
 int curr_selection = 0;
 bool skip = true;
-rom_data curr_GBA_rom;
+rom_data curr_rom;
 Button_Menu yes_no_menu(1, 2, 40, 24, false);
 
 /*
@@ -86,9 +84,18 @@ int test_main(void) Music
 // (R + G*32 + B*1024)
 #define RGB(r, g, b) (r + (g * 32) + (b * 1024))
 
+template <typename I>
+std::string n2hexstr(I w, size_t hex_len = sizeof(I) << 1)
+{
+	static const char *digits = "0123456789ABCDEF";
+	std::string rc(hex_len, '0');
+	for (size_t i = 0, j = (hex_len - 1) * 4; i < hex_len; ++i, j -= 4)
+		rc[i] = digits[(w >> j) & 0x0f];
+	return rc;
+}
+
 void load_graphics()
 {
-
 	tte_erase_rect(0, 0, H_MAX, V_MAX);
 	// Load opening background first so it hides everything else
 	load_flex_background(BG_OPENING, 1);
@@ -124,14 +131,13 @@ void initalization_script(void)
 	oam_init(obj_buffer, 128);
 	load_graphics();
 
-	// Prepare text engine for dialogue
+	// Prepare dialouge
+	populate_dialogue();
+	populate_script();
 	init_text_engine();
 
 	// Set the random seed
 	rand_set_seed(0x1216);
-
-	// Clean up the main screen quick
-	tte_erase_rect(0, 0, 240, 160);
 
 	VBlankIntrWait();
 	REG_DISPCNT &= ~DCNT_BLANK;
@@ -139,37 +145,20 @@ void initalization_script(void)
 
 void game_load_error(void)
 {
+	// EG_BG0CNT = (REG_BG0CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
+	// REG_BG1CNT = (REG_BG1CNT & ~BG_PRIO_MASK) | BG_PRIO(2);
 	REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(1);
-
-	create_textbox(4, 1, 152, 100, true);
-
-	{
-		u8 general_text_table_buffer[2048];
-		text_data_table general_text(general_text_table_buffer);
-
-		general_text.decompress(get_compressed_general_table());
-		ptgb_write(general_text.get_text_entry(GENERAL_cart_load_error), true);
-	}
-
+	REG_BG2VOFS = 0;
+	tte_set_pos(40, 24);
+	tte_set_margins(40, 24, 206, 104);
+	set_textbox_large();
+	tte_write("#{cx:0xF000}The Pok@mon save\nfile was not loaded successfully.\n\nPlease remove and\nreinsert the Game\nPak, and then press the A button.");
 	key_poll();
-	do
+	while (!key_hit(KEY_A))
 	{
 		global_next_frame();
-	} while (!key_hit(KEY_A) && !key_hit(KEY_SELECT));
-
-	tte_erase_rect(0, 0, H_MAX, V_MAX);
-
-	if (key_hit(KEY_SELECT))
-	{
-		// We also want to give the option in this screen to upload the multiboot rom to another GBA.
-		// This can be useful when the user wants to work with a flashcart in single rom mode.
-		// The EZ Flash Omega (DE) for instance, triggers a reset of the gba if you insert it while the GBA is turned on.
-		// So the only way to work with it, is to boot Poke Transporter GB over multiboot and have the flashcart already inserted.
-		// It would be a shame not to support this flashcart, because it's awesome for pokémon fans. After all: it supports ds transfer
-		// and should support connecting with the gamecube games.
-		multiboot_upload_screen();
-		return;
 	}
+	tte_erase_screen();
 	delay_counter = 0;
 
 	while (delay_counter < 60)
@@ -181,18 +170,9 @@ void game_load_error(void)
 
 void first_load_message(void)
 {
-	tte_set_margins(8, 8, H_MAX - 8, V_MAX);
-	tte_set_pos(8, 8);
-	tte_set_ink(INK_ROM_COLOR);
-
-	{
-		u8 general_text_table_buffer[2048];
-		text_data_table general_text(general_text_table_buffer);
-
-		general_text.decompress(get_compressed_general_table());
-		ptgb_write(general_text.get_text_entry(GENERAL_intro_first), true);
-	}
-
+	tte_set_pos(8, 0);
+	tte_set_ink(10);
+	tte_write("#{cx:0xD000}\n\nHello! Thank you for using\nPok@ Transporter GB!\n\nJust as a word of caution- \nPok@ Transporter GB WILL\nmodify both the GameBoy and GameBoy Advance save files.\n\nPlease note that Pok@\nTransporter GB is still in\nbeta, so save file backups\nare HIGHLY recommended\nbefore using. With that all\nbeing said, please enjoy!\n\n      -The Gears of Progress");
 	while (!key_hit(KEY_A))
 	{
 		global_next_frame();
@@ -202,117 +182,120 @@ void first_load_message(void)
 
 int credits()
 {
-	u8 text_decompression_buffer[2048];
-	text_data_table credits_text_table(text_decompression_buffer);
+#define CREDITS_ARRAY_SIZE 18
 	int curr_credits_num = 0;
+	std::string credits_array[CREDITS_ARRAY_SIZE] = {
+		//"testing: う",
+		"Lead developer:\n\nThe Gears of\nProgress",
+		"Logo and co-ideator:\n\n-Jome\n\nSpritework:\n\n-LJ Birdman\n\n",
+		"Icon Sprites: \n\n-LuigiTKO\n-GuiAbel\n-SourApple\n & the artists from\nPok@mon Showdown and\nCrystal Clear",
+		"Remote and Arbitrary\nCode Execution\nassistance:\n\n\n-TimoVM",
+		"Development\nassistance:\n\n-im a blisy\n-rileyk64\n-Shao",
+		"Built using:\n\n\n-DevkitPro\n-LibTonc\n-LibGBA",
+		"Inspired by the\nworks of:\n\n-Goppier\n-Lorenzooone\n-im a blisy\n-RETIRE",
+		"Programs used:\n\n\n-HexManiacAdvance\n-PKHeX\n-WC3Tool\n-Usenti\n-SappyMidToAGB",
+		"Open Source Code and\nLibraries:\n\n-libtonc-examples\n-PokemonGen3toGenX\n-gba-link-connection\n-awesome-gbadev\n-arduino-poke-gen2",
+		"Research resources:\n\n-arm-docs\n-PokemonGen3toGenX\n\nFull links can be\nfound on this\nprogram's GitHub",
+		"ROM data obtained\nfrom decompilations created by the PRET team",
+		"Pok@mon data\nobtained from:\n\n-Bulbapedia\n-Serebii\n-PokeAPI.com",
+		"Discord community\nassistance:\n\n-Hex Maniac Advance\n Development\n-gbadev\n-pret",
+		"Writing assistance:\n\n\n-Mad",
+		"An immense thanks to\nLorenzooone for\ntheir assistance in\nreading/writing save\ndata. Without them,\nthis project would\nnot have been\npossible.",
+		"Special thanks to\nEnn, roku, Sleepy,\nEza, sarahtonin,\nBasabi, Mad, and\neveryone who has\nlistened to me talk\nabout this for\nmonths!",
+		"All Pok@mon names,\nsprites, and names\nof related resources\nare copyright\nNintendo,\nCreatures Inc.,\nand GAME FREAK Inc.",
+		"This project is not endorsed or\nsupported by\nGameFreak/Nintendo.\n\nPlease support the\noriginal developers.",
+	};
 
-	credits_text_table.decompress(get_compressed_credits_table());
-	bool update = true;
-
-	global_next_frame();
 	while (true)
 	{
-		if (update)
-		{
-			create_textbox(4, 1, 160, 80, true);
-			show_text_box();
-			ptgb_write(credits_text_table.get_text_entry(curr_credits_num), true);
-			update = false;
-		}
+		set_textbox_large();
+		tte_write(credits_array[curr_credits_num].c_str());
 
 		if (key_hit(KEY_B))
 		{
 			hide_text_box();
-			reset_textbox();
+			set_textbox_small();
 			return 0;
 		}
 		if (key_hit(KEY_LEFT) && curr_credits_num > 0)
 		{
 			curr_credits_num--;
-			update = true;
 		}
-		if (key_hit(KEY_RIGHT) && curr_credits_num < (credits_text_table.get_number_of_text_entries() - 1))
+		if (key_hit(KEY_RIGHT) && curr_credits_num < (CREDITS_ARRAY_SIZE - 1))
 		{
 			curr_credits_num++;
-			update = true;
 		}
 		if (ENABLE_DEBUG_SCREEN && key_hit(KEY_SELECT))
 		{
-			char hexBuffer[16];
-			uint16_t charset[256];
-			load_localized_charset(charset, 3, ENGLISH);
 			if (key_held(KEY_UP) && key_held(KEY_L) && key_held(KEY_R))
 			{
 				set_treecko(true);
 			}
 			u32 pkmn_flags = 0;
-			bool e4_flag = read_flag(curr_GBA_rom.e4_flag);
-			bool mg_flag = read_flag(curr_GBA_rom.mg_flag);
-			bool all_collected_flag = read_flag(curr_GBA_rom.all_collected_flag);
+			bool e4_flag = read_flag(curr_rom.e4_flag);
+			bool mg_flag = read_flag(curr_rom.mg_flag);
+			bool all_collected_flag = read_flag(curr_rom.all_collected_flag);
 			for (int i = 0; i < 30; i++)
 			{
-				pkmn_flags |= (read_flag(curr_GBA_rom.pkmn_collected_flag_start + i) << i);
+				pkmn_flags |= (read_flag(curr_rom.pkmn_collected_flag_start + i) << i);
 			}
 
 			bool tutorial = get_tutorial_flag();
 			int def_lang = get_def_lang_num();
 
-			create_textbox(4, 1, 160, 80, true);
-			ptgb_write_debug(charset, "Debug info:\n\nG: ", true);
-			ptgb_write_debug(charset, ptgb::to_string(curr_GBA_rom.language), true);
-			switch (curr_GBA_rom.gamecode)
+			set_textbox_large();
+			tte_write("Debug info:\n\nG: ");
+			std::string lang;
+			lang += curr_rom.language;
+			tte_write(lang.c_str());
+			switch (curr_rom.gamecode)
 			{
 			case RUBY_ID:
-				ptgb_write_debug(charset, "-R-", true);
+				tte_write("-R-");
 				break;
 			case SAPPHIRE_ID:
-				ptgb_write_debug(charset, "-S-", true);
+				tte_write("-S-");
 				break;
 			case FIRERED_ID:
-				ptgb_write_debug(charset, "-F-", true);
+				tte_write("-F-");
 				break;
 			case LEAFGREEN_ID:
-				ptgb_write_debug(charset, "-L-", true);
+				tte_write("-L-");
 				break;
 			case EMERALD_ID:
-				ptgb_write_debug(charset, "-E-", true);
+				tte_write("-E-");
 				break;
 			}
+			tte_write(std::to_string(curr_rom.version).c_str());
 
-			ptgb_write_debug(charset, ptgb::to_string(curr_GBA_rom.version), true);
+			tte_write("\nF: ");
+			tte_write(std::to_string(e4_flag).c_str());
+			tte_write(std::to_string(mg_flag).c_str());
+			tte_write(std::to_string(all_collected_flag).c_str());
+			tte_write("-");
+			tte_write((n2hexstr(pkmn_flags)).c_str());
+			tte_write("\nS:   ");
+			tte_write(std::to_string(tutorial).c_str());
+			tte_write("-");
+			tte_write((n2hexstr(def_lang)).c_str());
 
-			ptgb_write_debug(charset, "\nF: ", true);
-			ptgb_write_debug(charset, ptgb::to_string(e4_flag), true);
-			ptgb_write_debug(charset, ptgb::to_string(mg_flag), true);
-			ptgb_write_debug(charset, ptgb::to_string(all_collected_flag), true);
-			ptgb_write_debug(charset, "-", true);
-
-			n2hexstr(hexBuffer, pkmn_flags);
-			ptgb_write_debug(charset, hexBuffer, true);
-			ptgb_write_debug(charset, "\nS:   ", true);
-			ptgb_write_debug(charset, ptgb::to_string(tutorial), true);
-			ptgb_write_debug(charset, "-", true);
-			n2hexstr(hexBuffer, def_lang);
-			ptgb_write_debug(charset, hexBuffer, true);
-
-			ptgb_write_debug(charset, "\n", true);
-			ptgb_write_debug(charset, VERSION, true);
+			tte_write("\n\n");
+			tte_write(VERSION);
 			if (get_treecko_enabled())
 			{
-				ptgb_write_debug(charset, ".T", true);
+				tte_write(".T");
 			}
 			while (true)
 			{
 				if (key_hit(KEY_B))
 				{
 					hide_text_box();
-					reset_textbox();
+					set_textbox_small();
 					return 0;
 				}
 				global_next_frame();
 			}
 		}
-
 		global_next_frame();
 	}
 };
@@ -321,38 +304,26 @@ int credits()
 
 int main_menu_loop()
 {
-	uint8_t general_text_table_buffer[2048];
-	text_data_table general_text(general_text_table_buffer);
 	bool update = true;
-	const uint8_t menu_options[NUM_MENU_OPTIONS] = {GENERAL_option_transfer, GENERAL_option_dreamdex, GENERAL_option_credits};
-	const uint8_t *text_entry;
+	std::string_view menu_options[NUM_MENU_OPTIONS] = {"Transfer Pok@mon", "Dream Dex", "Credits"};
 	int return_values[NUM_MENU_OPTIONS] = {BTN_TRANSFER, BTN_POKEDEX, BTN_CREDITS};
-	u16 test = 0;
-
-	general_text.decompress(get_compressed_general_table());
-
 	while (true)
 	{
 		if (update)
 		{
-			tte_erase_rect(0, 80, 240, 160);
 			for (int i = 0; i < NUM_MENU_OPTIONS; i++)
 			{
-				text_entry = general_text.get_text_entry(menu_options[i]);
-				int size = get_string_length(text_entry);
-				int char_width = (PTGB_BUILD_LANGUAGE == JPN_ID ? 8 : 6);
-				int x = ((240 - (size * char_width)) / 2);
-				tte_set_pos(x, ((i * 17) + 80));
+				int x = (6 + ((18 - menu_options[i].length()) / 2)) * 8;
+				tte_set_pos(x, ((i * 2) + 10) * 8);
 				if (i == curr_selection)
 				{
-					tte_set_ink(INK_WHITE);
+					tte_write("#{cx:0xD000}");
 				}
 				else
 				{
-					tte_set_ink(INK_ROM_COLOR);
+					tte_write("#{cx:0xE000}");
 				}
-				ptgb_write(text_entry, true);
-				test++;
+				tte_write(menu_options[i].data());
 			}
 		}
 
@@ -367,8 +338,8 @@ int main_menu_loop()
 		}
 		else if (key_hit(KEY_A))
 		{
-			tte_erase_rect(0, test, H_MAX, V_MAX);
-			ptgb_write("#{cx:0xF000}");
+			tte_erase_rect(0, 0, H_MAX, V_MAX);
+			tte_write("#{cx:0xF000}");
 			return return_values[curr_selection];
 		}
 		else
@@ -380,13 +351,17 @@ int main_menu_loop()
 	}
 }
 
-// Legal mumbo jumbo
-static void show_legal_text(const u8* intro_text)
+int main(void)
 {
-	tte_set_margins(8, 8, H_MAX - 8, V_MAX - 8);
-	tte_set_pos(8, 8);
-	tte_set_ink(INK_ROM_COLOR);
-	ptgb_write(intro_text, true);
+	initalization_script();
+
+	// Set colors based on current ROM
+	set_background_pal(0, false, false);
+
+	// Legal mumbo jumbo
+	tte_set_pos(8, 0);
+	tte_write("#{cx:0xE000}\n\nPok@ Transporter GB was made\nout of love and appreciation\nfor the Pokemon franchise\nwith no profit in mind.\nIt will ALWAYS be free.\n\nPlease support the original developers-\nNintendo and GAME FREAK.\n\nAll Pokemon names, sprites, and music are owned by \nNintendo, Creatures Inc, and\nGAME FREAK Inc.\n\n\n         Press A to continue");
+	tte_write("#{cx:0xF000}"); // Set the color to grey
 	bool wait = true;
 	while (wait)
 	{
@@ -396,11 +371,8 @@ static void show_legal_text(const u8* intro_text)
 			wait = false;
 		}
 	}
-}
 
-// Gears of Progress
-static void show_gears_of_progress()
-{
+	// Gears of Progress
 	tte_erase_rect(0, 0, 240, 160);
 	REG_BG1VOFS = 0;
 	delay_counter = 0;
@@ -413,50 +385,18 @@ static void show_gears_of_progress()
 			delay_counter = (15 * 60);
 		}
 	}
-}
-
-// split off from the main function in order to keep the scope of the variables limited to the execution of this function
-// otherwise they stick around for the entire runtime of the program
-// the attribute noinline is used to prevent the compiler from inlining this function back into the main function
-// this decision was based on the output of build/main.su after adding the -fstack-usage compile flag
-static void __attribute__((noinline)) show_intro()
-{
-	bool start_pressed = false;
-	u8 general_text_table_buffer[2048];
-	u8 press_start_text[32];
-	u8 press_start_text_length;
-
-	text_data_table general_text(general_text_table_buffer);
-	const u8 *text_entry;
-
-	general_text.decompress(get_compressed_general_table());
-
-	text_entry = general_text.get_text_entry(GENERAL_press_start);
-	press_start_text_length = get_string_length(text_entry);
-	memcpy(press_start_text, text_entry, press_start_text_length + 1);
-	text_entry = general_text.get_text_entry(GENERAL_intro_legal);
-
-	show_legal_text(text_entry);
-	show_gears_of_progress();
-
 	REG_BG1CNT = REG_BG1CNT | BG_PRIO(3);
 
 	key_poll(); // Reset the keys
-	curr_GBA_rom.load_rom();
+	curr_rom.load_rom();
 
 	obj_set_pos(ptgb_logo_l, 56, 12);
 	obj_set_pos(ptgb_logo_r, 56 + 64, 12);
 	obj_unhide_multi(ptgb_logo_l, 1, 2);
-
+	bool start_pressed = false;
 	REG_BLDCNT = BLD_BUILD(BLD_BG3, BLD_BG0, 1);
-
-	int char_width = (PTGB_BUILD_LANGUAGE == JPN_ID ? 8 : 6);
-	int x = ((240 - (press_start_text_length * char_width)) / 2);
-	tte_set_pos(x, 12 * 8);
-
-	tte_set_ink(INK_DARK_GREY);
-	ptgb_write(press_start_text, true);
-
+	tte_set_pos(6 * 8, 12 * 8);
+	tte_write("#{cx:0xF000}Push Start Button!");
 	int fade = 0;
 	while (!start_pressed)
 	{
@@ -465,52 +405,31 @@ static void __attribute__((noinline)) show_intro()
 		start_pressed = key_hit(KEY_START) | key_hit(KEY_A);
 		REG_BLDALPHA = BLDA_BUILD(0b10000, fade);
 	};
-}
-
-int main(void)
-{
-	malloc_init_default_pool();
-	initalization_script();
-
-	// Set colors based on current ROM
-	set_background_pal(0, false, false);
-
-	/* First load message doesn't really make sense anymore, since you have to load the ROM first.
-	if (!get_tutorial_flag())
-	{
-		first_load_message();
-	}*/
-
-	show_intro();
-
 	key_poll();
 	tte_erase_rect(0, 0, H_MAX, V_MAX);
-	REG_BLDALPHA = BLDA_BUILD(0b10000, 0); // Reset fade
 
 	//  Check if the game has been loaded correctly.
-	while (!curr_GBA_rom.load_rom())
+	while (!curr_rom.load_rom())
 	{
 		obj_hide_multi(ptgb_logo_l, 2);
-		global_next_frame();
 		game_load_error();
 		// initalization_script();
 	}
 
 	// Initalize memory and save data after loading the game
-	reset_textbox();
+	set_textbox_small();
 	REG_BG2CNT = REG_BG2CNT | BG_PRIO(3);
 	init_bank();
 	initalize_memory_locations();
 	load_custom_save_data();
 
-	set_background_pal(curr_GBA_rom.gamecode, false, true);
+	set_background_pal(curr_rom.gamecode, false, true);
 
 	if (!IGNORE_MG_E4_FLAGS && (!get_tutorial_flag() || FORCE_TUTORIAL))
 	{
 		obj_hide_multi(ptgb_logo_l, 2);
 		text_loop(BTN_TRANSFER);
 		initalize_save_data();
-		// TODO: We should be able to test for a Bootleg rom in here- if the save data isn't written, then it is bootleg.
 	}
 
 	obj_unhide_multi(ptgb_logo_l, 1, 2);
@@ -518,10 +437,10 @@ int main(void)
 	// MAIN LOOP
 	while (true)
 	{
-		if (DEBUG_MODE && false) // This isn't really needed anymore
+		if (DEBUG_MODE)
 		{
 			print_mem_section();
-			curr_GBA_rom.print_rom_info();
+			curr_rom.print_rom_info();
 		}
 		load_flex_background(BG_MAIN_MENU, 2);
 
@@ -532,27 +451,21 @@ int main(void)
 		switch (main_menu_loop())
 		{
 		case (BTN_TRANSFER):
-			tte_set_ink(INK_DARK_GREY);
 			obj_hide_multi(ptgb_logo_l, 2);
-			load_flex_background(BG_FENNEL, 3);
+			load_flex_background(BG_FENNEL, 2);
 			text_loop(BTN_TRANSFER);
 			break;
 		case (BTN_POKEDEX):
-			if (get_tutorial_flag())
-			{
-				obj_hide_multi(ptgb_logo_l, 2);
-				global_next_frame();
-				load_flex_background(BG_DEX, 2);
-				set_background_pal(curr_GBA_rom.gamecode, true, false);
-				pokedex_loop();
-				load_flex_background(BG_DEX, 3);
-				set_background_pal(curr_GBA_rom.gamecode, false, false);
-			}
+			load_flex_background(BG_DEX, 2);
+			set_background_pal(curr_rom.gamecode, true, false);
+			obj_hide_multi(ptgb_logo_l, 2);
+			pokedex_loop();
+			load_flex_background(BG_DEX, 3);
+			set_background_pal(curr_rom.gamecode, false, false);
 			break;
 		case (BTN_CREDITS):
-			tte_set_ink(INK_DARK_GREY);
-			// create_textbox(0, 0, 160, 80, true);
-			// show_text_box();
+			set_textbox_large();
+			show_text_box();
 			REG_BG1CNT = (REG_BG1CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
 			obj_set_pos(ptgb_logo_l, 56, 108);
 			obj_set_pos(ptgb_logo_r, 56 + 64, 108);

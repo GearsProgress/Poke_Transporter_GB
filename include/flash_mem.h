@@ -1,6 +1,7 @@
 #ifndef MIRROR_H
 #define MIRROR_H
 #include <tonc.h>
+#include "pokemon.h"
 #include "rom_data.h"
 
 #define SAVE_A_OFFSET       0x00000000 // Offset of Game Save A
@@ -13,7 +14,7 @@ extern vu32 newest_save_offset;
 extern vu32 memory_section_array[];
 extern char mem_name;
 extern u8 global_memory_buffer[0x1000];
-extern rom_data curr_GBA_rom;
+extern rom_data curr_rom;
 
 void initalize_memory_locations();
 void print_mem_section();

@@ -4,6 +4,7 @@
 #define GAMEBOY_COLOUR_H_
 
 #include <tonc.h>
+#include <string>
 #include "libraries/gba-link-connection/LinkSPI.hpp"
 #include "pokemon_party.h"
 
@@ -30,11 +31,11 @@
 #define FAST_SPEED 10
 #define SLOW_SPEED 1000
 
-void setup(const u16 *debug_charset);
-byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, PokeBox* box, const u16 *debug_charset, bool cancel_connection);
-int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_rom, PokeBox* box, const u16 *debug_charset, bool cancel_connection);
+void setup();
+byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, Simplified_Pokemon *curr_simple_array, bool cancel_connection);
+int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_rom, Simplified_Pokemon *curr_simple_array, bool cancel_connection);
 byte exchange_parties(byte curr_in, byte *curr_payload);
 byte exchange_boxes(byte curr_in, byte *party_data, GB_ROM *curr_gb_rom);
-byte exchange_remove_array(byte curr_in, PokeBox* box, bool cancel_connection);
+byte exchange_remove_array(byte curr_in, Simplified_Pokemon *curr_simple_array, bool cancel_connection);
 
 #endif /* GAMEBOY_COLOUR_H_ */

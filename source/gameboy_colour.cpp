@@ -2,10 +2,7 @@
 // Source: https://github.com/stevenchaulk/arduino-poke-gen2
 
 #include <tonc.h>
-#include <stdarg.h>
-#include <inttypes.h>
-#include "libraries/nanoprintf/nanoprintf.h"
-#include "libstd_replacements.h"
+#include <string>
 #include "gameboy_colour.h"
 #include "pokemon_trade.h"
 #include "script_array.h"
@@ -13,20 +10,10 @@
 #include "interrupt.h"
 #include "text_engine.h"
 #include "global_frame_controller.h"
+#include "gb_rom_values/eng_gb_rom_values.h"
 #include "background_engine.h"
 #include "sprite_data.h"
-#include "text_data_table.h"
-
-#define DATA_PER_PACKET 8
-#define PACKET_DATA_START 2
-#define PACKET_DATA_AT(i) (PACKET_DATA_START + (i * 2))
-#define PACKET_FLAG_AT(i) (PACKET_DATA_START + (i * 2) + 1)
-#define PACKET_CHECKSUM (PACKET_DATA_START + (2 * DATA_PER_PACKET))
-#define PACKET_LOCATION_UPPER (PACKET_CHECKSUM + 1)
-#define PACKET_LOCATION_LOWER (PACKET_CHECKSUM + 2)
-
-// 0xFD, 0x00, data bytes per packet, flag bytes per packet, the checksum, and two location bytes
-#define PACKET_SIZE (1 + 1 + (2 * DATA_PER_PACKET) + 1 + 2) // Originally 13
+#include "payload_builder.h"
 
 #define TIMEOUT 2
 #define TIMEOUT_ONE_LENGTH 1000000 // Maybe keep a 10:1 ratio between ONE and TWO?
@@ -51,8 +38,8 @@
 
 const int MODE = 1; // mode=0 will transfer pokemon data from pokemon.h
                     // mode=1 will copy pokemon party data being received
-LinkSPI linkSPIInstance;
-LinkSPI *linkSPI = &linkSPIInstance;
+
+LinkSPI *linkSPI = new LinkSPI();
 
 uint8_t in_data;
 uint8_t out_data;
@@ -84,49 +71,26 @@ bool end_of_data;
 
 byte data_packet[PACKET_SIZE];
 
-#define SPI_TEXT_OUT_ARRAY_ELEMENT_SIZE 64
+std::string spi_text_out_array[10];
 
-// Here's a compilation check to ensure that the size of these structs match our expectations.
-// Just update it if you changed the struct members. The data-generator process prints their actual sizes.
-static_assert(sizeof(struct GB_ROM) == 136);
-static_assert(sizeof(struct ROM_DATA) == 160);
-
-void print(const char *format, ...)
+void print(std::string str)
 {
-  va_list args;
-  va_start(args, format);
-
-  // 10 elements of 64 bytes, zero-initialized.
-  char spi_text_out_array[10][SPI_TEXT_OUT_ARRAY_ELEMENT_SIZE] = {
-      {0},
-      {0},
-      {0},
-      {0},
-      {0},
-      {0},
-      {0},
-      {0},
-      {0},
-      {0}};
-
   for (int i = 10; i > 0; i--)
   {
-    strncpy(spi_text_out_array[i], spi_text_out_array[i - 1], SPI_TEXT_OUT_ARRAY_ELEMENT_SIZE);
+    spi_text_out_array[i] = spi_text_out_array[i - 1];
   }
-
-  npf_vsnprintf(spi_text_out_array[0], SPI_TEXT_OUT_ARRAY_ELEMENT_SIZE, format, args);
-  va_end(args);
+  spi_text_out_array[0] = str + "\n";
 
   tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
   tte_set_pos(LEFT, 0);
   for (int j = 0; j < 10; j++)
   {
-    ptgb_write("#{cx:0xE000}");
-    ptgb_write(spi_text_out_array[j]);
+    tte_write("#{cx:0xE000}");
+    tte_write(spi_text_out_array[j].c_str());
   }
 }
 
-void setup(const u16 *debug_charset)
+void setup()
 {
   interrupt_init();
   interrupt_set_handler(INTR_SERIAL, LINK_SPI_ISR_SERIAL);
@@ -158,18 +122,13 @@ void setup(const u16 *debug_charset)
   init_packet = true;
   end_of_data = false;
 
-  create_textbox(5, 1, 128, 60, true);
-
-  {
-    u8 general_text_table_buffer[2048];
-    text_data_table general_text(general_text_table_buffer);
-
-    general_text.decompress(get_compressed_general_table());
-    ptgb_write(general_text.get_text_entry(GENERAL_connecting), true);
-  }
+  set_textbox_large();
+  tte_erase_screen();
+  tte_set_pos(40, 24);
+  tte_write("\n\n\n   Connecting to\n      GameBoy");
 }
 
-byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, PokeBox *box, const u16 *debug_charset, bool cancel_connection)
+byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, Simplified_Pokemon *curr_simple_array, bool cancel_connection)
 {
   // TODO: Change to a switch statement
   if (state == hs)
@@ -217,16 +176,9 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
   {
     if (in == 0x60 || in == 0x61)
     {
-      tte_erase_rect(0, 0, H_MAX, V_MAX);
+      tte_erase_screen();
       tte_set_pos(40, 24);
-      {
-        u8 general_text_table_buffer[2048];
-        text_data_table general_text(general_text_table_buffer);
-
-        general_text.decompress(get_compressed_general_table());
-        ptgb_write(general_text.get_text_entry(curr_gb_rom->version != YELLOW_ID ? GENERAL_link_success : GENERAL_link_success_yellow), true);
-      }
-
+      tte_write(curr_gb_rom->version != YELLOW_ID ? "\n\n\nLink was successful!\n\n  Waiting for trade" : "\n\n\nLink was successful!\n\n Waiting for battle");
       link_animation_state(STATE_NO_ANIM);
       state = pretrade;
       data_counter = 0;
@@ -269,16 +221,9 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
   {
     if (in == 0xfd)
     {
-      tte_erase_rect(0, 0, H_MAX, V_MAX);
+      tte_erase_screen();
       tte_set_pos(40, 24);
-      {
-        u8 general_text_table_buffer[2048];
-        text_data_table general_text(general_text_table_buffer);
-
-        general_text.decompress(get_compressed_general_table());
-        ptgb_write(general_text.get_text_entry(GENERAL_transferring), true);
-      }
-
+      tte_write("\n\n\nTransferring data...\n    please wait!");
       link_animation_state(STATE_TRANSFER);
       mosi_delay = 1;
       state = party_preamble;
@@ -340,7 +285,7 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
     if (in != 0xFD)
     {
       state = send_remove_array;
-      return exchange_remove_array(in, box, cancel_connection);
+      return exchange_remove_array(in, curr_simple_array, cancel_connection);
     }
     return in;
   }
@@ -352,61 +297,31 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
       state = end2;
     }
     data_counter++;
-    return exchange_remove_array(in, box, cancel_connection);
+    return exchange_remove_array(in, curr_simple_array, cancel_connection);
   }
 
   return in;
 }
 
-int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, PokeBox *box, const u16 *debug_charset, bool cancel_connection)
+int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, Simplified_Pokemon *curr_simple_array, bool cancel_connection)
 {
-#define LINE_WIDTH 21
-#define NUM_LINES 8
   int counter = 0;
-  char stuff[NUM_LINES][LINE_WIDTH];
-
   while (true)
   {
-    if (PRINT_LINK_DATA && key_held(KEY_L))
-    {
-      while (!key_hit(KEY_R))
-      {
-        global_next_frame();
-      }
-      global_next_frame();
-    }
     // TODO: Restore Errors
     in_data = linkSPI->transfer(out_data);
 
-    if (PRINT_LINK_DATA && !key_held(KEY_DOWN))
+    if (PRINT_LINK_DATA && false)
     {
-      // tte_set_margins(0, 0, H_MAX, V_MAX);
-      // print("%d: [%d][%d][%" PRIu8 "][%" PRIu8 "]\n\n", counter, data_counter, state, in_data, out_data);
-      for (int i = 0; i < NUM_LINES; i++)
-      {
-        // ptgb_write_debug(debug_charset, "\n", true);
-        for (int j = 0; j < LINE_WIDTH; j++)
-        {
-          stuff[i][j] = stuff[i + 1][j];
-        }
-        stuff[i][20] = '\n';
-      }
-      n2hexstr(&stuff[NUM_LINES - 1][0], counter & 0xFFFFFF, 6);
-      stuff[NUM_LINES - 1][6] = ':';
-      n2hexstr(&stuff[NUM_LINES - 1][7], data_counter & 0xFFFF, 4);
-      stuff[NUM_LINES - 1][11] = '|';
-      n2hexstr(&stuff[NUM_LINES - 1][12], state & 0xFF, 2);
-      stuff[NUM_LINES - 1][14] = '|';
-      n2hexstr(&stuff[NUM_LINES - 1][15], in_data & 0xFF, 2);
-      stuff[NUM_LINES - 1][17] = '|';
-      n2hexstr(&stuff[NUM_LINES - 1][18], out_data & 0xFF, 2);
-      stuff[NUM_LINES - 1][20] = '\0';
-
-      create_textbox(0, 0, 125, 80, false);
-      ptgb_write_debug(debug_charset, *stuff, true);
+      tte_set_margins(0, 0, H_MAX, V_MAX);
+      print(
+          std::to_string(counter) + ": [" +
+          std::to_string(data_counter) + "][" +
+          std::to_string(state) + "][" +
+          std::to_string(in_data) + "][" +
+          std::to_string(out_data) + "]\n");
     }
-
-    out_data = handleIncomingByte(in_data, box_data_storage, curr_payload, curr_gb_rom, box, debug_charset, cancel_connection);
+    out_data = handleIncomingByte(in_data, box_data_storage, curr_payload, curr_gb_rom, curr_simple_array, cancel_connection);
 
     if (FF_count > (15 * 60))
     {
@@ -484,21 +399,21 @@ byte exchange_boxes(byte curr_in, byte *box_data_storage, GB_ROM *curr_gb_rom)
     }
     if (SHOW_DATA_PACKETS)
     {
-      ptgb_write("P: ");
-      ptgb_write(ptgb::to_string(data_packet[0]));
-      ptgb_write("\n");
+      tte_write("P: ");
+      tte_write(std::to_string(data_packet[0]).c_str());
+      tte_write("\n");
       for (int i = 0; i < DATA_PER_PACKET; i++)
       {
-        ptgb_write(ptgb::to_string(i));
-        ptgb_write(": ");
-        ptgb_write(ptgb::to_string(data_packet[PACKET_DATA_AT(i)]));
-        ptgb_write(" [");
-        ptgb_write(ptgb::to_string(data_packet[PACKET_FLAG_AT(i)]));
-        ptgb_write("]\n");
+        tte_write(std::to_string(i).c_str());
+        tte_write(": ");
+        tte_write(std::to_string(data_packet[PACKET_DATA_AT(i)]).c_str());
+        tte_write(" [");
+        tte_write(std::to_string(data_packet[PACKET_FLAG_AT(i)]).c_str());
+        tte_write("]\n");
       }
-      ptgb_write(ptgb::to_string(checksum));
-      ptgb_write(" = ");
-      ptgb_write(ptgb::to_string(data_packet[PACKET_CHECKSUM]));
+      tte_write(std::to_string(checksum).c_str());
+      tte_write(" = ");
+      tte_write(std::to_string(data_packet[PACKET_CHECKSUM]).c_str());
     }
 
     if (checksum == data_packet[PACKET_CHECKSUM] && !init_packet && !(test_packet_fail && received_offset == 128)) // Verify if the data matches the checksum
@@ -536,10 +451,10 @@ byte exchange_boxes(byte curr_in, byte *box_data_storage, GB_ROM *curr_gb_rom)
 
     if (SHOW_DATA_PACKETS)
     {
-      ptgb_write("\nNO: ");
-      ptgb_write(ptgb::to_string(next_offset));
-      ptgb_write("\nFP: ");
-      ptgb_write(ptgb::to_string(failed_packet));
+      tte_write("\nNO: ");
+      tte_write(std::to_string(next_offset).c_str());
+      tte_write("\nFP: ");
+      tte_write(std::to_string(failed_packet).c_str());
     }
 
     if (!init_packet)
@@ -561,10 +476,10 @@ byte exchange_boxes(byte curr_in, byte *box_data_storage, GB_ROM *curr_gb_rom)
 
     if (SHOW_DATA_PACKETS)
     {
-      ptgb_write("\nRO: ");
-      ptgb_write(ptgb::to_string(received_offset));
-      ptgb_write("\nIP: ");
-      ptgb_write(ptgb::to_string(init_packet));
+      tte_write("\nRO: ");
+      tte_write(std::to_string(received_offset).c_str());
+      tte_write("\nIP: ");
+      tte_write(std::to_string(init_packet).c_str());
 
       while (!key_held(KEY_A))
       {
@@ -591,13 +506,13 @@ byte exchange_boxes(byte curr_in, byte *box_data_storage, GB_ROM *curr_gb_rom)
   }
 };
 
-byte exchange_remove_array(byte curr_in, PokeBox *box, bool cancel_connection)
+byte exchange_remove_array(byte curr_in, Simplified_Pokemon *curr_simple_array, bool cancel_connection)
 {
   for (int i = 29; i >= 0; i--)
   {
-    if (box->getGen3Pokemon(i)->isValid && !cancel_connection)
+    if (curr_simple_array[i].is_valid && !curr_simple_array[i].is_transferred && !cancel_connection)
     {
-      box->removePokemon(i);
+      curr_simple_array[i].is_transferred = true;
       return i;
     }
   }
