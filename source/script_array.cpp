@@ -438,7 +438,7 @@ const script_obj_params transfer_script_params[SCRIPT_SIZE] = {
     {
         .conditional_index = COND_IS_HOENN_RS,
         .next_if_true = DIA_SEND_FRIEND_HOENN_RS,
-        .next_if_false = DIA_SEND_FRIEND_KANTO
+        .next_if_false = COND_IS_HOENN_E
     },
     // COND_IS_FRLGE
     {

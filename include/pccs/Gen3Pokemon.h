@@ -22,7 +22,7 @@ public:
     Nature internalNature;
     Gender internalGender;
     int internalSize;
-    u32 internalAbility;
+    int internalAbility;
 
 protected:
     // These store the data bytes
