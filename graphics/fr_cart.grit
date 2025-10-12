@@ -1,5 +1,5 @@
 #
-# 64x64t, 4bpp, SBB-layout, not compressed. 
+# 64x64t, 4bpp, SBB-layout, LZ77 compressed. 
 # Pallet bank 1
 #
--gB4 -ps0 -pe16
+-gB4 -gzl -ps0 -pe16
