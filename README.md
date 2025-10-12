@@ -3,7 +3,7 @@ Poké Transporter GB is a tool created to transfer Pokémon from Pokémon Red, B
 
 _Poké Transporter GB WILL modify both your generation 3 and generation 1/2 save file. The program is designed to not corrupt anything, but if you do not wish to modify your save file then you should bypass this experience._
 
-_**Please note that although Poké Transporter GB is no longer in beta, save file backups of both games are still recommended before using... just in case!**._
+_**Please note that although Poké Transporter GB is no longer in beta, save file backups of both games are still HIGHLY recommended before using... just in case!**._
 
 ## Notes
 Pokémon Transfered using Poké Transporter GB *will* be removed from Red, Blue, Yellow, Gold, Silver, or Crystal.
@@ -12,17 +12,10 @@ Currently the only release is in English. Releases supporting other languages is
 
 Currently English versions of Red, Blue, Yellow, Gold, Silver, Crystal are supported- plus English, Spanish, German, Italian, French versions of Ruby, Sapphire, FireRed, LeafGreen, and Emerald. Compatibility for other languages is currently in development and will be added in the near future.
 
-Poke Transporter GB supports original gen III cartridges AND the gen III games in mode B on the [EZ Flash Omega Definitive Edition flashcart](docs/EZ_Flash_Omega_DE.md).
-
 ## Usage
-Poké Transporter GB is a Multiboot program for the Game Boy Advance.
-
-There are 3 main ways to run the Poké Transporter GB ROM on a Game Boy Advance:
+Poké Transporter GB is a Multiboot program for the Game Boy Advance. There are two main ways to run the Poké Transporter GB ROM on a Game Boy Advance:
 - Use a program such as FIX94's [GBA Link Cable ROM Sender](https://github.com/FIX94/gba-link-cable-rom-sender) on a GameCube or Wii running Homebrew along with a GBA GameCube Link Cable
 - Upload the Multiboot ROM to a GBA Flash Cart, launch the game in Multiboot mode (often by holding L when selecting the ROM), and swap the Game Pak after the program loads.
-- Copy the loader.gba file to a GBA Flash Cart and swap the Game Pak after the program loads. This is useful for flashcarts that don't support launching multiboot roms directly (SuperCard SD for example), although it should work on any flashcart.
-
-EZ Flash Omega DE users, read [this](docs/EZ_Flash_Omega_DE.md)!
 
 Please note that transfering Pokémon will only work with a Game Boy Color Link Cable. Game Boy Advance Link Cables will not work.
 

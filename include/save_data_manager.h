@@ -17,7 +17,7 @@
 #define DEFAULT_LANGUAGE 0x21 //  | 0x22    | 1     | Default international language
 #define SAVE_DATA_SIZE 0x22
 
-extern rom_data curr_GBA_rom;
+extern rom_data curr_rom;
 
 void load_custom_save_data();
 void write_custom_save_data();
@@ -29,5 +29,4 @@ bool get_tutorial_flag();
 void set_tutorial_flag(bool value);
 void initalize_save_data();
 int get_dex_completion(int gen, bool include_mythicals);
-bool check_can_save();
 #endif
