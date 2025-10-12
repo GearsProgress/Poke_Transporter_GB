@@ -20,6 +20,7 @@ if (update == True):
     new_file_path = 'text_helper/new_text.xlsx'
     old_file_path = 'text_helper/text.xlsx'
     json_file_path = 'text_helper/output.json'
+    no_file = False
 
     try:
         response = requests.get(url, timeout=5)
@@ -31,22 +32,26 @@ if (update == True):
     except requests.exceptions.ReadTimeout as errrt:
         if os.path.exists(old_file_path):
             print("Connection timed out. Continuing with locally downloaded file.")
+            no_file = True
         else:
             print("xlsx file is missing and connection timed out. Exiting...")
     except requests.exceptions.ConnectionError as conerr:
         if os.path.exists(old_file_path):
             print("Connection error. Continuing with locally downloaded file.")
+            no_file = True
         else:
             print("xlsx file is missing and connection timed out. Exiting...")
             
             
 if os.path.exists(old_file_path):
-    new_file = pd.read_excel(new_file_path, sheet_name="Translations")
-    old_file = pd.read_excel(old_file_path, sheet_name="Translations")
-    if new_file.equals(old_file):
+    if (not no_file):
+        new_file = pd.read_excel(new_file_path, sheet_name="Translations")
+        old_file = pd.read_excel(old_file_path, sheet_name="Translations")
+    if no_file or new_file.equals(old_file):
         if os.path.exists(json_file_path):
             print("Downloaded file is identical. Skipping parse\n")
-            os.remove(new_file_path)
+            if (not no_file):
+                os.remove(new_file_path)
             exit()
         print("json file missing - forcing rebuild.")
     os.remove(old_file_path)
@@ -516,7 +521,7 @@ for lang in Languages:
 
 # now generate the cpp file.
 with open(os.curdir + '/source/translated_text.cpp', 'w') as cppFile:
-    cppFile.write("#include \"translated_text.h\"\n#include \"debug_mode.h\"\n#include \"pokemon_data.h\"\n")
+    cppFile.write("#include \"translated_text.h\"\n#include \"debug_mode.h\"\n#include \"extern_pokemon_data.h\"\n")
     # generate includes for each language
     for lang in Languages:
         for cat in mainDict[lang.name]:

@@ -2,8 +2,6 @@
 #define SPRITE_DATA_H
 
 #include <tonc.h>
-#include "pokemon.h"
-#include "pokemon_data.h"
 #include "pokemon_party.h"
 #include "rom_data.h"
 #include "box_menu.h"
@@ -112,7 +110,7 @@ extern OBJ_ATTR *grabbed_front_sprite;
 #define BG_MAIN_MENU 3
 #define BG_BOX 4
 
-extern rom_data curr_rom;
+extern rom_data curr_GBA_rom;
 
 void load_sprite(OBJ_ATTR *sprite, const unsigned int objTiles[], int objTilesLen,
                  u32 &tile_id, u32 pal_bank, int attr0, int attr1, u32 priority);
@@ -124,7 +122,7 @@ void set_background_pal(int curr_rom_id, bool dark, bool fade);
 void load_textbox_background();
 void load_flex_background(int background_id, int layer);
 void load_eternal_sprites();
-void load_temp_box_sprites(Pokemon_Party *party_data);
+void load_temp_box_sprites(PokeBox* box);
 void load_type_sprites(const u8* pkmn_type_table, int pkmn_index, int dex_offset, bool is_caught);
 void add_menu_box(int options, int startTileX, int startTileY);
 void add_menu_box(int startTileX, int startTileY, int width, int height);
@@ -135,6 +133,6 @@ void fennel_speak(int frame);
 int get_curr_flex_background();
 void update_y_offset();
 void erase_textbox_tiles();
-void update_front_box_sprite(Simplified_Pokemon *curr_pkmn);
-void update_menu_sprite(Pokemon_Party *party_data, int index, int frame);
+void update_front_box_sprite(GBPokemon *curr_pkmn);
+void update_menu_sprite(PokeBox* box, int index, int frame);
 #endif

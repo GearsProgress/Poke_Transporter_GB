@@ -2,16 +2,17 @@
 #define POKEMON_PARTY_H
 
 #include <tonc.h>
-#include "pokemon.h"
+#include "pccs/PokeBox.h"
 #include "gb_rom_values/base_gb_rom_struct.h"
 class Pokemon_Party
 {
 public:
     Pokemon_Party();
+    PokemonTables table;
     void start_link();
     void continue_link(bool cancel_connection);
     int get_last_error();
-    Pokemon get_converted_pkmn(PokemonTables &data_tables, int index);
+    bool load_gb_rom(Language lang, Game game);
     bool get_has_new_pkmn();
     void set_game(int nGame);
     void set_lang(int nLang);
@@ -19,17 +20,13 @@ public:
     bool load_gb_rom();
     GB_ROM curr_gb_rom;
     void show_sprites();
-    Simplified_Pokemon simple_pkmn_array[30];
-    Simplified_Pokemon get_simple_pkmn(int index);
-    bool fill_simple_pkmn_array(PokemonTables &data_tables);
     bool get_contains_mythical();
     void set_mythic_stabilization(bool stabilize);
-    bool contains_valid = false;
-    bool contains_invalid = false;
     int get_game_gen();
     int get_num_pkmn();
     bool get_contains_invalid();
     bool get_contains_missingno();
+    PokeBox box;
     byte box_data_array[0x462];
 
 private:
@@ -37,10 +34,7 @@ private:
 
     u8 current_payload[PAYLOAD_SIZE];
     int last_error;
-    bool has_new_pkmn = false;
-    bool contains_mythical = false;
     bool stabilize_mythic = false;
-    bool contains_missingno = false;
     int game;
     char lang;
 };

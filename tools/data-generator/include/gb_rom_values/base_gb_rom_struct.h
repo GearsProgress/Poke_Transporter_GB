@@ -16,7 +16,7 @@ typedef int32_t i32;
 #else
 extern "C"
 {
-   #include <tonc_types.h>
+#include <tonc_types.h>
 }
 #endif
 
@@ -79,6 +79,7 @@ public:
     u32 _RemovePokemon;          // location of the _RemovePokemon function in the ROM
     u32 SaveSAVtoSRAM1;          // location of the SaveSAVtoSRAM1 function in the ROM
     u32 SaveSAVtoSRAM2;          // location of the SaveSAVtoSRAM2 function in the ROM
+    u32 LoadCurrentBoxData;      // location of the LoadCurrentBoxData function in the ROM
     u32 OpenSRAM;                // location of the OpenSRAM function in the ROM
     u32 SaveBox;                 // location of the SaveBox function in the ROM
     u32 Bankswitch;              // location of the BankswitchCommon function in the ROM
@@ -86,22 +87,22 @@ public:
     u32 CloseSRAM;               // location of the OpenSRAM function in the ROM
     u32 garbageDataLocation;     // location of random data starting with 0xFD in the ROM
 
-    u32 wRemoveMonFromBox;                        // location of wRemoveMonFromBox in RAM
-    u32 wBoxCount;                                // location of wBoxCount in RAM
-    u32 wWhichPokemon;                            // location of wWhichPokemon in RAM
-    u32 wBoxDataStart;                            // location of wBoxDataStart in RAM
-    u32 wBoxDataEnd;                              // location of wBoxDataEnd in RAM
-    u32 wSerialEnemyDataBlock;                    // location of wSerialEnemyDataBlock in RAM
-    u32 wEnemyMonSpecies;                         // location of wEnemyMonSpecies in RAM
-    
+    u32 wRemoveMonFromBox;     // location of wRemoveMonFromBox in RAM
+    u32 wBoxCount;             // location of wBoxCount in RAM
+    u32 wWhichPokemon;         // location of wWhichPokemon in RAM
+    u32 wBoxDataStart;         // location of wBoxDataStart in RAM
+    u32 wBoxDataEnd;           // location of wBoxDataEnd in RAM
+    u32 wSerialEnemyDataBlock; // location of wSerialEnemyDataBlock in RAM
+    u32 wEnemyMonSpecies;      // location of wEnemyMonSpecies in RAM
+
     u32 wSerialEnemyMonsPatchList;                // location of wSerialEnemyMonsPatchList in RAM
     u32 wSerialOtherGameboyRandomNumberListBlock; // location of wSerialOtherGameboyRandomNumberListBlock in RAM
     u32 hSerialConnectionStatus;                  // location of hSerialConnectionStatus in RAM
 
-    u16 transferStringLocation;                  // location in VRAM to start writing the transfer string to
-    u16 textBorderUppLeft;                       // location in VRAM to put the upper left corner of the border
-    u8 textBorderWidth;                          // the width of the text box border
-    u8 textBorderHeight;                         // the height of the text box border
+    u16 transferStringLocation; // location in VRAM to start writing the transfer string to
+    u16 textBorderUppLeft;      // location in VRAM to put the upper left corner of the border
+    u8 textBorderWidth;         // the width of the text box border
+    u8 textBorderHeight;        // the height of the text box border
     u16 padding_2;
 };
 

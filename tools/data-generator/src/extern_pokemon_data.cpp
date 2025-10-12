@@ -1,4 +1,4 @@
-#include "pokemon_data.h"
+#include "extern_pokemon_data.h"
 #include "common.h"
 
 #include <cstdio>
@@ -4705,16 +4705,16 @@ const u8 TYPES[POKEMON_ARRAY_SIZE][2]{
 
 void generate_pokemon_data(const char *output_path)
 {
-    writeTable("tools/data-generator/src/pokemon_data.cpp", output_path, "gen_1_charsets.bin", (const char*)gen_1_charsets, sizeof(gen_1_charsets));
-    writeTable("tools/data-generator/src/pokemon_data.cpp", output_path, "gen_2_charsets.bin", (const char*)gen_2_charsets, sizeof(gen_2_charsets));
-    writeTable("tools/data-generator/src/pokemon_data.cpp", output_path, "gen_3_charsets.bin", (const char*)gen_3_charsets, sizeof(gen_3_charsets));
-    writeTable("tools/data-generator/src/pokemon_data.cpp", output_path, "EXP_GROUPS.bin", (const char*)EXP_GROUPS, sizeof(EXP_GROUPS));
-    writeTable("tools/data-generator/src/pokemon_data.cpp", output_path, "GENDER_RATIO.bin", (const char*)GENDER_RATIO, sizeof(GENDER_RATIO));
-    writeTable("tools/data-generator/src/pokemon_data.cpp", output_path, "NUM_ABILITIES.bin", (const char*)(NUM_ABILITIES), sizeof(NUM_ABILITIES));
-    writeTable("tools/data-generator/src/pokemon_data.cpp", output_path, "FIRST_MOVES.bin", (const char*)FIRST_MOVES, sizeof(FIRST_MOVES));
-    writeTable("tools/data-generator/src/pokemon_data.cpp", output_path, "JPN_NAMES.bin", (const char*)JPN_NAMES, sizeof(JPN_NAMES));
-    writeTable("tools/data-generator/src/pokemon_data.cpp", output_path, "POWER_POINTS.bin", (const char*)POWER_POINTS, sizeof(POWER_POINTS));
-    writeTable("tools/data-generator/src/pokemon_data.cpp", output_path, "MENU_SPRITE_PALS.bin", (const char*)MENU_SPRITE_PALS, sizeof(MENU_SPRITE_PALS));
-    writeTable("tools/data-generator/src/pokemon_data.cpp", output_path, "EVENT_PKMN.bin", (const char*)EVENT_PKMN, sizeof(EVENT_PKMN));
-    writeTable("tools/data-generator/src/pokemon_data.cpp", output_path, "TYPES.bin", (const char*)TYPES, sizeof(TYPES));
+    writeTable("tools/data-generator/src/extern_pokemon_data.cpp", output_path, "gen_1_charsets.bin", (const char*)gen_1_charsets, sizeof(gen_1_charsets));
+    writeTable("tools/data-generator/src/extern_pokemon_data.cpp", output_path, "gen_2_charsets.bin", (const char*)gen_2_charsets, sizeof(gen_2_charsets));
+    writeTable("tools/data-generator/src/extern_pokemon_data.cpp", output_path, "gen_3_charsets.bin", (const char*)gen_3_charsets, sizeof(gen_3_charsets));
+    writeTable("tools/data-generator/src/extern_pokemon_data.cpp", output_path, "EXP_GROUPS.bin", (const char*)EXP_GROUPS, sizeof(EXP_GROUPS));
+    writeTable("tools/data-generator/src/extern_pokemon_data.cpp", output_path, "GENDER_RATIO.bin", (const char*)GENDER_RATIO, sizeof(GENDER_RATIO));
+    writeTable("tools/data-generator/src/extern_pokemon_data.cpp", output_path, "NUM_ABILITIES.bin", (const char*)(NUM_ABILITIES), sizeof(NUM_ABILITIES));
+    writeTable("tools/data-generator/src/extern_pokemon_data.cpp", output_path, "FIRST_MOVES.bin", (const char*)FIRST_MOVES, sizeof(FIRST_MOVES));
+    writeTable("tools/data-generator/src/extern_pokemon_data.cpp", output_path, "JPN_NAMES.bin", (const char*)JPN_NAMES, sizeof(JPN_NAMES));
+    writeTable("tools/data-generator/src/extern_pokemon_data.cpp", output_path, "POWER_POINTS.bin", (const char*)POWER_POINTS, sizeof(POWER_POINTS));
+    writeTable("tools/data-generator/src/extern_pokemon_data.cpp", output_path, "MENU_SPRITE_PALS.bin", (const char*)MENU_SPRITE_PALS, sizeof(MENU_SPRITE_PALS));
+    writeTable("tools/data-generator/src/extern_pokemon_data.cpp", output_path, "EVENT_PKMN.bin", (const char*)EVENT_PKMN, sizeof(EVENT_PKMN));
+    writeTable("tools/data-generator/src/extern_pokemon_data.cpp", output_path, "TYPES.bin", (const char*)TYPES, sizeof(TYPES));
 }

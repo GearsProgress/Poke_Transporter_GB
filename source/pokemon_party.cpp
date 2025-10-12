@@ -1,6 +1,5 @@
 #include "gameboy_colour.h"
 #include "pokemon_party.h"
-#include "pokemon.h"
 #include "flash_mem.h"
 #include "debug_mode.h"
 #include "mystery_gift_injector.h"
@@ -13,8 +12,9 @@
 #include "gb_gen1_payloads_RB_lz10_bin.h"
 #include "gb_gen1_payloads_Y_lz10_bin.h"
 #include "gb_gen2_payloads_lz10_bin.h"
+#include "save_data_manager.h"
 
-static const byte gen1_rb_debug_box_data[0x462] = {
+static byte gen1_rb_debug_box_data[0x462] = {
 	// Num of Pokemon
 	0x14,
 	// Pokemon 1-20
@@ -83,7 +83,7 @@ static const byte gen1_rb_debug_box_data[0x462] = {
 	0x91, 0x80, 0x93, 0x93, 0x80, 0x93, 0x80, 0x50, 0x50, 0x50, 0x50,
 	0x8F, 0x88, 0x83, 0x86, 0x84, 0x98, 0x50, 0x50, 0x50, 0x50, 0x50};
 
-static const byte gen2_debug_box_data[0x44E] = {
+static byte gen2_debug_box_data[0x44E] = {
 	// Num of Pokemon
 	0x14,
 	// Pokemon 1-20
@@ -152,7 +152,9 @@ static const byte gen2_debug_box_data[0x44E] = {
 	0x92, 0x87, 0x94, 0x82, 0x8A, 0x8B, 0x84, 0x50, 0x50, 0x50, 0x50,
 	0x92, 0x87, 0x94, 0x82, 0x8A, 0x8B, 0x84, 0x50, 0x50, 0x50, 0x50};
 
-Pokemon_Party::Pokemon_Party() {};
+Pokemon_Party::Pokemon_Party() {
+	box.setTable(&table);
+};
 
 void Pokemon_Party::start_link()
 {
@@ -160,30 +162,27 @@ void Pokemon_Party::start_link()
 	{
 		if (curr_gb_rom.generation == 1 && curr_gb_rom.version)
 		{
-			for (int i = 0; i < 0x462; i++)
-			{
-				box_data_array[i] = gen1_rb_debug_box_data[i];
-			}
+			box.loadData(1, ENGLISH, gen1_rb_debug_box_data);
 		}
 		else
 		{
-			for (int i = 0; i < 0x44E; i++)
-			{
-				box_data_array[i] = gen2_debug_box_data[i];
-			}
+			box.loadData(2, ENGLISH, gen2_debug_box_data);
 		}
 	}
 	else
 	{
 		u16 debug_charset[256];
 
-		load_localized_charset(debug_charset, 3, ENG_ID);
+		load_localized_charset(debug_charset, 3, ENGLISH);
 		init_payload();
 
 		setup(debug_charset);
-		memset(box_data_array, 0, curr_gb_rom.box_data_size);
 
-		last_error = loop(&box_data_array[0], current_payload, &curr_gb_rom, simple_pkmn_array, debug_charset, false);
+		// This used to clear out the box data, probably isn't needed anymore
+		// memset(box_data_array, 0, curr_gb_rom.box_data_size);
+
+		last_error = loop(&box_data_array[0], current_payload, &curr_gb_rom, &box, debug_charset, false);
+		box.loadData(curr_gb_rom.generation, (Language)curr_gb_rom.language, box_data_array);
 	}
 }
 
@@ -193,9 +192,9 @@ void Pokemon_Party::continue_link(bool cancel_connection)
 	{
 		u16 debug_charset[256];
 
-		load_localized_charset(debug_charset, 3, ENG_ID);
+		load_localized_charset(debug_charset, 3, ENGLISH);
 
-		last_error = loop(&box_data_array[0], current_payload, &curr_gb_rom, simple_pkmn_array, debug_charset, cancel_connection);
+		last_error = loop(&box_data_array[0], current_payload, &curr_gb_rom, &box, debug_charset, cancel_connection);
 	}
 }
 
@@ -204,29 +203,30 @@ int Pokemon_Party::get_last_error()
 	return last_error;
 }
 
-Pokemon Pokemon_Party::get_converted_pkmn(PokemonTables& data_tables, int index)
-{
-	Pokemon converted_mon;
-	converted_mon.load_data(index, box_data_array, game, lang);
-	converted_mon.convert_to_gen_three(data_tables, Legal, false, stabilize_mythic);
-	has_new_pkmn = has_new_pkmn || converted_mon.get_is_new();
-	simple_pkmn_array[index] = converted_mon.get_simple_pkmn();
-	return converted_mon;
-}
-
 bool Pokemon_Party::get_has_new_pkmn() // If Pokemon is not in the dex
 {
-	return has_new_pkmn;
+	bool out = false;
+	for (int i = 0; i < box.getNumInBox(); i++)
+	{
+
+		out |= !is_caught(box.getPokemon(i)->getSpeciesIndexNumber());
+	}
+	return out;
 }
 
 bool Pokemon_Party::get_contains_mythical()
 {
-	return contains_mythical;
+	bool out = false;
+	for (int i = 0; i < box.getNumInBox(); i++)
+	{
+		out |= (box.getPokemon(i)->getSpeciesIndexNumber() == MEW || box.getPokemon(i)->getSpeciesIndexNumber() == CELEBI);
+	}
+	return out;
 }
 
 void Pokemon_Party::set_mythic_stabilization(bool stabilize)
 {
-	stabilize_mythic = stabilize;
+	box.stabilize_mythical = stabilize;
 }
 
 void Pokemon_Party::set_game(int nGame)
@@ -269,7 +269,7 @@ bool Pokemon_Party::load_gb_rom()
 	u32 rom_table_size;
 	const u8 *cur;
 
-	switch(lang)
+	switch (lang)
 	{
 	case ENG_ID:
 		compressed_rom_table = gb_rom_values_eng_lz10_bin;
@@ -287,7 +287,7 @@ bool Pokemon_Party::load_gb_rom()
 	LZ77UnCompWram(compressed_rom_table, gb_rom_table_buffer);
 
 	cur = gb_rom_table_buffer;
-	while(cur < gb_rom_table_buffer + rom_table_size)
+	while (cur < gb_rom_table_buffer + rom_table_size)
 	{
 		const GB_ROM *rom_values = reinterpret_cast<const GB_ROM *>(cur);
 		if (lang == rom_values->language &&
@@ -302,44 +302,30 @@ bool Pokemon_Party::load_gb_rom()
 
 	return false;
 }
-
-Simplified_Pokemon Pokemon_Party::get_simple_pkmn(int index)
-{
-	return simple_pkmn_array[index];
-}
-
-bool Pokemon_Party::fill_simple_pkmn_array(PokemonTables &data_tables)
-{
-	contains_mythical = false;
-	for (int index = 0; index < get_num_pkmn(); index++)
-	{
-		Pokemon converted_mon;
-		converted_mon.load_data(index, box_data_array, game, lang);
-		converted_mon.convert_to_gen_three(data_tables, Legal, true, stabilize_mythic);
-		has_new_pkmn = has_new_pkmn || converted_mon.get_is_new();
-		contains_mythical = contains_mythical ||
-							converted_mon.get_dex_number() == 151 || converted_mon.get_dex_number() == 251;
-		simple_pkmn_array[index] = converted_mon.get_simple_pkmn();
-		contains_valid |= converted_mon.get_validity();
-		contains_invalid |= !converted_mon.get_validity();
-		contains_missingno |= converted_mon.is_missingno;
-	}
-	return contains_valid || DONT_HIDE_INVALID_PKMN;
-}
-
 int Pokemon_Party::get_num_pkmn()
 {
-	return box_data_array[0];
+	return box.getNumInBox();
 }
 
 bool Pokemon_Party::get_contains_invalid()
 {
-	return contains_invalid;
-}
+	bool out = false;
+	for (int i = 0; i < box.getNumInBox(); i++)
+	{
 
+		out |= !box.getGBPokemon(i)->isValid;
+	}
+	return out;
+}
 bool Pokemon_Party::get_contains_missingno()
 {
-	return contains_missingno;
+	bool out = false;
+	for (int i = 0; i < box.getNumInBox(); i++)
+	{
+
+		out |= box.getPokemon(i)->getSpeciesIndexNumber() == MISSINGNO;
+	}
+	return out;
 }
 
 void Pokemon_Party::init_payload()
@@ -348,11 +334,11 @@ void Pokemon_Party::init_payload()
 	const u8 *payload_src;
 	u32 payload_file_size;
 
-	//WARNING: Ensure sure decompression_buffer is large enough!
+	// WARNING: Ensure sure decompression_buffer is large enough!
 
-	if(curr_gb_rom.generation == 1)
+	if (curr_gb_rom.generation == 1)
 	{
-		if(curr_gb_rom.version == YELLOW_ID)
+		if (curr_gb_rom.version == YELLOW_ID)
 		{
 			payload_src = gb_gen1_payloads_Y_lz10_bin;
 		}

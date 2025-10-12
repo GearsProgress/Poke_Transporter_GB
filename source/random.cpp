@@ -1,11 +1,11 @@
-#include "random.h"
 #include <tonc.h>
+#include "random.h"
 
 unsigned int u32_rand;
 
 void rand_set_seed(unsigned int init_seed)
 {
-    u32_rand = init_seed;
+    u32_rand = init_seed + 1;
 }
 
 unsigned int rand_get_seed()

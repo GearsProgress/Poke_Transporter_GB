@@ -5,7 +5,7 @@
 #include "debug_mode.h"
 #include "global_frame_controller.h"
 
-extern rom_data curr_rom;
+extern rom_data curr_GBA_rom;
 
 script_var::script_var(u32 nValue, ptgb::vector<script_var *> &var_list_ref, int *nCurr_loc_ptr)
 {
@@ -77,7 +77,7 @@ void asm_var::fill_refrences(u8 mg_array[])
         {
             for (int j = 0; j < 4; j++)
             {
-                mg_array[location_list[i] + j] += (start_location_in_script + curr_rom.loc_gSaveBlock1 + curr_rom.offset_ramscript + 7) >> (j * 8);
+                mg_array[location_list[i] + j] += (start_location_in_script + curr_GBA_rom.loc_gSaveBlock1 + curr_GBA_rom.offset_ramscript + 7) >> (j * 8);
             }
         }
         else
@@ -89,7 +89,7 @@ void asm_var::fill_refrences(u8 mg_array[])
 
 u32 asm_var::get_loc_in_sec30()
 {
-    return start_location_in_script + curr_rom.loc_gSaveDataBuffer + 3; // plus 3 to offset the -2 in set_start, and one for reading as thumb
+    return start_location_in_script + curr_GBA_rom.loc_gSaveDataBuffer + 3; // plus 3 to offset the -2 in set_start, and one for reading as thumb
 }
 
 // XSE VAR ----------------
@@ -132,7 +132,7 @@ void xse_var::fill_refrences(u8 mg_array[])
 
 u32 xse_var::get_loc_in_sec30()
 {
-    return start_location_in_script + curr_rom.loc_gSaveDataBuffer;
+    return start_location_in_script + curr_GBA_rom.loc_gSaveDataBuffer;
 }
 
 // TEXTBOX VAR
@@ -145,7 +145,7 @@ void textbox_var::set_text(const byte nText[])
 
 void textbox_var::set_start()
 {
-    start_location_in_script = *curr_loc_ptr - (ENABLE_OLD_EVENT * 4);
+    start_location_in_script = *curr_loc_ptr;
 }
 
 void textbox_var::set_virtual_start()
@@ -166,7 +166,7 @@ void textbox_var::insert_text(const u16 *charset, u8 mg_array[], bool should_set
 
     for (int parser = 0; parser < text_length; parser++)
     {
-        if (curr_rom.is_hoenn() && (text[parser] == 0xFC) && (get_char_from_charset(charset, (char16_t)(text[parser + 1])) == 0x01)) // Removes colored text
+        if (curr_GBA_rom.is_hoenn() && (text[parser] == 0xFC) && (get_char_from_charset(charset, (char16_t)(text[parser + 1])) == 0x01)) // Removes colored text
         {
             parser += 2;
         }
@@ -216,7 +216,7 @@ void sprite_var::insert_sprite_data(u8 mg_array[], const unsigned int sprite_arr
 {
 
     set_start();
-    u32 pointer = curr_rom.loc_gSaveDataBuffer + *curr_loc_ptr + 8;
+    u32 pointer = curr_GBA_rom.loc_gSaveDataBuffer + *curr_loc_ptr + 8;
     for (int i = 0; i < 4; i++)
     {
         mg_array[*curr_loc_ptr] = pointer >> (8 * i);
@@ -255,7 +255,7 @@ void music_var::insert_music_data(u8 mg_array[], u8 blockCount, u8 priority, u8 
 {
     for (unsigned int i = 0; i < trackArrays.size(); i++)
     {
-        trackPointers.push_back(*curr_loc_ptr + curr_rom.loc_gSaveDataBuffer);
+        trackPointers.push_back(*curr_loc_ptr + curr_GBA_rom.loc_gSaveDataBuffer);
         for (unsigned int j = 0; j < trackArrays[i].size(); j++)
         {
             mg_array[(*curr_loc_ptr)++] = trackArrays[i][j];

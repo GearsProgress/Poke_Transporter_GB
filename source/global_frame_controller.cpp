@@ -48,7 +48,7 @@ void global_next_frame()
     if (global_frame_count % 60 == 0)
     {
         set_menu_sprite_pal(0);
-        if (!curr_rom.verify_rom())
+        if (!curr_GBA_rom.verify_rom())
         {
             REG_BG0CNT = (REG_BG0CNT & ~BG_PRIO_MASK) | BG_PRIO(2);
             REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(1);
@@ -247,7 +247,7 @@ void set_missingno(bool val)
     missingno_enabled = val;
     if (val == false)
     {
-        set_background_pal(curr_rom.gamecode, false, false);
+        set_background_pal(curr_GBA_rom.gamecode, false, false);
         fennel_blink_timer = 0;
     }
 }
@@ -265,21 +265,6 @@ bool get_missingno_enabled()
 bool get_treecko_enabled()
 {
     return treecko_enabled;
-}
-
-// FNV-1a 32-bit hash function for byte arrays
-u32 fnv1a_hash(unsigned char *data, size_t length)
-{
-    const uint32_t fnv_prime = 0x01000193;
-    const uint32_t fnv_offset_basis = 0x811C9DC5;
-    uint32_t hash = fnv_offset_basis;
-
-    for (size_t i = 0; i < length; ++i)
-    {
-        hash ^= data[i];
-        hash *= fnv_prime;
-    }
-    return hash;
 }
 
 int get_string_length(const byte *str)

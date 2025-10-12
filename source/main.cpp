@@ -6,7 +6,6 @@
 #include "interrupt.h"
 #include "gb_link.h"
 #include "gameboy_colour.h"
-#include "pokemon.h"
 #include "random.h"
 #include "text_engine.h"
 #include "background_engine.h"
@@ -51,7 +50,7 @@ TODO:
 int delay_counter = 0;
 int curr_selection = 0;
 bool skip = true;
-rom_data curr_rom;
+rom_data curr_GBA_rom;
 Button_Menu yes_no_menu(1, 2, 40, 24, false);
 
 /*
@@ -86,18 +85,6 @@ int test_main(void) Music
 
 // (R + G*32 + B*1024)
 #define RGB(r, g, b) (r + (g * 32) + (b * 1024))
-
-// make sure outBuffer is large enough! Should be at least hex_len + 1
-template <typename I>
-void n2hexstr(char* outBuffer, I w, size_t hex_len = sizeof(I) << 1)
-{
-	static const char *digits = "0123456789ABCDEF";
-	memset(outBuffer, '0', hex_len);
-	outBuffer[hex_len] = '\0'; // we must make sure to terminate the string
-
-	for (size_t i = 0, j = (hex_len - 1) * 4; i < hex_len; ++i, j -= 4)
-		outBuffer[i] = digits[(w >> j) & 0x0f];
-}
 
 void load_graphics()
 {
@@ -253,18 +240,18 @@ int credits()
 		{
 			char hexBuffer[16];
 			uint16_t charset[256];
-			load_localized_charset(charset, 3, ENG_ID);
+			load_localized_charset(charset, 3, ENGLISH);
 			if (key_held(KEY_UP) && key_held(KEY_L) && key_held(KEY_R))
 			{
 				set_treecko(true);
 			}
 			u32 pkmn_flags = 0;
-			bool e4_flag = read_flag(curr_rom.e4_flag);
-			bool mg_flag = read_flag(curr_rom.mg_flag);
-			bool all_collected_flag = read_flag(curr_rom.all_collected_flag);
+			bool e4_flag = read_flag(curr_GBA_rom.e4_flag);
+			bool mg_flag = read_flag(curr_GBA_rom.mg_flag);
+			bool all_collected_flag = read_flag(curr_GBA_rom.all_collected_flag);
 			for (int i = 0; i < 30; i++)
 			{
-				pkmn_flags |= (read_flag(curr_rom.pkmn_collected_flag_start + i) << i);
+				pkmn_flags |= (read_flag(curr_GBA_rom.pkmn_collected_flag_start + i) << i);
 			}
 
 			bool tutorial = get_tutorial_flag();
@@ -272,8 +259,8 @@ int credits()
 
 			create_textbox(4, 1, 160, 80, true);
 			ptgb_write_debug(charset, "Debug info:\n\nG: ", true);
-			ptgb_write_debug(charset, ptgb::to_string(curr_rom.language), true);
-			switch (curr_rom.gamecode)
+			ptgb_write_debug(charset, ptgb::to_string(curr_GBA_rom.language), true);
+			switch (curr_GBA_rom.gamecode)
 			{
 			case RUBY_ID:
 				ptgb_write_debug(charset, "-R-", true);
@@ -292,7 +279,7 @@ int credits()
 				break;
 			}
 
-			ptgb_write_debug(charset, ptgb::to_string(curr_rom.version), true);
+			ptgb_write_debug(charset, ptgb::to_string(curr_GBA_rom.version), true);
 
 			ptgb_write_debug(charset, "\nF: ", true);
 			ptgb_write_debug(charset, ptgb::to_string(e4_flag), true);
@@ -455,7 +442,7 @@ static void __attribute__((noinline)) show_intro()
 	REG_BG1CNT = REG_BG1CNT | BG_PRIO(3);
 
 	key_poll(); // Reset the keys
-	curr_rom.load_rom();
+	curr_GBA_rom.load_rom();
 
 	obj_set_pos(ptgb_logo_l, 56, 12);
 	obj_set_pos(ptgb_logo_r, 56 + 64, 12);
@@ -501,7 +488,7 @@ int main(void)
 	REG_BLDALPHA = BLDA_BUILD(0b10000, 0); // Reset fade
 
 	//  Check if the game has been loaded correctly.
-	while (!curr_rom.load_rom())
+	while (!curr_GBA_rom.load_rom())
 	{
 		obj_hide_multi(ptgb_logo_l, 2);
 		global_next_frame();
@@ -516,13 +503,14 @@ int main(void)
 	initalize_memory_locations();
 	load_custom_save_data();
 
-	set_background_pal(curr_rom.gamecode, false, true);
+	set_background_pal(curr_GBA_rom.gamecode, false, true);
 
 	if (!IGNORE_MG_E4_FLAGS && (!get_tutorial_flag() || FORCE_TUTORIAL))
 	{
 		obj_hide_multi(ptgb_logo_l, 2);
 		text_loop(BTN_TRANSFER);
 		initalize_save_data();
+		// TODO: We should be able to test for a Bootleg rom in here- if the save data isn't written, then it is bootleg.
 	}
 
 	obj_unhide_multi(ptgb_logo_l, 1, 2);
@@ -533,7 +521,7 @@ int main(void)
 		if (DEBUG_MODE && false) // This isn't really needed anymore
 		{
 			print_mem_section();
-			curr_rom.print_rom_info();
+			curr_GBA_rom.print_rom_info();
 		}
 		load_flex_background(BG_MAIN_MENU, 2);
 
@@ -555,10 +543,10 @@ int main(void)
 				obj_hide_multi(ptgb_logo_l, 2);
 				global_next_frame();
 				load_flex_background(BG_DEX, 2);
-				set_background_pal(curr_rom.gamecode, true, false);
+				set_background_pal(curr_GBA_rom.gamecode, true, false);
 				pokedex_loop();
 				load_flex_background(BG_DEX, 3);
-				set_background_pal(curr_rom.gamecode, false, false);
+				set_background_pal(curr_GBA_rom.gamecode, false, false);
 			}
 			break;
 		case (BTN_CREDITS):

@@ -12,7 +12,7 @@
 #include "gba_rom_values_jpn_lz10_bin.h"
 #include "gba_rom_values_spa_lz10_bin.h"
 
-extern rom_data curr_rom;
+extern rom_data curr_GBA_rom;
 
 rom_data::rom_data() {}
 bool rom_data::load_rom()
@@ -124,9 +124,9 @@ void rom_data::fill_values(const ROM_DATA *rom_values)
     all_collected_flag = rom_values->unused_flag_start;            // The flag for if everything has been collected
     pkmn_collected_flag_start = rom_values->unused_flag_start + 1; // The beginning of the flags for each of the Pokemon
 
-    map_bank = (ENABLE_OLD_EVENT ? rom_values->old_map_bank : rom_values->map_bank);
-    map_id = (ENABLE_OLD_EVENT ? rom_values->old_map_id : rom_values->map_id);
-    npc_id = (ENABLE_OLD_EVENT ? rom_values->old_npc_id : rom_values->npc_id);
+    map_bank = rom_values->map_bank;
+    map_id = rom_values->map_id;
+    npc_id = rom_values->npc_id;
     npc_palette = rom_values->npc_palette;
 
     def_map_bank = rom_values->def_map_bank;

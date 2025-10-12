@@ -17,7 +17,7 @@
 #define DEFAULT_LANGUAGE 0x21 //  | 0x22    | 1     | Default international language
 #define SAVE_DATA_SIZE 0x22
 
-extern rom_data curr_rom;
+extern rom_data curr_GBA_rom;
 
 void load_custom_save_data();
 void write_custom_save_data();

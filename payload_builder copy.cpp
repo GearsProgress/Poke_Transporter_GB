@@ -254,7 +254,7 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
         z80_patchlist.LD(HL, curr_rom.SaveSAVtoSRAM1 | T_U16);
         z80_patchlist.CALL(curr_rom.Bankswitch | T_U16);
         z80_patchlist.LD(B, (curr_rom.SaveSAVtoSRAM1 >> 16) | T_U8); // Load ROM Bank
-        z80_patchlist.LD(HL, curr_rom.SaveSAVtoSRAM2 | T_U16);
+        z80_patchlist.LD(HL, curr_rom.SaveSAVtoSRAM2 | T_U16); // TODO: We probably don't have to load the ROM bank twice
         z80_patchlist.CALL(curr_rom.Bankswitch | T_U16);
         z80_patchlist.JP(curr_rom.SoftReset | T_U16);
 
@@ -571,9 +571,7 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
         z80_payload.LD(B, (curr_rom.SaveSAVtoSRAM1 >> 16) | T_U8); // Load ROM Bank
         z80_payload.LD(HL, curr_rom.SaveSAVtoSRAM1 | T_U16);
         z80_payload.CALL(curr_rom.Bankswitch | T_U16);
-        z80_payload.LD(B, (curr_rom.SaveSAVtoSRAM2 >> 16) | T_U8); // Load ROM Bank
-        z80_payload.LD(HL, curr_rom.SaveSAVtoSRAM2 | T_U16);
-        z80_payload.CALL(curr_rom.Bankswitch | T_U16);
+        z80_payload.CALL(curr_rom.SaveSAVtoSRAM2 | T_U16); // The bank is already loaded, we don't have to load it again
         z80_payload.JP(curr_rom.SoftReset | T_U16);
 
         // z80_payload.index += 5;

@@ -174,6 +174,7 @@ int ptgb_write(const byte *text, bool instant)
 // Re-implementing TTE's "tte_write" to use the gen 3 character encoding chart
 int ptgb_write(const byte *text, bool instant, int length)
 {
+    instant = instant || INSTANT_TEXT_SPEED;
     if (text == NULL)
         return 0;
 
