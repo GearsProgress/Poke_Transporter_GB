@@ -14,36 +14,7 @@ static const u8 em_wonder_card[0x14E] = {
 static const u8 frlg_wonder_card[0x14E] = {
     0x67, 0x18, 0x00, 0x00, 0xBA, 0xB4, 0xBE, 0xB9, 0x00, 0x00, 0x00, 0x00, 0x1C, 0x00, 0x00, 0x00, 0xCA, 0xCC, 0xC9, 0xC0, 0xBF, 0xCD, 0xCD, 0xC9, 0xCC, 0x00, 0xC0, 0xBF, 0xC8, 0xC8, 0xBF, 0xC6, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xCE, 0xE6, 0xD5, 0xE2, 0xE7, 0xDA, 0xD9, 0xE6, 0x00, 0xBD, 0xD9, 0xE6, 0xE8, 0xDD, 0xDA, 0xDD, 0xD7, 0xD5, 0xE8, 0xD9, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xD0, 0xDD, 0xE7, 0xDD, 0xE8, 0x00, 0xE8, 0xDC, 0xD9, 0x00, 0xDC, 0xE3, 0xE9, 0xE7, 0xD9, 0x00, 0xE7, 0xE3, 0xE9, 0xE8, 0xDC, 0x00, 0xE3, 0xDA, 0x00, 0xE8, 0xDC, 0xD9, 0x00, 0xCA, 0xC9, 0xC5, 0x1B, 0xC7, 0xC9, 0xC8, 0x00, 0x00, 0x00, 0x00, 0xBD, 0xBF, 0xC8, 0xCE, 0xBF, 0xCC, 0x00, 0xE3, 0xE2, 0x00, 0xCD, 0xD9, 0xEA, 0xD9, 0xE2, 0x00, 0xC3, 0xE7, 0xE0, 0xD5, 0xE2, 0xD8, 0x00, 0xE8, 0xE3, 0x00, 0xE6, 0xD9, 0xD7, 0xDD, 0xD9, 0xEA, 0xD9, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xED, 0xE3, 0xE9, 0xE6, 0x00, 0xE8, 0xE6, 0xD5, 0xE2, 0xE7, 0xDA, 0xD9, 0xE6, 0xD9, 0xD8, 0x00, 0xCA, 0xC9, 0xC5, 0x1B, 0xC7, 0xC9, 0xC8, 0xAB, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xBE, 0xE3, 0x00, 0xE2, 0xE3, 0xE8, 0x00, 0xE8, 0xE3, 0xE7, 0xE7, 0x00, 0xE8, 0xDC, 0xDD, 0xE7, 0x00, 0xBF, 0xEC, 0xD7, 0xDC, 0xD5, 0xE2, 0xDB, 0xD9, 0x00, 0xBD, 0xD5, 0xE6, 0xD8, 0x00, 0xD6, 0xD9, 0xDA, 0xE3, 0xE6, 0xD9, 0x00, 0x00, 0x00, 0xE6, 0xD9, 0xD7, 0xD9, 0xDD, 0xEA, 0xDD, 0xE2, 0xDB, 0x00, 0xED, 0xE3, 0xE9, 0xE6, 0x00, 0xE8, 0xE6, 0xD5, 0xE2, 0xE7, 0xDA, 0xD9, 0xE6, 0xD9, 0xD8, 0x00, 0xCA, 0xC9, 0xC5, 0x1B, 0xC7, 0xC9, 0xC8, 0xAB, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00}; // checksum
 
-// noinline to ensure the scope of data_tables remains limited to this function
-static void __attribute__((noinline)) handle_old_event(Pokemon_Party &incoming_box_data, int &curr_index, int *dex_nums)
-{
-    PokemonTables data_tables;
-    for (int i = 0; i < MAX_PKMN_IN_BOX; i++) // Add in the Pokemon data
-    {
-        Pokemon curr_pkmn = incoming_box_data.get_converted_pkmn(data_tables, i);
-        if (curr_pkmn.get_validity())
-        {
-
-            for (int curr_byte = 0; curr_byte < POKEMON_SIZE; curr_byte++)
-            {
-                global_memory_buffer[curr_index] = curr_pkmn.get_gen_3_data(curr_byte);
-                curr_index++;
-            }
-            dex_nums[i] = curr_pkmn.get_dex_number();
-        }
-        else
-        {
-            curr_index += POKEMON_SIZE;
-        }
-    }
-    for (int i = 0; i < MAX_PKMN_IN_BOX; i++) // Add in the dex numbers
-    {
-        global_memory_buffer[curr_index] = dex_nums[i];
-        curr_index++;
-    }
-}
-
-bool inject_mystery(Pokemon_Party &incoming_box_data)
+bool inject_mystery(PokeBox* box)
 {
     // WARNING: Look right here: we're passing global_memory_buffer to mystery_gift_script to be used as its save_section_30 buffer.
     // Since we're going to be reusing global_memory_buffer later, we need to be careful about the timing/sequence of operations.
@@ -51,16 +22,9 @@ bool inject_mystery(Pokemon_Party &incoming_box_data)
     mystery_gift_script script(global_memory_buffer);
     u32 checksum = 0;
 
-    if (ENABLE_OLD_EVENT)
-    {
-        // script.build_script_old(incoming_box_data);
-    }
-    else
-    {
-        script.build_script(incoming_box_data);
-    }
+    script.build_script(box);
 
-    if (curr_rom.is_ruby_sapphire())
+    if (curr_GBA_rom.is_ruby_sapphire())
     {
         checksum = script.calc_checksum32();
     }
@@ -73,17 +37,8 @@ bool inject_mystery(Pokemon_Party &incoming_box_data)
     // We need to do this NOW, because mystery_gift_script::build_script() actually fills the global_memory_buffer.
     // In the steps after this, we will be recycling the global_memory_buffer to read and write data to other sections of the save.
     // So we really MUST write the generated data now, before we lose it.
-    if (ENABLE_OLD_EVENT)
-    {
-        int dex_nums[MAX_PKMN_IN_BOX] = {};
-        int curr_index = 0;
-        copy_save_to_ram(0x1E000, &global_memory_buffer[0], 0x1000);
-        handle_old_event(incoming_box_data, curr_index, dex_nums);
-    }
-    else
-    {
-        memcpy(global_memory_buffer, script.get_section30(), 0x1000);
-    }
+
+    memcpy(global_memory_buffer, script.get_section30(), 0x1000);
 
     update_memory_buffer_checksum(false);
     erase_sector(0x1E000);
@@ -91,10 +46,10 @@ bool inject_mystery(Pokemon_Party &incoming_box_data)
 
     // section_30 data has been stored, so now we can safely re-use the global_memory_buffer for other sections.
     // Let's move on to the next step.
-    
+
     // Add in Wonder Card
     copy_save_to_ram(memory_section_array[4], &global_memory_buffer[0], 0x1000);
-    switch (curr_rom.gamecode)
+    switch (curr_GBA_rom.gamecode)
     {
     case RUBY_ID:
     case SAPPHIRE_ID:
@@ -102,22 +57,22 @@ bool inject_mystery(Pokemon_Party &incoming_box_data)
         break;
     case FIRERED_ID:
     case LEAFGREEN_ID:
-        memcpy(global_memory_buffer + curr_rom.offset_wondercard, frlg_wonder_card, 0x14E);
+        memcpy(global_memory_buffer + curr_GBA_rom.offset_wondercard, frlg_wonder_card, 0x14E);
         break;
     case EMERALD_ID:
     default:
-        memcpy(global_memory_buffer + curr_rom.offset_wondercard, em_wonder_card, 0x14E);
+        memcpy(global_memory_buffer + curr_GBA_rom.offset_wondercard, em_wonder_card, 0x14E);
         break;
     }
 
     // Set checksum and padding
-    global_memory_buffer[curr_rom.offset_script] = checksum >> 0;
-    global_memory_buffer[curr_rom.offset_script + 1] = checksum >> 8;
-    global_memory_buffer[curr_rom.offset_script + 2] = checksum >> 16;
-    global_memory_buffer[curr_rom.offset_script + 3] = checksum >> 24;
+    global_memory_buffer[curr_GBA_rom.offset_script] = checksum >> 0;
+    global_memory_buffer[curr_GBA_rom.offset_script + 1] = checksum >> 8;
+    global_memory_buffer[curr_GBA_rom.offset_script + 2] = checksum >> 16;
+    global_memory_buffer[curr_GBA_rom.offset_script + 3] = checksum >> 24;
 
     // Add in Mystery Script data
-    memcpy(global_memory_buffer + curr_rom.offset_script + 4, script.get_script(), MG_SCRIPT_SIZE);
+    memcpy(global_memory_buffer + curr_GBA_rom.offset_script + 4, script.get_script(), MG_SCRIPT_SIZE);
 
     update_memory_buffer_checksum(false);
     erase_sector(memory_section_array[4]);
@@ -127,7 +82,9 @@ bool inject_mystery(Pokemon_Party &incoming_box_data)
     {
         for (int i = 0; i < 1122; i++)
         {
-            global_memory_buffer[i] = incoming_box_data.box_data_array[i];
+            // global_memory_buffer[i] = incoming_box_data.box_data_array[i];
+            while(true){}
+            // This is currently not possible(?)
         }
         for (int i = 0; i < 0x1000 - 1122; i++)
         {
@@ -137,18 +94,18 @@ bool inject_mystery(Pokemon_Party &incoming_box_data)
     }
 
     // Set flags
-    int memory_section = 1 + ((curr_rom.offset_flags + (curr_rom.unused_flag_start / 8)) / 0xF80); // This sets the correct memory section, since flags stretch between section 1 and 2.
+    int memory_section = 1 + ((curr_GBA_rom.offset_flags + (curr_GBA_rom.unused_flag_start / 8)) / 0xF80); // This sets the correct memory section, since flags stretch between section 1 and 2.
     copy_save_to_ram(memory_section_array[memory_section], &global_memory_buffer[0], 0x1000);
-    global_memory_buffer[(curr_rom.offset_flags + (curr_rom.all_collected_flag / 8)) % 0xF80] &= ~(1 << (curr_rom.all_collected_flag % 8)); // Set "collected all" flag to 0
+    global_memory_buffer[(curr_GBA_rom.offset_flags + (curr_GBA_rom.all_collected_flag / 8)) % 0xF80] &= ~(1 << (curr_GBA_rom.all_collected_flag % 8)); // Set "collected all" flag to 0
 
     for (int i = 0; i < MAX_PKMN_IN_BOX; i++)
     {
         int curr_flag;
-        curr_flag = curr_rom.pkmn_collected_flag_start + i;
-        global_memory_buffer[(curr_rom.offset_flags + (curr_flag / 8)) % 0xF80] &= ~(1 << (curr_flag % 8)); // Reset the flag
-        if (incoming_box_data.get_simple_pkmn(i).is_valid)
+        curr_flag = curr_GBA_rom.pkmn_collected_flag_start + i;
+        global_memory_buffer[(curr_GBA_rom.offset_flags + (curr_flag / 8)) % 0xF80] &= ~(1 << (curr_flag % 8)); // Reset the flag
+        if (box->getGen3Pokemon(i)->isValid)
         {
-            global_memory_buffer[(curr_rom.offset_flags + (curr_flag / 8)) % 0xF80] |= (1 << (curr_flag % 8)); // Set flag accordingly
+            global_memory_buffer[(curr_GBA_rom.offset_flags + (curr_flag / 8)) % 0xF80] |= (1 << (curr_flag % 8)); // Set flag accordingly
         }
     }
 

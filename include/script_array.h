@@ -23,7 +23,7 @@
 #define CMD_CONTINUE_LINK DIA_END + 13
 #define CMD_BOX_MENU DIA_END + 14
 #define CMD_MYTHIC_MENU DIA_END + 15
-#define CMD_LOAD_SIMP DIA_END + 16
+#define CMD_IS_A_VALID_PKMN DIA_END + 16
 #define CMD_CANCEL_LINK DIA_END + 17
 #define CMD_END_MISSINGNO DIA_END + 18
 
@@ -61,7 +61,7 @@
 
 extern const script_obj_params transfer_script_params[];
 extern const script_obj_params event_script_params[];
-extern rom_data curr_rom;
+extern rom_data curr_GBA_rom;
 
 void populate_lang_menu();
 void populate_game_menu(int lang);

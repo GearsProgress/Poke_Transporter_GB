@@ -10,7 +10,7 @@
 #define MG_SCRIPT false
 #define S30_SCRIPT true
 
-extern rom_data curr_rom;
+extern rom_data curr_GBA_rom;
 bool asm_payload_location;
 
 // These are static variables
@@ -75,60 +75,55 @@ union decompressed_data_storage_union
 
     // constructor and destructor are needed to make the compiler stop complaining
     // about the decompressed_data_tables struct not being trivial
-    decompressed_data_storage_union(){}
-    ~decompressed_data_storage_union(){}
+    decompressed_data_storage_union() {}
+    ~decompressed_data_storage_union() {}
 };
 
 mystery_gift_script::mystery_gift_script(u8 *save_section_30_buffer)
-    : curr_mg_index(NPC_LOCATION_OFFSET)
-    , curr_section30_index(0)
-    , save_section_30(save_section_30_buffer)
-    , mg_script()
-    , value_buffer()
-    , four_align_value(0)
+    : curr_mg_index(NPC_LOCATION_OFFSET), curr_section30_index(0), save_section_30(save_section_30_buffer), mg_script(), value_buffer(), four_align_value(0)
 {
-    ptr_call_check_flag = (curr_rom.loc_gSpecialVar_0x8000 + 0x08);
-    ptr_call_return_2 = (curr_rom.loc_gSpecialVar_0x8000 + 0x0A);
-    ptr_box_return = (curr_rom.loc_gSpecialVar_0x8000 + 0x0C);
-    ptr_dex_seen_caught = (curr_rom.loc_gSpecialVar_0x8000 + 0x0E);
-    ptr_index = (curr_rom.loc_gSpecialVar_0x8000 + 0x12);
-    ptr_pkmn_offset = (curr_rom.loc_gSpecialVar_0x8000 + 0x14);
+    ptr_call_check_flag = (curr_GBA_rom.loc_gSpecialVar_0x8000 + 0x08);
+    ptr_call_return_2 = (curr_GBA_rom.loc_gSpecialVar_0x8000 + 0x0A);
+    ptr_box_return = (curr_GBA_rom.loc_gSpecialVar_0x8000 + 0x0C);
+    ptr_dex_seen_caught = (curr_GBA_rom.loc_gSpecialVar_0x8000 + 0x0E);
+    ptr_index = (curr_GBA_rom.loc_gSpecialVar_0x8000 + 0x12);
+    ptr_pkmn_offset = (curr_GBA_rom.loc_gSpecialVar_0x8000 + 0x14);
 
     // TODO: For old script, can be removed later
-    ptr_callASM = (curr_rom.loc_gSpecialVar_0x8000 + 0x00);
-    ptr_script_ptr_low = (curr_rom.loc_gSpecialVar_0x8000 + 0x02);
-    ptr_script_ptr_high = (curr_rom.loc_gSpecialVar_0x8000 + 0x04);
-    ptr_call_return_1 = (curr_rom.loc_gSpecialVar_0x8000 + 0x06);
-    ptr_block_ptr_low = (curr_rom.loc_gSaveBlock1PTR + 0x00);
-    ptr_block_ptr_high = (curr_rom.loc_gSaveBlock1PTR + 0x02);
+    ptr_callASM = (curr_GBA_rom.loc_gSpecialVar_0x8000 + 0x00);
+    ptr_script_ptr_low = (curr_GBA_rom.loc_gSpecialVar_0x8000 + 0x02);
+    ptr_script_ptr_high = (curr_GBA_rom.loc_gSpecialVar_0x8000 + 0x04);
+    ptr_call_return_1 = (curr_GBA_rom.loc_gSpecialVar_0x8000 + 0x06);
+    ptr_block_ptr_low = (curr_GBA_rom.loc_gSaveBlock1PTR + 0x00);
+    ptr_block_ptr_high = (curr_GBA_rom.loc_gSaveBlock1PTR + 0x02);
 }
 
-void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
+void mystery_gift_script::build_script(PokeBox *box)
 {
     decompressed_data_storage_union decompressed_store;
     text_data_table decompressed_text_table(decompressed_store.text.buffer);
     ptgb::vector<script_var *> mg_variable_list;
     ptgb::vector<script_var *> sec30_variable_list;
 
-    asm_var sendMonToPC_ptr(curr_rom.loc_sendMonToPC + READ_AS_THUMB, sec30_variable_list, &curr_section30_index);
+    asm_var sendMonToPC_ptr(curr_GBA_rom.loc_sendMonToPC + READ_AS_THUMB, sec30_variable_list, &curr_section30_index);
     asm_var returned_box_success_ptr(ptr_box_return, sec30_variable_list, &curr_section30_index);
     asm_var curr_pkmn_index_ptr(ptr_pkmn_offset, sec30_variable_list, &curr_section30_index);
-    asm_var setPokedexFlag_ptr(curr_rom.loc_setPokedexFlag + READ_AS_THUMB, sec30_variable_list, &curr_section30_index);
+    asm_var setPokedexFlag_ptr(curr_GBA_rom.loc_setPokedexFlag + READ_AS_THUMB, sec30_variable_list, &curr_section30_index);
     asm_var dexSeenCaught_ptr(ptr_dex_seen_caught, sec30_variable_list, &curr_section30_index);
     asm_var currPkmnIndex_ptr(ptr_index, sec30_variable_list, &curr_section30_index);
-    asm_var pkmnStruct(curr_rom.loc_gSaveDataBuffer, sec30_variable_list, &curr_section30_index);
-    asm_var dexStruct(curr_rom.loc_gSaveDataBuffer + (MAX_PKMN_IN_BOX * POKEMON_SIZE), sec30_variable_list, &curr_section30_index);
-    asm_var m4aMPlayStop_ptr(curr_rom.loc_m4aMPlayStop + READ_AS_THUMB, sec30_variable_list, &curr_section30_index);
-    asm_var gMPlayInfo_BGM_ptr(curr_rom.loc_gMPlayInfo_BGM, sec30_variable_list, &curr_section30_index);
-    asm_var gMPlayInfo_SE2_ptr(curr_rom.loc_gMPlayInfo_SE2, sec30_variable_list, &curr_section30_index);
-    asm_var MPlayStart_ptr(curr_rom.loc_MPlayStart + READ_AS_THUMB, sec30_variable_list, &curr_section30_index);
-    asm_var CreateFanfareTask_ptr(curr_rom.loc_CreateFanfareTask + READ_AS_THUMB, sec30_variable_list, &curr_section30_index);
-    asm_var sFanfareCounter_ptr(curr_rom.loc_sFanfareCounter, sec30_variable_list, &curr_section30_index);
-    asm_var gPlttBufferFaded_ptr(curr_rom.loc_gPlttBufferFaded + (32 * 0x1A), sec30_variable_list, &curr_section30_index); // 0x1A is the pallet number
-    asm_var copySizeControl(CPU_SET_32BIT | ((32) / (32 / 8) & 0x1FFFFF), sec30_variable_list, &curr_section30_index);     // CPU_SET_32BIT | ((size)/(32/8) & 0x1FFFFF)
+    asm_var pkmnStruct(curr_GBA_rom.loc_gSaveDataBuffer, sec30_variable_list, &curr_section30_index);
+    asm_var dexStruct(curr_GBA_rom.loc_gSaveDataBuffer + (MAX_PKMN_IN_BOX * POKEMON_SIZE), sec30_variable_list, &curr_section30_index);
+    asm_var m4aMPlayStop_ptr(curr_GBA_rom.loc_m4aMPlayStop + READ_AS_THUMB, sec30_variable_list, &curr_section30_index);
+    asm_var gMPlayInfo_BGM_ptr(curr_GBA_rom.loc_gMPlayInfo_BGM, sec30_variable_list, &curr_section30_index);
+    asm_var gMPlayInfo_SE2_ptr(curr_GBA_rom.loc_gMPlayInfo_SE2, sec30_variable_list, &curr_section30_index);
+    asm_var MPlayStart_ptr(curr_GBA_rom.loc_MPlayStart + READ_AS_THUMB, sec30_variable_list, &curr_section30_index);
+    asm_var CreateFanfareTask_ptr(curr_GBA_rom.loc_CreateFanfareTask + READ_AS_THUMB, sec30_variable_list, &curr_section30_index);
+    asm_var sFanfareCounter_ptr(curr_GBA_rom.loc_sFanfareCounter, sec30_variable_list, &curr_section30_index);
+    asm_var gPlttBufferFaded_ptr(curr_GBA_rom.loc_gPlttBufferFaded + (32 * 0x1A), sec30_variable_list, &curr_section30_index); // 0x1A is the pallet number
+    asm_var copySizeControl(CPU_SET_32BIT | ((32) / (32 / 8) & 0x1FFFFF), sec30_variable_list, &curr_section30_index);         // CPU_SET_32BIT | ((size)/(32/8) & 0x1FFFFF)
 
-    asm_var flashBuffer_ptr(curr_rom.loc_gSaveDataBuffer, mg_variable_list, &curr_mg_index);
-    asm_var readFlashSector_ptr(curr_rom.loc_readFlashSector + READ_AS_THUMB, mg_variable_list, &curr_mg_index);
+    asm_var flashBuffer_ptr(curr_GBA_rom.loc_gSaveDataBuffer, mg_variable_list, &curr_mg_index);
+    asm_var readFlashSector_ptr(curr_GBA_rom.loc_readFlashSector + READ_AS_THUMB, mg_variable_list, &curr_mg_index);
 
     asm_var mainAsmStart(sec30_variable_list, &curr_section30_index);
     asm_var dexAsmStart(sec30_variable_list, &curr_section30_index);
@@ -249,7 +244,7 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     const int movementWalkBackArrayFRLG[2] = {MOVEMENT_ACTION_WALK_FAST_DOWN, MOVEMENT_ACTION_WALK_FAST_DOWN};
     const int movementWalkBackArrayE[4] = {MOVEMENT_ACTION_WALK_FAST_RIGHT, MOVEMENT_ACTION_WALK_FAST_RIGHT, MOVEMENT_ACTION_WALK_FAST_RIGHT, MOVEMENT_ACTION_WALK_FAST_DOWN};
 
-    switch (curr_rom.gamecode)
+    switch (curr_GBA_rom.gamecode)
     {
     case RUBY_ID:
     case SAPPHIRE_ID:
@@ -304,7 +299,7 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     // songLooker.add_track(track_7, sizeof(track_7));
 
     unsigned char instrument;
-    switch (curr_rom.gamecode)
+    switch (curr_GBA_rom.gamecode)
     {
     case RUBY_ID:
     case SAPPHIRE_ID:
@@ -331,14 +326,23 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     // placement new is required to run the constructor of PokemonTables for the decompressed_store's instance
     // it won't get called automatically because it's part of the union (and neither will the destructor)
     new (&decompressed_store.tables.data) PokemonTables();
+
+    // TODO make it so that the table is added here(?)
+    box->setTable(&decompressed_store.tables.data);
+    box->convertAll();
     for (int i = 0; i < MAX_PKMN_IN_BOX; i++) // Add in the Pokemon data
     {
-        Pokemon curr_pkmn = incoming_box_data.get_converted_pkmn(decompressed_store.tables.data, i);
-        if (curr_pkmn.get_validity())
+        Gen3Pokemon *curr_pkmn = box->getGen3Pokemon(i);
+        if (curr_pkmn->isValid)
         {
-            memcpy(save_section_30 + curr_section30_index, curr_pkmn.get_full_gen_3_array(), POKEMON_SIZE);
+            for (int j = 0; j < POKEMON_SIZE; j++)
+            {
+                *(save_section_30 + curr_section30_index + j) = curr_pkmn->dataArrayPtr[j];
+            }
+            // memcpy(save_section_30 + curr_section30_index, curr_pkmn->dataArrayPtr, POKEMON_SIZE);
+
             curr_section30_index += POKEMON_SIZE;
-            dex_nums[i] = curr_pkmn.get_dex_number();
+            dex_nums[i] = curr_pkmn->getSpeciesIndexNumber();
         }
         else
         {
@@ -347,7 +351,7 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     }
     // the PokemonTables instance is no longer needed, but we do need to keep the english gen3 charset around
     // for our insert_text() calls
-    decompressed_store.tables.data.load_gen3_charset(ENG_ID);
+    decompressed_store.tables.data.load_gen3_charset(ENGLISH);
     // we specifically defined the decompressed_text_data struct to ensure the memcpy shouldn't overlap
     memcpy(decompressed_store.text.gen3_charset, decompressed_store.tables.data.gen3_charset, sizeof(decompressed_store.text.gen3_charset));
     // calling the destructor is nothing more than a formality for our PokemonTables class,
@@ -375,7 +379,7 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     // this decompresses the ZX0 compressed text table into the buffer inside of the decompressed_store union
     // thereby reusing the stack (=IWRAM) memory used earlier for the PokemonTables instance we used above
     decompressed_text_table.decompress(get_compressed_rsefrlg_table());
-    switch (curr_rom.gamecode)
+    switch (curr_GBA_rom.gamecode)
     {
     case RUBY_ID:
         textGreet.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textGreet_rse));
@@ -433,7 +437,7 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
         curr_section30_index++; // Align the code so that it is byte aligned
     }
 
-    songLooker.insert_music_data(save_section_30, 0, 0, 0, curr_rom.loc_voicegroup);
+    songLooker.insert_music_data(save_section_30, 0, 0, 0, curr_GBA_rom.loc_voicegroup);
 
     asm_var customSong(songLooker.get_loc_in_sec30(), sec30_variable_list, &curr_section30_index);
     asm_var customSongDuration(119, sec30_variable_list, &curr_section30_index);
@@ -445,7 +449,7 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
 
 #include "lookerFRLG.h"
 #include "lookerRSE.h"
-    if (curr_rom.is_hoenn())
+    if (curr_GBA_rom.is_hoenn())
     {
         spriteLooker.insert_sprite_data(save_section_30, lookerRSETiles, 256, lookerRSEPal);
     }
@@ -453,7 +457,7 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     {
         spriteLooker.insert_sprite_data(save_section_30, lookerFRLGTiles, 256, lookerFRLGPal);
     }
-    asm_var paletteData(curr_rom.loc_gSaveDataBuffer + (curr_section30_index - 32), sec30_variable_list, &curr_section30_index);
+    asm_var paletteData(curr_GBA_rom.loc_gSaveDataBuffer + (curr_section30_index - 32), sec30_variable_list, &curr_section30_index);
 
     asm_payload_location = S30_SCRIPT;
 
@@ -574,47 +578,47 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
 
     asm_payload_location = MG_SCRIPT;
     // Located at 0x?8A8 in the .sav
-    init_npc_location(curr_rom.map_bank, curr_rom.map_id, curr_rom.npc_id); // Set the location of the NPC
-    setvirtualaddress(VIRTUAL_ADDRESS);                                     // Set virtual address
-    if (curr_rom.gamecode == RUBY_ID || curr_rom.gamecode == SAPPHIRE_ID)
+    init_npc_location(curr_GBA_rom.map_bank, curr_GBA_rom.map_id, curr_GBA_rom.npc_id); // Set the location of the NPC
+    setvirtualaddress(VIRTUAL_ADDRESS);                                                 // Set virtual address
+    if (curr_GBA_rom.gamecode == RUBY_ID || curr_GBA_rom.gamecode == SAPPHIRE_ID)
     {
         callASM(loadSec30.add_reference(1));
     }
     else
     {
-        callASM(curr_rom.loc_loadSaveSection30 + READ_AS_THUMB); // Load save section 30 into saveDataBuffer
+        callASM(curr_GBA_rom.loc_loadSaveSection30 + READ_AS_THUMB); // Load save section 30 into saveDataBuffer
     }
     lock();                                    // Lock the player
     faceplayer();                              // Have the NPC face the player
     virtualmsgbox(textGreet.add_reference(1)); // Start the dialouge
     waitmsg();
     waitkeypress();
-    applymovement(curr_rom.npc_id, movementExclaim.get_loc_in_sec30());
+    applymovement(curr_GBA_rom.npc_id, movementExclaim.get_loc_in_sec30());
     playse(0x15);
     waitse();
-    waitmovement(curr_rom.npc_id);
+    waitmovement(curr_GBA_rom.npc_id);
     virtualmsgbox(textYouMustBe.add_reference(1));
     waitmsg();
     waitkeypress();
-    applymovement(curr_rom.npc_id, movementSlowSpin.get_loc_in_sec30());
-    waitmovement(curr_rom.npc_id);
-    applymovement(curr_rom.npc_id, movementFastSpin.get_loc_in_sec30());
-    waitmovement(curr_rom.npc_id);
+    applymovement(curr_GBA_rom.npc_id, movementSlowSpin.get_loc_in_sec30());
+    waitmovement(curr_GBA_rom.npc_id);
+    applymovement(curr_GBA_rom.npc_id, movementFastSpin.get_loc_in_sec30());
+    waitmovement(curr_GBA_rom.npc_id);
     changeSpriteMacro(1, spriteLooker.get_loc_in_sec30());
     callASM(loadPalette.get_loc_in_sec30());
-    changePaletteMacro(curr_rom.npc_id, 0xA);
-    applymovement(curr_rom.npc_id, movementLookDown.get_loc_in_sec30());
+    changePaletteMacro(curr_GBA_rom.npc_id, 0xA);
+    applymovement(curr_GBA_rom.npc_id, movementLookDown.get_loc_in_sec30());
     callASM(customSoundASM.get_loc_in_sec30());
     waitfanfare();
     virtualmsgbox(textIAm.add_reference(1));
     waitmsg();
     waitkeypress();
-    changeSpriteMacro(1, curr_rom.loc_sPicTable_NPC);
-    changePaletteMacro(curr_rom.npc_id, curr_rom.npc_palette);
-    applymovement(curr_rom.npc_id, movementFastSpin.get_loc_in_sec30());
-    waitmovement(curr_rom.npc_id);
-    applymovement(curr_rom.npc_id, movementSlowSpin.get_loc_in_sec30());
-    waitmovement(curr_rom.npc_id);
+    changeSpriteMacro(1, curr_GBA_rom.loc_sPicTable_NPC);
+    changePaletteMacro(curr_GBA_rom.npc_id, curr_GBA_rom.npc_palette);
+    applymovement(curr_GBA_rom.npc_id, movementFastSpin.get_loc_in_sec30());
+    waitmovement(curr_GBA_rom.npc_id);
+    applymovement(curr_GBA_rom.npc_id, movementSlowSpin.get_loc_in_sec30());
+    waitmovement(curr_GBA_rom.npc_id);
     faceplayer();
     msgboxMacro(textWeHere.get_loc_in_sec30());
     compare(0x800C, 1); // 0x800C == SpecialVar_Facing
@@ -622,13 +626,13 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     applymovement(0xFF, movementOutOfWay.get_loc_in_sec30());
     waitmovement(0xFF);
     jumpNotInWay.set_start();
-    applymovement(curr_rom.npc_id, movementToBoxes.get_loc_in_sec30());
-    waitmovement(curr_rom.npc_id);
+    applymovement(curr_GBA_rom.npc_id, movementToBoxes.get_loc_in_sec30());
+    waitmovement(curr_GBA_rom.npc_id);
     playse(0x15);
     waitse();
     msgboxMacro(textMoveBox.get_loc_in_sec30());
     fadeScreen(1);
-    switch (curr_rom.gamecode)
+    switch (curr_GBA_rom.gamecode)
     {
     case RUBY_ID:
     case SAPPHIRE_ID:
@@ -646,11 +650,11 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
         setMetaTile(3, 2, 566, 1);
         setMetaTile(1, 1, 531, 1);
         setMetaTile(1, 2, 539, 0);
-        applymovement(curr_rom.npc_id, movementGoUp.get_loc_in_sec30());
+        applymovement(curr_GBA_rom.npc_id, movementGoUp.get_loc_in_sec30());
         break;
     }
-    special(curr_rom.special_DrawWholeMapView);
-    switch (curr_rom.gamecode)
+    special(curr_GBA_rom.special_DrawWholeMapView);
+    switch (curr_GBA_rom.gamecode)
     {
     case RUBY_ID:
     case SAPPHIRE_ID:
@@ -664,7 +668,7 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     }
     waitse();
     fadeScreen(0);
-    switch (curr_rom.gamecode)
+    switch (curr_GBA_rom.gamecode)
     {
     case RUBY_ID:
     case SAPPHIRE_ID:
@@ -678,41 +682,41 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
         setMetaTile(3, 1, 5, 1);
         break;
     }
-    special(curr_rom.special_DrawWholeMapView);
+    special(curr_GBA_rom.special_DrawWholeMapView);
     playse(0x2);
     waitse();
     msgboxMacro(textPCConvo.get_loc_in_sec30());
     // -- POKEMON INJECTION START--
-    setvar(var_index, 0);                                                        // set the index to 0
-    setvar(var_pkmn_offset, 0);                                                  // Set the Pokemon struct offset to 0
-    setvar(var_call_check_flag, rev_endian(0x2B00));                             // Set the variable to 0x2B. 0x2B = CHECK FLAG
-    addvar(var_call_check_flag, rev_endian(curr_rom.pkmn_collected_flag_start)); // Add the starting flag ID (plus one to ignore the is collected flag) to the check flag ASM variable
-    setvar(var_call_return_2, rev_endian(0x0003));                               // Set the variable to 0x03. 0x03 = RETURN
-    jumpLoop.set_start();                                                        // Set the jump destination for the JUMP_LOOP
-    call(ptr_call_check_flag);                                                   // Call the check flag ASM
-    virtualgotoif(COND_FLAGFALSE, jumpPkmnCollected.add_reference(2));           // If the "pokemon collected" flag is false, jump to the end of the loop
-    callASM(mainAsmStart.get_loc_in_sec30());                                    // Call SendMonToPC ASM
-    compare(var_box_return, 2);                                                  // Compare the resulting return to #2
-    virtualgotoif(COND_EQUALS, jumpBoxFull.add_reference(2));                    // If the return value was #2, jump to the box full message
-    setvar(var_dex_seen_caught, 2);                                              // set the seen caught variable to 2, so that the Pokemon is set to "seen"
-    callASM(dexAsmStart.get_loc_in_sec30());                                     // call "PTR_DEX_START"
-    addvar(var_dex_seen_caught, 1);                                              // add 1 to the seen caught variable so that the Pokemon will be "Caught"
-    callASM(dexAsmStart.get_loc_in_sec30());                                     // Call "PTR_DEX_START" again
-    jumpPkmnCollected.set_start();                                               // Set the jump destination for if the Pokemon has already been collected
-    addvar(var_pkmn_offset, POKEMON_SIZE);                                       // Add the size of one Pokmeon to the Pokemon offset
-    addvar(var_index, 1);                                                        // Add one to the index
-    addvar(var_call_check_flag, rev_endian(1));                                  // Add one to the flag index
-    compare(var_index, MAX_PKMN_IN_BOX);                                         // Compare the index to 30
-    virtualgotoif(COND_LESSTHAN, jumpLoop.add_reference(2));                     // if index is less than six, jump to the start of the loop
-    setflag(curr_rom.all_collected_flag);                                        // Set the "all collected" flag
-    fanfare(257);                                                                // Play the received fanfare
-    msgboxMacro(textReceived.get_loc_in_sec30());                                // Display the recieved text
-    waitfanfare();                                                               // Wait for the fanfare
+    setvar(var_index, 0);                                                            // set the index to 0
+    setvar(var_pkmn_offset, 0);                                                      // Set the Pokemon struct offset to 0
+    setvar(var_call_check_flag, rev_endian(0x2B00));                                 // Set the variable to 0x2B. 0x2B = CHECK FLAG
+    addvar(var_call_check_flag, rev_endian(curr_GBA_rom.pkmn_collected_flag_start)); // Add the starting flag ID (plus one to ignore the is collected flag) to the check flag ASM variable
+    setvar(var_call_return_2, rev_endian(0x0003));                                   // Set the variable to 0x03. 0x03 = RETURN
+    jumpLoop.set_start();                                                            // Set the jump destination for the JUMP_LOOP
+    call(ptr_call_check_flag);                                                       // Call the check flag ASM
+    virtualgotoif(COND_FLAGFALSE, jumpPkmnCollected.add_reference(2));               // If the "pokemon collected" flag is false, jump to the end of the loop
+    callASM(mainAsmStart.get_loc_in_sec30());                                        // Call SendMonToPC ASM
+    compare(var_box_return, 2);                                                      // Compare the resulting return to #2
+    virtualgotoif(COND_EQUALS, jumpBoxFull.add_reference(2));                        // If the return value was #2, jump to the box full message
+    setvar(var_dex_seen_caught, 2);                                                  // set the seen caught variable to 2, so that the Pokemon is set to "seen"
+    callASM(dexAsmStart.get_loc_in_sec30());                                         // call "PTR_DEX_START"
+    addvar(var_dex_seen_caught, 1);                                                  // add 1 to the seen caught variable so that the Pokemon will be "Caught"
+    callASM(dexAsmStart.get_loc_in_sec30());                                         // Call "PTR_DEX_START" again
+    jumpPkmnCollected.set_start();                                                   // Set the jump destination for if the Pokemon has already been collected
+    addvar(var_pkmn_offset, POKEMON_SIZE);                                           // Add the size of one Pokmeon to the Pokemon offset
+    addvar(var_index, 1);                                                            // Add one to the index
+    addvar(var_call_check_flag, rev_endian(1));                                      // Add one to the flag index
+    compare(var_index, MAX_PKMN_IN_BOX);                                             // Compare the index to 30
+    virtualgotoif(COND_LESSTHAN, jumpLoop.add_reference(2));                         // if index is less than six, jump to the start of the loop
+    setflag(curr_GBA_rom.all_collected_flag);                                        // Set the "all collected" flag
+    fanfare(257);                                                                    // Play the received fanfare
+    msgboxMacro(textReceived.get_loc_in_sec30());                                    // Display the recieved text
+    waitfanfare();                                                                   // Wait for the fanfare
 
     // -- POKEMON INJECTION END --
     jumpAllCollected.set_start();                 // Set the destination for if all the Pokemon have already been collected
     msgboxMacro(textPCThanks.get_loc_in_sec30()); // Display the thank text
-    switch (curr_rom.gamecode)
+    switch (curr_GBA_rom.gamecode)
     {
     case RUBY_ID:
     case SAPPHIRE_ID:
@@ -726,12 +730,12 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
         setMetaTile(3, 1, 4, 0);
         break;
     }
-    special(curr_rom.special_DrawWholeMapView);
+    special(curr_GBA_rom.special_DrawWholeMapView);
     playse(0x3);
     waitse();
     fadeScreen(1);
     // Place the PC and boxes
-    switch (curr_rom.gamecode)
+    switch (curr_GBA_rom.gamecode)
     {
     case RUBY_ID:
     case SAPPHIRE_ID:
@@ -749,11 +753,11 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
         setMetaTile(3, 2, 539, 1);
         setMetaTile(1, 1, 525, 1);
         setMetaTile(1, 2, 566, 0);
-        applymovement(curr_rom.npc_id, movementGoDown.get_loc_in_sec30());
+        applymovement(curr_GBA_rom.npc_id, movementGoDown.get_loc_in_sec30());
         break;
     }
-    special(curr_rom.special_DrawWholeMapView);
-    switch (curr_rom.gamecode)
+    special(curr_GBA_rom.special_DrawWholeMapView);
+    switch (curr_GBA_rom.gamecode)
     {
     case RUBY_ID:
     case SAPPHIRE_ID:
@@ -767,8 +771,8 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     }
     waitse();
     fadeScreen(0);
-    applymovement(curr_rom.npc_id, movementWalkBack.get_loc_in_sec30());
-    waitmovement(curr_rom.npc_id);
+    applymovement(curr_GBA_rom.npc_id, movementWalkBack.get_loc_in_sec30());
+    waitmovement(curr_GBA_rom.npc_id);
     compare(0x800C, 1); // 0x800C == SpecialVar_Facing
     virtualgotoif(COND_NOTEQUAL, jumpNotToSide.add_reference(2));
     applymovement(0xFF, movementInWay.get_loc_in_sec30());
@@ -783,7 +787,7 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     jumpBoxFull.set_start();                    // Set the destination for if the box is full
     msgboxMacro(textPCFull.get_loc_in_sec30()); // Display the thank text
     setMetaTile(4, 1, 98, 0);
-    special(curr_rom.special_DrawWholeMapView);
+    special(curr_GBA_rom.special_DrawWholeMapView);
     playse(0x3);
     waitse();
     fadeScreen(1);
@@ -792,8 +796,8 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     // Place the boxes
     setMetaTile(2, 1, 272, 1);
     setMetaTile(2, 2, 273, 0);
-    special(curr_rom.special_DrawWholeMapView);
-    switch (curr_rom.gamecode)
+    special(curr_GBA_rom.special_DrawWholeMapView);
+    switch (curr_GBA_rom.gamecode)
     {
     case RUBY_ID:
     case SAPPHIRE_ID:
@@ -807,8 +811,8 @@ void mystery_gift_script::build_script(Pokemon_Party &incoming_box_data)
     }
     waitse();
     fadeScreen(0);
-    applymovement(curr_rom.npc_id, movementWalkBack.get_loc_in_sec30());
-    waitmovement(curr_rom.npc_id);
+    applymovement(curr_GBA_rom.npc_id, movementWalkBack.get_loc_in_sec30());
+    waitmovement(curr_GBA_rom.npc_id);
     compare(0x800C, 1); // 0x800C == SpecialVar_Facing
     virtualgotoif(COND_NOTEQUAL, jumpNotToSideFull.add_reference(2));
     applymovement(0xFF, movementInWay.get_loc_in_sec30());
@@ -1094,12 +1098,12 @@ void mystery_gift_script::build_script_old(Pokemon_Party &incoming_box_data)
 };
 */
 
-const u8* mystery_gift_script::get_script() const
+const u8 *mystery_gift_script::get_script() const
 {
     return mg_script;
 }
 
-const u8* mystery_gift_script::get_section30() const
+const u8 *mystery_gift_script::get_section30() const
 {
     return save_section_30;
 }
@@ -1487,15 +1491,15 @@ void mystery_gift_script::msgboxMacro(u32 location)
 
 void mystery_gift_script::changeSpriteMacro(u8 npcId, u32 spriteTablePtr)
 {
-    writebytetooffset(spriteTablePtr >> 0, curr_rom.loc_gSprites + (0x44 * npcId) + 0xC + 0);
-    writebytetooffset(spriteTablePtr >> 8, curr_rom.loc_gSprites + (0x44 * npcId) + 0xC + 1);
-    writebytetooffset(spriteTablePtr >> 16, curr_rom.loc_gSprites + (0x44 * npcId) + 0xC + 2);
-    writebytetooffset(spriteTablePtr >> 24, curr_rom.loc_gSprites + (0x44 * npcId) + 0xC + 3);
+    writebytetooffset(spriteTablePtr >> 0, curr_GBA_rom.loc_gSprites + (0x44 * npcId) + 0xC + 0);
+    writebytetooffset(spriteTablePtr >> 8, curr_GBA_rom.loc_gSprites + (0x44 * npcId) + 0xC + 1);
+    writebytetooffset(spriteTablePtr >> 16, curr_GBA_rom.loc_gSprites + (0x44 * npcId) + 0xC + 2);
+    writebytetooffset(spriteTablePtr >> 24, curr_GBA_rom.loc_gSprites + (0x44 * npcId) + 0xC + 3);
 }
 
 void mystery_gift_script::changePaletteMacro(u8 npcId, u8 palNum)
 {
-    writebytetooffset((palNum << 4) | 0x08, curr_rom.loc_gSprites + (0x44 * npcId) + 0x5);
+    writebytetooffset((palNum << 4) | 0x08, curr_GBA_rom.loc_gSprites + (0x44 * npcId) + 0x5);
 }
 
 // ASM Commands

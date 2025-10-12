@@ -3,6 +3,7 @@
 #include "sprite_data.h"
 #include "debug_mode.h"
 #include "gba_rom_values/base_gba_rom_struct.h"
+#include "global_frame_controller.h"
 
 #define SPRITE_CHAR_BLOCK 4
 
@@ -464,7 +465,7 @@ void load_eternal_sprites()
     obj_set_pos(up_arrow, 14 * 8, 3 * 8);
 }
 
-void load_temp_box_sprites(Pokemon_Party *party_data)
+void load_temp_box_sprites(PokeBox *box)
 {
     u32 curr_tile_id = global_tile_id_end;
 
@@ -472,21 +473,21 @@ void load_temp_box_sprites(Pokemon_Party *party_data)
     {
         for (int i = 0; i < 30; i++)
         {
-            if (party_data->get_simple_pkmn(i).is_valid || DONT_HIDE_INVALID_PKMN)
+            GBPokemon *curr_pkmn = box->getGBPokemon(i);
+            if (curr_pkmn->isValid || DONT_HIDE_INVALID_PKMN)
             {
-                Simplified_Pokemon curr_pkmn = party_data->get_simple_pkmn(i);
-                int dex_num = curr_pkmn.dex_number;
+                int dex_num = curr_pkmn->getSpeciesIndexNumber();
                 if (dex_num == 201)
                 {
-                    dex_num = POKEMON_ARRAY_SIZE + curr_pkmn.unown_letter;
+                    dex_num = POKEMON_ARRAY_SIZE + curr_pkmn->getUnownLetter();
                 }
-                else if (curr_pkmn.is_missingno)
+                else if (curr_pkmn->getSpeciesIndexNumber() == MISSINGNO)
                 {
                     dex_num = 0;
                 }
 
-                u32 sprite_location = (*(u32 *)(curr_rom.loc_gMonIconTable + (dex_num * 4)));
-                int pal_num = *(byte *)(curr_rom.loc_gMonIconPaletteIndices + dex_num);
+                u32 sprite_location = (*(u32 *)(curr_GBA_rom.loc_gMonIconTable + (dex_num * 4)));
+                int pal_num = *(byte *)(curr_GBA_rom.loc_gMonIconPaletteIndices + dex_num);
                 load_sprite(party_sprites[i], (const unsigned int *)sprite_location, 512, curr_tile_id, MENU_PAL_RED + pal_num, ATTR0_SQUARE, ATTR1_SIZE_32x32, 1);
                 obj_set_pos(party_sprites[i], ((BOXMENU_SPRITE_WIDTH + BOXMENU_HSPACE) * (i % BOXMENU_HNUM)) + (BOXMENU_LEFT + BOXMENU_SPRITE_HOFFSET), ((BOXMENU_SPRITE_HEIGHT + BOXMENU_VSPACE) * (i / BOXMENU_HNUM)) + (BOXMENU_TOP + BOXMENU_SPRITE_VOFFSET));
                 obj_unhide(party_sprites[i], 0);
@@ -499,10 +500,10 @@ void load_temp_box_sprites(Pokemon_Party *party_data)
         // Load the menu sprite palettes. Should this be done somewhere else?
         for (int i = 0; i < 3; i++)
         {
-            tonccpy((pal_obj_mem + ((MENU_PAL_RED + i) * 16)), (const unsigned short *)(curr_rom.loc_gMonIconPalettes + (i * 32)), 32);
+            tonccpy((pal_obj_mem + ((MENU_PAL_RED + i) * 16)), (const unsigned short *)(curr_GBA_rom.loc_gMonIconPalettes + (i * 32)), 32);
         }
 
-        load_sprite_compressed(grabbed_front_sprite, (const unsigned int *)*(u32 *)(curr_rom.loc_gMonFrontPicTable + (0 * 8)), curr_tile_id, PULLED_SPRITE_PAL, ATTR0_SQUARE, ATTR1_SIZE_64x64, 1);
+        load_sprite_compressed(grabbed_front_sprite, (const unsigned int *)*(u32 *)(curr_GBA_rom.loc_gMonFrontPicTable + (0 * 8)), curr_tile_id, PULLED_SPRITE_PAL, ATTR0_SQUARE, ATTR1_SIZE_64x64, 1);
         obj_set_pos(grabbed_front_sprite, 8, 16);
     }
 
@@ -721,7 +722,7 @@ void load_select_sprites(u8 game_id, u8 lang)
 
     const unsigned int *gba_cart_tiles = 0;
     const unsigned short *gba_cart_palette = 0;
-    switch (curr_rom.gamecode)
+    switch (curr_GBA_rom.gamecode)
     {
 
     case RUBY_ID:
@@ -852,7 +853,7 @@ void update_y_offset()
     obj_set_pos(flag, (8 * 11) + 4, (8 * 4) + 19 + y_offset);
 }
 
-void update_front_box_sprite(Simplified_Pokemon *curr_pkmn)
+void update_front_box_sprite(GBPokemon *curr_pkmn)
 {
     if (IGNORE_GAME_PAK || IGNORE_GAME_PAK_SPRITES)
     {
@@ -860,23 +861,26 @@ void update_front_box_sprite(Simplified_Pokemon *curr_pkmn)
     }
 
     u32 curr_tile_id = global_tile_id_end + (30 * 16);
-    int dex_num = 0;
 
-    if (curr_pkmn->unown_letter > 1)
+    int dex_num = curr_pkmn->getSpeciesIndexNumber();
+    if (dex_num == 201)
     {
-        dex_num = 412 + curr_pkmn->unown_letter;
+        if (curr_pkmn->getUnownLetter() > 1)
+        {
+            dex_num = 412 + curr_pkmn->getUnownLetter();
+        }
     }
-    else if (curr_pkmn->is_missingno)
+    else if (curr_pkmn->getSpeciesIndexNumber() == MISSINGNO)
     {
         dex_num = 0;
     }
-    else
+    else if (curr_pkmn->getSpeciesIndexNumber() == TREECKO)
     {
-        dex_num = curr_pkmn->dex_number;
+        dex_num = 277;
     }
 
-    u32 sprite_location = *(u32 *)(curr_rom.loc_gMonFrontPicTable + (dex_num * 8));
-    u32 palette_location = *(u32 *)((curr_pkmn->is_shiny ? curr_rom.loc_gMonShinyPaletteTable : curr_rom.loc_gMonPaletteTable) + (curr_pkmn->dex_number * 8));
+    u32 sprite_location = *(u32 *)(curr_GBA_rom.loc_gMonFrontPicTable + (dex_num * 8));
+    u32 palette_location = *(u32 *)((curr_pkmn->getIsShiny() ? curr_GBA_rom.loc_gMonShinyPaletteTable : curr_GBA_rom.loc_gMonPaletteTable) + (curr_pkmn->getSpeciesIndexNumber() * 8));
     unsigned short buffer[16];
 
     LZ77UnCompWram((const unsigned short *)palette_location, buffer); // This is a little silly, but it's being weird with bytes vs shorts when we copy it directly
@@ -894,7 +898,7 @@ void update_front_box_sprite(Simplified_Pokemon *curr_pkmn)
     LZ77UnCompVram((const unsigned int *)sprite_location, &tile_mem[SPRITE_CHAR_BLOCK][curr_tile_id]);
 }
 
-void update_menu_sprite(Pokemon_Party *party_data, int index, int frame)
+void update_menu_sprite(PokeBox *box, int index, int frame)
 {
     if (IGNORE_GAME_PAK || IGNORE_GAME_PAK_SPRITES)
     {
@@ -903,20 +907,25 @@ void update_menu_sprite(Pokemon_Party *party_data, int index, int frame)
 
     u32 curr_tile_id = global_tile_id_end + (index * 16);
 
-    Simplified_Pokemon curr_pkmn = party_data->get_simple_pkmn(index);
-    int dex_num = curr_pkmn.dex_number;
+    GBPokemon *curr_pkmn = box->getGBPokemon(index);
+
+    int dex_num = curr_pkmn->getSpeciesIndexNumber();
     if (dex_num == 201)
     {
-        if (curr_pkmn.unown_letter != 0)
+        if (curr_pkmn->getUnownLetter() > 1)
         {
-            dex_num = 0x19C + curr_pkmn.unown_letter;
+            dex_num = 412 + curr_pkmn->getUnownLetter();
         }
     }
-    else if (curr_pkmn.is_missingno)
+    else if (curr_pkmn->getSpeciesIndexNumber() == MISSINGNO)
     {
         dex_num = 0;
     }
+    else if (curr_pkmn->getSpeciesIndexNumber() == TREECKO)
+    {
+        dex_num = 277;
+    }
 
-    u32 sprite_location = (*(u32 *)(curr_rom.loc_gMonIconTable + (dex_num * 4))) + (frame == 0 ? 0 : 512);
+    u32 sprite_location = (*(u32 *)(curr_GBA_rom.loc_gMonIconTable + (dex_num * 4))) + (frame == 0 ? 0 : 512);
     tonccpy(&tile_mem[SPRITE_CHAR_BLOCK][curr_tile_id], (const unsigned int *)sprite_location, 512);
 }

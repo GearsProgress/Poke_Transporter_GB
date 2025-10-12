@@ -1,4 +1,5 @@
 #include "common.h"
+#include "extern_pokemon_data.h"
 
 #include <cstdio>
 #include <cstring>

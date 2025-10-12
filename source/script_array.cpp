@@ -67,7 +67,7 @@ Box_Menu box_viewer;
 // DIA_ERROR_DISCONNECT
 //
 // Pause the transfer and show the user their box data
-// CMD_LOAD_SIMP
+// CMD_IS_A_VALID_PKMN
 // DIA_NO_VALID_PKMN
 // COND_SOME_INVALID_PKMN
 // DIA_SOME_INVALID_PKMN
@@ -364,9 +364,9 @@ const script_obj_params transfer_script_params[SCRIPT_SIZE] = {
         .conditional_index = CMD_MYTHIC_MENU,
         .next_if_true = COND_CHECK_MISSINGNO
     },
-    // CMD_LOAD_SIMP
+    // CMD_IS_A_VALID_PKMN
     {
-        .conditional_index = CMD_LOAD_SIMP,
+        .conditional_index = CMD_IS_A_VALID_PKMN,
         .next_if_true = COND_SOME_INVALID_PKMN,
         .next_if_false = DIA_NO_VALID_PKMN
     },
@@ -389,7 +389,7 @@ const script_obj_params transfer_script_params[SCRIPT_SIZE] = {
     // COND_ERROR_DISCONNECT
     {
         .conditional_index = COND_ERROR_DISCONNECT,
-        .next_if_true = CMD_LOAD_SIMP,
+        .next_if_true = CMD_IS_A_VALID_PKMN,
         .next_if_false = DIA_ERROR_DISCONNECT
     },
     // COND_ERROR_COM_ENDED
@@ -438,7 +438,7 @@ const script_obj_params transfer_script_params[SCRIPT_SIZE] = {
     {
         .conditional_index = COND_IS_HOENN_RS,
         .next_if_true = DIA_SEND_FRIEND_HOENN_RS,
-        .next_if_false = DIA_SEND_FRIEND_KANTO
+        .next_if_false = COND_IS_HOENN_E
     },
     // COND_IS_FRLGE
     {
@@ -640,7 +640,7 @@ const script_obj_params event_script_params[SCRIPT_SIZE] = {
     {}, // CMD_CONTINUE_LINK
     {}, // CMD_BOX_MENU
     {}, // CMD_MYTHIC_MENU
-    {}, // CMD_LOAD_SIMP
+    {}, // CMD_IS_A_VALID_PKMN
     {}, // CMD_CANCEL_LINK
     {}, // CMD_END_MISSINGNO
     {}, // COND_ERROR_TIMEOUT_ONE
@@ -689,7 +689,7 @@ void populate_lang_menu()
     langs.add_option(GENERAL_option_german, GER_ID);
     langs.add_option(GENERAL_option_italian, ITA_ID);
     langs.add_option(GENERAL_option_korean, KOR_ID);
-    // Removing the cancel option for the time being, since canceling the 
+    // TODO: Removing the cancel option for the time being, since canceling the 
     // link trade when there is no link connection crashes the game
     // langs.add_option(GENERAL_option_cancel, UINT8_MAX); 
 }
@@ -727,12 +727,6 @@ void populate_game_menu(int lang)
     }
 }
 
-static bool __attribute__((noinline)) load_simple_party_data()
-{
-    PokemonTables data_tables;
-    return party_data.fill_simple_pkmn_array(data_tables);
-}
-
 bool run_conditional(int index)
 {
     // Here is most of the logic that drives what lines show up where. It's probably not the best way to code it, but it works
@@ -758,10 +752,10 @@ bool run_conditional(int index)
         return party_data.get_last_error() != COND_ERROR_COLOSSEUM;
 
     case COND_BEAT_E4:
-        return read_flag(curr_rom.e4_flag) || IGNORE_MG_E4_FLAGS;
+        return read_flag(curr_GBA_rom.e4_flag) || IGNORE_MG_E4_FLAGS;
 
     case COND_MG_ENABLED:
-        return read_flag(curr_rom.mg_flag) || IGNORE_MG_E4_FLAGS;
+        return read_flag(curr_GBA_rom.mg_flag) || IGNORE_MG_E4_FLAGS;
 
     case COND_TUTORIAL_COMPLETE:
         return get_tutorial_flag() && !FORCE_TUTORIAL;
@@ -770,16 +764,16 @@ bool run_conditional(int index)
         return party_data.get_has_new_pkmn();
 
     case COND_IS_HOENN_RS:
-        return curr_rom.is_ruby_sapphire();
+        return curr_GBA_rom.is_ruby_sapphire();
 
     case COND_IS_FRLGE:
-        return !curr_rom.is_ruby_sapphire();
+        return !curr_GBA_rom.is_ruby_sapphire();
 
     case COND_MG_OTHER_EVENT:
-        return compare_map_and_npc_data(curr_rom.def_map_bank, curr_rom.def_map_id, curr_rom.def_npc_id) && !IGNORE_MG_E4_FLAGS;
+        return compare_map_and_npc_data(curr_GBA_rom.def_map_bank, curr_GBA_rom.def_map_id, curr_GBA_rom.def_npc_id) && !IGNORE_MG_E4_FLAGS;
 
     case COND_PKMN_TO_COLLECT:
-        return compare_map_and_npc_data(curr_rom.map_bank, curr_rom.map_id, curr_rom.npc_id) && !read_flag(curr_rom.all_collected_flag) && !IGNORE_UNRECEIVED_PKMN;
+        return compare_map_and_npc_data(curr_GBA_rom.map_bank, curr_GBA_rom.map_id, curr_GBA_rom.npc_id) && !read_flag(curr_GBA_rom.all_collected_flag) && !IGNORE_UNRECEIVED_PKMN;
 
     case COND_GB_ROM_EXISTS:
         return party_data.load_gb_rom();
@@ -804,7 +798,7 @@ bool run_conditional(int index)
         return party_data.get_contains_invalid();
 
     case COND_IS_HOENN_E:
-        return curr_rom.gamecode == EMERALD_ID;
+        return curr_GBA_rom.gamecode == EMERALD_ID;
 
     case COND_CHECK_MISSINGNO:
         if (party_data.get_contains_missingno())
@@ -824,7 +818,7 @@ bool run_conditional(int index)
         return true;
 
     case CMD_IMPORT_POKEMON:
-        inject_mystery(party_data);
+        inject_mystery(&party_data.box);
         return true;
 
     case CMD_BACK_TO_MENU:
@@ -901,7 +895,7 @@ bool run_conditional(int index)
 
     case CMD_BOX_MENU:
         hide_text_box();
-        ret = (box_viewer.box_main(party_data) == CONFIRM_BUTTON);
+        ret = (box_viewer.box_main(&party_data.box) == CONFIRM_BUTTON);
         show_text_box();
         return ret;
 
@@ -909,8 +903,8 @@ bool run_conditional(int index)
         party_data.set_mythic_stabilization(yes_no_menu.button_main());
         return true;
 
-    case CMD_LOAD_SIMP:
-        return load_simple_party_data();
+    case CMD_IS_A_VALID_PKMN:
+        return party_data.box.getNumValid() > 0;
 
     case CMD_CANCEL_LINK:
         party_data.continue_link(true);

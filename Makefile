@@ -30,8 +30,8 @@ LIBTONC := $(DEVKITPRO)/libtonc
 #---------------------------------------------------------------------------------
 TARGET		:= $(notdir $(CURDIR))_mb
 BUILD		:= build
-SOURCES		:= source
-INCLUDES	:= include
+SOURCES		:= source source/pccs
+INCLUDES	:= include include/pccs
 DATA		:= data
 MUSIC		:= audio
 GRAPHICS	:= graphics

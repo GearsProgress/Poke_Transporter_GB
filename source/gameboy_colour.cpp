@@ -88,7 +88,7 @@ byte data_packet[PACKET_SIZE];
 
 // Here's a compilation check to ensure that the size of these structs match our expectations.
 // Just update it if you changed the struct members. The data-generator process prints their actual sizes.
-static_assert(sizeof(struct GB_ROM) == 132);
+static_assert(sizeof(struct GB_ROM) == 136);
 static_assert(sizeof(struct ROM_DATA) == 160);
 
 void print(const char *format, ...)
@@ -169,7 +169,7 @@ void setup(const u16 *debug_charset)
   }
 }
 
-byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, Simplified_Pokemon *curr_simple_array, const u16 *debug_charset, bool cancel_connection)
+byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, PokeBox *box, const u16 *debug_charset, bool cancel_connection)
 {
   // TODO: Change to a switch statement
   if (state == hs)
@@ -224,7 +224,7 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
         text_data_table general_text(general_text_table_buffer);
 
         general_text.decompress(get_compressed_general_table());
-        ptgb_write(general_text.get_text_entry(curr_gb_rom->version != YELLOW_ID ? GENERAL_link_success_yellow : GENERAL_link_success), true);
+        ptgb_write(general_text.get_text_entry(curr_gb_rom->version != YELLOW_ID ? GENERAL_link_success : GENERAL_link_success_yellow), true);
       }
 
       link_animation_state(STATE_NO_ANIM);
@@ -340,7 +340,7 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
     if (in != 0xFD)
     {
       state = send_remove_array;
-      return exchange_remove_array(in, curr_simple_array, cancel_connection);
+      return exchange_remove_array(in, box, cancel_connection);
     }
     return in;
   }
@@ -352,27 +352,61 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
       state = end2;
     }
     data_counter++;
-    return exchange_remove_array(in, curr_simple_array, cancel_connection);
+    return exchange_remove_array(in, box, cancel_connection);
   }
 
   return in;
 }
 
-int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, Simplified_Pokemon *curr_simple_array, const u16 *debug_charset, bool cancel_connection)
+int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, PokeBox *box, const u16 *debug_charset, bool cancel_connection)
 {
+#define LINE_WIDTH 21
+#define NUM_LINES 8
   int counter = 0;
+  char stuff[NUM_LINES][LINE_WIDTH];
 
   while (true)
   {
+    if (PRINT_LINK_DATA && key_held(KEY_L))
+    {
+      while (!key_hit(KEY_R))
+      {
+        global_next_frame();
+      }
+      global_next_frame();
+    }
     // TODO: Restore Errors
     in_data = linkSPI->transfer(out_data);
 
-    if (PRINT_LINK_DATA && false)
+    if (PRINT_LINK_DATA && !key_held(KEY_DOWN))
     {
-      tte_set_margins(0, 0, H_MAX, V_MAX);
-      print("%d: [%d][%d][%" PRIu8 "][%" PRIu8 "]\n\n", counter, data_counter, state, in_data, out_data);
+      // tte_set_margins(0, 0, H_MAX, V_MAX);
+      // print("%d: [%d][%d][%" PRIu8 "][%" PRIu8 "]\n\n", counter, data_counter, state, in_data, out_data);
+      for (int i = 0; i < NUM_LINES; i++)
+      {
+        // ptgb_write_debug(debug_charset, "\n", true);
+        for (int j = 0; j < LINE_WIDTH; j++)
+        {
+          stuff[i][j] = stuff[i + 1][j];
+        }
+        stuff[i][20] = '\n';
+      }
+      n2hexstr(&stuff[NUM_LINES - 1][0], counter & 0xFFFFFF, 6);
+      stuff[NUM_LINES - 1][6] = ':';
+      n2hexstr(&stuff[NUM_LINES - 1][7], data_counter & 0xFFFF, 4);
+      stuff[NUM_LINES - 1][11] = '|';
+      n2hexstr(&stuff[NUM_LINES - 1][12], state & 0xFF, 2);
+      stuff[NUM_LINES - 1][14] = '|';
+      n2hexstr(&stuff[NUM_LINES - 1][15], in_data & 0xFF, 2);
+      stuff[NUM_LINES - 1][17] = '|';
+      n2hexstr(&stuff[NUM_LINES - 1][18], out_data & 0xFF, 2);
+      stuff[NUM_LINES - 1][20] = '\0';
+
+      create_textbox(0, 0, 125, 80, false);
+      ptgb_write_debug(debug_charset, *stuff, true);
     }
-    out_data = handleIncomingByte(in_data, box_data_storage, curr_payload, curr_gb_rom, curr_simple_array, debug_charset, cancel_connection);
+
+    out_data = handleIncomingByte(in_data, box_data_storage, curr_payload, curr_gb_rom, box, debug_charset, cancel_connection);
 
     if (FF_count > (15 * 60))
     {
@@ -557,13 +591,13 @@ byte exchange_boxes(byte curr_in, byte *box_data_storage, GB_ROM *curr_gb_rom)
   }
 };
 
-byte exchange_remove_array(byte curr_in, Simplified_Pokemon *curr_simple_array, bool cancel_connection)
+byte exchange_remove_array(byte curr_in, PokeBox *box, bool cancel_connection)
 {
   for (int i = 29; i >= 0; i--)
   {
-    if (curr_simple_array[i].is_valid && !curr_simple_array[i].is_transferred && !cancel_connection)
+    if (box->getGen3Pokemon(i)->isValid && !cancel_connection)
     {
-      curr_simple_array[i].is_transferred = true;
+      box->removePokemon(i);
       return i;
     }
   }

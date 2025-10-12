@@ -1,7 +1,6 @@
 #include <tonc.h>
-
-#include "sprite_data.h"
-#include "text_engine.h"
+#include "pokemon_data.h"
+#include "background_engine.h"
 
 #define CBB 0
 #define SBB 24

@@ -4,7 +4,6 @@
 #include <tonc.h>
 #include "string.h"
 #include "button_handler.h"
-#include "pokemon.h"
 #include "string_view"
 #include "pokemon_party.h"
 #include "button_handler.h"
@@ -27,7 +26,7 @@ class Box_Menu
 {
 public:
     Box_Menu();
-    int box_main(Pokemon_Party party_data);
+    int box_main(PokeBox* box);
 private:
     int curr_button;
     int x;

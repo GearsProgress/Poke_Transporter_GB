@@ -1,4 +1,4 @@
-#include "pokemon_data.h"
+//#include "pokemon_data.h"
 #include "common.h"
 #include "gba_rom_values/gba_rom_values.h"
 #include "gb_rom_values/gb_rom_values.h"

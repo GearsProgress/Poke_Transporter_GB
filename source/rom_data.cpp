@@ -3,6 +3,7 @@
 #include "pokemon_party.h"
 #include "pokemon_data.h"
 #include "text_engine.h"
+#include "save_data_manager.h"
 #include "gba_rom_values/gba_rom_values.h"
 #include "libraries/nanoprintf/nanoprintf.h"
 #include "gba_rom_values_eng_lz10_bin.h"
@@ -12,7 +13,7 @@
 #include "gba_rom_values_jpn_lz10_bin.h"
 #include "gba_rom_values_spa_lz10_bin.h"
 
-extern rom_data curr_rom;
+extern rom_data curr_GBA_rom;
 
 rom_data::rom_data() {}
 bool rom_data::load_rom()
@@ -20,8 +21,7 @@ bool rom_data::load_rom()
     u8 rom_list_buffer[2048];
     u32 rom_list_size;
     const u8 *compressed_rom_list;
-    const u8* cur;
-
+    const u8 *cur;
 
     if (IGNORE_GAME_PAK)
     {
@@ -38,7 +38,7 @@ bool rom_data::load_rom()
         version = (*(vu8 *)(0x80000BC));
     }
 
-    switch(language)
+    switch (language)
     {
     case LANG_JPN:
         compressed_rom_list = gba_rom_values_jpn_lz10_bin;
@@ -62,13 +62,19 @@ bool rom_data::load_rom()
         return false; // Unsupported language
     }
 
+    // Game looks good, let's make sure it can save.
+    /*if (!check_can_save())
+    {
+        return false;
+    }*/
+
     // byte 2-4 of the compressed data store the decompressed size
-	rom_list_size = compressed_rom_list[1] | (compressed_rom_list[2] << 8) | (compressed_rom_list[3] << 16);
-	LZ77UnCompWram(compressed_rom_list, rom_list_buffer);
+    rom_list_size = compressed_rom_list[1] | (compressed_rom_list[2] << 8) | (compressed_rom_list[3] << 16);
+    LZ77UnCompWram(compressed_rom_list, rom_list_buffer);
 
     cur = rom_list_buffer;
 
-    while(cur < rom_list_buffer + rom_list_size)
+    while (cur < rom_list_buffer + rom_list_size)
     {
         const ROM_DATA *rom_values = reinterpret_cast<const ROM_DATA *>(cur);
         if (rom_values->is_valid && rom_values->gamecode == gamecode &&
@@ -124,9 +130,9 @@ void rom_data::fill_values(const ROM_DATA *rom_values)
     all_collected_flag = rom_values->unused_flag_start;            // The flag for if everything has been collected
     pkmn_collected_flag_start = rom_values->unused_flag_start + 1; // The beginning of the flags for each of the Pokemon
 
-    map_bank = (ENABLE_OLD_EVENT ? rom_values->old_map_bank : rom_values->map_bank);
-    map_id = (ENABLE_OLD_EVENT ? rom_values->old_map_id : rom_values->map_id);
-    npc_id = (ENABLE_OLD_EVENT ? rom_values->old_npc_id : rom_values->npc_id);
+    map_bank = rom_values->map_bank;
+    map_id = rom_values->map_id;
+    npc_id = rom_values->npc_id;
     npc_palette = rom_values->npc_palette;
 
     def_map_bank = rom_values->def_map_bank;
