@@ -29,7 +29,7 @@ Please note that transfering Pokémon will only work with a Game Boy Color Link 
 
 ## Modifications to Transfered Pokémon
 
-Poké Transporter GB utilizes the Pokémon Community Conversion Standard for converting Pokémon from Generation 1 and 2 to Generation 3. You can view the documentation for the PCCS [here]([url](https://github.com/GearsProgress/Pokemon-Community-Conversion-Standard))!
+Poké Transporter GB utilizes the Pokémon Community Conversion Standard for converting Pokémon from Generation 1 and 2 to Generation 3. You can view the documentation for the PCCS [here](https://github.com/GearsProgress/Pokemon-Community-Conversion-Standard)!
 
 ## Screenshots and Video
 
@@ -119,4 +119,5 @@ _This project is not endorsed or supported by GameFreak or Nintendo. Please supp
 
 ## Special Mentions
 A huge thank you to Goppier for being the first one to bridge the gap between generation 2 and generation 3 and for providing extremely useful documentation about both versions of the Link Cable, and a huge thank you to Lorenzooone for being the direct inspiration for this project, as well as answering questions I had during development. This project would never have happened without either of them, and I cannot thank them enough.
+
 
