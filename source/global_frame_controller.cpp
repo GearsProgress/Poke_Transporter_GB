@@ -1,11 +1,14 @@
 #include <tonc.h>
-
+#include <cmath>
+#include "libstd_replacements.h"
 #include "global_frame_controller.h"
 #include "random.h"
 #include "background_engine.h"
 #include "text_engine.h"
 #include "sprite_data.h"
 #include "string.h"
+#include "text_data_table.h"
+#include "translated_text.h"
 
 int global_frame_count = 0;
 bool rand_enabled = true;
@@ -16,12 +19,24 @@ int fennel_blink_state = 0;
 bool missingno_enabled = false;
 bool treecko_enabled = false;
 
+// split off from global_next_frame to limit the stack usage of the general_text_table_buffer to
+// the execution of this function
+// the noinline attribute prevents the compiler from inlining this function back into the global_next_frame function
+static void __attribute__((noinline)) show_pulled_cart_error()
+{
+    u8 general_text_table_buffer[2048];
+    text_data_table general_text(general_text_table_buffer);
+
+    general_text.decompress(get_compressed_general_table());
+    ptgb_write(general_text.get_text_entry(GENERAL_pulled_cart_error), true);
+}
+
 void global_next_frame()
 {
     key_poll();
     rand_next_frame();
     // tte_set_pos(0, 0);
-    // tte_write(std::to_string(get_rand_u32()).c_str());
+    // tte_write(ptgb::to_string(get_rand_u32()));
     background_frame(global_frame_count);
     determine_fennel_blink();
     if (missingno_enabled)
@@ -29,22 +44,20 @@ void global_next_frame()
         set_background_pal(0xFF, false, false);
     }
     oam_copy(oam_mem, obj_buffer, num_sprites);
-    VBlankIntrWait();
     // mmFrame(); //Music
     if (global_frame_count % 60 == 0)
     {
         set_menu_sprite_pal(0);
-        if (!curr_rom.verify_rom())
+        if (!curr_GBA_rom.verify_rom())
         {
-            REG_BG0CNT = (REG_BG0CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
-            REG_BG1CNT = (REG_BG1CNT & ~BG_PRIO_MASK) | BG_PRIO(2);
+            REG_BG0CNT = (REG_BG0CNT & ~BG_PRIO_MASK) | BG_PRIO(2);
             REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(1);
-            REG_BG2VOFS = 0;
             tte_set_pos(40, 24);
-            tte_set_margins(40, 24, 206, 104);
-            set_textbox_large();
-            tte_write("\n\n#{cx:0xF000}The Pok@mon game was\nremoved. Please turn\noff the system and\nrestart the program.");
-            // obj_hide_multi(testroid, 128);
+            create_textbox(4, 1, 160, 80, true);
+            obj_hide_multi(ptgb_logo_l, num_sprites);
+
+            show_pulled_cart_error();
+
             oam_copy(oam_mem, obj_buffer, num_sprites);
             while (true)
             {
@@ -65,6 +78,7 @@ void global_next_frame()
         }
     }
     global_frame_count++;
+    VBlankIntrWait();
 };
 
 int get_frame_count()
@@ -92,6 +106,7 @@ const unsigned short MENU_PALS[5][4] = {
 
 void set_menu_sprite_pal(int frame)
 {
+    return;
     for (int i = 0; i < 5; i++)
     {
         unsigned short curr_pal[16] = {
@@ -117,7 +132,7 @@ void set_menu_sprite_pal(int frame)
     }
 }
 
-int path[12][2] = {{19, 18}, {19, 19}, {18, 19}, {17, 19}, {16, 19}, {15, 19}, {14, 19}, {13, 19}, {12, 19}, {11, 19}, {10, 19}, {24, 24}};
+static const int path[12][2] = {{19, 18}, {19, 19}, {18, 19}, {17, 19}, {16, 19}, {15, 19}, {14, 19}, {13, 19}, {12, 19}, {11, 19}, {10, 19}, {24, 24}};
 
 void run_link_cable_animation(int frame)
 {
@@ -232,7 +247,7 @@ void set_missingno(bool val)
     missingno_enabled = val;
     if (val == false)
     {
-        set_background_pal(curr_rom.gamecode, false, false);
+        set_background_pal(curr_GBA_rom.gamecode, false, false);
         fennel_blink_timer = 0;
     }
 }
@@ -252,17 +267,63 @@ bool get_treecko_enabled()
     return treecko_enabled;
 }
 
-// FNV-1a 32-bit hash function for byte arrays
-u32 fnv1a_hash(unsigned char *data, size_t length)
+int get_string_length(const byte *str)
 {
-    const uint32_t fnv_prime = 0x01000193;
-    const uint32_t fnv_offset_basis = 0x811C9DC5;
-    uint32_t hash = fnv_offset_basis;
-
-    for (size_t i = 0; i < length; ++i)
+    int size = 0;
+    while (str[size] != 0xFF)
     {
-        hash ^= data[i];
-        hash *= fnv_prime;
+        size++;
     }
-    return hash;
+    return size;
+}
+
+void convert_int_to_ptgb_str(int val, byte str[], int min_length)
+{
+    int div = 1;
+    int count = 0;
+    int num;
+    bool non_zero = false;
+    bool first = true;
+
+    // Set it up so the number has all the zeros it needs
+    for (int i = 0; i < min_length; i++)
+    {
+        div *= 10;
+    }
+
+    // Increase it if the number is still larger
+    while (div <= val)
+    {
+        div *= 10;
+    }
+
+    while (div != 0)
+    {
+        num = val / div;
+        if (num != 0 || non_zero)
+        {
+            non_zero = true;
+            str[count] = num + 0xA1; // 0xA1 is 0 in the chart
+            count++;
+        }
+        else
+        {
+            if (!first)
+            {
+                str[count] = 0xA1; // 0xA1 is 0 in the chart
+                count++;
+            } else {
+                first = false;
+            }
+        }
+
+        val %= div;
+        div /= 10;
+    }
+    str[count] = 0xFF;
+}
+
+void convert_int_to_ptgb_str(int val, byte str[])
+{
+    convert_int_to_ptgb_str(val, str, 0);
 }
