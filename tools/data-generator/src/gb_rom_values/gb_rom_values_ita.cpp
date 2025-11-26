@@ -1,8 +1,9 @@
 #include "gb_rom_values/gb_rom_values.h"
 
-const struct GB_ROM gb_rom_values_fre[] = {
-    { // FRE_RED
-        .language = FRE_ID,
+/*
+const struct GB_ROM gb_rom_values_ita[] = {
+    { // ITA_RED
+        .language = ITA_ID,
         .version = RED_ID,
         .generation = 1,
         .method = METHOD_NEWLINE,
@@ -15,17 +16,17 @@ const struct GB_ROM gb_rom_values_fre[] = {
         .pointer_pkmn_name = 0xFC,
         .padding_1 = 0,
 
-        .clearScreen = 0x190C,
-        .CableClub_TextBoxBorder = 0x5B41,
-        .placeString = 0x1952,
-        .Serial_ExchangeBytes = 0x216B,
-        ._RemovePokemon = 0x7BD9,
-        .SaveSAVtoSRAM1 = 0x1C77B3,
-        .SaveSAVtoSRAM2 = 0x1C77E0,
+        .clearScreen = 0x190F,
+        .CableClub_TextBoxBorder = 0x5B0E,
+        .placeString = 0x1955,
+        .Serial_ExchangeBytes = 0x216F,
+        ._RemovePokemon = 0x7B7E,
+        .SaveSAVtoSRAM1 = 0x1C7823,
+        .SaveSAVtoSRAM2 = 0x1C7850,
         .OpenSRAM = 0,
         .SaveBox = 0,
-        .Bankswitch = 0x35F3,
-        .SoftReset = 0x1F45,
+        .Bankswitch = 0x35EE,
+        .SoftReset = 0x1F49,
         .CloseSRAM = 0,
         .garbageDataLocation = 0x1F8E,
 
@@ -47,8 +48,8 @@ const struct GB_ROM gb_rom_values_fre[] = {
         .textBorderHeight = 1,
         .padding_2 = 0
     },
-    { // FRE_BLUE
-        .language = FRE_ID,
+    { // ITA_BLUE
+        .language = ITA_ID,
         .version = BLUE_ID,
         .generation = 1,
         .method = METHOD_NEWLINE,
@@ -93,8 +94,8 @@ const struct GB_ROM gb_rom_values_fre[] = {
         .textBorderHeight = 1,
         .padding_2 = 0
     },
-    { // FRE_YELLOW
-        .language = FRE_ID,
+    { // ITA_YELLOW
+        .language = ITA_ID,
         .version = YELLOW_ID,
         .generation = 1,
         .method = METHOD_MEW,
@@ -139,8 +140,8 @@ const struct GB_ROM gb_rom_values_fre[] = {
         .textBorderHeight = 1,
         .padding_2 = 0
     },
-    { // FRE_GOLD
-        .language = FRE_ID,
+    { // ITA_GOLD
+        .language = ITA_ID,
         .version = GOLD_ID,
         .generation = 2,
         .method = METHOD_GEN2,
@@ -185,8 +186,8 @@ const struct GB_ROM gb_rom_values_fre[] = {
         .textBorderHeight = 1,
         .padding_2 = 0
     },
-    { // FRE_SILVER
-        .language = FRE_ID,
+    { // ITA_SILVER
+        .language = ITA_ID,
         .version = SILVER_ID,
         .generation = 2,
         .method = METHOD_GEN2,
@@ -231,8 +232,8 @@ const struct GB_ROM gb_rom_values_fre[] = {
         .textBorderHeight = 1,
         .padding_2 = 0
     },
-    { // FRE_CRYSTAL
-        .language = FRE_ID,
+    { // ITA_CRYSTAL
+        .language = ITA_ID,
         .version = CRYSTAL_ID,
         .generation = 2,
         .method = METHOD_GEN2,
@@ -279,4 +280,5 @@ const struct GB_ROM gb_rom_values_fre[] = {
     }
 };
 
-const u16 gb_rom_values_fre_size = static_cast<u16>(sizeof(gb_rom_values_fre) / sizeof(struct GB_ROM));
+const u16 gb_rom_values_ita_size = static_cast<u16>(sizeof(gb_rom_values_ita) / sizeof(struct GB_ROM));
+*/
