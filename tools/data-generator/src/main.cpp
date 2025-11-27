@@ -109,7 +109,7 @@ void generate_payloads_for(uint8_t generation, bool yellow_version, const char *
 
 void test_payloads(const char *full_path)
 {
-    uint8_t buffer[2048]; // 2048 bytes is enough for the payloads
+    uint8_t buffer[4096]; // 4096 bytes is enough for the payloads
     uint8_t reference_payload_buffer[PAYLOAD_SIZE];
     uint8_t reconstructed_payload_buffer[PAYLOAD_SIZE];
     FILE *file;
