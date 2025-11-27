@@ -1,5 +1,5 @@
 #include <tonc.h>
-#include "pccs/typeDefs.h"
+#include "typeDefs.h"
 #include "button_menu.h"
 #include "button_handler.h"
 #include "save_data_manager.h"
