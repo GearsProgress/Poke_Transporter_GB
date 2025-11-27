@@ -175,7 +175,7 @@ clean:
 	@$(MAKE) -C tools/data-generator clean
 	@$(MAKE) -C loader clean
 	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).gba data/ to_compress/
-	@rm text_helper/output.json
+	@rm -f text_helper/output.json
 
 
 
