@@ -45,17 +45,17 @@ void generate_payloads_for(uint8_t generation, bool yellow_version, const char *
     const struct GB_ROM *rom_value_sets[] = {
         gb_rom_values_eng,
         gb_rom_values_fre,
-        //gb_rom_values_ger,
-        //gb_rom_values_ita,
-        //gb_rom_values_spa,
+        gb_rom_values_ger,
+        gb_rom_values_ita,
+        gb_rom_values_spa,
     };
 
     const u16 rom_value_sizes[] = {
         gb_rom_values_eng_size,
         gb_rom_values_fre_size,
-        //gb_rom_values_ger_size,
-        //gb_rom_values_ita_size,
-        //gb_rom_values_spa_size,
+        gb_rom_values_ger_size,
+        gb_rom_values_ita_size,
+        gb_rom_values_spa_size,
     };
 
     const u8 num_elements = sizeof(rom_value_sizes) / sizeof(u16);
@@ -127,17 +127,17 @@ void test_payloads(const char *full_path)
     const struct GB_ROM *rom_value_sets[] = {
         gb_rom_values_eng,
         gb_rom_values_fre,
-        //gb_rom_values_ger,
-        //gb_rom_values_ita,
-        //gb_rom_values_spa,
+        gb_rom_values_ger,
+        gb_rom_values_ita,
+        gb_rom_values_spa,
     };
 
     const u16 rom_value_sizes[] = {
         gb_rom_values_eng_size,
         gb_rom_values_fre_size,
-        //gb_rom_values_ger_size,
-        //gb_rom_values_ita_size,
-        //gb_rom_values_spa_size,
+        gb_rom_values_ger_size,
+        gb_rom_values_ita_size,
+        gb_rom_values_spa_size,
     };
 
     const u8 num_elements = sizeof(rom_value_sizes) / sizeof(u16);
@@ -234,9 +234,9 @@ int main(int argc, char **argv)
 
     generate_gb_rom_value_tables("tools/data-generator/src/gb_rom_values/gb_rom_values_eng.cpp", output_path, "gb_rom_values_eng.bin", gb_rom_values_eng, gb_rom_values_eng_size);
     generate_gb_rom_value_tables("tools/data-generator/src/gb_rom_values/gb_rom_values_fre.cpp", output_path, "gb_rom_values_fre.bin", gb_rom_values_fre, gb_rom_values_fre_size);
-    //generate_gb_rom_value_tables("tools/data-generator/src/gb_rom_values/gb_rom_values_ita.cpp", output_path, "gb_rom_values_ita.bin", gb_rom_values_ita, gb_rom_values_ita_size);
-    //generate_gb_rom_value_tables("tools/data-generator/src/gb_rom_values/gb_rom_values_ger.cpp", output_path, "gb_rom_values_ger.bin", gb_rom_values_ger, gb_rom_values_ger_size);
-    //generate_gb_rom_value_tables("tools/data-generator/src/gb_rom_values/gb_rom_values_spa.cpp", output_path, "gb_rom_values_spa.bin", gb_rom_values_spa, gb_rom_values_spa_size);
+    generate_gb_rom_value_tables("tools/data-generator/src/gb_rom_values/gb_rom_values_ita.cpp", output_path, "gb_rom_values_ita.bin", gb_rom_values_ita, gb_rom_values_ita_size);
+    generate_gb_rom_value_tables("tools/data-generator/src/gb_rom_values/gb_rom_values_ger.cpp", output_path, "gb_rom_values_ger.bin", gb_rom_values_ger, gb_rom_values_ger_size);
+    generate_gb_rom_value_tables("tools/data-generator/src/gb_rom_values/gb_rom_values_spa.cpp", output_path, "gb_rom_values_spa.bin", gb_rom_values_spa, gb_rom_values_spa_size);
 
     generate_and_test_payloads_for(1, false, output_path, "gb_gen1_payloads_RB.bin");
     generate_and_test_payloads_for(1, true, output_path, "gb_gen1_payloads_Y.bin");

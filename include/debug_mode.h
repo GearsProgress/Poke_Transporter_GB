@@ -4,13 +4,13 @@
 #define VERSION "v1.2.0"
 #define PTGB_BUILD_LANGUAGE 2
 
-#define DEBUG_MODE false
+#define DEBUG_MODE true
 
-#define PRINT_LINK_DATA (true && DEBUG_MODE)
+#define PRINT_LINK_DATA (false && DEBUG_MODE)
 #define INSTANT_TEXT_SPEED (false && DEBUG_MODE)
-#define IGNORE_GAME_PAK (false && DEBUG_MODE)
-#define IGNORE_GAME_PAK_SPRITES (true && DEBUG_MODE)
-#define IGNORE_LINK_CABLE (true && DEBUG_MODE)
+#define IGNORE_GAME_PAK (true && DEBUG_MODE)
+#define IGNORE_GAME_PAK_SPRITES (false && DEBUG_MODE)
+#define IGNORE_LINK_CABLE (false && DEBUG_MODE)
 #define IGNORE_MG_E4_FLAGS (true && DEBUG_MODE)
 #define IGNORE_UNRECEIVED_PKMN (true && DEBUG_MODE)
 #define FORCE_TUTORIAL (false && DEBUG_MODE)

@@ -1,6 +1,5 @@
 #include "gb_rom_values/gb_rom_values.h"
 
-/*
 const struct GB_ROM gb_rom_values_spa[] = {
     { // SPA_RED
         .language = SPA_ID,
@@ -281,4 +280,3 @@ const struct GB_ROM gb_rom_values_spa[] = {
 };
 
 const u16 gb_rom_values_spa_size = static_cast<u16>(sizeof(gb_rom_values_spa) / sizeof(struct GB_ROM));
-*/

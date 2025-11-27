@@ -1,5 +1,5 @@
 #include "gb_rom_values/gb_rom_values.h"
-/*
+
 const struct GB_ROM gb_rom_values_ger[] = {
     { // GER_RED
         .language = GER_ID,
@@ -280,4 +280,3 @@ const struct GB_ROM gb_rom_values_ger[] = {
 };
 
 const u16 gb_rom_values_ger_size = static_cast<u16>(sizeof(gb_rom_values_ger) / sizeof(struct GB_ROM));
-*/
