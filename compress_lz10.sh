@@ -1,7 +1,7 @@
 #!/bin/sh
 infile="$1"
 outfile="data/$(basename "$infile" .bin)_lz10.bin"
-if [ "$infile" -nt "$outfile" ]; then
+if [ ! -f "$outfile" ] || [ "$infile" -nt "$outfile" ]; then
     gbalzss e "$infile" "$outfile"
     echo -n "C"
 else
