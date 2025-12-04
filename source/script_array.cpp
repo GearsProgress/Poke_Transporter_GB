@@ -904,7 +904,7 @@ bool run_conditional(int index)
         return true;
 
     case CMD_IS_A_VALID_PKMN:
-        return party_data.box.getNumValid() > 0;
+        return party_data.box.getNumValid() > 0 || DONT_HIDE_INVALID_PKMN;
 
     case CMD_CANCEL_LINK:
         party_data.continue_link(true);
