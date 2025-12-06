@@ -30,8 +30,8 @@ LIBTONC := $(DEVKITPRO)/libtonc
 #---------------------------------------------------------------------------------
 TARGET		:= $(notdir $(CURDIR))_mb
 BUILD		:= build
-SOURCES		:= source source/pccs
-INCLUDES	:= include include/pccs
+SOURCES     := source PCCS/lib/source
+INCLUDES    := include PCCS/lib/include
 DATA		:= data
 MUSIC		:= audio
 GRAPHICS	:= graphics
@@ -175,7 +175,7 @@ clean:
 	@$(MAKE) -C tools/data-generator clean
 	@$(MAKE) -C loader clean
 	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).gba data/ to_compress/
-	@rm text_helper/output.json
+	@rm -f text_helper/output.json
 
 
 
