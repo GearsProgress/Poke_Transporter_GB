@@ -521,7 +521,7 @@ for lang in Languages:
 
 # now generate the cpp file.
 with open(os.curdir + '/source/translated_text.cpp', 'w') as cppFile:
-    cppFile.write("#include \"translated_text.h\"\n#include \"debug_mode.h\"\n#include \"extern_pokemon_data.h\"\n")
+    cppFile.write("#include \"translated_text.h\"\n#include \"debug_mode.h\"\n")
     # generate includes for each language
     for lang in Languages:
         for cat in mainDict[lang.name]:
