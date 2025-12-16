@@ -151,7 +151,17 @@ all: $(BUILD)
 generate_data:
 	mkdir -p data
 	mkdir -p to_compress
-	@env -i "PATH=$(PATH)" $(MAKE) -C tools/payload-generator
+	@env - \
+		PATH="$(PATH)" \
+		TMPDIR=/tmp TMP=/tmp TEMP=/tmp \
+		SYSTEMROOT="$(SYSTEMROOT)" \
+		CC=cc \
+		CXX=c++ \
+		CFLAGS= \
+		CXXFLAGS= \
+		LDFLAGS= \
+		AR=ar \
+		$(MAKE) -C tools/payload-generator
 	@echo
 	@echo "----------------------------------------------------------------"
 	@echo

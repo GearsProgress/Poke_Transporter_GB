@@ -16,12 +16,19 @@ services:
   build:
     image: ptgb-builder:latest
     working_dir: /usr/Poke_Transporter_GB
-    command: tail -F anything
+    command: tail -f /dev/null
+    environment:
+      # Set SSH_AUTH_SOCK inside container only if forwarding is possible
+      - SSH_AUTH_SOCK=/ssh-agent
     volumes:
+      # Mount the project directory (portable)
+      - ${COMPOSE_PROJECT_DIR}:/usr/Poke_Transporter_GB
+
+      # Mount SSH agent only if available (Linux/WSL2)
       - type: bind
-        source: ${SSH_AUTH_SOCK}
-        target: ${SSH_AUTH_SOCK}
-      - type: bind
-        source: ${PWD}
-        target: /usr/Poke_Transporter_GB
+        source: ${SSH_AUTH_SOCK:-}
+        target: /ssh-agent
+        read_only: true
+        # Only mount if SSH_AUTH_SOCK is set
+        consistency: cached
 
