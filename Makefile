@@ -11,10 +11,15 @@ endif
 
 include $(DEVKITARM)/gba_rules
 
+# The directory this makefile is located in.
+# This is relevant when the second stage of this Makefile is called from the build directory.
+MKFILE_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
+
 #---------------------------------------------------------------------------------
 # the LIBGBA path is defined in gba_rules, but we have to define LIBTONC ourselves
 #---------------------------------------------------------------------------------
 LIBTONC := $(DEVKITPRO)/libtonc
+LIBPCCS := $(CURDIR)/PCCS
 
 #---------------------------------------------------------------------------------
 # TARGET is the name of the output
@@ -30,7 +35,7 @@ LIBTONC := $(DEVKITPRO)/libtonc
 #---------------------------------------------------------------------------------
 TARGET		:= $(notdir $(CURDIR))_mb
 BUILD		:= build
-SOURCES     := source PCCS/lib/source
+SOURCES     := source
 INCLUDES    := include PCCS/lib/include
 DATA		:= data
 MUSIC		:= audio
@@ -73,7 +78,7 @@ endif
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
-LIBS	:= -lmm -ltonc -lgba -lc -lgcc -lsysbase
+LIBS	:= -lmm -ltonc -lgba -lc -lgcc -lsysbase -lpccs
 
 
 #---------------------------------------------------------------------------------
@@ -81,7 +86,7 @@ LIBS	:= -lmm -ltonc -lgba -lc -lgcc -lsysbase
 # include and lib.
 # the LIBGBA path should remain in this list if you want to use maxmod
 #---------------------------------------------------------------------------------
-LIBDIRS	:=	$(LIBGBA) $(LIBTONC)
+LIBDIRS	:=	$(LIBGBA) $(LIBTONC) $(LIBPCCS)
 
 #---------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional
@@ -135,7 +140,7 @@ export HFILES := $(addsuffix .h,$(subst .,_,$(BINFILES))) $(PNGFILES:.png=.h)
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-iquote $(CURDIR)/$(dir)) \
 					$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
 					-I$(CURDIR)/$(BUILD) \
-					-I$(CURDIR)/tools/data-generator/include
+					-I$(CURDIR)/tools/payload-generator/include
 
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
@@ -146,11 +151,21 @@ all: $(BUILD)
 generate_data:
 	mkdir -p data
 	mkdir -p to_compress
-	@env -i "PATH=$(PATH)" $(MAKE) -C tools/data-generator
+	@env - \
+		PATH="$(PATH)" \
+		TMPDIR=/tmp TMP=/tmp TEMP=/tmp \
+		SYSTEMROOT="$(SYSTEMROOT)" \
+		CC=cc \
+		CXX=c++ \
+		CFLAGS= \
+		CXXFLAGS= \
+		LDFLAGS= \
+		AR=ar \
+		$(MAKE) -C tools/payload-generator
 	@echo
 	@echo "----------------------------------------------------------------"
 	@echo
-	@tools/data-generator/data-generator to_compress
+	@tools/payload-generator/payload-generator to_compress
 	@python3 text_helper/main.py
 	@echo "Compressing bin files!" 
 	@echo -n "["
@@ -164,6 +179,12 @@ generate_data:
 #---------------------------------------------------------------------------------
 $(BUILD): generate_data
 	@[ -d $@ ] || mkdir -p $@
+	@$(MAKE) -C PCCS \
+		CC="$(CC)" \
+		CXX="$(CXX)" \
+		CFLAGS="$(CFLAGS)" \
+		CXXFLAGS="$(CXXFLAGS)" \
+		LDFLAGS="$(LDFLAGS)"
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 	@mkdir -p loader/data
 	@cp $(TARGET).gba loader/data/multiboot_rom.bin
@@ -172,8 +193,9 @@ $(BUILD): generate_data
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@$(MAKE) -C tools/data-generator clean
+	@$(MAKE) -C tools/payload-generator clean
 	@$(MAKE) -C loader clean
+	@$(MAKE) -C PCCS clean
 	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).gba data/ to_compress/
 	@rm -f text_helper/output.json
 
