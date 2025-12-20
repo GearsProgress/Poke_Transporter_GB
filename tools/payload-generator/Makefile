@@ -18,7 +18,7 @@ define make_directory
 endef
 
 # Target executable
-TARGET := data-generator
+TARGET := payload-generator
 
 # Phony targets
 .PHONY: all clean
