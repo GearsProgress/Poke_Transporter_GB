@@ -298,7 +298,7 @@ def split_into_sentences(text: str) -> list[str]:
     return sentences
 
 class Languages(Enum):
-    ##Japanese = 0
+    Japanese = 0
     English = 1
     ##French = 2
     ##German = 3
