@@ -298,13 +298,13 @@ def split_into_sentences(text: str) -> list[str]:
     return sentences
 
 class Languages(Enum):
-    Japanese = 0
+    ##Japanese = 0
     English = 1
-    French = 2
-    German = 3
-    Italian = 4
-    SpanishEU = 5
-    SpanishLA = 6
+    ##French = 2
+    ##German = 3
+    ##Italian = 4
+    ##SpanishEU = 5
+    ##SpanishLA = 6
 
 # read by default 1st sheet of an excel file
 dir = os.curdir + "/text_helper"
