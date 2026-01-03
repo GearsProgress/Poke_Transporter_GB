@@ -1,7 +1,7 @@
 #ifndef DEBUG_MODE_H
 #define DEBUG_MODE_H
 
-#define VERSION "v1.3.0b"
+#define VERSION "v1.2.1"
 #define PTGB_BUILD_LANGUAGE 2
 
 #define DEBUG_MODE true
