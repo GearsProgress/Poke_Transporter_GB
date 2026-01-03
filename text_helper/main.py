@@ -300,11 +300,11 @@ def split_into_sentences(text: str) -> list[str]:
 class Languages(Enum):
     Japanese = 0
     English = 1
-    French = 2
-    German = 3
-    Italian = 4
-    SpanishEU = 5
-    SpanishLA = 6
+    ##French = 2
+    ##German = 3
+    ##Italian = 4
+    ##SpanishEU = 5
+    ##SpanishLA = 6
 
 # read by default 1st sheet of an excel file
 dir = os.curdir + "/text_helper"
@@ -521,7 +521,7 @@ for lang in Languages:
 
 # now generate the cpp file.
 with open(os.curdir + '/source/translated_text.cpp', 'w') as cppFile:
-    cppFile.write("#include \"translated_text.h\"\n#include \"debug_mode.h\"\n#include \"extern_pokemon_data.h\"\n")
+    cppFile.write("#include \"translated_text.h\"\n#include \"debug_mode.h\"\n")
     # generate includes for each language
     for lang in Languages:
         for cat in mainDict[lang.name]:
