@@ -16,6 +16,8 @@
 #include "background_engine.h"
 #include "sprite_data.h"
 #include "text_data_table.h"
+#include "libraries/Pokemon-Gen3-to-Gen-X/include/save.h"
+#include "flash_mem.h"
 
 #define DATA_PER_PACKET 8
 #define PACKET_DATA_START 2
@@ -90,6 +92,9 @@ byte data_packet[PACKET_SIZE];
 // Just update it if you changed the struct members. The data-generator process prints their actual sizes.
 static_assert(sizeof(struct GB_ROM) == 136);
 static_assert(sizeof(struct ROM_DATA) == 160);
+
+int link_cable_array_index = 0;
+int link_cable_memory_section_index = 0;
 
 void print(const char *format, ...)
 {
@@ -318,14 +323,14 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
     if (in != 0xFD)
     {
       state = box_data;
-      return exchange_boxes(in, box_data_storage, curr_gb_rom);
+      return exchange_boxes(in, box_data_storage, curr_gb_rom, debug_charset);
     }
     return in;
   }
 
   else if (state == box_data)
   {
-    return exchange_boxes(in, box_data_storage, curr_gb_rom);
+    return exchange_boxes(in, box_data_storage, curr_gb_rom, debug_charset);
   }
 
   else if (state == reboot)
@@ -405,6 +410,19 @@ int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, PokeBo
       create_textbox(0, 0, 125, 80, false);
       ptgb_write_debug(debug_charset, *stuff, true);
     }
+    else if (WRITE_CABLE_DATA_TO_SAVE)
+    {
+      global_memory_buffer[link_cable_array_index] = in_data;
+      link_cable_array_index++;
+      global_memory_buffer[link_cable_array_index] = out_data;
+      link_cable_array_index++;
+      if (link_cable_array_index >= 0x1000)
+      {
+        copy_ram_to_save(&global_memory_buffer[0], 0x1000 * link_cable_memory_section_index, 0x1000);
+        link_cable_memory_section_index++;
+        link_cable_array_index = link_cable_array_index % 0x1000;
+      }
+    }
 
     out_data = handleIncomingByte(in_data, box_data_storage, curr_payload, curr_gb_rom, box, debug_charset, cancel_connection);
 
@@ -424,6 +442,14 @@ int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, PokeBo
     if (state == end1)
     {
       state = reboot;
+      if (WRITE_CABLE_DATA_TO_SAVE)
+      {
+        for (int i = 0; i < 16; i++)
+        {
+          global_memory_buffer[(link_cable_array_index + i) % 0x1000] = 0xAA;
+        }
+        copy_ram_to_save(&global_memory_buffer[0], 0x1000 * link_cable_memory_section_index, 0x1000);
+      }
       return 0;
     }
 
@@ -458,13 +484,8 @@ byte exchange_parties(byte curr_in, byte *curr_payload)
   return ret;
 };
 
-byte exchange_boxes(byte curr_in, byte *box_data_storage, GB_ROM *curr_gb_rom)
+byte exchange_boxes(byte curr_in, byte *box_data_storage, GB_ROM *curr_gb_rom, const u16 *debug_charset)
 {
-  if (SHOW_DATA_PACKETS)
-  {
-    tte_erase_rect(0, 0, H_MAX, V_MAX);
-    tte_set_pos(8, 8);
-  }
   data_packet[packet_index] = curr_in;
   if (packet_index == PACKET_SIZE - 1)
   {
@@ -482,30 +503,12 @@ byte exchange_boxes(byte curr_in, byte *box_data_storage, GB_ROM *curr_gb_rom)
     {
       received_offset = (data_packet[PACKET_LOCATION_LOWER] | (data_packet[PACKET_LOCATION_UPPER] << 8)) - ((curr_gb_rom->wBoxDataStart & 0xFFFF) + DATA_PER_PACKET);
     }
-    if (SHOW_DATA_PACKETS)
-    {
-      ptgb_write("P: ");
-      ptgb_write(ptgb::to_string(data_packet[0]));
-      ptgb_write("\n");
-      for (int i = 0; i < DATA_PER_PACKET; i++)
-      {
-        ptgb_write(ptgb::to_string(i));
-        ptgb_write(": ");
-        ptgb_write(ptgb::to_string(data_packet[PACKET_DATA_AT(i)]));
-        ptgb_write(" [");
-        ptgb_write(ptgb::to_string(data_packet[PACKET_FLAG_AT(i)]));
-        ptgb_write("]\n");
-      }
-      ptgb_write(ptgb::to_string(checksum));
-      ptgb_write(" = ");
-      ptgb_write(ptgb::to_string(data_packet[PACKET_CHECKSUM]));
-    }
 
     if (checksum == data_packet[PACKET_CHECKSUM] && !init_packet && !(test_packet_fail && received_offset == 128)) // Verify if the data matches the checksum
     {
       for (int i = 0; i < DATA_PER_PACKET; i++)
       {
-        if (received_offset + i <= curr_gb_rom->box_data_size)
+        if (received_offset + i <= curr_gb_rom->box_data_size && received_offset + i >= 0)
         {
           box_data_storage[received_offset + i] = data_packet[PACKET_DATA_AT(i)];
         }
@@ -534,19 +537,15 @@ byte exchange_boxes(byte curr_in, byte *box_data_storage, GB_ROM *curr_gb_rom)
       end_of_data = true;
     }
 
-    if (SHOW_DATA_PACKETS)
-    {
-      ptgb_write("\nNO: ");
-      ptgb_write(ptgb::to_string(next_offset));
-      ptgb_write("\nFP: ");
-      ptgb_write(ptgb::to_string(failed_packet));
-    }
-
     if (!init_packet)
     {
       if (failed_packet)
       {
         next_offset -= DATA_PER_PACKET;
+        if (next_offset < 0)
+        {
+          next_offset = 0;
+        }
         failed_packet = false;
       }
       else
@@ -559,12 +558,67 @@ byte exchange_boxes(byte curr_in, byte *box_data_storage, GB_ROM *curr_gb_rom)
       next_offset -= 1; // Set back the offset if the byte sent would be 0xFE, since that would break the system
     }
 
+#define ROW_LENGTH 22
+#define COLUMN_LENGTH 3 + DATA_PER_PACKET
     if (SHOW_DATA_PACKETS)
     {
-      ptgb_write("\nRO: ");
-      ptgb_write(ptgb::to_string(received_offset));
-      ptgb_write("\nIP: ");
-      ptgb_write(ptgb::to_string(init_packet));
+      char outArr[COLUMN_LENGTH][ROW_LENGTH];
+      for (int col = 0; col < COLUMN_LENGTH; col++)
+      {
+        for (int row = 0; row < ROW_LENGTH; row++)
+        {
+          if (row == ROW_LENGTH - 1 && col == COLUMN_LENGTH - 1)
+          {
+            outArr[col][row] = '\0';
+          }
+          else if (row == ROW_LENGTH - 1)
+          {
+            outArr[col][row] = '\n';
+          }
+          else
+          {
+            outArr[col][row] = ' ';
+          }
+        }
+      }
+      int currRow = 0;
+
+      strcpy(&outArr[currRow][0], "Checksum: ");
+      outArr[currRow][10] = ' ';
+      n2hexstr(&outArr[currRow][11], checksum, 2);
+      strcpy(&outArr[currRow][13], " = ");
+      n2hexstr(&outArr[currRow][16], data_packet[PACKET_CHECKSUM], 2);
+      outArr[currRow][18] = ' ';
+      currRow += 1;
+
+      for (int i = 0; i < DATA_PER_PACKET; i++)
+      {
+        outArr[currRow][0] = 'P';
+        n2hexstr(&outArr[currRow][1], i, 1);
+        strcpy(&outArr[currRow][2], ": ");
+        n2hexstr(&outArr[currRow][4], data_packet[PACKET_DATA_AT(i)], 2);
+        strcpy(&outArr[currRow][6], " (");
+        n2hexstr(&outArr[currRow][8], data_packet[PACKET_FLAG_AT(i)], 2);
+        outArr[currRow][10] = ')';
+        currRow += 1;
+      }
+
+      strcpy(&outArr[currRow][0], "RO: ");
+      n2hexstr(&outArr[currRow][4], received_offset, 4);
+      strcpy(&outArr[currRow][8], "  FP: ");
+      n2hexstr(&outArr[currRow][14], failed_packet, 2);
+      outArr[currRow][16] = ' ';
+      currRow += 1;
+
+      strcpy(&outArr[currRow][0], "NO: ");
+      n2hexstr(&outArr[currRow][4], next_offset, 4);
+      strcpy(&outArr[currRow][8], "  IP: ");
+      n2hexstr(&outArr[currRow][14], init_packet, 2);
+      outArr[currRow][16] = ' ';
+
+      create_textbox(0, 0, 125, 110, false);
+      link_animation_state(0);
+      ptgb_write_debug(debug_charset, *outArr, true);
 
       while (!key_held(KEY_A))
       {
