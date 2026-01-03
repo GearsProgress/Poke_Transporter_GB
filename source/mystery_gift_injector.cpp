@@ -78,21 +78,6 @@ bool inject_mystery(PokeBox* box)
     erase_sector(memory_section_array[4]);
     copy_ram_to_save(&global_memory_buffer[0], memory_section_array[4], 0x1000);
 
-    if (WRITE_CABLE_DATA_TO_SAVE)
-    {
-        for (int i = 0; i < 1122; i++)
-        {
-            // global_memory_buffer[i] = incoming_box_data.box_data_array[i];
-            while(true){}
-            // This is currently not possible(?)
-        }
-        for (int i = 0; i < 0x1000 - 1122; i++)
-        {
-            global_memory_buffer[i + 1122] = 0xAA;
-        }
-        copy_ram_to_save(&global_memory_buffer[0], 0x0000, 0x1000);
-    }
-
     // Set flags
     int memory_section = 1 + ((curr_GBA_rom.offset_flags + (curr_GBA_rom.unused_flag_start / 8)) / 0xF80); // This sets the correct memory section, since flags stretch between section 1 and 2.
     copy_save_to_ram(memory_section_array[memory_section], &global_memory_buffer[0], 0x1000);

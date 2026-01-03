@@ -598,7 +598,10 @@ byte exchange_remove_array(byte curr_in, PokeBox *box, bool cancel_connection)
     if (box->getGen3Pokemon(i)->isValid && !cancel_connection)
     {
       box->removePokemon(i);
-      return i;
+      if (!(DONT_TRANSFER_POKEMON_AT_INDEX_X && i == POKEMON_INDEX_TO_SKIP))
+      {
+        return i;
+      }
     }
   }
   return 0xFF;
