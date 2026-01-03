@@ -13,6 +13,7 @@
 #include "gb_gen1_payloads_Y_lz10_bin.h"
 #include "gb_gen2_payloads_lz10_bin.h"
 #include "save_data_manager.h"
+#include "libraries/Pokemon-Gen3-to-Gen-X/include/save.h"
 
 static byte gen1_rb_debug_box_data[0x462] = {
 	// Num of Pokemon
@@ -152,7 +153,8 @@ static byte gen2_debug_box_data[0x44E] = {
 	0x92, 0x87, 0x94, 0x82, 0x8A, 0x8B, 0x84, 0x50, 0x50, 0x50, 0x50,
 	0x92, 0x87, 0x94, 0x82, 0x8A, 0x8B, 0x84, 0x50, 0x50, 0x50, 0x50};
 
-Pokemon_Party::Pokemon_Party() {
+Pokemon_Party::Pokemon_Party()
+{
 	box.setTable(&table);
 };
 
@@ -183,6 +185,19 @@ void Pokemon_Party::start_link()
 
 		last_error = loop(&box_data_array[0], current_payload, &curr_gb_rom, &box, debug_charset, false);
 		box.loadData(curr_gb_rom.generation, (Language)curr_gb_rom.language, box_data_array);
+
+		if (WRITE_CABLE_DATA_TO_SAVE)
+		{
+			for (int i = 0; i < 1122; i++)
+			{
+				global_memory_buffer[i] = box_data_array[i];
+			}
+			for (int i = 0; i < 0x1000 - 1122; i++)
+			{
+				global_memory_buffer[i + 1122] = 0xAA;
+			}
+			copy_ram_to_save(&global_memory_buffer[0], 0x0000, 0x1000);
+		}
 	}
 }
 

@@ -963,7 +963,7 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
 #if PAYLOAD_EXPORT_TEST
 #include <cstdio>
 #include "gb_rom_values/gb_rom_values.h"
-int main() // Rename to "main" to send the payload to test_payload.txt
+int main()
 {
     byte buffer[672] = {0};
     freopen("test_payload.txt", "w", stdout);
