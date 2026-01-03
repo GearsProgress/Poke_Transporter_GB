@@ -4,7 +4,7 @@
 #define VERSION "v1.2.1"
 #define PTGB_BUILD_LANGUAGE 2
 
-#define DEBUG_MODE true
+#define DEBUG_MODE false
 
 #define PRINT_LINK_DATA (false && DEBUG_MODE)
 #define INSTANT_TEXT_SPEED (false && DEBUG_MODE)
