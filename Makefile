@@ -34,6 +34,7 @@ LIBPCCS := $(CURDIR)/PCCS
 #
 #---------------------------------------------------------------------------------
 TARGET		:= $(notdir $(CURDIR))_mb
+LOADERNAME  := $(notdir $(CURDIR))_standalone
 BUILD		:= build
 SOURCES     := source
 INCLUDES    := include PCCS/lib/include
@@ -189,6 +190,7 @@ $(BUILD): generate_data
 	@mkdir -p loader/data
 	@cp $(TARGET).gba loader/data/multiboot_rom.bin
 	@$(MAKE) -C loader
+	@cp loader/loader.gba $(LOADERNAME).gba
 
 #---------------------------------------------------------------------------------
 clean:
@@ -196,7 +198,7 @@ clean:
 	@$(MAKE) -C tools/payload-generator clean
 	@$(MAKE) -C loader clean
 	@$(MAKE) -C PCCS clean
-	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).gba data/ to_compress/
+	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).gba $(LOADERNAME).gba data/ to_compress/
 	@rm -f text_helper/output.json
 
 
