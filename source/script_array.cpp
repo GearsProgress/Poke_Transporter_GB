@@ -26,75 +26,75 @@ Box_Menu box_viewer;
 // Check that the conditions are set for the transfer
 // T_SCRIPT_START
 // COND_TUTORIAL_COMPLETE
-// DIA_OPEN
+// PTGB_DIA_OPEN
 // CMD_SET_TUTOR_TRUE
 // COND_BEAT_E4
-// DIA_E4
+// PTGB_DIA_E4
 // COND_MG_ENABLED
 // COND_IS_FRLGE
-// DIA_MG_FRLGE
-// DIA_MG_RS
+// PTGB_DIA_MG_FRLGE
+// PTGB_DIA_MG_RS
 // COND_MG_OTHER_EVENT
 // COND_PKMN_TO_COLLECT
-// DIA_MG_OTHER_EVENT
-// DIA_PKMN_TO_COLLECT
+// PTGB_DIA_MG_OTHER_EVENT
+// PTGB_DIA_PKMN_TO_COLLECT
 //
 // Ask the user what game and language they're using
-// DIA_WHAT_GAME_TRANS
+// PTGB_DIA_WHAT_GAME_TRANS
 // CMD_GAME_MENU
-// DIA_WHAT_LANG_TRANS
+// PTGB_DIA_WHAT_LANG_TRANS
 // CMD_LANG_MENU
-// DIA_ASK_QUEST
+// PTGB_DIA_ASK_QUEST
 // CMD_SLIDE_PROF_LEFT
 // CMD_SLIDE_PROF_RIGHT
 // COND_GB_ROM_EXISTS
-// DIA_NO_GB_ROM
-// DIA_MENU_BACK
+// PTGB_DIA_NO_GB_ROM
+// PTGB_DIA_MENU_BACK
 //
 // Initiate the transfer and check for errors
-// DIA_LETS_START
-// DIA_START
+// PTGB_DIA_LETS_START
+// PTGB_DIA_START
 // CMD_START_LINK
 // COND_ERROR_TIMEOUT_ONE
-// DIA_ERROR_TIME_ONE
+// PTGB_DIA_ERROR_TIME_ONE
 // COND_ERROR_TIMEOUT_TWO
-// DIA_ERROR_TIME_TWO
+// PTGB_DIA_ERROR_TIME_TWO
 // COND_ERROR_COM_ENDED
-// DIA_ERROR_COM_ENDED
+// PTGB_DIA_ERROR_COM_ENDED
 // COND_ERROR_COLOSSEUM
-// DIA_ERROR_COLOSSEUM
+// PTGB_DIA_ERROR_COLOSSEUM
 // COND_ERROR_DISCONNECT
-// DIA_ERROR_DISCONNECT
+// PTGB_DIA_ERROR_DISCONNECT
 //
 // Pause the transfer and show the user their box data
 // CMD_IS_A_VALID_PKMN
-// DIA_NO_VALID_PKMN
+// PTGB_DIA_NO_VALID_PKMN
 // COND_SOME_INVALID_PKMN
-// DIA_SOME_INVALID_PKMN
+// PTGB_DIA_SOME_INVALID_PKMN
 // COND_CHECK_MYTHIC
-// DIA_MYTHIC_CONVERT
+// PTGB_DIA_MYTHIC_CONVERT
 // CMD_MYTHIC_MENU
 // COND_CHECK_MISSINGNO
-// DIA_IS_MISSINGNO
-// DIA_IN_BOX
+// PTGB_DIA_IS_MISSINGNO
+// PTGB_DIA_IN_BOX
 // CMD_BOX_MENU
-// DIA_CANCEL
+// PTGB_DIA_CANCEL
 // CMD_IMPORT_POKEMON
 // CMD_CONTINUE_LINK
 // CMD_CANCEL_LINK
 // CMD_END_MISSINGNO
 //
 // Complete the transfer and give messages based on the transfered Pokemon
-// DIA_TRANS_GOOD
+// PTGB_DIA_TRANS_GOOD
 // COND_NEW_POKEMON
-// DIA_NEW_DEX
-// DIA_NO_NEW_DEX
+// PTGB_DIA_NEW_DEX
+// PTGB_DIA_NO_NEW_DEX
 // COND_IS_HOENN_RS
 // COND_IS_HOENN_E
-// DIA_SEND_FRIEND_HOENN_RS
-// DIA_SEND_FRIEND_HOENN_E
-// DIA_SEND_FRIEND_KANTO
-// DIA_THANK
+// PTGB_DIA_SEND_FRIEND_HOENN_RS
+// PTGB_DIA_SEND_FRIEND_HOENN_E
+// PTGB_DIA_SEND_FRIEND_KANTO
+// PTGB_DIA_THANK
 //
 // Hide the dialogue and professor
 // CMD_END_SCRIPT
@@ -104,184 +104,184 @@ Box_Menu box_viewer;
 // So if adding a new dia, command or condition, make sure to add it in the right position/index.
 // defining it this way does not generate an expensive function. It's all stored as read-only data in EWRAM.
 const script_obj_params transfer_script_params[SCRIPT_SIZE] = {
-    // DIA_OPEN
+    // PTGB_DIA_OPEN
     {
-        .text_entry_index = DIA_OPEN,
+        .text_entry_index = PTGB_DIA_OPEN,
         .next_if_true = CMD_SET_TUTOR_TRUE
     },
-    // DIA_E4
+    // PTGB_DIA_E4
     {
-        .text_entry_index = DIA_E4,
+        .text_entry_index = PTGB_DIA_E4,
         .next_if_true = CMD_END_SCRIPT
     },
-    // DIA_MG_FRLGE
+    // PTGB_DIA_MG_FRLGE
     {
-        .text_entry_index = DIA_MG_FRLGE,
+        .text_entry_index = PTGB_DIA_MG_FRLGE,
         .next_if_true = CMD_END_SCRIPT
     },
-    // DIA_MG_RS
+    // PTGB_DIA_MG_RS
     {
-        .text_entry_index = DIA_MG_RS,
+        .text_entry_index = PTGB_DIA_MG_RS,
         .next_if_true = CMD_END_SCRIPT
     },
-    // DIA_LETS_START
+    // PTGB_DIA_LETS_START
     {
-        .text_entry_index = DIA_LETS_START,
-        .next_if_true = DIA_START
+        .text_entry_index = PTGB_DIA_LETS_START,
+        .next_if_true = PTGB_DIA_START
     },
-    // DIA_START
+    // PTGB_DIA_START
     {
-        .text_entry_index = DIA_START,
+        .text_entry_index = PTGB_DIA_START,
         .next_if_true = CMD_START_LINK
     },
-    // DIA_TRANS_GOOD
+    // PTGB_DIA_TRANS_GOOD
     {
-        .text_entry_index = DIA_TRANS_GOOD,
+        .text_entry_index = PTGB_DIA_TRANS_GOOD,
         .next_if_true = COND_NEW_POKEMON
     },
-    // DIA_NEW_DEX
+    // PTGB_DIA_NEW_DEX
     {
-        .text_entry_index = DIA_NEW_DEX,
+        .text_entry_index = PTGB_DIA_NEW_DEX,
         .next_if_true = COND_IS_HOENN_RS
     },
-    // DIA_NO_NEW_DEX
+    // PTGB_DIA_NO_NEW_DEX
     {
-        .text_entry_index = DIA_NO_NEW_DEX,
+        .text_entry_index = PTGB_DIA_NO_NEW_DEX,
         .next_if_true = COND_IS_HOENN_RS
     },
-    // DIA_SEND_FRIEND_KANTO
+    // PTGB_DIA_SEND_FRIEND_KANTO
     {
-        .text_entry_index = DIA_SEND_FRIEND_KANTO,
-        .next_if_true = DIA_THANK
+        .text_entry_index = PTGB_DIA_SEND_FRIEND_KANTO,
+        .next_if_true = PTGB_DIA_THANK
     },
-    // DIA_SEND_FRIEND_HOENN_RS
+    // PTGB_DIA_SEND_FRIEND_HOENN_RS
     {
-        .text_entry_index = DIA_SEND_FRIEND_HOENN_RS,
-        .next_if_true = DIA_THANK
+        .text_entry_index = PTGB_DIA_SEND_FRIEND_HOENN_RS,
+        .next_if_true = PTGB_DIA_THANK
     },
-    // DIA_SEND_FRIEND_HOENN_E
+    // PTGB_DIA_SEND_FRIEND_HOENN_E
     {
-        .text_entry_index = DIA_SEND_FRIEND_HOENN_E,
-        .next_if_true = DIA_THANK
+        .text_entry_index = PTGB_DIA_SEND_FRIEND_HOENN_E,
+        .next_if_true = PTGB_DIA_THANK
     },
-    // DIA_THANK
+    // PTGB_DIA_THANK
     {
-        .text_entry_index = DIA_THANK,
+        .text_entry_index = PTGB_DIA_THANK,
         .next_if_true = CMD_END_SCRIPT
     },
-    // DIA_GET_MON (unused)
+    // PTGB_DIA_GET_MON (unused)
     {
-        .text_entry_index = DIA_GET_MON,
+        .text_entry_index = PTGB_DIA_GET_MON,
         .next_if_true = CMD_END_SCRIPT
     },
-    // DIA_MG_OTHER_EVENT
+    // PTGB_DIA_MG_OTHER_EVENT
     {
-        .text_entry_index = DIA_MG_OTHER_EVENT,
-        .next_if_true = DIA_ASK_QUEST
+        .text_entry_index = PTGB_DIA_MG_OTHER_EVENT,
+        .next_if_true = PTGB_DIA_ASK_QUEST
     },
-    // DIA_PKMN_TO_COLLECT
+    // PTGB_DIA_PKMN_TO_COLLECT
     {
-        .text_entry_index = DIA_PKMN_TO_COLLECT,
+        .text_entry_index = PTGB_DIA_PKMN_TO_COLLECT,
         .next_if_true = CMD_END_SCRIPT
     },
-    // DIA_NO_VALID_PKMN
+    // PTGB_DIA_NO_VALID_PKMN
     {
-        .text_entry_index = DIA_NO_VALID_PKMN,
+        .text_entry_index = PTGB_DIA_NO_VALID_PKMN,
         .next_if_true = CMD_CANCEL_LINK
     },
-    // DIA_ASK_QUEST
+    // PTGB_DIA_ASK_QUEST
     {
-        .text_entry_index = DIA_ASK_QUEST,
+        .text_entry_index = PTGB_DIA_ASK_QUEST,
         .next_if_true = CMD_SLIDE_PROF_LEFT
     },
-    // DIA_WHAT_GAME_TRANS
+    // PTGB_DIA_WHAT_GAME_TRANS
     {
-        .text_entry_index = DIA_WHAT_GAME_TRANS,
+        .text_entry_index = PTGB_DIA_WHAT_GAME_TRANS,
         .next_if_true = CMD_GAME_MENU
     },
-    // DIA_WHAT_LANG_TRANS
+    // PTGB_DIA_WHAT_LANG_TRANS
     {
-        .text_entry_index = DIA_WHAT_LANG_TRANS,
+        .text_entry_index = PTGB_DIA_WHAT_LANG_TRANS,
         .next_if_true = CMD_LANG_MENU
     },
-    // DIA_NO_GB_ROM
+    // PTGB_DIA_NO_GB_ROM
     {
-        .text_entry_index = DIA_NO_GB_ROM,
-        .next_if_true = DIA_WHAT_LANG_TRANS
+        .text_entry_index = PTGB_DIA_NO_GB_ROM,
+        .next_if_true = PTGB_DIA_WHAT_LANG_TRANS
     },
-    // DIA_IN_BOX
+    // PTGB_DIA_IN_BOX
     {
-        .text_entry_index = DIA_IN_BOX,
+        .text_entry_index = PTGB_DIA_IN_BOX,
         .next_if_true = CMD_BOX_MENU
     },
-    // DIA_MYTHIC_CONVERT
+    // PTGB_DIA_MYTHIC_CONVERT
     {
-        .text_entry_index = DIA_MYTHIC_CONVERT,
+        .text_entry_index = PTGB_DIA_MYTHIC_CONVERT,
         .next_if_true = CMD_MYTHIC_MENU
     },
-    // DIA_CANCEL
+    // PTGB_DIA_CANCEL
     {
-        .text_entry_index = DIA_CANCEL,
+        .text_entry_index = PTGB_DIA_CANCEL,
         .next_if_true = CMD_CANCEL_LINK
     },
-    // DIA_SOME_INVALID_PKMN
+    // PTGB_DIA_SOME_INVALID_PKMN
     {
-        .text_entry_index = DIA_SOME_INVALID_PKMN,
+        .text_entry_index = PTGB_DIA_SOME_INVALID_PKMN,
         .next_if_true = COND_CHECK_MYTHIC
     },
-    // DIA_MENU_BACK
+    // PTGB_DIA_MENU_BACK
     {
-        .text_entry_index = DIA_MENU_BACK,
+        .text_entry_index = PTGB_DIA_MENU_BACK,
         .next_if_true = CMD_END_SCRIPT
     },
-    // DIA_IS_MISSINGNO
+    // PTGB_DIA_IS_MISSINGNO
     {
-        .text_entry_index = DIA_IS_MISSINGNO,
-        .next_if_true = DIA_IN_BOX
+        .text_entry_index = PTGB_DIA_IS_MISSINGNO,
+        .next_if_true = PTGB_DIA_IN_BOX
     },
-    // DIA_ERROR_COLOSSEUM
+    // PTGB_DIA_ERROR_COLOSSEUM
     {
-        .text_entry_index = DIA_ERROR_COLOSSEUM,
-        .next_if_true = DIA_START
+        .text_entry_index = PTGB_DIA_ERROR_COLOSSEUM,
+        .next_if_true = PTGB_DIA_START
     },
-    // DIA_ERROR_COM_ENDED
+    // PTGB_DIA_ERROR_COM_ENDED
     {
-        .text_entry_index = DIA_ERROR_COM_ENDED,
-        .next_if_true = DIA_START
+        .text_entry_index = PTGB_DIA_ERROR_COM_ENDED,
+        .next_if_true = PTGB_DIA_START
     },
-    // DIA_ERROR_DISCONNECT
+    // PTGB_DIA_ERROR_DISCONNECT
     {
-        .text_entry_index = DIA_ERROR_DISCONNECT,
-        .next_if_true = DIA_START
+        .text_entry_index = PTGB_DIA_ERROR_DISCONNECT,
+        .next_if_true = PTGB_DIA_START
     },
-    // DIA_ERROR_TIME_ONE
+    // PTGB_DIA_ERROR_TIME_ONE
     {
-        .text_entry_index = DIA_ERROR_TIME_ONE,
-        .next_if_true = DIA_START
+        .text_entry_index = PTGB_DIA_ERROR_TIME_ONE,
+        .next_if_true = PTGB_DIA_START
     },
-    // DIA_ERROR_TIME_TWO
+    // PTGB_DIA_ERROR_TIME_TWO
     {
-        .text_entry_index = DIA_ERROR_TIME_TWO,
-        .next_if_true = DIA_START
+        .text_entry_index = PTGB_DIA_ERROR_TIME_TWO,
+        .next_if_true = PTGB_DIA_START
     },
-    // DIA_WHAT_LANG_EVENT
+    // PTGB_DIA_WHAT_LANG_EVENT
     {
-        .text_entry_index = DIA_WHAT_LANG_EVENT,
+        .text_entry_index = PTGB_DIA_WHAT_LANG_EVENT,
         .next_if_true = CMD_LANG_MENU
     },
-    // DIA_WHAT_GAME_EVENT
+    // PTGB_DIA_WHAT_GAME_EVENT
     {
-        .text_entry_index = DIA_WHAT_GAME_EVENT,
+        .text_entry_index = PTGB_DIA_WHAT_GAME_EVENT,
         .next_if_true = CMD_GAME_MENU
     },
-    // DIA_K_DEX_NOT_FULL
+    // PTGB_DIA_K_DEX_NOT_FULL
     {
-        .text_entry_index = DIA_K_DEX_NOT_FULL,
+        .text_entry_index = PTGB_DIA_K_DEX_NOT_FULL,
         .next_if_true = CMD_END_SCRIPT
     },
-    // DIA_J_DEX_NOT_FULL
+    // PTGB_DIA_J_DEX_NOT_FULL
     {
-        .text_entry_index = DIA_J_DEX_NOT_FULL,
+        .text_entry_index = PTGB_DIA_J_DEX_NOT_FULL,
         .next_if_true = CMD_END_SCRIPT
     },
     // T_SCRIPT_START
@@ -292,7 +292,7 @@ const script_obj_params transfer_script_params[SCRIPT_SIZE] = {
     // E_SCRIPT_START
     {
         .conditional_index = CMD_SHOW_PROF,
-        .next_if_true = DIA_ASK_QUEST
+        .next_if_true = PTGB_DIA_ASK_QUEST
     },
     // CMD_START_LINK
     {
@@ -330,23 +330,23 @@ const script_obj_params transfer_script_params[SCRIPT_SIZE] = {
     {
         .conditional_index = CMD_GAME_MENU,
         .next_if_true = COND_GB_ROM_EXISTS,
-        .next_if_false = DIA_WHAT_LANG_TRANS
+        .next_if_false = PTGB_DIA_WHAT_LANG_TRANS
     },
     // CMD_LANG_MENU
     {
         .conditional_index = CMD_LANG_MENU,
-        .next_if_true = DIA_WHAT_GAME_TRANS,
-        .next_if_false = DIA_CANCEL
+        .next_if_true = PTGB_DIA_WHAT_GAME_TRANS,
+        .next_if_false = PTGB_DIA_CANCEL
     },
     // CMD_SLIDE_PROF_LEFT
     {
         .conditional_index = CMD_SLIDE_PROF_LEFT,
-        .next_if_true = DIA_WHAT_LANG_TRANS
+        .next_if_true = PTGB_DIA_WHAT_LANG_TRANS
     },
     // CMD_SLIDE_PROF_RIGHT
     {
         .conditional_index = CMD_SLIDE_PROF_RIGHT,
-        .next_if_true = DIA_LETS_START
+        .next_if_true = PTGB_DIA_LETS_START
     },
     // CMD_CONTINUE_LINK
     {
@@ -357,7 +357,7 @@ const script_obj_params transfer_script_params[SCRIPT_SIZE] = {
     {
         .conditional_index = CMD_BOX_MENU,
         .next_if_true = CMD_IMPORT_POKEMON,
-        .next_if_false = DIA_CANCEL
+        .next_if_false = PTGB_DIA_CANCEL
     },
     // CMD_MYTHIC_MENU
     {
@@ -368,7 +368,7 @@ const script_obj_params transfer_script_params[SCRIPT_SIZE] = {
     {
         .conditional_index = CMD_IS_A_VALID_PKMN,
         .next_if_true = COND_SOME_INVALID_PKMN,
-        .next_if_false = DIA_NO_VALID_PKMN
+        .next_if_false = PTGB_DIA_NO_VALID_PKMN
     },
     // CMD_CANCEL_LINK
     {
@@ -378,43 +378,43 @@ const script_obj_params transfer_script_params[SCRIPT_SIZE] = {
     // CMD_END_MISSINGNO
     {
         .conditional_index = CMD_END_MISSINGNO,
-        .next_if_true = DIA_TRANS_GOOD
+        .next_if_true = PTGB_DIA_TRANS_GOOD
     },
     // COND_ERROR_TIMEOUT_ONE
     {
         .conditional_index = COND_ERROR_TIMEOUT_ONE,
         .next_if_true = COND_ERROR_TIMEOUT_TWO,
-        .next_if_false = DIA_ERROR_TIME_ONE
+        .next_if_false = PTGB_DIA_ERROR_TIME_ONE
     },
     // COND_ERROR_DISCONNECT
     {
         .conditional_index = COND_ERROR_DISCONNECT,
         .next_if_true = CMD_IS_A_VALID_PKMN,
-        .next_if_false = DIA_ERROR_DISCONNECT
+        .next_if_false = PTGB_DIA_ERROR_DISCONNECT
     },
     // COND_ERROR_COM_ENDED
     {
         .conditional_index = COND_ERROR_COM_ENDED,
         .next_if_true = COND_ERROR_COLOSSEUM,
-        .next_if_false = DIA_ERROR_COM_ENDED
+        .next_if_false = PTGB_DIA_ERROR_COM_ENDED
     },
     // COND_ERROR_TIMEOUT_TWO
     {
         .conditional_index = COND_ERROR_TIMEOUT_TWO,
         .next_if_true = COND_ERROR_COM_ENDED,
-        .next_if_false = DIA_ERROR_TIME_TWO
+        .next_if_false = PTGB_DIA_ERROR_TIME_TWO
     },
     // COND_ERROR_COLOSSEUM
     {
         .conditional_index = COND_ERROR_COLOSSEUM,
         .next_if_true = COND_ERROR_DISCONNECT,
-        .next_if_false = DIA_ERROR_COLOSSEUM
+        .next_if_false = PTGB_DIA_ERROR_COLOSSEUM
     },
     // COND_BEAT_E4
     {
         .conditional_index = COND_BEAT_E4,
         .next_if_true = COND_MG_ENABLED,
-        .next_if_false = DIA_E4
+        .next_if_false = PTGB_DIA_E4
     },
     // COND_MG_ENABLED
     {
@@ -426,48 +426,48 @@ const script_obj_params transfer_script_params[SCRIPT_SIZE] = {
     {
         .conditional_index = COND_TUTORIAL_COMPLETE,
         .next_if_true = COND_BEAT_E4,
-        .next_if_false = DIA_OPEN
+        .next_if_false = PTGB_DIA_OPEN
     },
     // COND_NEW_POKEMON
     {
         .conditional_index = COND_NEW_POKEMON,
-        .next_if_true = DIA_NEW_DEX,
-        .next_if_false = DIA_NO_NEW_DEX
+        .next_if_true = PTGB_DIA_NEW_DEX,
+        .next_if_false = PTGB_DIA_NO_NEW_DEX
     },
     // COND_IS_HOENN_RS
     {
         .conditional_index = COND_IS_HOENN_RS,
-        .next_if_true = DIA_SEND_FRIEND_HOENN_RS,
+        .next_if_true = PTGB_DIA_SEND_FRIEND_HOENN_RS,
         .next_if_false = COND_IS_HOENN_E
     },
     // COND_IS_FRLGE
     {
         .conditional_index = COND_IS_FRLGE,
-        .next_if_true = DIA_MG_FRLGE,
-        .next_if_false = DIA_MG_RS
+        .next_if_true = PTGB_DIA_MG_FRLGE,
+        .next_if_false = PTGB_DIA_MG_RS
     },
     // COND_MG_OTHER_EVENT
     {
         .conditional_index = COND_MG_OTHER_EVENT,
-        .next_if_true = DIA_MG_OTHER_EVENT,
+        .next_if_true = PTGB_DIA_MG_OTHER_EVENT,
         .next_if_false = COND_PKMN_TO_COLLECT
     },
     // COND_PKMN_TO_COLLECT
     {
         .conditional_index = COND_PKMN_TO_COLLECT,
-        .next_if_true = DIA_PKMN_TO_COLLECT,
-        .next_if_false = DIA_ASK_QUEST
+        .next_if_true = PTGB_DIA_PKMN_TO_COLLECT,
+        .next_if_false = PTGB_DIA_ASK_QUEST
     },
     // COND_GB_ROM_EXISTS
     {
         .conditional_index = COND_GB_ROM_EXISTS,
         .next_if_true = CMD_SLIDE_PROF_RIGHT,
-        .next_if_false = DIA_NO_GB_ROM
+        .next_if_false = PTGB_DIA_NO_GB_ROM
     },
     // COND_CHECK_MYTHIC
     {
         .conditional_index = COND_CHECK_MYTHIC,
-        .next_if_true = DIA_MYTHIC_CONVERT,
+        .next_if_true = PTGB_DIA_MYTHIC_CONVERT,
         .next_if_false = COND_CHECK_MISSINGNO
     },
     // COND_CHECK_DEX
@@ -479,26 +479,26 @@ const script_obj_params transfer_script_params[SCRIPT_SIZE] = {
     // COND_CHECK_KANTO
     {
         .conditional_index = COND_CHECK_KANTO,
-        .next_if_true = DIA_K_DEX_NOT_FULL,
-        .next_if_false = DIA_J_DEX_NOT_FULL
+        .next_if_true = PTGB_DIA_K_DEX_NOT_FULL,
+        .next_if_false = PTGB_DIA_J_DEX_NOT_FULL
     },
     // COND_SOME_INVALID_PKMN
     {
         .conditional_index = COND_SOME_INVALID_PKMN,
-        .next_if_true = DIA_SOME_INVALID_PKMN,
+        .next_if_true = PTGB_DIA_SOME_INVALID_PKMN,
         .next_if_false = COND_CHECK_MYTHIC
     },
     // COND_IS_HOENN_E
     {
         .conditional_index = COND_IS_HOENN_E,
-        .next_if_true = DIA_SEND_FRIEND_HOENN_E,
-        .next_if_false = DIA_SEND_FRIEND_KANTO
+        .next_if_true = PTGB_DIA_SEND_FRIEND_HOENN_E,
+        .next_if_false = PTGB_DIA_SEND_FRIEND_KANTO
     },
     // COND_CHECK_MISSINGNO
     {
         .conditional_index = COND_CHECK_MISSINGNO,
-        .next_if_true = DIA_IS_MISSINGNO,
-        .next_if_false = DIA_IN_BOX
+        .next_if_true = PTGB_DIA_IS_MISSINGNO,
+        .next_if_false = PTGB_DIA_IN_BOX
     }
 };
 
@@ -506,24 +506,24 @@ const script_obj_params transfer_script_params[SCRIPT_SIZE] = {
 // -------- EVENTS SCRIPT --------
 // Start the dialogue and show the menu
 // E_SCRIPT_START
-// DIA_ASK_QUEST
+// PTGB_DIA_ASK_QUEST
 //
 // Ask the user what game and language they're using
-// DIA_WHAT_GAME_EVENT
+// PTGB_DIA_WHAT_GAME_EVENT
 // CMD_GAME_MENU
-// DIA_WHAT_LANG_EVENT
+// PTGB_DIA_WHAT_LANG_EVENT
 // CMD_LANG_MENU
-// DIA_ASK_QUEST
+// PTGB_DIA_ASK_QUEST
 // CMD_SLIDE_PROF_LEFT
 // CMD_SLIDE_PROF_RIGHT
 // COND_GB_ROM_EXISTS
-// DIA_NO_GB_ROM
+// PTGB_DIA_NO_GB_ROM
 //
 // Check the player's dex
 // COND_CHECK_DEX
 // COND_CHECK_KANTO
-// DIA_K_DEX_NOT_FULL
-// DIA_J_DEX_NOT_FULL
+// PTGB_DIA_K_DEX_NOT_FULL
+// PTGB_DIA_J_DEX_NOT_FULL
 //
 // Hide the dialogue and professor
 // CMD_END_SCRIPT
@@ -535,71 +535,71 @@ const script_obj_params transfer_script_params[SCRIPT_SIZE] = {
 // defining it this way does not generate an expensive function. It's all stored as read-only data in EWRAM.
 // Although frankly given the small amount of defined entries, we ARE wasting a lot of space with this one. (probably around 500 bytes)
 const script_obj_params event_script_params[SCRIPT_SIZE] = {
-    {}, // DIA_OPEN
-    {}, // DIA_E4
-    {}, // DIA_MG_FRLGE
-    {}, // DIA_MG_RS
-    {}, // DIA_LETS_START
-    {}, // DIA_START
-    {}, // DIA_TRANS_GOOD
-    {}, // DIA_NEW_DEX
-    {}, // DIA_NO_NEW_DEX
-    {}, // DIA_SEND_FRIEND_KANTO
-    {}, // DIA_SEND_FRIEND_HOENN_RS
-    {}, // DIA_SEND_FRIEND_HOENN_E
-    {}, // DIA_THANK
-    {}, // DIA_GET_MON
-    {}, // DIA_MG_OTHER_EVENT
-    {}, // DIA_PKMN_TO_COLLECT
-    {}, // DIA_NO_VALID_PKMN
-    // DIA_ASK_QUEST
+    {}, // PTGB_DIA_OPEN
+    {}, // PTGB_DIA_E4
+    {}, // PTGB_DIA_MG_FRLGE
+    {}, // PTGB_DIA_MG_RS
+    {}, // PTGB_DIA_LETS_START
+    {}, // PTGB_DIA_START
+    {}, // PTGB_DIA_TRANS_GOOD
+    {}, // PTGB_DIA_NEW_DEX
+    {}, // PTGB_DIA_NO_NEW_DEX
+    {}, // PTGB_DIA_SEND_FRIEND_KANTO
+    {}, // PTGB_DIA_SEND_FRIEND_HOENN_RS
+    {}, // PTGB_DIA_SEND_FRIEND_HOENN_E
+    {}, // PTGB_DIA_THANK
+    {}, // PTGB_DIA_GET_MON
+    {}, // PTGB_DIA_MG_OTHER_EVENT
+    {}, // PTGB_DIA_PKMN_TO_COLLECT
+    {}, // PTGB_DIA_NO_VALID_PKMN
+    // PTGB_DIA_ASK_QUEST
     {
-        .text_entry_index = DIA_ASK_QUEST,
+        .text_entry_index = PTGB_DIA_ASK_QUEST,
         .next_if_true = CMD_SLIDE_PROF_LEFT
     },
-    {}, // DIA_WHAT_GAME_TRANS
-    {}, // DIA_WHAT_LANG_TRANS
-    // DIA_NO_GB_ROM
+    {}, // PTGB_DIA_WHAT_GAME_TRANS
+    {}, // PTGB_DIA_WHAT_LANG_TRANS
+    // PTGB_DIA_NO_GB_ROM
     {
-        .text_entry_index = DIA_NO_GB_ROM,
-        .next_if_true = DIA_WHAT_LANG_EVENT
+        .text_entry_index = PTGB_DIA_NO_GB_ROM,
+        .next_if_true = PTGB_DIA_WHAT_LANG_EVENT
     },
-    {}, // DIA_IN_BOX
-    {}, // DIA_MYTHIC_CONVERT
-    {}, // DIA_CANCEL
-    {}, // DIA_SOME_INVALID_PKMN
-    {}, // DIA_MENU_BACK
-    {}, // DIA_IS_MISSINGNO
-    {}, // DIA_ERROR_COLOSSEUM
-    {}, // DIA_ERROR_COM_ENDED
-    {}, // DIA_ERROR_DISCONNECT
-    {}, // DIA_ERROR_TIME_ONE
-    {}, // DIA_ERROR_TIME_TWO
-    // DIA_WHAT_LANG_EVENT
+    {}, // PTGB_DIA_IN_BOX
+    {}, // PTGB_DIA_MYTHIC_CONVERT
+    {}, // PTGB_DIA_CANCEL
+    {}, // PTGB_DIA_SOME_INVALID_PKMN
+    {}, // PTGB_DIA_MENU_BACK
+    {}, // PTGB_DIA_IS_MISSINGNO
+    {}, // PTGB_DIA_ERROR_COLOSSEUM
+    {}, // PTGB_DIA_ERROR_COM_ENDED
+    {}, // PTGB_DIA_ERROR_DISCONNECT
+    {}, // PTGB_DIA_ERROR_TIME_ONE
+    {}, // PTGB_DIA_ERROR_TIME_TWO
+    // PTGB_DIA_WHAT_LANG_EVENT
     {
-        .text_entry_index = DIA_WHAT_LANG_EVENT,
+        .text_entry_index = PTGB_DIA_WHAT_LANG_EVENT,
         .next_if_true = CMD_LANG_MENU
     },
-    // DIA_WHAT_GAME_EVENT
+    // PTGB_DIA_WHAT_GAME_EVENT
     {
-        .text_entry_index = DIA_WHAT_GAME_EVENT,
+        .text_entry_index = PTGB_DIA_WHAT_GAME_EVENT,
         .next_if_true = CMD_GAME_MENU
     },
-    // DIA_K_DEX_NOT_FULL
+    // PTGB_DIA_K_DEX_NOT_FULL
     {
-        .text_entry_index = DIA_K_DEX_NOT_FULL,
+        .text_entry_index = PTGB_DIA_K_DEX_NOT_FULL,
         .next_if_true = CMD_END_SCRIPT
     },
-    // DIA_J_DEX_NOT_FULL
+    // PTGB_DIA_J_DEX_NOT_FULL
     {
-        .text_entry_index = DIA_J_DEX_NOT_FULL,
+        .text_entry_index = PTGB_DIA_J_DEX_NOT_FULL,
         .next_if_true = CMD_END_SCRIPT
     },
     {}, // T_SCRIPT_START
     // E_SCRIPT_START
     {
         .conditional_index = CMD_SHOW_PROF,
-        .next_if_true = DIA_ASK_QUEST
+        .next_if_true = PTGB_DIA_ASK_QUEST
     },
     {}, // CMD_START_LINK
     {}, // CMD_IMPORT_POKEMON
@@ -620,17 +620,17 @@ const script_obj_params event_script_params[SCRIPT_SIZE] = {
     {
         .conditional_index = CMD_GAME_MENU,
         .next_if_true = COND_GB_ROM_EXISTS,
-        .next_if_false = DIA_WHAT_LANG_EVENT
+        .next_if_false = PTGB_DIA_WHAT_LANG_EVENT
     },
     // CMD_LANG_MENU
     {
         .conditional_index = CMD_LANG_MENU,
-        .next_if_true = DIA_WHAT_GAME_EVENT
+        .next_if_true = PTGB_DIA_WHAT_GAME_EVENT
     },
     // CMD_SLIDE_PROF_LEFT
     {
         .conditional_index = CMD_SLIDE_PROF_LEFT,
-        .next_if_true = DIA_WHAT_LANG_EVENT
+        .next_if_true = PTGB_DIA_WHAT_LANG_EVENT
     },
     // CMD_SLIDE_PROF_RIGHT
     {
@@ -660,7 +660,7 @@ const script_obj_params event_script_params[SCRIPT_SIZE] = {
     {
         .conditional_index = COND_GB_ROM_EXISTS,
         .next_if_true = CMD_SLIDE_PROF_RIGHT,
-        .next_if_false = DIA_NO_GB_ROM
+        .next_if_false = PTGB_DIA_NO_GB_ROM
     },
     {}, // COND_CHECK_MYTHIC
     // COND_CHECK_DEX
@@ -672,8 +672,8 @@ const script_obj_params event_script_params[SCRIPT_SIZE] = {
     // COND_CHECK_KANTO
     {
         .conditional_index = COND_CHECK_KANTO,
-        .next_if_true = DIA_K_DEX_NOT_FULL,
-        .next_if_false = DIA_J_DEX_NOT_FULL
+        .next_if_true = PTGB_DIA_K_DEX_NOT_FULL,
+        .next_if_false = PTGB_DIA_J_DEX_NOT_FULL
     },
     {}, // COND_SOME_INVALID_PKMN
     {}, // COND_IS_HOENN_E

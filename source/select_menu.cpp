@@ -106,7 +106,7 @@ void Select_Menu::show_menu()
 {
     u8 decompression_buffer[2048];
     text_data_table text_data(decompression_buffer);
-    text_data.decompress(get_compressed_general_table());
+    text_data.decompress(get_compressed_GENERAL_table());
 
     add_menu_box(menu_options.size(), startTileX, startTileY);
     for (unsigned int i = 0; i < menu_options.size(); i++)

@@ -19,7 +19,7 @@ void multiboot_upload_screen()
 	text_data_table general_text(general_text_table_buffer);
 	LinkCableMultiboot linkCableMultiboot;
 
-	general_text.decompress(get_compressed_general_table());
+	general_text.decompress(get_compressed_GENERAL_table());
 
 	multiboot_show_textbox();
 	ptgb_write(general_text.get_text_entry(GENERAL_send_multiboot_instructions), true);

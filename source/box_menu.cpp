@@ -36,7 +36,7 @@ int Box_Menu::box_main(PokeBox* box)
     obj_unhide(box_select, 0);
     int index = 0;
 
-    PKMN_NAMES.decompress(get_compressed_pkmn_names_table());
+    PKMN_NAMES.decompress(get_compressed_PKMN_NAMES_table());
 
     while (true)
     {

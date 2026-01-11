@@ -169,7 +169,7 @@ void setup(const u16 *debug_charset)
     u8 general_text_table_buffer[2048];
     text_data_table general_text(general_text_table_buffer);
 
-    general_text.decompress(get_compressed_general_table());
+    general_text.decompress(get_compressed_GENERAL_table());
     ptgb_write(general_text.get_text_entry(GENERAL_connecting), true);
   }
 }
@@ -228,7 +228,7 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
         u8 general_text_table_buffer[2048];
         text_data_table general_text(general_text_table_buffer);
 
-        general_text.decompress(get_compressed_general_table());
+        general_text.decompress(get_compressed_GENERAL_table());
         ptgb_write(general_text.get_text_entry(curr_gb_rom->version != YELLOW_ID ? GENERAL_link_success : GENERAL_link_success_yellow), true);
       }
 
@@ -280,7 +280,7 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
         u8 general_text_table_buffer[2048];
         text_data_table general_text(general_text_table_buffer);
 
-        general_text.decompress(get_compressed_general_table());
+        general_text.decompress(get_compressed_GENERAL_table());
         ptgb_write(general_text.get_text_entry(GENERAL_transferring), true);
       }
 

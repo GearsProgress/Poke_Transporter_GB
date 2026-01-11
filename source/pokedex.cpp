@@ -41,7 +41,7 @@ static void load_text_entry_into_buffer(text_data_table& data_table, u8 *output_
 static void load_general_table_text_entries(u8 *decompression_buffer, u8 *kanto_buffer, u8 *johto_buffer)
 {
     text_data_table data_table(decompression_buffer);
-    data_table.decompress(get_compressed_general_table());
+    data_table.decompress(get_compressed_GENERAL_table());
 
     load_text_entry_into_buffer(data_table, kanto_buffer, GENERAL_kanto_name);
     load_text_entry_into_buffer(data_table, johto_buffer, GENERAL_johto_name);
@@ -105,7 +105,7 @@ int pokedex_loop()
     load_general_table_text_entries(decompression_buffer, kanto_name, johto_name);
 
     text_data_table PKMN_NAMES(decompression_buffer);
-    PKMN_NAMES.decompress(get_compressed_pkmn_names_table());
+    PKMN_NAMES.decompress(get_compressed_PKMN_NAMES_table());
 
     pokedex_init();
     pokedex_show();
