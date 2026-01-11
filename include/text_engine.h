@@ -15,6 +15,10 @@
 #define INK_ROM_COLOR 14
 #define INK_DARK_GREY 13
 
+#define SCRIPT_DEBUG 0 
+#define SCRIPT_TRANSFER 1
+#define SCRIPT_EVENT 2
+
 void init_text_engine();
 int text_loop(int script);
 int text_next_obj_id(script_obj current_line);

@@ -317,16 +317,22 @@ int credits()
 	}
 };
 
-#define NUM_MENU_OPTIONS 3
-
 int main_menu_loop()
 {
+#if ENABLE_TEXT_DEBUG_SCREEN
+#define NUM_MENU_OPTIONS 4
+	const uint8_t menu_options[NUM_MENU_OPTIONS] = {GENERAL_option_transfer, GENERAL_option_dreamdex, GENERAL_option_credits, GENERAL_option_text_debug};
+	int return_values[NUM_MENU_OPTIONS] = {BTN_TRANSFER, BTN_POKEDEX, BTN_CREDITS, BTN_TEXT_DEBUG};
+#else
+#define NUM_MENU_OPTIONS 3
+	const uint8_t menu_options[NUM_MENU_OPTIONS] = {GENERAL_option_transfer, GENERAL_option_dreamdex, GENERAL_option_credits};
+	int return_values[NUM_MENU_OPTIONS] = {BTN_TRANSFER, BTN_POKEDEX, BTN_CREDITS};
+#endif
+
 	uint8_t general_text_table_buffer[2048];
 	text_data_table general_text(general_text_table_buffer);
 	bool update = true;
-	const uint8_t menu_options[NUM_MENU_OPTIONS] = {GENERAL_option_transfer, GENERAL_option_dreamdex, GENERAL_option_credits};
 	const uint8_t *text_entry;
-	int return_values[NUM_MENU_OPTIONS] = {BTN_TRANSFER, BTN_POKEDEX, BTN_CREDITS};
 	u16 test = 0;
 
 	general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
@@ -380,8 +386,8 @@ int main_menu_loop()
 	}
 }
 
-// Legal mumbo jumbo
-static void show_legal_text(const u8* intro_text)
+// Legal stuff
+static void show_legal_text(const u8 *intro_text)
 {
 	tte_set_margins(8, 8, H_MAX - 8, V_MAX - 8);
 	tte_set_pos(8, 8);
@@ -535,7 +541,7 @@ int main(void)
 			tte_set_ink(INK_DARK_GREY);
 			obj_hide_multi(ptgb_logo_l, 2);
 			load_flex_background(BG_FENNEL, 3);
-			text_loop(BTN_TRANSFER);
+			text_loop(SCRIPT_TRANSFER);
 			break;
 		case (BTN_POKEDEX):
 			if (get_tutorial_flag())
@@ -560,7 +566,13 @@ int main(void)
 			break;
 		case (BTN_EVENTS):
 			obj_hide_multi(ptgb_logo_l, 2);
-			text_loop(BTN_EVENTS);
+			text_loop(SCRIPT_EVENT);
+			break;
+		case (BTN_TEXT_DEBUG):
+			tte_set_ink(INK_DARK_GREY);
+			REG_BG1CNT = (REG_BG1CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
+			obj_hide_multi(ptgb_logo_l, 2);
+			text_loop(SCRIPT_DEBUG);
 			break;
 		default:
 			global_next_frame();

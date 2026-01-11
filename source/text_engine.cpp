@@ -11,6 +11,7 @@
 #include "latin_short.h"
 #include "japanese_small.h"
 #include "text_data_table.h"
+#include "background_engine.h"
 
 #define TEXT_CBB 0
 #define TEXT_SBB 10
@@ -28,7 +29,7 @@ bool text_exit;
 // Doing it this way does mean that we need to completely restart decompression whenever we switch from dialog entry.
 // but given that it requires user input to do so, I believe it's worth it and not time-critical.
 // attribute noinline was used to make sure the compiler doesn't inline this code back into text_loop()
-static __attribute__((noinline)) const u8* read_dialogue_text_entry(uint8_t index, u8 *output_buffer)
+static __attribute__((noinline)) const u8 *read_dialogue_text_entry(uint8_t index, u8 *output_buffer)
 {
     u8 text_decompression_buffer[6144];
     const u8 *text_entry;
@@ -36,6 +37,21 @@ static __attribute__((noinline)) const u8* read_dialogue_text_entry(uint8_t inde
     text_data_table dialogue_table(text_decompression_buffer);
 
     dialogue_table.decompress(get_compressed_text_table(PTGB_INDEX));
+
+    text_entry = dialogue_table.get_text_entry(index);
+    memcpy(output_buffer, text_entry, dialogue_table.get_text_entry_size(index));
+
+    return output_buffer;
+}
+
+static __attribute__((noinline)) const u8 *read_dialogue_text_entry(uint8_t index, uint8_t text_section, u8 *output_buffer)
+{
+    u8 text_decompression_buffer[6144];
+    const u8 *text_entry;
+
+    text_data_table dialogue_table(text_decompression_buffer);
+
+    dialogue_table.decompress(get_compressed_text_table(text_section));
 
     text_entry = dialogue_table.get_text_entry(index);
     memcpy(output_buffer, text_entry, dialogue_table.get_text_entry_size(index));
@@ -82,51 +98,148 @@ int text_loop(int script)
     u8 diag_entry_text_buffer[1024];
     switch (script)
     {
-    case BTN_TRANSFER:
+    case SCRIPT_DEBUG:
+        curr_line = transfer_script_params[0];
+        break;
+
+    case SCRIPT_TRANSFER:
         curr_line = transfer_script_params[T_SCRIPT_START];
         break;
 
-    case BTN_EVENTS:
+    case SCRIPT_EVENT:
         curr_line = event_script_params[E_SCRIPT_START];
         break;
     }
 
     curr_text = (curr_line.has_text()) ? read_dialogue_text_entry(curr_line.get_text_entry_index(), diag_entry_text_buffer) : NULL;
 
-    REG_BG1CNT = (REG_BG1CNT && !BG_PRIO_MASK) | BG_PRIO(2); // Show Fennel
-    show_text_box();
     // tte_set_margins(LEFT, TOP, RIGHT, BOTTOM);
-    while (true) // This loops through all the connected script objects
+    if (script != SCRIPT_DEBUG)
     {
-        if (curr_text != NULL && curr_text[char_index] != 0xFF && curr_text[char_index] != 0xFB)
+        REG_BG1CNT = (REG_BG1CNT && !BG_PRIO_MASK) | BG_PRIO(2); // Show Fennel
+        show_text_box();
+        while (true) // This loops through all the connected script objects
         {
-            tte_set_pos(LEFT, TOP);
-            tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
-            ptgb_write(curr_text, char_index);
+            if (curr_text != NULL && curr_text[char_index] != 0xFF && curr_text[char_index] != 0xFB)
+            {
+                tte_set_pos(LEFT, TOP);
+                tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
+                ptgb_write(curr_text, false);
+            }
+
+            wait_for_user_to_continue(false);
+
+            line_char_index = 0;
+            switch (script)
+            {
+            case BTN_TRANSFER:
+                curr_line = transfer_script_params[text_next_obj_id(curr_line)];
+                break;
+            case BTN_EVENTS:
+                curr_line = event_script_params[text_next_obj_id(curr_line)];
+                break;
+            }
+
+            curr_text = (curr_line.has_text()) ? read_dialogue_text_entry(curr_line.get_text_entry_index(), diag_entry_text_buffer) : NULL;
+            char_index = 0;
+
+            if (text_exit)
+            {
+                hide_text_box();
+                tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
+                text_exit = false;
+                return 0;
+            }
         }
+    }
+    else // Debug script loop
+    {
+        u16 debug_charset[256];
+        load_localized_charset(debug_charset, 3, ENGLISH);
 
-        wait_for_user_to_continue(false);
-
-        line_char_index = 0;
-        switch (script)
+        int text_section = 0;
+        int text_identifier = 0;
+        while (true)
         {
-        case BTN_TRANSFER:
-            curr_line = transfer_script_params[text_next_obj_id(curr_line)];
-            break;
-        case BTN_EVENTS:
-            curr_line = event_script_params[text_next_obj_id(curr_line)];
-            break;
-        }
+            bool exit = false;
+            bool update_text = true;
+            key_poll();
+            while (!exit)
+            {
+                if (key_hit(KEY_LEFT))
+                {
+                    text_identifier = (text_identifier + (text_section_lengths[text_section] - 1)) % text_section_lengths[text_section];
+                    update_text = true;
+                }
+                else if (key_hit(KEY_RIGHT))
+                {
+                    text_identifier = (text_identifier + 1) % text_section_lengths[text_section];
+                    update_text = true;
+                }
+                else if (key_hit(KEY_UP))
+                {
+                    text_section = (text_section + 1) % NUM_TEXT_SECTIONS;
+                    update_text = true;
+                }
+                else if (key_hit(KEY_DOWN))
+                {
+                    text_section = (text_section + (NUM_TEXT_SECTIONS - 1)) % NUM_TEXT_SECTIONS;
+                    update_text = true;
+                }
+                else if (key_hit(KEY_START))
+                {
+                    exit = true;
+                }
+                if (update_text)
+                {
+                    if (text_identifier > text_section_lengths[text_section])
+                    {
+                        text_identifier = text_section_lengths[text_section];
+                    }
+                    if (text_section > NUM_TEXT_SECTIONS)
+                    {
+                        text_section = NUM_TEXT_SECTIONS;
+                    }
+                    tte_set_pos(0, 0);
+                    tte_erase_rect(0, 0, 240, 160);
+                    ptgb_write_debug(debug_charset, "(", true);
+                    ptgb_write_debug(debug_charset, ptgb::to_string(text_section), true);
+                    ptgb_write_debug(debug_charset, ", ", true);
+                    ptgb_write_debug(debug_charset, ptgb::to_string(text_identifier), true);
+                    ptgb_write_debug(debug_charset, ")", true);
+                    update_text = false;
+                }
+                global_next_frame();
+            }
 
-        curr_text = (curr_line.has_text()) ? read_dialogue_text_entry(curr_line.get_text_entry_index(), diag_entry_text_buffer) : NULL;
-        char_index = 0;
+            line_char_index = 0;
+            curr_text = read_dialogue_text_entry(text_identifier, text_section, diag_entry_text_buffer);
+            char_index = 0;
 
-        if (text_exit)
-        {
+            if (curr_text != NULL && curr_text[char_index] != 0xFF && curr_text[char_index] != 0xFB)
+            {
+                if (text_section == PTGB_INDEX)
+                {
+                    reset_textbox();
+                }
+                else
+                {
+                    create_textbox(4, 1, 160, 80, true);
+                }
+                show_text_box();
+                tte_erase_rect(0, 0, 240, 160);
+                ptgb_write(curr_text, true);
+            }
+
+            wait_for_user_to_continue(false);
+            update_text = true;
             hide_text_box();
-            tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
-            text_exit = false;
-            return 0;
+
+            if (text_exit)
+            {
+                text_exit = false;
+                return 0;
+            }
         }
     }
 }
@@ -184,15 +297,15 @@ int ptgb_write(const byte *text, bool instant, int length)
     TFont *font;
     int num = 0;
 
-/*
-    if (curr_text[char_index] == 0xFB) // This will need to be moved
-    {
-        line_char_index += char_index;
-        line_char_index++;
-        // Low key kinda scuffed, but it works to split the string
-        curr_text = &curr_line.get_text()[line_char_index];
-    }
-*/
+    /*
+        if (curr_text[char_index] == 0xFB) // This will need to be moved
+        {
+            line_char_index += char_index;
+            line_char_index++;
+            // Low key kinda scuffed, but it works to split the string
+            curr_text = &curr_line.get_text()[line_char_index];
+        }
+    */
     while ((ch = *str) != 0xFF && num < length)
     {
         if (get_frame_count() % 2 == 0 || key_held(KEY_B) || key_held(KEY_A) || instant)
@@ -253,7 +366,7 @@ int ptgb_write(const byte *text, bool instant, int length)
     return 0; // str - text;
 }
 // This is mostly used for debug stuff, I shouldn't rely it on it much.
-int ptgb_write_debug(const u16* charset, const char *text, bool instant)
+int ptgb_write_debug(const u16 *charset, const char *text, bool instant)
 {
     byte temp_holding[256];
     int i;
@@ -296,6 +409,7 @@ void wait_for_user_to_continue(bool clear_text)
             fennel_speak(0);
         }
     }
+    key_poll();
     while (!(key_hit(KEY_A) || key_hit(KEY_B) || curr_text == NULL))
     {
         global_next_frame();

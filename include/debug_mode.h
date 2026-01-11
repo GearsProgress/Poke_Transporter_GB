@@ -2,9 +2,9 @@
 #define DEBUG_MODE_H
 
 #define VERSION "v1.2.1"
-#define PTGB_BUILD_LANGUAGE 2
+#define PTGB_BUILD_LANGUAGE ENGLISH
 
-#define DEBUG_MODE false
+#define DEBUG_MODE true
 
 #define PRINT_LINK_DATA (false && DEBUG_MODE)
 #define INSTANT_TEXT_SPEED (false && DEBUG_MODE)
@@ -24,6 +24,7 @@
 #define PAYLOAD_EXPORT_TEST (false && DEBUG_MODE)
 #define DONT_TRANSFER_POKEMON_AT_INDEX_X (false && DEBUG_MODE)
 #define POKEMON_INDEX_TO_SKIP 5
+#define ENABLE_TEXT_DEBUG_SCREEN (true && DEBUG_MODE)
 
 #define DEBUG_GAME EMERALD_ID
 #define DEBUG_VERS VERS_1_0
