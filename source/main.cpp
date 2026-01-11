@@ -147,7 +147,7 @@ void game_load_error(void)
 		u8 general_text_table_buffer[2048];
 		text_data_table general_text(general_text_table_buffer);
 
-		general_text.decompress(get_compressed_GENERAL_table());
+		general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
 		ptgb_write(general_text.get_text_entry(GENERAL_cart_load_error), true);
 	}
 
@@ -189,7 +189,7 @@ void first_load_message(void)
 		u8 general_text_table_buffer[2048];
 		text_data_table general_text(general_text_table_buffer);
 
-		general_text.decompress(get_compressed_GENERAL_table());
+		general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
 		ptgb_write(general_text.get_text_entry(GENERAL_intro_first), true);
 	}
 
@@ -206,7 +206,7 @@ int credits()
 	text_data_table credits_text_table(text_decompression_buffer);
 	int curr_credits_num = 0;
 
-	credits_text_table.decompress(get_compressed_CREDITS_table());
+	credits_text_table.decompress(get_compressed_text_table(CREDITS_INDEX));
 	bool update = true;
 
 	global_next_frame();
@@ -329,7 +329,7 @@ int main_menu_loop()
 	int return_values[NUM_MENU_OPTIONS] = {BTN_TRANSFER, BTN_POKEDEX, BTN_CREDITS};
 	u16 test = 0;
 
-	general_text.decompress(get_compressed_GENERAL_table());
+	general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
 
 	while (true)
 	{
@@ -429,7 +429,7 @@ static void __attribute__((noinline)) show_intro()
 	text_data_table general_text(general_text_table_buffer);
 	const u8 *text_entry;
 
-	general_text.decompress(get_compressed_GENERAL_table());
+	general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
 
 	text_entry = general_text.get_text_entry(GENERAL_press_start);
 	press_start_text_length = get_string_length(text_entry);

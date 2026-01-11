@@ -27,7 +27,7 @@ static void __attribute__((noinline)) show_pulled_cart_error()
     u8 general_text_table_buffer[2048];
     text_data_table general_text(general_text_table_buffer);
 
-    general_text.decompress(get_compressed_GENERAL_table());
+    general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
     ptgb_write(general_text.get_text_entry(GENERAL_pulled_cart_error), true);
 }
 

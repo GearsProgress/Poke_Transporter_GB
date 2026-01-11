@@ -35,7 +35,7 @@ static __attribute__((noinline)) const u8* read_dialogue_text_entry(uint8_t inde
 
     text_data_table dialogue_table(text_decompression_buffer);
 
-    dialogue_table.decompress(get_compressed_PTGB_table());
+    dialogue_table.decompress(get_compressed_text_table(PTGB_INDEX));
 
     text_entry = dialogue_table.get_text_entry(index);
     memcpy(output_buffer, text_entry, dialogue_table.get_text_entry_size(index));
