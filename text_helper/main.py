@@ -9,17 +9,19 @@ import copy
 import math
 import sys
 import filecmp
+from pathlib import Path
 
 update = True
 
 print ("Running text_helper:")
+BASE_DIR = Path(__file__).resolve().parent
 
 if (update == True):
 
     url = 'https://docs.google.com/spreadsheets/d/14LLs5lLqWasFcssBmJdGXjjYxARAJBa_QUOUhXZt4v8/export?format=xlsx'
-    new_file_path = 'text_helper/new_text.xlsx'
-    old_file_path = 'text_helper/text.xlsx'
-    json_file_path = 'text_helper/output.json'
+    new_file_path = BASE_DIR / 'new_text.xlsx'
+    old_file_path = BASE_DIR / 'text.xlsx'
+    json_file_path = BASE_DIR / 'output.json'
     no_file = False
 
     try:
@@ -27,7 +29,7 @@ if (update == True):
         response.raise_for_status()
         if response.status_code == 200:
             with open(new_file_path, 'wb') as file:
-                file.write(response.content)
+                    file.write(response.content)
             print('File downloaded successfully')
     except requests.exceptions.ReadTimeout as errrt:
         if os.path.exists(old_file_path):
@@ -300,11 +302,11 @@ def split_into_sentences(text: str) -> list[str]:
 class Languages(Enum):
     Japanese = 0
     English = 1
-    ##French = 2
-    ##German = 3
-    ##Italian = 4
-    ##SpanishEU = 5
-    ##SpanishLA = 6
+    French = 2
+    German = 3
+    Italian = 4
+    SpanishEU = 5
+    SpanishLA = 6
 
 # read by default 1st sheet of an excel file
 dir = os.curdir + "/text_helper"
@@ -426,8 +428,10 @@ def write_text_bin_file(filename, dictionary):
             current_offset += len(linedata)
 
             if len(linedata) > 1024:
-                print(f"Error: entry '{key}' numBytes exceeds 1024 (got {len(linedata)})", file=sys.stderr)
-                sys.exit(1)
+                #print(f"Error: entry '{key}' numBytes exceeds 1024 (got {len(linedata)}). Trunacting to 1024.", file=sys.stderr)
+                next_key = max(mainDict[lang.name]["Errors"].keys(), default =- 1) + 1
+                mainDict[lang.name]["Errors"][next_key] = f"ERROR! Contents of dialogue with identifier \"{key}\" exceeds 1024 bytes!"
+                linedata = linedata[:1024]
 
             num += 1
 
