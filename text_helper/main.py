@@ -142,24 +142,26 @@ charConversionList = [
     ["'", "’"],
 ]
 
+def logWarningError(type, text):
+    nType = type + "s"
+    nText = type + ": " + text
+    if nText not in mainDict[lang.name][nType].values():
+        mainDict[lang.name][nType][max(mainDict[lang.name][nType].keys(), default =- 1) + 1] = nText
+        #print(nText)
+
 def convertByte(incoming, array):
     for pair in charConversionList:
         if incoming == ord(pair[0]):
             incoming = ord(pair[1])
-            #print(f"Warning! {pair[0]} found, replacing with {pair[1]} !")
-            next_key = max(mainDict[lang.name]["Warnings"].keys(), default =- 1) + 1
-            mainDict[lang.name]["Warnings"][next_key] = f"Warning! {pair[0]} found, replacing with {pair[1]} !"
+            logWarningError("Warning", f"Character {pair[0]} was used but is not in character table. Replaced with {pair[1]} .")
     
     
     index = 0
     for val in array:
         if val == incoming:
             return index
-        index += 1
-    #print(f"Error! No match found for char [ {chr(incoming)} ]!")
-    
-    next_key = max(mainDict[lang.name]["Errors"].keys(), default =- 1) + 1
-    mainDict[lang.name]["Errors"][next_key] = f"Error! No match found for char [ {chr(incoming)} ]!"
+        index += 1    
+    logWarningError("Error", f"No match found for char [ {chr(incoming)} ]!")
     return 0
  
 def SplitSentenceIntoLines(sentence, offset, pixelsPerChar, pixelsInLine):
@@ -215,9 +217,7 @@ def SplitSentenceIntoLines(sentence, offset, pixelsPerChar, pixelsInLine):
             
         # Test if the word is too long in general
         elif (wordLength > pixelsInLine):
-            #print(f"ERROR: Word {word} exceeds alloted length")
-            next_key = max(mainDict[lang.name]["Errors"].keys(), default =- 1) + 1
-            mainDict[lang.name]["Errors"][next_key] = f"ERROR: Word {word} exceeds alloted length"
+            logWarningError("Error", f"Word {word} exceeds alloted length")
             currWordIndex += 1
             
         # Test if adding the word will go over our alloted space
@@ -347,14 +347,10 @@ def convert_item(ogDict):
             escapeCount += 1
             #print(index)
             if not include_box_breaks:
-                #print(f"ERROR! Made a line break when disabled, sentence \"{outStr}\" is too long!")
-                next_key = max(mainDict[lang.name]["Errors"].keys(), default =- 1) + 1
-                mainDict[lang.name]["Errors"][next_key] = f"ERROR! Made a line break when disabled, sentence \"{outStr}\" is too long!"
+                logWarningError("Error", f"Made a line break when disabled, sentence \"{outStr}\" is too long!")
             
     if escapeCount == 100:
-        #print(f"ERROR! Sentence \"{out}\" is too long!")
-        next_key = max(mainDict[lang.name]["Errors"].keys(), default =- 1) + 1
-        mainDict[lang.name]["Errors"][next_key] = f"ERROR! Sentence \"{out}\" is too long!"
+        logWarningError("Error", f"Sentence \"{out}\" is too long!")
             
     # Some cases that should be fixed
     exitLoop = False
@@ -416,9 +412,7 @@ def write_text_bin_file(filename, dictionary):
             current_offset += len(linedata)
 
             if len(linedata) > 1024:
-                #print(f"Error: entry '{key}' numBytes exceeds 1024 (got {len(linedata)}). Trunacting to 1024.", file=sys.stderr)
-                next_key = max(mainDict[lang.name]["Errors"].keys(), default =- 1) + 1
-                mainDict[lang.name]["Errors"][next_key] = f"ERROR! Contents of dialogue with identifier \"{key}\" exceeds 1024 bytes!"
+                logWarningError("Error", f"Contents of dialogue with identifier \"{key}\" exceeds 1024 bytes!")
                 linedata = linedata[:1024]
 
             num += 1
