@@ -16,51 +16,61 @@ update = True
 print ("Running text_helper:")
 BASE_DIR = Path(__file__).resolve().parent
 
-if (update == True):
+if update:
 
     url = 'https://docs.google.com/spreadsheets/d/14LLs5lLqWasFcssBmJdGXjjYxARAJBa_QUOUhXZt4v8/export?format=xlsx'
     new_file_path = BASE_DIR / 'new_text.xlsx'
     old_file_path = BASE_DIR / 'text.xlsx'
     json_file_path = BASE_DIR / 'output.json'
-    no_file = False
 
+    offline = False
+
+    # ---- Attempt download ----
     try:
         response = requests.get(url, timeout=5)
         response.raise_for_status()
-        if response.status_code == 200:
-            with open(new_file_path, 'wb') as file:
-                    file.write(response.content)
-            print('File downloaded successfully')
-    except requests.exceptions.ReadTimeout as errrt:
-        if os.path.exists(old_file_path):
-            print("Connection timed out. Continuing with locally downloaded file.")
-            no_file = True
+        with open(new_file_path, 'wb') as f:
+            f.write(response.content)
+        print("File downloaded successfully")
+
+    except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError):
+        if old_file_path.exists():
+            print("No internet. Using cached xlsx.")
+            offline = True
         else:
-            print("xlsx file is missing and connection timed out. Exiting...")
-    except requests.exceptions.ConnectionError as conerr:
-        if os.path.exists(old_file_path):
-            print("Connection error. Continuing with locally downloaded file.")
-            no_file = True
+            print("ERROR: No internet and no cached xlsx. Cannot continue.")
+            sys.exit(1)
+
+    # ---- Decision logic ----
+    if offline:
+        # XML exists (guaranteed here)
+        if json_file_path.exists():
+            print("Offline mode: trusting cached XML + JSON. Skipping parse.\n")
+            sys.exit(0)
         else:
-            print("xlsx file is missing and connection timed out. Exiting...")
-            
-            
-if os.path.exists(old_file_path):
-    if (not no_file):
-        new_file = pd.read_excel(new_file_path, sheet_name="Translations")
-        old_file = pd.read_excel(old_file_path, sheet_name="Translations")
-    if no_file or new_file.equals(old_file):
-        if os.path.exists(json_file_path):
-            print("Downloaded file is identical. Skipping parse\n")
-            if (not no_file):
-                os.remove(new_file_path)
-            exit()
-        print("json file missing - forcing rebuild.")
-    os.remove(old_file_path)
-    os.rename(new_file_path, old_file_path)
-else:
-    print("xlsx file missing - forcing rebuild.")
-    os.rename(new_file_path, old_file_path)
+            print("Offline mode: XML present but JSON missing. Rebuilding.")
+
+    else:
+        # Online mode
+        if old_file_path.exists():
+            new_df = pd.read_excel(new_file_path, sheet_name="Translations")
+            old_df = pd.read_excel(old_file_path, sheet_name="Translations")
+
+            if new_df.equals(old_df):
+                print("Downloaded file is identical.")
+                new_file_path.unlink()
+                if json_file_path.exists():
+                    print("Skipping parse.\n")
+                    sys.exit(0)
+                else:
+                    print("JSON missing - forcing rebuild.")
+            else:
+                old_file_path.unlink()
+                new_file_path.rename(old_file_path)
+
+        else:
+            print("No cached xlsx - forcing rebuild.")
+            new_file_path.rename(old_file_path)
 
 
 engCharArray = [
@@ -183,8 +193,8 @@ def SplitSentenceIntoLines(sentence, offset, pixelsPerChar, pixelsInLine):
         for char in word:
             if (pixelsPerChar == "Variable"):
                 if(lang == Languages.Japanese):
-                    wordLength += jpnCharWidthArray[convertByte(ord(char), engCharArray)]
-                    spaceLength = jpnCharWidthArray[convertByte(ord(' '), engCharArray)]
+                    wordLength += jpnCharWidthArray[convertByte(ord(char), jpnCharArray)]
+                    spaceLength = jpnCharWidthArray[convertByte(ord(' '), jpnCharArray)]
                 else:
                     wordLength += engCharWidthArray[convertByte(ord(char), engCharArray)]
                     spaceLength = engCharWidthArray[convertByte(ord(' '), engCharArray)]
@@ -369,6 +379,10 @@ def convert_item(ogDict):
         # Nor should a new scroll be after a new textbox
         newStr = newStr.replace("ȼŞ", "ȼ")
         
+        if len(newStr) > 1023:
+            newStr = newStr[:1023]
+            logWarningError("Warning", f"String {newStr} exceeds character limit of 1023 and has been truncated.")
+
         exitLoop = (newStr == outStr)
         outStr = newStr
     
@@ -408,12 +422,9 @@ def write_text_bin_file(filename, dictionary):
             index[num * 2] = (current_offset & 0xFF)
             index[num * 2 + 1] = (current_offset >> 8) & 0xFF
             linedata = bytes.fromhex(dictionary[key]['bytes'])
+
             bindata.extend(linedata)
             current_offset += len(linedata)
-
-            if len(linedata) > 1024:
-                logWarningError("Error", f"Contents of dialogue with identifier \"{key}\" exceeds 1024 bytes!")
-                linedata = linedata[:1024]
 
             num += 1
 
@@ -537,7 +548,7 @@ for lang in Languages:
             else:
                 arr = engCharArray
             for byte in string:
-                byte = engCharArray[int(byte, 16)]
+                byte = arr[int(byte, 16)]
                 outText += chr(byte)
             mainDict[lang.name][section][item]["text"] = outText
     
