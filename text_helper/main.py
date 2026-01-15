@@ -15,6 +15,7 @@ update = True
 
 print ("Running text_helper:")
 BASE_DIR = Path(__file__).resolve().parent
+FIRST_TRANSLATION_COL_INDEX = 8
 
 if update:
 
@@ -467,9 +468,9 @@ for row in currSheet.iterrows():
         currRow = row[1]
         #print(currRow)
         offset = lang.value
-        if (pd.isna(currRow.iloc[8 + lang.value])):
+        if (pd.isna(currRow.iloc[FIRST_TRANSLATION_COL_INDEX + lang.value])):
             offset = Languages.English.value
-        mainDict[lang.name][currRow.iloc[0]][currRow.iloc[1]] = {"bytes": currRow.iloc[7 + offset],
+        mainDict[lang.name][currRow.iloc[0]][currRow.iloc[1]] = {"bytes": currRow.iloc[FIRST_TRANSLATION_COL_INDEX + offset],
                                                                     "numLines": currRow.iloc[2],
                                                                     "pixelsPerChar": currRow.iloc[3],
                                                                     "pixelsInLine" : currRow.iloc[4],
