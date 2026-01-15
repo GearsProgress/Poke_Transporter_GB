@@ -467,7 +467,7 @@ for row in currSheet.iterrows():
         currRow = row[1]
         #print(currRow)
         offset = lang.value
-        if (pd.isna(currRow.iloc[7 + lang.value])):
+        if (pd.isna(currRow.iloc[8 + lang.value])):
             offset = Languages.English.value
         mainDict[lang.name][currRow.iloc[0]][currRow.iloc[1]] = {"bytes": currRow.iloc[7 + offset],
                                                                     "numLines": currRow.iloc[2],
