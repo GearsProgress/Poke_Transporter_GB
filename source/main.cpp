@@ -448,7 +448,7 @@ static void __attribute__((noinline)) show_intro()
 	REG_BG1CNT = REG_BG1CNT | BG_PRIO(3);
 
 	key_poll(); // Reset the keys
-	curr_GBA_rom.load_rom();
+	curr_GBA_rom.load_rom(false);
 
 	obj_set_pos(ptgb_logo_l, 56, 12);
 	obj_set_pos(ptgb_logo_r, 56 + 64, 12);
@@ -494,12 +494,20 @@ int main(void)
 	REG_BLDALPHA = BLDA_BUILD(0b10000, 0); // Reset fade
 
 	//  Check if the game has been loaded correctly.
-	while (!curr_GBA_rom.load_rom())
+	bool debug = false;
+	while (!curr_GBA_rom.load_rom(debug))
 	{
-		obj_hide_multi(ptgb_logo_l, 2);
-		global_next_frame();
-		game_load_error();
-		// initalization_script();
+		if (IGNORE_GAME_PAK)
+		{
+			debug = true;
+		}
+		else
+		{
+			obj_hide_multi(ptgb_logo_l, 2);
+			global_next_frame();
+			game_load_error();
+			// initalization_script();
+		}
 	}
 
 	// Initalize memory and save data after loading the game

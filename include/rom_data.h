@@ -25,7 +25,7 @@ class rom_data
 {
 public:
     rom_data();
-    bool load_rom();
+    bool load_rom(bool debug);
     bool is_hoenn();
     bool is_ruby_sapphire();
     void print_rom_info();
