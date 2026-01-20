@@ -11,68 +11,6 @@ import sys
 import filecmp
 from pathlib import Path
 
-update = True
-
-print ("Running text_helper:")
-BASE_DIR = Path(__file__).resolve().parent
-FIRST_TRANSLATION_COL_INDEX = 8
-
-if update:
-
-    url = 'https://docs.google.com/spreadsheets/d/14LLs5lLqWasFcssBmJdGXjjYxARAJBa_QUOUhXZt4v8/export?format=xlsx'
-    new_file_path = BASE_DIR / 'new_text.xlsx'
-    old_file_path = BASE_DIR / 'text.xlsx'
-    json_file_path = BASE_DIR / 'output.json'
-
-    offline = False
-
-    # ---- Attempt download ----
-    try:
-        response = requests.get(url, timeout=5)
-        response.raise_for_status()
-        with open(new_file_path, 'wb') as f:
-            f.write(response.content)
-        print("File downloaded successfully")
-
-    except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError):
-        if old_file_path.exists():
-            print("No internet. Using cached xlsx.")
-            offline = True
-        else:
-            print("ERROR: No internet and no cached xlsx. Cannot continue.")
-            sys.exit(1)
-
-    # ---- Decision logic ----
-    if offline:
-        # XML exists (guaranteed here)
-        if json_file_path.exists():
-            print("Offline mode: trusting cached XML + JSON. Skipping parse.\n")
-            sys.exit(0)
-        else:
-            print("Offline mode: XML present but JSON missing. Rebuilding.")
-
-    else:
-        # Online mode
-        if old_file_path.exists():
-            new_df = pd.read_excel(new_file_path, sheet_name="Translations")
-            old_df = pd.read_excel(old_file_path, sheet_name="Translations")
-
-            if new_df.equals(old_df):
-                print("Downloaded file is identical.")
-                new_file_path.unlink()
-                if json_file_path.exists():
-                    print("Skipping parse.\n")
-                    sys.exit(0)
-                else:
-                    print("JSON missing - forcing rebuild.")
-            else:
-                old_file_path.unlink()
-                new_file_path.rename(old_file_path)
-
-        else:
-            print("No cached xlsx - forcing rebuild.")
-            new_file_path.rename(old_file_path)
-
 
 engCharArray = [
 0x20, 	0xC0, 	0xC1, 	0xC2, 	0xC7, 	0xC8, 	0xC9, 	0xCA, 	0xCB, 	0xCC, 	0x20, 	0xCE, 	0xCF, 	0xD2, 	0xD3, 	0xD4, 
@@ -86,7 +24,7 @@ engCharArray = [
 0x20, 	0x20, 	0x20, 	0x20, 	0x1D49, 	0x3C, 	0x3E, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 
 0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 	0x20, 
 0x2B3, 	0x30, 	0x31, 	0x32, 	0x33, 	0x34, 	0x35, 	0x36, 	0x37, 	0x38, 	0x39, 	0x21, 	0x3F, 	0x2E, 	0x2D, 	0x30FB, 
-0x2026, 	0x201C, 	0x201D, 	0x2018, 	0x2019, 	0x2642, 	0x2640, 	0x20, 	0x2C, 	0xD7, 	0x2F, 	0x41, 	0x42, 	0x43, 	0x44, 	0x45, 
+0x2025, 	0x201C, 	0x201D, 	0x2018, 	0x2019, 	0x2642, 	0x2640, 	0x20, 	0x2C, 	0xD7, 	0x2F, 	0x41, 	0x42, 	0x43, 	0x44, 	0x45, 
 0x46, 	0x47, 	0x48, 	0x49, 	0x4A, 	0x4B, 	0x4C, 	0x4D, 	0x4E, 	0x4F, 	0x50, 	0x51, 	0x52, 	0x53, 	0x54, 	0x55, 
 0x56, 	0x57, 	0x58, 	0x59, 	0x5A, 	0x61, 	0x62, 	0x63, 	0x64, 	0x65, 	0x66, 	0x67, 	0x68, 	0x69, 	0x6A, 	0x6B, 
 0x6C, 	0x6D, 	0x6E, 	0x6F, 	0x70, 	0x71, 	0x72, 	0x73, 	0x74, 	0x75, 	0x76, 	0x77, 	0x78, 	0x79, 	0x7A, 	0x25B6, 
@@ -119,7 +57,7 @@ jpnCharArray = [
 0x305E, 	0x3060, 	0x3062, 	0x3065, 	0x3067, 	0x3069, 	0x3070, 	0x3073, 	0x3076, 	0x3079, 	0x307C, 	0x3071, 	0x3074, 	0x3077, 	0x307A, 	0x307D, 
 0x3063, 	0x30A2, 	0x30A4, 	0x30A6, 	0x30A8, 	0x30AA, 	0x30AB, 	0x30AD, 	0x30AF, 	0x30B1, 	0x30B3, 	0x30B5, 	0x30B7, 	0x30B9, 	0x30BB, 	0x30BD, 
 0x30BF, 	0x30C1, 	0x30C4, 	0x30C6, 	0x30C8, 	0x30CA, 	0x30CB, 	0x30CC, 	0x30CD, 	0x30CE, 	0x30CF, 	0x30D2, 	0x30D5, 	0x30D8, 	0x30DB, 	0x30DE, 
-0x30DF, 	0x30E0, 	0x30E1, 	0x30E2, 	0x30E4, 	0x30E6, 	0x30E8, 	0x30E9, 	0x30EA, 	0x20, 	0x30EC, 	0x30ED, 	0x30EF, 	0x30F2, 	0x30F3, 	0x30A1, 
+0x30DF, 	0x30E0, 	0x30E1, 	0x30E2, 	0x30E4, 	0x30E6, 	0x30E8, 	0x30E9, 	0x30EA, 	0x30EB, 	0x30EC, 	0x30ED, 	0x30EF, 	0x30F2, 	0x30F3, 	0x30A1, 
 0x30A3, 	0x30A5, 	0x30A7, 	0x30A9, 	0x30E3, 	0x30E5, 	0x30E7, 	0x30AC, 	0x30AE, 	0x30B0, 	0x30B2, 	0x30B4, 	0x30B6, 	0x30B8, 	0x30BA, 	0x30BC, 
 0x30BE, 	0x30C0, 	0x30C2, 	0x30C5, 	0x30C7, 	0x30C9, 	0x30D0, 	0x30D3, 	0x30D6, 	0x30D9, 	0x30DC, 	0x30D1, 	0x30D4, 	0x30D7, 	0x30DA, 	0x30DD, 
 0x30C3, 	0x30, 	0x31, 	0x32, 	0x33, 	0x34, 	0x35, 	0x36, 	0x37, 	0x38, 	0x39, 	0xFF01, 	0xFF1F, 	0x3002, 	0x30FC, 	0x30FB, 
@@ -153,19 +91,26 @@ charConversionList = [
     ["'", "’"],
 ]
 
+escapeCharConversionList = [
+    ["{SCL}", "Ş"],
+    ["{CLR}", "ȼ"],
+    ["{NEW}", "Ň"],
+    ["{END}", "ƞ"],
+]
+
+
 def logWarningError(type, text):
     nType = type + "s"
     nText = type + ": " + text
     if nText not in mainDict[lang.name][nType].values():
         mainDict[lang.name][nType][max(mainDict[lang.name][nType].keys(), default =- 1) + 1] = nText
-        #print(nText)
+        print(nText)
 
 def convertByte(incoming, array):
     for pair in charConversionList:
         if incoming == ord(pair[0]):
             incoming = ord(pair[1])
             logWarningError("Warning", f"Character {pair[0]} was used but is not in character table. Replaced with {pair[1]} .")
-    
     
     index = 0
     for val in array:
@@ -178,13 +123,21 @@ def convertByte(incoming, array):
 def SplitSentenceIntoLines(sentence, offset, pixelsPerChar, pixelsInLine):
     # If we can optimize this to remove the spaces, it could save a few bytes.
 
+    splitChars = [' ', '、']
     outStr = ""
     currLine = ""
     lineCount = 0
     currWordIndex = 0
     lineLength = 0
     spaceLength = 0
+    for char in splitChars:
+        sentence.replace(char, " ")
     words = sentence.split()
+    for word in words:
+        for pair in escapeCharConversionList:
+            word.replace(pair[0], pair[1])
+
+
     while(currWordIndex < len(words)):
         word = words[currWordIndex]
         wordLength = 0
@@ -228,7 +181,7 @@ def SplitSentenceIntoLines(sentence, offset, pixelsPerChar, pixelsInLine):
             
         # Test if the word is too long in general
         elif (wordLength > pixelsInLine):
-            logWarningError("Error", f"Word {word} exceeds alloted length")
+            logWarningError("Error", f"Word {word} exceeds alloted length ({pixelsInLine} pixels)")
             currWordIndex += 1
             
         # Test if adding the word will go over our alloted space
@@ -250,18 +203,18 @@ def SplitSentenceIntoLines(sentence, offset, pixelsPerChar, pixelsInLine):
     outStr += currLine
     return lineLength + offset, lineCount, outStr
 
-# -*- coding: utf-8 -*-
-import re
-alphabets= r"([A-Za-z])"
-prefixes = r"(Mr|St|Mrs|Ms|Dr)[.]"
-suffixes = r"(Inc|Ltd|Jr|Sr|Co)"
-starters = r"(Mr|Mrs|Ms|Dr|Prof|Capt|Cpt|Lt|He\s|She\s|It\s|They\s|Their\s|Our\s|We\s|But\s|However\s|That\s|This\s|Wherever)"
-acronyms = r"([A-Z][.][A-Z][.](?:[A-Z][.])?)"
-websites = r"[.](com|net|org|io|gov|edu|me)"
-digits = r"([0-9])"
-multiple_dots = r'\.{2,}'
-
 def split_into_sentences(text: str) -> list[str]:
+    # -*- coding: utf-8 -*-
+    import re
+    alphabets= r"([A-Za-z])"
+    prefixes = r"(Mr|St|Mrs|Ms|Dr)[.]"
+    suffixes = r"(Inc|Ltd|Jr|Sr|Co)"
+    starters = r"(Mr|Mrs|Ms|Dr|Prof|Capt|Cpt|Lt|He\s|She\s|It\s|They\s|Their\s|Our\s|We\s|But\s|However\s|That\s|This\s|Wherever)"
+    acronyms = r"([A-Z][.][A-Z][.](?:[A-Z][.])?)"
+    websites = r"[.](com|net|org|io|gov|edu|me)"
+    digits = r"([0-9])"
+    multiple_dots = r'\.{2,}'
+
     """
     Split the text into sentences.
 
@@ -318,9 +271,6 @@ class Languages(Enum):
     Italian = 4
     SpanishEU = 5
     SpanishLA = 6
-
-# read by default 1st sheet of an excel file
-dir = os.curdir + "/text_helper"
 
 mainDict = {}
 
@@ -442,6 +392,73 @@ def write_enum_to_header_file(hFile, prefix, dictionary):
     hFile.write(f"\n#define {prefix}LENGTH {num}\n")
     hFile.write("\n")
     return num
+
+# Main
+update = True
+
+print ("Running text_helper:")
+BASE_DIR = Path(__file__).resolve().parent
+FIRST_TRANSLATION_COL_INDEX = 8
+
+# read by default 1st sheet of an excel file
+dir = os.curdir + "/text_helper"
+
+if update:
+
+    url = 'https://docs.google.com/spreadsheets/d/14LLs5lLqWasFcssBmJdGXjjYxARAJBa_QUOUhXZt4v8/export?format=xlsx'
+    new_file_path = BASE_DIR / 'new_text.xlsx'
+    old_file_path = BASE_DIR / 'text.xlsx'
+    json_file_path = BASE_DIR / 'output.json'
+
+    offline = False
+
+    # ---- Attempt download ----
+    try:
+        response = requests.get(url, timeout=5)
+        response.raise_for_status()
+        with open(new_file_path, 'wb') as f:
+            f.write(response.content)
+        print("File downloaded successfully")
+
+    except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError):
+        if old_file_path.exists():
+            print("No internet. Using cached xlsx.")
+            offline = True
+        else:
+            print("ERROR: No internet and no cached xlsx. Cannot continue.")
+            sys.exit(1)
+
+    # ---- Decision logic ----
+    if offline:
+        # XML exists (guaranteed here)
+        if json_file_path.exists():
+            print("Offline mode: trusting cached XML + JSON. Skipping parse.\n")
+            sys.exit(0)
+        else:
+            print("Offline mode: XML present but JSON missing. Rebuilding.")
+
+    else:
+        # Online mode
+        if old_file_path.exists():
+            new_df = pd.read_excel(new_file_path, sheet_name="Translations")
+            old_df = pd.read_excel(old_file_path, sheet_name="Translations")
+
+            if new_df.equals(old_df):
+                print("Downloaded file is identical.")
+                new_file_path.unlink()
+                if json_file_path.exists():
+                    print("Skipping parse.\n")
+                    sys.exit(0)
+                else:
+                    print("JSON missing - forcing rebuild.")
+            else:
+                old_file_path.unlink()
+                new_file_path.rename(old_file_path)
+
+        else:
+            print("No cached xlsx - forcing rebuild.")
+            new_file_path.rename(old_file_path)
+
 
 
 print("Starting parse:")
