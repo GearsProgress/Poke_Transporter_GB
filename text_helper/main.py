@@ -213,6 +213,7 @@ def SplitSentenceIntoLines(sentence, offset, pixelsPerChar, pixelsInLine):
             lineLength = 0
             offset = 0
                 
+    currLine = currLine.replace("。 ", "。") # Get rid of the space after the Japanese peroid
     outStr += currLine
     return lineLength + offset, lineCount, outStr
 
