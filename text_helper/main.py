@@ -91,11 +91,28 @@ charConversionList = [
     ["'", "’"],
 ]
 
-escapeCharConversionList = [
-    ["{SCL}", "Ş"],
-    ["{CLR}", "ȼ"],
-    ["{NEW}", "Ň"],
-    ["{END}", "ƞ"],
+itlEscapeCharConversionList = [
+    ["{SCL}", [0xFA]],
+    ["{CLR}", [0xFB]],
+    ["{DEF}", [0xFC, 0x01, 0x02]],
+    ["{FEM}", [0xFC, 0x01, 0x04]],
+    ["{FPC}", [0xFC, 0x01, 0x06]],
+    ["{MLE}", [0xFC, 0x01, 0x08]],
+    ["{PLR}", [0xFD, 0x01]],
+    ["{NEW}", [0xFE]],
+    ["{END}", [0xFF]],
+]
+
+jpnEscapeCharConversionList = [
+    ["{SCL}", [0xFA]],
+    ["{CLR}", [0xFB]],
+    ["{DEF}", [0xFC, 0x06, 0x02]],
+    ["{FEM}", [0xFC, 0x06, 0x03]], # ???
+    ["{MLE}", [0xFC, 0x06, 0x04]],
+    ["{FPC}", [0xFC, 0x06, 0x05]],
+    ["{PLR}", [0xFD, 0x01]],
+    ["{NEW}", [0xFE]],
+    ["{END}", [0xFF]],
 ]
 
 
@@ -122,7 +139,6 @@ def convertByte(incoming, array):
  
 def SplitSentenceIntoLines(sentence, offset, pixelsPerChar, pixelsInLine):
     # If we can optimize this to remove the spaces, it could save a few bytes.
-
     splitChars = [' ', '、']
     outStr = ""
     currLine = ""
@@ -132,10 +148,7 @@ def SplitSentenceIntoLines(sentence, offset, pixelsPerChar, pixelsInLine):
     spaceLength = 0
     for char in splitChars:
         sentence.replace(char, " ")
-    words = sentence.split()
-    for word in words:
-        for pair in escapeCharConversionList:
-            word.replace(pair[0], pair[1])
+    words = sentence.split()        
 
 
     while(currWordIndex < len(words)):
@@ -280,6 +293,22 @@ def convert_item(ogDict):
     pixelsPerChar = ogDict["pixelsPerChar"]
     pixelsInLine = ogDict["pixelsInLine"]
     include_box_breaks = ogDict["includeBoxBreaks"]
+
+    if lang == "Japanese":
+        arr = jpnCharArray
+        list = jpnEscapeCharConversionList
+    else:
+        arr = engCharArray
+        list = itlEscapeCharConversionList
+    for pair in list:
+        if pair[0] in line:
+            escapeString = ""
+            for char in pair[1]:
+                escapeString += chr(arr[char])
+            #print(f"Replacing {pair[0]} with {escapeString}!")
+            line = line.replace(pair[0], escapeString)
+            #print(line)
+
     split_sents = split_into_sentences(line)
     index = 0
     outStr = ""
