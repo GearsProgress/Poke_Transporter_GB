@@ -1,16 +1,38 @@
-# import pandas lib as pd
 import pandas as pd
 import os 
 from enum import Enum
 import json
 import requests
 from collections import defaultdict
-import copy
-import math
 import sys
-import filecmp
 from pathlib import Path
 
+class Languages(Enum):
+    Japanese = 0
+    English = 1
+    French = 2
+    German = 3
+    Italian = 4
+    SpanishEU = 5
+    SpanishLA = 6
+
+FIRST_TRANSLATION_COL_INDEX = 8
+BASE_DIR = Path(__file__).resolve().parent
+
+# read by default 1st sheet of an excel file
+dir = os.curdir + "/text_helper"
+
+url = 'https://docs.google.com/spreadsheets/d/14LLs5lLqWasFcssBmJdGXjjYxARAJBa_QUOUhXZt4v8/export?format=xlsx'
+new_file_path = BASE_DIR / 'new_text.xlsx'
+old_file_path = BASE_DIR / 'text.xlsx'
+json_file_path = BASE_DIR / 'output.json'
+
+mainDict = {}
+textSections = []
+charArrays = {
+    "International": {},
+    "Japanese": {},
+}
 
 engCharArray = [
 0x20, 	0xC0, 	0xC1, 	0xC2, 	0xC7, 	0xC8, 	0xC9, 	0xCA, 	0xCB, 	0xCC, 	0x20, 	0xCE, 	0xCF, 	0xD2, 	0xD3, 	0xD4, 
@@ -30,24 +52,6 @@ engCharArray = [
 0x6C, 	0x6D, 	0x6E, 	0x6F, 	0x70, 	0x71, 	0x72, 	0x73, 	0x74, 	0x75, 	0x76, 	0x77, 	0x78, 	0x79, 	0x7A, 	0x25B6, 
 0x3A, 	0xC4, 	0xD6, 	0xDC, 	0xE4, 	0xF6, 	0xFC, 	0x2A, 	0x20, 	0x20, 	0x15E, 	0x23C, 	0x206, 	0x1B2, 	0x147, 	0x19E, 
 ]
-
-engCharWidthArray = [
-    0x4, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x0, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 
-0x8, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x0, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x0, 
-0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x8, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x9, 	0x6, 	0x6, 	0x0, 
-0x0, 	0x0, 	0x0, 	0x0, 	0xA, 	0x8, 	0x3, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 
-0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 
-0x6, 	0x6, 	0x4, 	0x8, 	0x8, 	0x8, 	0x7, 	0x8, 	0x8, 	0x4, 	0x6, 	0x6, 	0x4, 	0x4, 	0x0, 	0x0, 
-0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x6, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x6, 
-0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x7, 	0x7, 	0x7, 	0x7, 	0x2, 	0x3, 	0x4, 
-0x5, 	0x5, 	0x6, 	0x7, 	0x5, 	0x6, 	0x6, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 
-0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 
-0x8, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x4, 	0x6, 	0x3, 	0x6, 	0x3, 
-0x6, 	0x6, 	0x6, 	0x3, 	0x3, 	0x6, 	0x6, 	0x6, 	0x3, 	0x7, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 
-0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 
-0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x4, 	0x5, 	0x6, 
-0x4, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x5, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x8, 
-0x3, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x38, 	0x0, 	0x0, ]
 
 jpnCharArray = [
 0x20, 	0x3042, 	0x3044, 	0x3046, 	0x3048, 	0x304A, 	0x304B, 	0x304D, 	0x304F, 	0x3051, 	0x3053, 	0x3055, 	0x3057, 	0x3059, 	0x305B, 	0x305D, 
@@ -86,21 +90,27 @@ jpnCharWidthArray = [
 0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 
 0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x28, 	0x0, 	0x0, ]
 
+engCharWidthArray = [
+    0x4, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x0, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 
+0x8, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x0, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x0, 
+0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x8, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x9, 	0x6, 	0x6, 	0x0, 
+0x0, 	0x0, 	0x0, 	0x0, 	0xA, 	0x8, 	0x3, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 
+0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 
+0x6, 	0x6, 	0x4, 	0x8, 	0x8, 	0x8, 	0x7, 	0x8, 	0x8, 	0x4, 	0x6, 	0x6, 	0x4, 	0x4, 	0x0, 	0x0, 
+0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x6, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x6, 
+0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x7, 	0x7, 	0x7, 	0x7, 	0x2, 	0x3, 	0x4, 
+0x5, 	0x5, 	0x6, 	0x7, 	0x5, 	0x6, 	0x6, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 
+0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 
+0x8, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x4, 	0x6, 	0x3, 	0x6, 	0x3, 
+0x6, 	0x6, 	0x6, 	0x3, 	0x3, 	0x6, 	0x6, 	0x6, 	0x3, 	0x7, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 
+0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 
+0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x4, 	0x5, 	0x6, 
+0x4, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x5, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x8, 
+0x3, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x38, 	0x0, 	0x0, ]
+
 charConversionList = [
     # replaces the first char in the list with the latter
     ["'", "’"],
-]
-
-itlEscapeCharConversionList = [
-    ["{SCL}", [0xFA]],
-    ["{CLR}", [0xFB]],
-    ["{DEF}", [0xFC, 0x01, 0x02]],
-    ["{FEM}", [0xFC, 0x01, 0x04]],
-    ["{FPC}", [0xFC, 0x01, 0x06]],
-    ["{MLE}", [0xFC, 0x01, 0x08]],
-    ["{PLR}", [0xFD, 0x01]],
-    ["{NEW}", [0xFE]],
-    ["{END}", [0xFF]],
 ]
 
 jpnEscapeCharConversionList = [
@@ -115,107 +125,17 @@ jpnEscapeCharConversionList = [
     ["{END}", [0xFF]],
 ]
 
-
-def logWarningError(type, text):
-    nType = type + "s"
-    nText = type + ": " + text
-    if nText not in mainDict[lang.name][nType].values():
-        mainDict[lang.name][nType][max(mainDict[lang.name][nType].keys(), default =- 1) + 1] = nText
-        print(nText)
-
-def convertByte(incoming, array):
-    for pair in charConversionList:
-        if incoming == ord(pair[0]):
-            incoming = ord(pair[1])
-            logWarningError("Warning", f"Character {pair[0]} was used but is not in character table. Replaced with {pair[1]} .")
-    
-    index = 0
-    for val in array:
-        if val == incoming:
-            return index
-        index += 1    
-    logWarningError("Error", f"No match found for char [ {chr(incoming)} ]!")
-    return 0
- 
-def SplitSentenceIntoLines(sentence, offset, pixelsPerChar, pixelsInLine):
-    # If we can optimize this to remove the spaces, it could save a few bytes.
-    splitChars = [' ', '、']
-    outStr = ""
-    currLine = ""
-    lineCount = 0
-    currWordIndex = 0
-    lineLength = 0
-    spaceLength = 0
-    for char in splitChars:
-        sentence.replace(char, " ")
-    words = sentence.split()        
-
-
-    while(currWordIndex < len(words)):
-        word = words[currWordIndex]
-        wordLength = 0
-        # print(word)
-        
-        # Figure out the length of the word in pixels
-        for char in word:
-            if (pixelsPerChar == "Variable"):
-                if(lang == Languages.Japanese):
-                    wordLength += jpnCharWidthArray[convertByte(ord(char), jpnCharArray)]
-                    spaceLength = jpnCharWidthArray[convertByte(ord(' '), jpnCharArray)]
-                else:
-                    wordLength += engCharWidthArray[convertByte(ord(char), engCharArray)]
-                    spaceLength = engCharWidthArray[convertByte(ord(' '), engCharArray)]
-                    
-            elif (pixelsPerChar == "Default"):
-                if (lang == Languages.Japanese):
-                    wordLength += 8
-                    spaceLength = 8
-                
-                else:
-                    wordLength += 6
-                    spaceLength = 6
-        
-        # See if the whole sentence is a newline
-        if (sentence == "Ň"):
-            outStr += "Ň"
-            currLine = ""
-            lineCount += 1
-            offset = 0
-            lineLength = 0
-            currWordIndex += 1
-            
-        # See if the sentence is a new box
-        elif(sentence == "Ş" or sentence == "ȼ"):
-            outStr += sentence
-            currLine = ""
-            offset = 0
-            lineLength = 0
-            currWordIndex += 1
-            
-        # Test if the word is too long in general
-        elif (wordLength > pixelsInLine):
-            logWarningError("Error", f"Word {word} exceeds alloted length ({pixelsInLine} pixels)")
-            currWordIndex += 1
-            
-        # Test if adding the word will go over our alloted space
-        elif ((wordLength + lineLength + offset) <= pixelsInLine):
-            # If not, add the word and increase the index
-            currLine += (word + " ")
-            lineLength += (wordLength + spaceLength)
-            currWordIndex += 1
-            
-        # We need to move to the next line
-        else:
-            # Every line should already have a space at the end of it. Remove it here
-            outStr += (currLine[:-1] + "Ň")
-            currLine = ""
-            lineCount += 1
-            lineLength = 0
-            offset = 0
-                
-    currLine = currLine.replace("。 ", "。") # Get rid of the space after the Japanese peroid
-    outStr += currLine
-    return lineLength + offset, lineCount, outStr
+itlEscapeCharConversionList = [
+    ["{SCL}", [0xFA]],
+    ["{CLR}", [0xFB]],
+    ["{DEF}", [0xFC, 0x01, 0x02]],
+    ["{FEM}", [0xFC, 0x01, 0x04]],
+    ["{FPC}", [0xFC, 0x01, 0x06]],
+    ["{MLE}", [0xFC, 0x01, 0x08]],
+    ["{PLR}", [0xFD, 0x01]],
+    ["{NEW}", [0xFE]],
+    ["{END}", [0xFF]],
+]
 
 def split_into_sentences(text: str) -> list[str]:
     # -*- coding: utf-8 -*-
@@ -276,19 +196,109 @@ def split_into_sentences(text: str) -> list[str]:
     sentences = [s.strip() for s in sentences]
     if sentences and not sentences[-1]: sentences = sentences[:-1]
     return sentences
+ 
+def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, lang):
+    # If we can optimize this to remove the spaces, it could save a few bytes.
+    splitChars = [' ', '、']
+    outStr = ""
+    currLine = ""
+    lineCount = 0
+    currWordIndex = 0
+    lineLength = 0
+    spaceLength = 0
+    for char in splitChars:
+        sentence.replace(char, " ")
+    words = sentence.split()        
 
-class Languages(Enum):
-    Japanese = 0
-    English = 1
-    French = 2
-    German = 3
-    Italian = 4
-    SpanishEU = 5
-    SpanishLA = 6
 
-mainDict = {}
+    while(currWordIndex < len(words)):
+        word = words[currWordIndex]
+        wordLength = 0
+        # print(word)
+        
+        # Figure out the length of the word in pixels
+        for char in word:
+            if (pixelsPerChar == "Variable"):
+                if(lang == Languages.Japanese):
+                    wordLength += jpnCharWidthArray[convert_char_to_byte(ord(char), jpnCharArray, lang)]
+                    spaceLength = jpnCharWidthArray[convert_char_to_byte(ord(' '), jpnCharArray, lang)]
+                else:
+                    wordLength += engCharWidthArray[convert_char_to_byte(ord(char), engCharArray, lang)]
+                    spaceLength = engCharWidthArray[convert_char_to_byte(ord(' '), engCharArray, lang)]
+                    
+            elif (pixelsPerChar == "Default"):
+                if (lang == Languages.Japanese):
+                    wordLength += 8
+                    spaceLength = 8
+                
+                else:
+                    wordLength += 6
+                    spaceLength = 6
+        
+        # See if the whole sentence is a newline
+        if (sentence == "Ň"):
+            outStr += "Ň"
+            currLine = ""
+            lineCount += 1
+            offset = 0
+            lineLength = 0
+            currWordIndex += 1
+            
+        # See if the sentence is a new box
+        elif(sentence == "Ş" or sentence == "ȼ"):
+            outStr += sentence
+            currLine = ""
+            offset = 0
+            lineLength = 0
+            currWordIndex += 1
+            
+        # Test if the word is too long in general
+        elif (wordLength > pixelsInLine):
+            log_warning_error(lang, "Error", f"Word {word} exceeds alloted length ({pixelsInLine} pixels)")
+            currWordIndex += 1
+            
+        # Test if adding the word will go over our alloted space
+        elif ((wordLength + lineLength + offset) <= pixelsInLine):
+            # If not, add the word and increase the index
+            currLine += (word + " ")
+            lineLength += (wordLength + spaceLength)
+            currWordIndex += 1
+            
+        # We need to move to the next line
+        else:
+            # Every line should already have a space at the end of it. Remove it here
+            outStr += (currLine[:-1] + "Ň")
+            currLine = ""
+            lineCount += 1
+            lineLength = 0
+            offset = 0
+                
+    currLine = currLine.replace("。 ", "。") # Get rid of the space after the Japanese peroid
+    outStr += currLine
+    return lineLength + offset, lineCount, outStr
 
-def convert_item(ogDict):
+def convert_char_to_byte(incoming, array, lang):
+    for pair in charConversionList:
+        if incoming == ord(pair[0]):
+            incoming = ord(pair[1])
+            log_warning_error(lang, "Warning", f"Character {pair[0]} was used but is not in character table. Replaced with {pair[1]} .")
+    
+    index = 0
+    for val in array:
+        if val == incoming:
+            return index
+        index += 1    
+    log_warning_error(lang, "Error", f"No match found for char [ {chr(incoming)} ]!")
+    return 0
+
+def log_warning_error(lang, type, text):
+    nType = type + "s"
+    nText = type + ": " + text
+    if nText not in mainDict[lang.name][nType].values():
+        mainDict[lang.name][nType][max(mainDict[lang.name][nType].keys(), default =- 1) + 1] = nText
+        print(nText)
+
+def convert_item(ogDict, lang):
     line = ogDict["bytes"]
     numLines = ogDict["numLines"]
     pixelsPerChar = ogDict["pixelsPerChar"]
@@ -317,7 +327,7 @@ def convert_item(ogDict):
     offset = 0
     escapeCount = 0
     while index < len(split_sents) and escapeCount < 100:
-        offset, recievedLine, out = SplitSentenceIntoLines(split_sents[index], offset, pixelsPerChar, pixelsInLine)
+        offset, recievedLine, out = split_sentence_into_lines(split_sents[index], offset, pixelsPerChar, pixelsInLine, lang)
         currLine += recievedLine
         
         if (out == "ȼ"):
@@ -338,10 +348,10 @@ def convert_item(ogDict):
             escapeCount += 1
             #print(index)
             if not include_box_breaks:
-                logWarningError("Error", f"Made a line break when disabled, sentence \"{outStr}\" is too long!")
+                log_warning_error(lang, "Error", f"Made a line break when disabled, sentence \"{outStr}\" is too long!")
             
     if escapeCount == 100:
-        logWarningError("Error", f"Sentence \"{out}\" is too long!")
+        log_warning_error(lang, "Error", f"Sentence \"{out}\" is too long!")
             
     # Some cases that should be fixed
     exitLoop = False
@@ -362,7 +372,7 @@ def convert_item(ogDict):
         
         if len(newStr) > 1023:
             newStr = newStr[:1023]
-            logWarningError("Warning", f"String {newStr} exceeds character limit of 1023 and has been truncated.")
+            log_warning_error(lang, "Warning", f"String {newStr} exceeds character limit of 1023 and has been truncated.")
 
         exitLoop = (newStr == outStr)
         outStr = newStr
@@ -373,16 +383,16 @@ def convert_item(ogDict):
     else:
         arr = engCharArray
     for char in outStr[:-1]:
-        byteStr += f"{convertByte(ord(char), arr):02x} "
+        byteStr += f"{convert_char_to_byte(ord(char), arr, lang):02x} "
     if (len(outStr) > 0 and outStr[-1] != ' '): # Check if the last char is a space
-        byteStr += f"{convertByte(ord(outStr[-1]), arr):02x} "
+        byteStr += f"{convert_char_to_byte(ord(outStr[-1]), arr, lang):02x} "
         
     byteStr += "ff"
     
     ogDict["bytes"] = byteStr
     return ogDict
 
-def write_text_bin_file(filename, dictionary):
+def write_text_bin_file(filename, dictionary, lang):
     with open(filename, 'wb') as binFile:
         # Let the first byte indicate the number of entries
         dict_size = len(dictionary)
@@ -398,7 +408,7 @@ def write_text_bin_file(filename, dictionary):
         # Append every line's binary data to bindata
         # keep an index of the binary offset within bindata at which each line starts
         for key, line in dictionary.items():
-            dictionary[key] = convert_item(line)
+            dictionary[key] = convert_item(line, lang)
             # store the offset of the line in the index as a 16 bit little endian value
             index[num * 2] = (current_offset & 0xFF)
             index[num * 2 + 1] = (current_offset >> 8) & 0xFF
@@ -423,25 +433,8 @@ def write_enum_to_header_file(hFile, prefix, dictionary):
     hFile.write("\n")
     return num
 
-# Main
-update = True
-
-print ("Running text_helper:")
-BASE_DIR = Path(__file__).resolve().parent
-FIRST_TRANSLATION_COL_INDEX = 8
-
-# read by default 1st sheet of an excel file
-dir = os.curdir + "/text_helper"
-
-if update:
-
-    url = 'https://docs.google.com/spreadsheets/d/14LLs5lLqWasFcssBmJdGXjjYxARAJBa_QUOUhXZt4v8/export?format=xlsx'
-    new_file_path = BASE_DIR / 'new_text.xlsx'
-    old_file_path = BASE_DIR / 'text.xlsx'
-    json_file_path = BASE_DIR / 'output.json'
-
+def download_xlsx_file():
     offline = False
-
     # ---- Attempt download ----
     try:
         response = requests.get(url, timeout=5)
@@ -489,118 +482,130 @@ if update:
             print("No cached xlsx - forcing rebuild.")
             new_file_path.rename(old_file_path)
 
+def transfer_xlsx_to_dict():
+    #print("\tGetting character arrays")
+    #currSheet = pd.read_excel(dir + "/text.xlsx", sheet_name="Translations")
+
+    #for arr in charArrays:
 
 
-print("Starting parse:")
-currSheet = pd.read_excel(dir + "/text.xlsx", sheet_name="Translations")
 
-textSections = []
+    print("\tGetting string data")
+    currSheet = pd.read_excel(dir + "/text.xlsx", sheet_name="Translations")
 
-for row in currSheet.iterrows():
-    currRow = row[1]["Text Section"]
-    if (currRow not in textSections):
-        textSections.append(currRow)
+    for row in currSheet.iterrows():
+        currRow = row[1]["Text Section"]
+        if (currRow not in textSections):
+            textSections.append(currRow)
 
-for lang in Languages:
-    mainDict[lang.name] = {}
-    for section in textSections:
-        mainDict[lang.name][section] = {}
-        mainDict[lang.name]["Warnings"] = {}
-        mainDict[lang.name]["Errors"] = {}
-
-
-for row in currSheet.iterrows():
-    #print(row)
     for lang in Languages:
-        currRow = row[1]
-        #print(currRow)
-        offset = lang.value
-        if (pd.isna(currRow.iloc[FIRST_TRANSLATION_COL_INDEX + lang.value])):
-            offset = Languages.English.value
-        mainDict[lang.name][currRow.iloc[0]][currRow.iloc[1]] = {"bytes": currRow.iloc[FIRST_TRANSLATION_COL_INDEX + offset],
-                                                                    "numLines": currRow.iloc[2],
-                                                                    "pixelsPerChar": currRow.iloc[3],
-                                                                    "pixelsInLine" : currRow.iloc[4],
-                                                                    "includeBoxBreaks": currRow.iloc[5],
-                                                                    }
-
-print("\tGenerating header file")
-# generate the header file
-with open (os.curdir + '/include/translated_text.h', 'w') as hFile:
-    hFile.write("// THIS FILE HAS BEEN GENERATED BY text_helper/main.py !\n\n#ifndef TRANSLATED_TEXT_H\n#define TRANSLATED_TEXT_H\n\n#include <tonc.h>\n\n")
-
-    sectionEnds = []
-    index = 0
-    for section in textSections:
-        num = write_enum_to_header_file(hFile, section + "_", mainDict[lang.name][section])
-        hFile.write("#define " + section + "_INDEX " + str(index))
-        if(section == "PTGB"):
-            hFile.write(f"\n#define DIA_END {num}\n")
-
-        hFile.write("/** Returns the LZ10 compressed " + section + " text table.*/\n")
-        sectionEnds.append(num)
-        index += 1
-
-    hFile.write("#define NUM_TEXT_SECTIONS " + str(index) + "\n")
-    hFile.write("const int text_section_lengths[] = {\n")
-    for end in sectionEnds:
-        hFile.write("\t" + str(end) + ",\n")
-    hFile.write("};\n\n")
-
-    hFile.write("const u8* get_compressed_text_table(int table_index);\n")
-
-
-    hFile.write("\n#endif")
-    hFile.close()
-
-print("\tGenerating text tables")
-# now generate the text tables
-for lang in Languages:
-    for section in textSections:
-        table_file = os.curdir + '/to_compress/' + section + '_' + lang.name.lower() + '.bin'
-        write_text_bin_file(table_file, mainDict[lang.name][section])
-
-print("\tGenerating cpp file")
-# now generate the cpp file.
-with open(os.curdir + '/source/translated_text.cpp', 'w') as cppFile:
-    cppFile.write("// THIS FILE HAS BEEN GENERATED BY text_helper/main.py !\n#include \"translated_text.h\"\n#include \"debug_mode.h\"\n")
-    # generate includes for each language
-    for lang in Languages:
+        mainDict[lang.name] = {}
         for section in textSections:
-            cppFile.write("#include \"" + section.upper() + "_" + lang.name.lower() + "_lz10_bin.h\"\n")
+            mainDict[lang.name][section] = {}
+            mainDict[lang.name]["Warnings"] = {}
+            mainDict[lang.name]["Errors"] = {}
 
-    for lang in Languages:
-        cppFile.write(f"\n#if PTGB_BUILD_LANGUAGE == {lang.value + 1}\n")
-        cppFile.write("const u8* get_compressed_text_table(int table_index)\n")
-        cppFile.write("{\n")
-        cppFile.write("\tswitch (table_index)\n\t{\n")
+    for row in currSheet.iterrows():
+        #print(row)
+        for lang in Languages:
+            currRow = row[1]
+            #print(currRow)
+            offset = lang.value
+            if (pd.isna(currRow.iloc[FIRST_TRANSLATION_COL_INDEX + lang.value])):
+                offset = Languages.English.value
+            mainDict[lang.name][currRow.iloc[0]][currRow.iloc[1]] = {"bytes": currRow.iloc[FIRST_TRANSLATION_COL_INDEX + offset],
+                                                                        "numLines": currRow.iloc[2],
+                                                                        "pixelsPerChar": currRow.iloc[3],
+                                                                        "pixelsInLine" : currRow.iloc[4],
+                                                                        "includeBoxBreaks": currRow.iloc[5],
+                                                                        }
+
+def generate_header_file():
+    print("\tGenerating header file")
+    with open (os.curdir + '/include/translated_text.h', 'w') as hFile:
+        hFile.write("// THIS FILE HAS BEEN GENERATED BY text_helper/main.py !\n\n#ifndef TRANSLATED_TEXT_H\n#define TRANSLATED_TEXT_H\n\n#include <tonc.h>\n\n")
+
+        sectionEnds = []
+        index = 0
+        lang = Languages.English # This doesn't matter, it just needs to be there. They're all the same
         for section in textSections:
-            cppFile.write("\tcase(" + section + "_INDEX):\n")
+            num = write_enum_to_header_file(hFile, section + "_", mainDict[lang.name][section])
+            hFile.write("#define " + section + "_INDEX " + str(index))
             if(section == "PTGB"):
-                cppFile.write("\tdefault:\n")
-            cppFile.write("\t\treturn " + section + "_" + lang.name.lower() + "_lz10_bin;\n")
-            cppFile.write("\t\tbreak;\n")
-        cppFile.write("\t}\n")
-        cppFile.write("}\n\n")
-        cppFile.write(f"#endif\n\n\n")
+                hFile.write(f"\n#define DIA_END {num}\n")
+
+            hFile.write("/** Returns the LZ10 compressed " + section + " text table.*/\n")
+            sectionEnds.append(num)
+            index += 1
+
+        hFile.write("#define NUM_TEXT_SECTIONS " + str(index) + "\n")
+        hFile.write("const int text_section_lengths[] = {\n")
+        for end in sectionEnds:
+            hFile.write("\t" + str(end) + ",\n")
+        hFile.write("};\n\n")
+
+        hFile.write("const u8* get_compressed_text_table(int table_index);\n")
 
 
-print("\tOutputting json file")
-for lang in Languages:
-    for section in textSections:
-        for item in mainDict[lang.name][section]:
-            string = mainDict[lang.name][section][item]["bytes"].split(" ")
-            outText = ""
-            if lang == Languages.Japanese:
-                arr = jpnCharArray
-            else:
-                arr = engCharArray
-            for byte in string:
-                byte = arr[int(byte, 16)]
-                outText += chr(byte)
-            mainDict[lang.name][section][item]["text"] = outText
-    
-with open(dir + '/output.json', 'w') as jsonFile:
-    jsonFile.write(json.dumps(mainDict))
-    
-print("Parse finished!\n")
+        hFile.write("\n#endif")
+        hFile.close()
+
+def generate_text_tables():
+    print("\tGenerating text tables")
+    for lang in Languages:
+        for section in textSections:
+            table_file = os.curdir + '/to_compress/' + section + '_' + lang.name.lower() + '.bin'
+            write_text_bin_file(table_file, mainDict[lang.name][section], lang)
+
+def generate_cpp_file():
+    print("\tGenerating cpp file")
+    with open(os.curdir + '/source/translated_text.cpp', 'w') as cppFile:
+        cppFile.write("// THIS FILE HAS BEEN GENERATED BY text_helper/main.py !\n#include \"translated_text.h\"\n#include \"debug_mode.h\"\n")
+        # generate includes for each language
+        for lang in Languages:
+            for section in textSections:
+                cppFile.write("#include \"" + section.upper() + "_" + lang.name.lower() + "_lz10_bin.h\"\n")
+
+        for lang in Languages:
+            cppFile.write(f"\n#if PTGB_BUILD_LANGUAGE == {lang.value + 1}\n")
+            cppFile.write("const u8* get_compressed_text_table(int table_index)\n")
+            cppFile.write("{\n")
+            cppFile.write("\tswitch (table_index)\n\t{\n")
+            for section in textSections:
+                cppFile.write("\tcase(" + section + "_INDEX):\n")
+                if(section == "PTGB"):
+                    cppFile.write("\tdefault:\n")
+                cppFile.write("\t\treturn " + section + "_" + lang.name.lower() + "_lz10_bin;\n")
+                cppFile.write("\t\tbreak;\n")
+            cppFile.write("\t}\n")
+            cppFile.write("}\n\n")
+            cppFile.write(f"#endif\n\n\n")
+
+def output_json_file():
+    print("\tOutputting json file")
+    for lang in Languages:
+        for section in textSections:
+            for item in mainDict[lang.name][section]:
+                string = mainDict[lang.name][section][item]["bytes"].split(" ")
+                outText = ""
+                if lang == Languages.Japanese:
+                    arr = jpnCharArray
+                else:
+                    arr = engCharArray
+                for byte in string:
+                    byte = arr[int(byte, 16)]
+                    outText += chr(byte)
+                mainDict[lang.name][section][item]["text"] = outText
+
+    with open(dir + '/output.json', 'w') as jsonFile:
+        jsonFile.write(json.dumps(mainDict))
+     
+# Main
+print("Running text_helper:")
+download_xlsx_file()
+transfer_xlsx_to_dict()
+generate_header_file()
+generate_text_tables()
+generate_cpp_file()
+output_json_file()
+print("text_helper finished!\n")
