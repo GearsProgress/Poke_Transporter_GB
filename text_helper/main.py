@@ -294,7 +294,7 @@ def convert_item(ogDict):
     pixelsInLine = ogDict["pixelsInLine"]
     include_box_breaks = ogDict["includeBoxBreaks"]
 
-    if lang == "Japanese":
+    if lang == Languages.Japanese:
         arr = jpnCharArray
         list = jpnEscapeCharConversionList
     else:
