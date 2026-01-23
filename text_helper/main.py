@@ -315,7 +315,8 @@ def convert_item(ogDict, lang):
         if (out == "ȼ"):
             offset = 0
             currLine = 0
-            outStr = outStr[:-1]
+            if outStr and outStr[-1] == " ":
+                outStr = outStr[:-1]
             outStr += "ȼ"
             index += 1
         elif (currLine < numLines):
@@ -323,7 +324,8 @@ def convert_item(ogDict, lang):
             index += 1
             outStr += out
         else:
-            outStr = outStr[:-1]
+            if outStr and outStr[-1] == " ":
+                outStr = outStr[:-1]
             outStr += "ȼ" # new textbox character
             offset = 0
             currLine = 0
