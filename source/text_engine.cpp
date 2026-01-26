@@ -8,7 +8,8 @@
 #include "debug_mode.h"
 #include "button_menu.h"
 #include "sprite_data.h"
-#include "latin_short.h"
+//#include "latin_short.h"
+#include "latin_normal.h"
 #include "japanese_small.h"
 #include "text_data_table.h"
 #include "background_engine.h"
@@ -64,16 +65,17 @@ void init_text_engine()
     // Load the TTE
     // tte_init_se(3, BG_CBB(TEXT_CBB) | BG_SBB(TEXT_SBB) | BG_PRIO(0), 0, CLR_WHITE, 14, &japanese_smallFont, NULL);
 
-    tte_init_chr4c(3,                                   // BG 0
-                   BG_CBB(TEXT_CBB) | BG_SBB(TEXT_SBB), // Charblock 0; screenblock 31
+    tte_init_chr4c(3,                                   // BG 3
+                   BG_CBB(TEXT_CBB) | BG_SBB(TEXT_SBB), // Charblock 0; screenblock 10
                    0xF000,                              // Screen-entry offset
                    bytes2word(                          // Color attributes:
-                       15,                              // Text color
-                       0,                               // Shadow color
+                       13,                              // Text color
+                       15,                              // Shadow color
                        0,                               // Paper
                        0),                              // Special
                    CLR_WHITE,                           // White text
-                   BUILD_FONT,                          // Custom font
+                   //&latin_shortFont,                    // Custom font
+                   &latin_normalFont,                   // Custom font
                    NULL                                 // Use default chr4 renderer
     );
     tte_init_con();

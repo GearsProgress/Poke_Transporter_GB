@@ -15,3 +15,5 @@ include/translated_text.h
 source/translated_text.cpp
 text_helper/output.json
 text_helper/text.xlsx
+include/latin_normal.h
+source/latin_normal.c
