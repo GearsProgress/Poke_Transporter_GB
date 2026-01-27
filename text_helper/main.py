@@ -8,8 +8,8 @@ import sys
 from pathlib import Path
 import hashlib
 import math
-from PIL import Image
 import numpy as np
+import png
 
 class Languages(Enum):
     Japanese = 0
@@ -30,87 +30,6 @@ url = 'https://docs.google.com/spreadsheets/d/14LLs5lLqWasFcssBmJdGXjjYxARAJBa_Q
 new_file_path = BASE_DIR / 'new_text.xlsx'
 old_file_path = BASE_DIR / 'text.xlsx'
 json_file_path = BASE_DIR / 'output.json'
-
-mainDict = {}
-textSections = []
-charArrays = {
-    "International": [0] * 0x100,
-    "Japanese": [0] * 0x100,
-}
-charArrayOfLanguage = {
-    Languages.Japanese: charArrays["Japanese"],
-    Languages.English: charArrays["International"],
-    Languages.French: charArrays["International"],
-    Languages.German: charArrays["International"],
-    Languages.Italian: charArrays["International"],
-    Languages.SpanishEU: charArrays["International"],
-    Languages.SpanishLA: charArrays["International"],
-}
-
-jpnCharWidthArray = [
-    0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 
-0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 
-0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 
-0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 
-0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 
-0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 
-0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 
-0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 
-0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 
-0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 
-0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 
-0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 
-0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 
-0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 
-0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 
-0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x8, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x28, 	0x0, 	0x0, ]
-
-engCharWidthArray = [
-    0x4, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x0, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 
-0x8, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x0, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x0, 
-0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x8, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x9, 	0x6, 	0x6, 	0x0, 
-0x0, 	0x0, 	0x0, 	0x0, 	0xA, 	0x8, 	0x3, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 
-0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 
-0x6, 	0x6, 	0x4, 	0x8, 	0x8, 	0x8, 	0x7, 	0x8, 	0x8, 	0x4, 	0x6, 	0x6, 	0x4, 	0x4, 	0x0, 	0x0, 
-0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x6, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x6, 
-0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x7, 	0x7, 	0x7, 	0x7, 	0x2, 	0x3, 	0x4, 
-0x5, 	0x5, 	0x6, 	0x7, 	0x5, 	0x6, 	0x6, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 
-0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 
-0x8, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x4, 	0x6, 	0x3, 	0x6, 	0x3, 
-0x6, 	0x6, 	0x6, 	0x3, 	0x3, 	0x6, 	0x6, 	0x6, 	0x3, 	0x7, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 
-0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 
-0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x4, 	0x5, 	0x6, 
-0x4, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x5, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x8, 
-0x3, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x6, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x0, 	0x38, 	0x0, 	0x0, ]
-
-charConversionList = [
-    # replaces the first char in the list with the latter
-    ["'", "’"],
-]
-
-jpnEscapeCharConversionList = [
-    ["{SCL}", [0xFA]],
-    ["{CLR}", [0xFB]],
-    ["{DEF}", [0xFC, 0x06, 0x02]],
-    ["{FEM}", [0xFC, 0x06, 0x03]], # ???
-    ["{MLE}", [0xFC, 0x06, 0x04]],
-    ["{FPC}", [0xFC, 0x06, 0x05]],
-    ["{PLR}", [0xFD, 0x01]],
-    ["{NEW}", [0xFE]],
-    ["{END}", [0xFF]],
-]
-
-itlEscapeCharConversionList = [
-    ["{SCL}", [0xFA]],
-    ["{CLR}", [0xFB]],
-    ["{DEF}", [0xFC, 0x01, 0x02]],
-    ["{FEM}", [0xFC, 0x01, 0x04]],
-    ["{FPC}", [0xFC, 0x01, 0x06]],
-    ["{MLE}", [0xFC, 0x01, 0x08]],
-    ["{PLR}", [0xFD, 0x01]],
-    ["{NEW}", [0xFE]],
-    ["{END}", [0xFF]],
-]
 
 def split_into_sentences(text: str) -> list[str]:
     # -*- coding: utf-8 -*-
@@ -194,13 +113,8 @@ def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, lan
         # Figure out the length of the word in pixels
         for char in word:
             if (pixelsPerChar == "Variable"):
-                if(lang == Languages.Japanese):
-                    wordLength += jpnCharWidthArray[convert_char_to_byte(ord(char), charArrayOfLanguage[lang], lang)]
-                    spaceLength = jpnCharWidthArray[convert_char_to_byte(ord(' '), charArrayOfLanguage[lang], lang)]
-                else:
-                    wordLength += engCharWidthArray[convert_char_to_byte(ord(char), charArrayOfLanguage[lang], lang)]
-                    spaceLength = engCharWidthArray[convert_char_to_byte(ord(' '), charArrayOfLanguage[lang], lang)]
-                    
+                wordLength += charArrayOfLanguage[lang]["font"].charWidthTable[convert_char_to_byte(ord(char), charArrayOfLanguage[lang]["array"], lang)]
+                spaceLength = charArrayOfLanguage[lang]["font"].charWidthTable[convert_char_to_byte(ord(' '), charArrayOfLanguage[lang]["array"], lang)]
             elif (pixelsPerChar == "Default"):
                 if (lang == Languages.Japanese):
                     wordLength += 8
@@ -259,6 +173,7 @@ def convert_char_to_byte(incoming, array, lang):
             log_warning_error(lang, "Warning", f"Character {pair[0]} was used but is not in character table. Replaced with {pair[1]} .")
     
     index = 0
+    #print(array)
     for val in array:
         if str(val) == chr(incoming):
             return index
@@ -290,12 +205,9 @@ def convert_item(ogDict, lang):
     pixelsInLine = ogDict["pixelsInLine"]
     include_box_breaks = ogDict["includeBoxBreaks"]
 
-    if lang == Languages.Japanese:
-        arr = charArrayOfLanguage[lang]
-        list = jpnEscapeCharConversionList
-    else:
-        arr = charArrayOfLanguage[lang]
-        list = itlEscapeCharConversionList
+    arr = charArrayOfLanguage[lang]["array"]
+    list = charArrayOfLanguage[lang]["escape"]
+
     for pair in list:
         if pair[0] in line:
             escapeString = ""
@@ -365,7 +277,7 @@ def convert_item(ogDict, lang):
         outStr = newStr
     
     byteStr = ""
-    arr = charArrayOfLanguage[lang]
+    arr = charArrayOfLanguage[lang]["array"]
     for char in outStr[:-1]:
         byteStr += f"{convert_char_to_byte(ord(char), arr, lang):02x} "
     if (len(outStr) > 0 and outStr[-1] != ' '): # Check if the last char is a space
@@ -474,7 +386,7 @@ def transfer_xlsx_to_dict():
                 val = currSheet.iloc[r + 1, c + offset]
                 if pd.isna(val):
                     val = " "
-                value[r * 0x10 + c] = val
+                value["array"][r * 0x10 + c] = val
         # print(charArrays[key])
         offset += 16
 
@@ -578,7 +490,7 @@ def output_json_file():
             for item in mainDict[lang.name][section]:
                 string = mainDict[lang.name][section][item]["bytes"].split(" ")
                 outText = ""
-                arr = charArrayOfLanguage[lang]
+                arr = charArrayOfLanguage[lang]["array"]
                 for byte in string:
                     byte = arr[int(byte, 16)]
                     outText += str(byte)
@@ -594,14 +506,17 @@ BACKGROUND_PAL_INDEX = 0
 CELL_PAL_INDEX = 1
 
 class Font:
-    def __init__(self, fileName, numColors, numChars, numCharsX, numCharsY, cellWidth, cellHeight):
+    def __init__(self, fileName, conditional, numColors, numChars, numCharsX, numCharsY, cellWidth, cellHeight, charWidth, charHeight):
         self.fileName = fileName
+        self.conditional = conditional
         self.numColors = numColors
         self.numChars = numChars
         self.numCharsX = numCharsX
         self.numCharsY = numCharsY
         self.cellWidth = cellWidth
         self.cellHeight = cellHeight
+        self.charWidth = charWidth
+        self.charHeight = charHeight
 
         self.bpp = int(math.log(numColors, 2)) + 1
         self.numWords = self.numChars * self.cellWidth * self.cellHeight * self.bpp // (8 * 4)
@@ -612,7 +527,11 @@ class Font:
 
 def build_h(myFont):
     with open(fontDir + "/include/" + myFont.fileName + ".h", 'w') as f:
-        f.write(f'''
+        f.write(f'''#include "debug_mode.h"
+#include "pokemon_data.h"
+
+#if {myFont.conditional}
+
 #ifndef __{myFont.fileName.upper()}__
 #define __{myFont.fileName.upper()}__
 
@@ -623,6 +542,8 @@ extern const unsigned int {myFont.fileName}Glyphs[{myFont.numBytes}];
 
 #define {myFont.fileName}WidthsLen {myFont.numChars}
 extern const unsigned char {myFont.fileName}Widths[{myFont.numChars}];
+
+#endif
 
 #endif
 ''')
@@ -676,7 +597,7 @@ def build_c(myFont):
     0, // All heights are the same 
 	0, // Character offset, is set to zero
     {myFont.numChars},
-	{myFont.cellWidth}, {myFont.cellHeight},
+	{myFont.charWidth}, {myFont.charHeight},
 	{myFont.cellWidth}, {myFont.cellHeight}, 
     {myFont.numBytes // myFont.numChars}, 
 	{myFont.bpp}, 
@@ -687,11 +608,15 @@ def build_c(myFont):
         f.close()
 
 def generate_tables(myFont):
-    img = Image.open(f'{fontDir}/graphics/{myFont.fileName}.png')
-    if (img.mode != "P"):
+    reader = png.Reader(f'{fontDir}/text_helper/fonts/{myFont.fileName}.png')
+    png_info = reader.read()[3]
+    palette = png_info.get('palette')
+    if (palette is None):
         print("Error: Image file does not contain a palette")
         exit()
-    pixels = img.load()
+
+    width, height, rows, info = reader.read()
+    pixels = list(rows)
 
     bitsPerWord = 32
     pixelsPerTileX = 8
@@ -707,8 +632,8 @@ def generate_tables(myFont):
 
     for charY in range(charsPerChartY):
         for charX in range(charsPerChartX):
-            for tileY in range(tilesPerCharY):
-                for tileX in range(tilesPerCharX):
+            for tileX in range(tilesPerCharX): # Tiles go from top to bottom, then left to right
+                for tileY in range(tilesPerCharY):
                     for pixelY in range(pixelsPerTileY):
                         for pixelX in range(pixelsPerTileX):
                             
@@ -718,7 +643,10 @@ def generate_tables(myFont):
                             globalX = pixelX + (tileX * pixelsPerTileX) + (charX * tilesPerCharX * pixelsPerTileX)
                             globalY = pixelY + (tileY * pixelsPerTileY) + (charY * tilesPerCharY * pixelsPerTileY)
 
-                            val = (pixels[globalX, globalY] - 2) & ((1 << myFont.bpp) - 1)
+                            val = (pixels[globalY][globalX] - 1)
+                            if val < 0:
+                                val = 0
+                            val &= myFont.bpp
                             myFont.charWordTable[arrayIndex] |= val << bitIndex
 
                             #print(f'globalX: {globalX}, globalY: {globalY}, arrayIndex:{arrayIndex}, bitIndex:{bitIndex}, val:{val}')
@@ -731,17 +659,68 @@ def generate_tables(myFont):
                 globalX = x + (charX * tilesPerCharX * pixelsPerTileX)
                 globalY = 0 + (charY * tilesPerCharY * pixelsPerTileY)
                 #print(f'x: {globalX}, y: {globalY}')
-                if (pixels[globalX, globalY] == BACKGROUND_PAL_INDEX):
+                if (pixels[globalY][globalX] == BACKGROUND_PAL_INDEX):
                     myFont.charWidthTable[(charY * charsPerChartX) + charX] = x
                     break
 
 def generate_font():
-    latin_normal = Font("latin_normal", 1, 256, 16, 16, 16, 16)
-    generate_tables(latin_normal)
-    build_h(latin_normal)
-    build_c(latin_normal)
+    for font in fonts.values():
+        generate_tables(font)
+        build_h(font)
+        build_c(font)
 
+mainDict = {}
+textSections = []
+fonts = {
+    "International": Font("latin_normal", "PTGB_BUILD_LANGUAGE != 1", 1, 256, 16, 16, 16, 16, 16, 14),
+    "Japanese": Font("japanese_normal", "PTGB_BUILD_LANGUAGE == 1", 1, 256, 16, 16, 8, 16, 8, 16),
+}
+charArrays = {
+    "International": {
+        "array": [0] * 0x100,
+        "font": fonts["International"],
+        "escape": [
+                    ["{SCL}", [0xFA]],
+                    ["{CLR}", [0xFB]],
+                    ["{DEF}", [0xFC, 0x01, 0x02]],
+                    ["{FEM}", [0xFC, 0x01, 0x04]],
+                    ["{FPC}", [0xFC, 0x01, 0x06]],
+                    ["{MLE}", [0xFC, 0x01, 0x08]],
+                    ["{PLR}", [0xFD, 0x01]],
+                    ["{NEW}", [0xFE]],
+                    ["{END}", [0xFF]],
+                    ]
+    },
+    "Japanese": {
+        "array": [0] * 0x100,
+        "font": fonts["Japanese"],
+        "escape": [
+                    ["{SCL}", [0xFA]],
+                    ["{CLR}", [0xFB]],
+                    ["{DEF}", [0xFC, 0x06, 0x02]],
+                    ["{FEM}", [0xFC, 0x06, 0x03]], # ???
+                    ["{MLE}", [0xFC, 0x06, 0x04]],
+                    ["{FPC}", [0xFC, 0x06, 0x05]],
+                    ["{PLR}", [0xFD, 0x01]],
+                    ["{NEW}", [0xFE]],
+                    ["{END}", [0xFF]],
+                ]
+    },
+}
+charArrayOfLanguage = {
+    Languages.Japanese: charArrays["Japanese"],
+    Languages.English: charArrays["International"],
+    Languages.French: charArrays["International"],
+    Languages.German: charArrays["International"],
+    Languages.Italian: charArrays["International"],
+    Languages.SpanishEU: charArrays["International"],
+    Languages.SpanishLA: charArrays["International"],
+}
 
+charConversionList = [
+    # replaces the first char in the list with the latter
+    ["'", "’"],
+]
 
 # Main
 print("Running text_helper:")

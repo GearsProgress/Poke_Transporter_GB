@@ -8,9 +8,8 @@
 #include "debug_mode.h"
 #include "button_menu.h"
 #include "sprite_data.h"
-//#include "latin_short.h"
 #include "latin_normal.h"
-#include "japanese_small.h"
+#include "japanese_normal.h"
 #include "text_data_table.h"
 #include "background_engine.h"
 
@@ -74,8 +73,7 @@ void init_text_engine()
                        0,                               // Paper
                        0),                              // Special
                    CLR_WHITE,                           // White text
-                   //&latin_shortFont,                    // Custom font
-                   &latin_normalFont,                   // Custom font
+                   &japanese_normalFont,                // Custom font
                    NULL                                 // Use default chr4 renderer
     );
     tte_init_con();
