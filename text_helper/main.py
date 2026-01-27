@@ -330,6 +330,7 @@ def write_enum_to_header_file(hFile, prefix, dictionary):
     return num
 
 def download_xlsx_file():
+    print("Downloading xlsx file")
     offline = False
     # ---- Attempt download ----
     try:
@@ -361,19 +362,19 @@ def download_xlsx_file():
         if old_file_path.exists():
 
             if hash_excel(new_file_path) == hash_excel(old_file_path):
-                print("Downloaded file is identical.")
+                print("Downloaded file is identical")
                 new_file_path.unlink()
                 if json_file_path.exists():
-                    print("Skipping parse.\n")
+                    print("Skipping parse\n")
                     sys.exit(0)
                 else:
-                    print("JSON missing - forcing rebuild.")
+                    print("JSON missing - forcing rebuild")
             else:
                 old_file_path.unlink()
                 new_file_path.rename(old_file_path)
 
         else:
-            print("No cached xlsx - forcing rebuild.")
+            print("No cached xlsx - forcing rebuild")
             new_file_path.rename(old_file_path)
 
 def transfer_xlsx_to_dict():
@@ -506,9 +507,8 @@ BACKGROUND_PAL_INDEX = 0
 CELL_PAL_INDEX = 1
 
 class Font:
-    def __init__(self, fileName, conditional, numColors, numChars, numCharsX, numCharsY, cellWidth, cellHeight, charWidth, charHeight):
+    def __init__(self, fileName, numColors, numChars, numCharsX, numCharsY, cellWidth, cellHeight, charWidth, charHeight):
         self.fileName = fileName
-        self.conditional = conditional
         self.numColors = numColors
         self.numChars = numChars
         self.numCharsX = numCharsX
@@ -525,155 +525,124 @@ class Font:
         self.charWordTable = [0] * self.numWords
         self.charWidthTable = [0] * self.numBytes
 
-def build_h(myFont):
-    with open(fontDir + "/include/" + myFont.fileName + ".h", 'w') as f:
+def build_h():
+    print("Building font.h")
+    with open(fontDir + "/include/fonts.h", 'w') as f:
         f.write(f'''#include "debug_mode.h"
 #include "pokemon_data.h"
 
-#if {myFont.conditional}
+#ifndef __FONTS_H__
+#define __FONTS_H__''')
 
-#ifndef __{myFont.fileName.upper()}__
-#define __{myFont.fileName.upper()}__
 
-extern const TFont {myFont.fileName}Font;
-
+        for myFont in fonts.values():
+            f.write(f'''\n
 #define {myFont.fileName}GlyphsLen {myFont.numBytes}
-extern const unsigned int {myFont.fileName}Glyphs[{myFont.numBytes}];
+#define {myFont.fileName}WidthsLen {myFont.numChars}''')
+            
+            f.write(f'\n\nconst unsigned int {myFont.fileName}Glyphs[{myFont.numWords}] __attribute__((aligned(4)))=\n{{\n\t')
 
-#define {myFont.fileName}WidthsLen {myFont.numChars}
-extern const unsigned char {myFont.fileName}Widths[{myFont.numChars}];
+            for i in range(myFont.numWords):
+                f.write(f'{myFont.charWordTable[i]:#010x},')
+                if (i == myFont.numWords - 1):
+                    f.write("\n};\n\n")
+                elif (i % 64 == 63):
+                    f.write("\n\n\t")
+                elif (i % 8 == 7):
+                    f.write("\n\t")
 
-#endif
+            f.write(f'const unsigned char {myFont.fileName}Widths[{myFont.numChars}] __attribute__((aligned(4)))=\n{{\n\t')
 
-#endif
-''')
-        f.close()
+            for i in range(myFont.numChars):
+                f.write(f'{myFont.charWidthTable[i]:#04x}, ')
+                if (i == myFont.numChars - 1):
+                    f.write("\n};\n\n")
+                elif (i % 128 == 127):
+                    f.write("\n\n\t")
+                elif (i % 16 == 15):
+                    f.write("\n\t")
 
-def build_c(myFont):
-    with open(fontDir + "/source/" + myFont.fileName + ".c", 'w') as f:
-        f.write(f'''typedef struct TFont
+            f.write(f'''const TFont {myFont.fileName}Font= 
 {{
-	const void	*data;				//!< Character data.
-	const unsigned char	*widths;	//!< Width table for vwf.
-	const unsigned char	*heights;	//!< Height table for vhf.
-	unsigned short	charOffset;		//!< Character offset.
-	unsigned short	charnumChars;		//!< Character numChars.
-	unsigned char	charW;			//!< Character width (fwf).
-	unsigned char	charH;			//!< Character height.
-	unsigned char	cellW;			//!< Glyph cell width.
-	unsigned char	cellH;			//!< Glyph cell height.
-	unsigned short	cellSize;		//!< Cell-size (bytes).
-	unsigned char	bpp;				//!< Font bitdepth;
-	unsigned char	extra;			//!< Padding. Free to use.
-}} TFont;\n
-''')
-        
-        f.write(f'const unsigned int {myFont.fileName}Glyphs[{myFont.numWords}] __attribute__((aligned(4)))=\n{{\n\t')
-
-        for i in range(myFont.numWords):
-            f.write(f'{myFont.charWordTable[i]:#010x},')
-            if (i == myFont.numWords - 1):
-                f.write("\n};\n\n")
-            elif (i % 64 == 63):
-                f.write("\n\n\t")
-            elif (i % 8 == 7):
-                f.write("\n\t")
-
-        f.write(f'const unsigned char {myFont.fileName}Widths[{myFont.numChars}] __attribute__((aligned(4)))=\n{{\n\t')
-
-        for i in range(myFont.numChars):
-            f.write(f'{myFont.charWidthTable[i]:#04x}, ')
-            if (i == myFont.numChars - 1):
-                f.write("\n};\n\n")
-            elif (i % 128 == 127):
-                f.write("\n\n\t")
-            elif (i % 16 == 15):
-                f.write("\n\t")
-
-        f.write(f'''const TFont {myFont.fileName}Font= 
-{{
-	{myFont.fileName}Glyphs, 
+    {myFont.fileName}Glyphs, 
     {myFont.fileName}Widths, 
     0, // All heights are the same 
-	0, // Character offset, is set to zero
+    0, // Character offset, is set to zero
     {myFont.numChars},
-	{myFont.charWidth}, {myFont.charHeight},
-	{myFont.cellWidth}, {myFont.cellHeight}, 
+    {myFont.charWidth}, {myFont.charHeight},
+    {myFont.cellWidth}, {myFont.cellHeight}, 
     {myFont.numBytes // myFont.numChars}, 
-	{myFont.bpp}, 
+    {myFont.bpp}, 
     0, // Padding, left blank
-}};
-                ''')
+}};''')
 
-        f.close()
+        f.write('\n\n#endif')
+    f.close()
 
-def generate_tables(myFont):
-    reader = png.Reader(f'{fontDir}/text_helper/fonts/{myFont.fileName}.png')
-    png_info = reader.read()[3]
-    palette = png_info.get('palette')
-    if (palette is None):
-        print("Error: Image file does not contain a palette")
-        exit()
+def generate_tables():
+    print("Generating font tables")
+    for myFont in fonts.values():
+        print(f'\t{myFont.fileName}')
+        reader = png.Reader(f'{fontDir}/text_helper/fonts/{myFont.fileName}.png')
+        png_info = reader.read()[3]
+        palette = png_info.get('palette')
+        if (palette is None):
+            print("Error: Image file does not contain a palette")
+            exit()
 
-    width, height, rows, info = reader.read()
-    pixels = list(rows)
+        width, height, rows, info = reader.read()
+        pixels = list(rows)
 
-    bitsPerWord = 32
-    pixelsPerTileX = 8
-    pixelsPerTileY = 8
-    tilesPerCharX = myFont.cellWidth // pixelsPerTileX
-    tilesPerCharY = myFont.cellHeight // pixelsPerTileY
-    charsPerChartX = myFont.numCharsX
-    charsPerChartY = myFont.numCharsY
+        bitsPerWord = 32
+        pixelsPerTileX = 8
+        pixelsPerTileY = 8
+        tilesPerCharX = myFont.cellWidth // pixelsPerTileX
+        tilesPerCharY = myFont.cellHeight // pixelsPerTileY
+        charsPerChartX = myFont.numCharsX
+        charsPerChartY = myFont.numCharsY
 
-    globalX = 0
-    globalY = 0
-    bitTotal = 0
+        globalX = 0
+        globalY = 0
+        bitTotal = 0
 
-    for charY in range(charsPerChartY):
-        for charX in range(charsPerChartX):
-            for tileX in range(tilesPerCharX): # Tiles go from top to bottom, then left to right
-                for tileY in range(tilesPerCharY):
-                    for pixelY in range(pixelsPerTileY):
-                        for pixelX in range(pixelsPerTileX):
-                            
-                            arrayIndex = bitTotal // bitsPerWord
-                            bitIndex = bitTotal % bitsPerWord
+        for charY in range(charsPerChartY):
+            for charX in range(charsPerChartX):
+                for tileX in range(tilesPerCharX): # Tiles go from top to bottom, then left to right
+                    for tileY in range(tilesPerCharY):
+                        for pixelY in range(pixelsPerTileY):
+                            for pixelX in range(pixelsPerTileX):
+                                
+                                arrayIndex = bitTotal // bitsPerWord
+                                bitIndex = bitTotal % bitsPerWord
 
-                            globalX = pixelX + (tileX * pixelsPerTileX) + (charX * tilesPerCharX * pixelsPerTileX)
-                            globalY = pixelY + (tileY * pixelsPerTileY) + (charY * tilesPerCharY * pixelsPerTileY)
+                                globalX = pixelX + (tileX * pixelsPerTileX) + (charX * tilesPerCharX * pixelsPerTileX)
+                                globalY = pixelY + (tileY * pixelsPerTileY) + (charY * tilesPerCharY * pixelsPerTileY)
 
-                            val = (pixels[globalY][globalX] - 1)
-                            if val < 0:
-                                val = 0
-                            val &= myFont.bpp
-                            myFont.charWordTable[arrayIndex] |= val << bitIndex
+                                val = (pixels[globalY][globalX] - 1)
+                                if val < 0:
+                                    val = 0
+                                val &= myFont.bpp
+                                myFont.charWordTable[arrayIndex] |= val << bitIndex
 
-                            #print(f'globalX: {globalX}, globalY: {globalY}, arrayIndex:{arrayIndex}, bitIndex:{bitIndex}, val:{val}')
-                            bitTotal += myFont.bpp
-            
-            #print(f'{charX, charY}')
+                                #print(f'globalX: {globalX}, globalY: {globalY}, arrayIndex:{arrayIndex}, bitIndex:{bitIndex}, val:{val}')
+                                bitTotal += myFont.bpp
+                
+                #print(f'{charX, charY}')
 
-            myFont.charWidthTable[(charY * charsPerChartX) + charX] = (tilesPerCharX * pixelsPerTileX)
-            for x in range(tilesPerCharX * pixelsPerTileX):
-                globalX = x + (charX * tilesPerCharX * pixelsPerTileX)
-                globalY = 0 + (charY * tilesPerCharY * pixelsPerTileY)
-                #print(f'x: {globalX}, y: {globalY}')
-                if (pixels[globalY][globalX] == BACKGROUND_PAL_INDEX):
-                    myFont.charWidthTable[(charY * charsPerChartX) + charX] = x
-                    break
-
-def generate_font():
-    for font in fonts.values():
-        generate_tables(font)
-        build_h(font)
-        build_c(font)
+                myFont.charWidthTable[(charY * charsPerChartX) + charX] = (tilesPerCharX * pixelsPerTileX)
+                for x in range(tilesPerCharX * pixelsPerTileX):
+                    globalX = x + (charX * tilesPerCharX * pixelsPerTileX)
+                    globalY = 0 + (charY * tilesPerCharY * pixelsPerTileY)
+                    #print(f'x: {globalX}, y: {globalY}')
+                    if (pixels[globalY][globalX] == BACKGROUND_PAL_INDEX):
+                        myFont.charWidthTable[(charY * charsPerChartX) + charX] = x
+                        break
 
 mainDict = {}
 textSections = []
 fonts = {
-    "International": Font("latin_normal", "PTGB_BUILD_LANGUAGE != 1", 1, 256, 16, 16, 16, 16, 16, 14),
-    "Japanese": Font("japanese_normal", "PTGB_BUILD_LANGUAGE == 1", 1, 256, 16, 16, 8, 16, 8, 16),
+    "International": Font("latin_normal", 1, 256, 16, 16, 16, 16, 16, 14),
+    "Japanese": Font("japanese_normal", 1, 256, 16, 16, 8, 16, 8, 16),
 }
 charArrays = {
     "International": {
@@ -724,8 +693,8 @@ charConversionList = [
 
 # Main
 print("Running text_helper:")
-print("\tGenerating font")
-generate_font()
+generate_tables()
+build_h()
 download_xlsx_file()
 transfer_xlsx_to_dict()
 generate_header_file()

@@ -8,8 +8,7 @@
 #include "debug_mode.h"
 #include "button_menu.h"
 #include "sprite_data.h"
-#include "latin_normal.h"
-#include "japanese_normal.h"
+#include "fonts.h"
 #include "text_data_table.h"
 #include "background_engine.h"
 
@@ -59,10 +58,21 @@ static __attribute__((noinline)) const u8 *read_dialogue_text_entry(uint8_t inde
     return output_buffer;
 }
 
+// This will have to be changed to be dynamic to support nicknamed Pokemon that are in a different language than the current build.
+// Maybe combine Japanese and Latin into one larger font?
+
+#if PTGB_BUILD_LANGUAGE == 1
+    #define BUILD_FONT &japanese_normalFont
+#else
+    #define BUILD_FONT &latin_normalFont
+#endif
+
 void init_text_engine()
 {
     // Load the TTE
     // tte_init_se(3, BG_CBB(TEXT_CBB) | BG_SBB(TEXT_SBB) | BG_PRIO(0), 0, CLR_WHITE, 14, &japanese_smallFont, NULL);
+
+
 
     tte_init_chr4c(3,                                   // BG 3
                    BG_CBB(TEXT_CBB) | BG_SBB(TEXT_SBB), // Charblock 0; screenblock 10
@@ -73,7 +83,7 @@ void init_text_engine()
                        0,                               // Paper
                        0),                              // Special
                    CLR_WHITE,                           // White text
-                   &japanese_normalFont,                // Custom font
+                   BUILD_FONT,                          // Custom font
                    NULL                                 // Use default chr4 renderer
     );
     tte_init_con();
