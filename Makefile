@@ -166,7 +166,7 @@ generate_data:
 	@echo "----------------------------------------------------------------"
 	@echo
 	@tools/payload-generator/payload-generator to_compress
-	@python text_helper/main.py
+	@python3 text_helper/main.py
 	@echo "Compressing bin files!" 
 	@echo -n "["
 	@find to_compress -name "*.bin" -print0 | xargs -0 -n1 ./compress_lz10.sh
