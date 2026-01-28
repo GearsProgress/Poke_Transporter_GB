@@ -134,7 +134,7 @@ def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, lan
             currWordIndex += 1
             
         # See if the sentence is a new box
-        elif(sentence == "Ş" or sentence == "ȼ"):
+        elif(sentence == "ȼ"):
             outStr += sentence
             currLine = ""
             offset = 0
@@ -365,7 +365,10 @@ def download_xlsx_file():
                 print("Downloaded file is identical")
                 new_file_path.unlink()
                 if json_file_path.exists():
-                    print("Skipping parse\n")
+                    print("Skipping parse")
+                    if os.path.getmtime(f'{textDir}/main.py') > os.path.getmtime(f'{textDir}/text.xlsx'):
+                        print("\t...but the python file is new, so we're doing it anyway!")
+                        return
                     sys.exit(0)
                 else:
                     print("JSON missing - forcing rebuild")
@@ -641,7 +644,7 @@ def generate_tables():
 mainDict = {}
 textSections = []
 fonts = {
-    "International": Font("latin_normal", 1, 256, 16, 16, 16, 16, 16, 14),
+    "International": Font("latin_normal", 1, 256, 16, 16, 16, 16, 16, 16),
     "Japanese": Font("japanese_normal", 1, 256, 16, 16, 8, 16, 8, 16),
 }
 charArrays = {
