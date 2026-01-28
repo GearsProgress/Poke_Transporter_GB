@@ -20,7 +20,7 @@ class Languages(Enum):
     SpanishEU = 5
     SpanishLA = 6
 
-FIRST_TRANSLATION_COL_INDEX = 8
+FIRST_TRANSLATION_COL_INDEX = 9
 BASE_DIR = Path(__file__).resolve().parent
 
 # read by default 1st sheet of an excel file
@@ -101,7 +101,7 @@ def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, lan
     lineLength = 0
     spaceLength = 0
     for char in splitChars:
-        sentence.replace(char, " ")
+        sentence = sentence.replace(char, " ")
     words = sentence.split()        
 
 
@@ -124,9 +124,12 @@ def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, lan
                     wordLength += 6
                     spaceLength = 6
         
-        # See if the whole sentence is a newline
-        if (sentence == "Ň"):
-            outStr += "Ň"
+        # See if the whole sentence is a newline or scroll
+        if (sentence == "Ň" or sentence == "Ş"):
+            if (sentence == "Ň"):
+                outStr += "Ň"
+            elif (sentence == "Ş"):
+                outStr += "Ş"
             currLine = ""
             lineCount += 1
             offset = 0
@@ -204,11 +207,12 @@ def convert_item(ogDict, lang):
     pixelsPerChar = ogDict["pixelsPerChar"]
     pixelsInLine = ogDict["pixelsInLine"]
     include_box_breaks = ogDict["includeBoxBreaks"]
+    include_scrolling = ogDict["includeScrolling"]
 
     arr = charArrayOfLanguage[lang]["array"]
-    list = charArrayOfLanguage[lang]["escape"]
+    escape_list = charArrayOfLanguage[lang]["escape"]
 
-    for pair in list:
+    for pair in escape_list:
         if pair[0] in line:
             escapeString = ""
             for char in pair[1]:
@@ -234,7 +238,7 @@ def convert_item(ogDict, lang):
                 outStr = outStr[:-1]
             outStr += "ȼ"
             index += 1
-        elif (currLine < numLines):
+        elif (currLine < (numLines + int(include_scrolling))):
             #print(split_sents[index])
             index += 1
             outStr += out
@@ -255,7 +259,30 @@ def convert_item(ogDict, lang):
     # Some cases that should be fixed
     exitLoop = False
     while(not exitLoop):
-        newStr = outStr
+        newStr = ""
+
+        splitBoxes = outStr.split('ȼ')
+        outIndex = 0
+        for box in splitBoxes:
+            # Make sure both kinds of newlines are being accounted for
+            box = box.replace('Ş', 'Ň')
+            splitLines = box.split('Ň')
+            outBox = ""
+            i = 1
+            for split in splitLines:
+                outIndex += len(split)
+                if split == splitLines[-1]:
+                    breakChar = ""
+                elif ((i >= numLines) and include_scrolling):
+                    breakChar = 'Ş'
+                else:
+                    breakChar = outStr[outIndex]
+                outBox += split + breakChar
+                outIndex += 1
+                i += 1
+            newStr += f'{outBox}ȼ'
+        newStr = newStr[:-1] # remove the last ȼ
+
         # A space right before a newline just takes up space
         newStr = newStr.replace(" Ň", "Ň")
         # Newlines shouldn't happen right after a new textbox
@@ -269,6 +296,7 @@ def convert_item(ogDict, lang):
         # Nor should a new scroll be after a new textbox
         newStr = newStr.replace("ȼŞ", "ȼ")
         
+
         if len(newStr) > 1023:
             newStr = newStr[:1023]
             log_warning_error(lang, "Warning", f"String {newStr} exceeds character limit of 1023 and has been truncated.")
@@ -352,7 +380,10 @@ def download_xlsx_file():
     if offline:
         # XML exists (guaranteed here)
         if json_file_path.exists():
-            print("Offline mode: trusting cached XML + JSON. Skipping parse.\n")
+            print("Offline mode: trusting cached XML + JSON. Skipping parse.")
+            if os.path.getmtime(f'{textDir}/main.py') > os.path.getmtime(f'{textDir}/output.json'):
+                print("\t...but the python file is new, so we're doing it anyway!")
+                return
             sys.exit(0)
         else:
             print("Offline mode: XML present but JSON missing. Rebuilding.")
@@ -366,7 +397,7 @@ def download_xlsx_file():
                 new_file_path.unlink()
                 if json_file_path.exists():
                     print("Skipping parse")
-                    if os.path.getmtime(f'{textDir}/main.py') > os.path.getmtime(f'{textDir}/text.xlsx'):
+                    if os.path.getmtime(f'{textDir}/main.py') > os.path.getmtime(f'{textDir}/output.json'):
                         print("\t...but the python file is new, so we're doing it anyway!")
                         return
                     sys.exit(0)
@@ -424,6 +455,7 @@ def transfer_xlsx_to_dict():
                                                                         "pixelsPerChar": currRow.iloc[3],
                                                                         "pixelsInLine" : currRow.iloc[4],
                                                                         "includeBoxBreaks": currRow.iloc[5],
+                                                                        "includeScrolling": currRow.iloc[6],
                                                                         }
 
 def generate_header_file():
