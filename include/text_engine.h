@@ -30,6 +30,6 @@ int ptgb_write(const byte *text, bool instant);
 int ptgb_write(const byte *text, bool instant, int length);
 int ptgb_write_debug(const u16* charset, const char *text, bool instant);
 void wait_for_user_to_continue(bool clear_text);
-void scroll_text(const byte *text, bool instant, int length, int curr_index, TTC *tc);
+void scroll_text(bool instant, TTC *tc);
 
 #endif

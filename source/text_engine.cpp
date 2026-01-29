@@ -72,8 +72,6 @@ void init_text_engine()
     // Load the TTE
     // tte_init_se(3, BG_CBB(TEXT_CBB) | BG_SBB(TEXT_SBB) | BG_PRIO(0), 0, CLR_WHITE, 14, &japanese_smallFont, NULL);
 
-
-
     tte_init_chr4c(3,                                   // BG 3
                    BG_CBB(TEXT_CBB) | BG_SBB(TEXT_SBB), // Charblock 0; screenblock 10
                    0xF000,                              // Screen-entry offset
@@ -174,6 +172,7 @@ int text_loop(int script)
         {
             bool exit = false;
             bool update_text = true;
+            bool instant_text = false;
             key_poll();
             while (!exit)
             {
@@ -197,8 +196,9 @@ int text_loop(int script)
                     text_section = (text_section + (NUM_TEXT_SECTIONS - 1)) % NUM_TEXT_SECTIONS;
                     update_text = true;
                 }
-                else if (key_hit(KEY_START))
+                else if (key_hit(KEY_START) || key_hit(KEY_SELECT))
                 {
+                    instant_text = key_hit(KEY_START); // instant with start, not with select
                     exit = true;
                 }
                 if (update_text)
@@ -239,14 +239,13 @@ int text_loop(int script)
                 }
                 show_text_box();
                 tte_erase_rect(0, 0, 240, 160);
-                ptgb_write(curr_text, false);
+                ptgb_write(curr_text, instant_text);
             }
 
             wait_for_user_to_continue(false);
             update_text = true;
             hide_text_box();
             REG_BG3VOFS = 0;
-
 
             if (text_exit)
             {
@@ -332,7 +331,7 @@ int ptgb_write(const byte *text, bool instant, int length)
                     tc->drawgProc(0x79);
                 }
                 wait_for_user_to_continue(false);
-                scroll_text(text, instant, length, num, tc);
+                scroll_text(instant, tc);
                 tc->cursorY += tc->font->charH;
                 tc->cursorX = tc->marginLeft;
                 break;
@@ -445,22 +444,17 @@ void wait_for_user_to_continue(bool clear_text)
     }
 }
 
-void scroll_text(const byte *text, bool instant, int length, int curr_index, TTC *tc)
+void scroll_text(bool instant, TTC *tc)
 {
     for (int i = 1; i <= tc->font->charH; i++)
     {
         REG_BG3VOFS = i;
         tte_erase_rect(LEFT, TOP - tc->font->charH, RIGHT, TOP + i);
-        global_next_frame();
+        if (!instant)
+        {
+            global_next_frame();
+        }
     }
-    //wait_for_user_to_continue(true);
-    // Remove current text
-    //tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
-    // Write old text offset up one line
-    //tte_set_pos(LEFT, TOP - tc->font->charH);
-    //ptgb_write(text, true, curr_index);
-    // Remove text that went outside of the box
+    //  Remove text that went outside of the box
     tte_erase_rect(LEFT, TOP - tc->font->charH, RIGHT, TOP);
-    // Prepare to continue
-    //tte_set_pos(LEFT, TOP);
 }

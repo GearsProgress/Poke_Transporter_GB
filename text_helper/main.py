@@ -93,7 +93,7 @@ def split_into_sentences(text: str) -> list[str]:
  
 def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, lang):
     # If we can optimize this to remove the spaces, it could save a few bytes.
-    splitChars = [' ', '、']
+    splitChars = [' ']
     outStr = ""
     currLine = ""
     lineCount = 0
