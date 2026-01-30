@@ -167,7 +167,6 @@ def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, lan
             lineLength = 0
             offset = 0
                 
-    currLine = currLine.replace("。 ", "。") # Get rid of the space after the Japanese peroid
     outStr += currLine
     return lineLength + offset, lineCount, outStr
 
@@ -226,7 +225,7 @@ def convert_item(ogDict, lang):
 
     # Change all the punctuation marks followed by spaces into being followed by _ .
     # These will end up being replaced by spaces anyway in the end (but ignore the error)
-    puncts = ['.']
+    puncts = ['.', '?', '!', '。', '！', '？']
     for punct in puncts:
         line = line.replace(punct + " ", punct + "_")
 
