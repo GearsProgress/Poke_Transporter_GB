@@ -92,16 +92,13 @@ def split_into_sentences(text: str) -> list[str]:
     return sentences
  
 def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, lang):
-    # If we can optimize this to remove the spaces, it could save a few bytes.
-    splitChars = [' ']
     outStr = ""
     currLine = ""
     lineCount = 0
     currWordIndex = 0
     lineLength = 0
     spaceLength = 0
-    for char in splitChars:
-        sentence = sentence.replace(char, " ")
+
     words = sentence.split()        
 
 
@@ -152,8 +149,13 @@ def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, lan
         # Test if adding the word will go over our alloted space
         elif ((wordLength + lineLength + offset) <= pixelsInLine):
             # If not, add the word and increase the index
-            currLine += (word + " ")
-            lineLength += (wordLength + spaceLength)
+            if (currWordIndex == (len(words) - 1)):
+                # Don't add a space to the end of the sentence.
+                currLine += word
+                lineLength += wordLength
+            else:
+                currLine += (word + " ")
+                lineLength += (wordLength + spaceLength)
             currWordIndex += 1
             
         # We need to move to the next line
@@ -181,7 +183,8 @@ def convert_char_to_byte(incoming, array, lang):
         if str(val) == chr(incoming):
             return index
         index += 1    
-    log_warning_error(lang, "Error", f"No match found for char [ {chr(incoming)} ]!")
+    if chr(incoming) != '_':
+        log_warning_error(lang, "Error", f"No match found for char [ {chr(incoming)} ]!")
     return 0
 
 def log_warning_error(lang, type, text):
@@ -220,6 +223,12 @@ def convert_item(ogDict, lang):
             #print(f"Replacing {pair[0]} with {escapeString}!")
             line = line.replace(pair[0], escapeString)
             #print(line)
+
+    # Change all the punctuation marks followed by spaces into being followed by _ .
+    # These will end up being replaced by spaces anyway in the end (but ignore the error)
+    puncts = ['.']
+    for punct in puncts:
+        line = line.replace(punct + " ", punct + "_")
 
     split_sents = split_into_sentences(line)
     index = 0
