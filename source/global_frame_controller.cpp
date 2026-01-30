@@ -267,7 +267,7 @@ bool get_treecko_enabled()
     return treecko_enabled;
 }
 
-int get_string_length(const byte *str)
+int get_string_char_count(const byte *str)
 {
     int size = 0;
     while (str[size] != 0xFF)
@@ -275,6 +275,18 @@ int get_string_length(const byte *str)
         size++;
     }
     return size;
+}
+
+int get_string_length(const byte *str)
+{
+    int size = 0;
+    int length = 0;
+    while (str[size] != 0xFF)
+    {
+        length += tte_get_glyph_width(str[size]);
+        size++;
+    }
+    return length;
 }
 
 void convert_int_to_ptgb_str(int val, byte str[], int min_length)

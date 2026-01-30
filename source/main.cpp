@@ -345,10 +345,9 @@ int main_menu_loop()
 			for (int i = 0; i < NUM_MENU_OPTIONS; i++)
 			{
 				text_entry = general_text.get_text_entry(menu_options[i]);
-				int size = get_string_length(text_entry);
-				int char_width = (PTGB_BUILD_LANGUAGE == JPN_ID ? 8 : 6);
-				int x = ((240 - (size * char_width)) / 2);
-				tte_set_pos(x, ((i * 17) + 80));
+				int string_length = get_string_length(text_entry);
+				int x = ((240 - string_length) / 2);
+				tte_set_pos(x, ((i * (16 + 10)) + 70));
 				if (i == curr_selection)
 				{
 					tte_set_ink(INK_WHITE);
@@ -438,7 +437,7 @@ static void __attribute__((noinline)) show_intro()
 	general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
 
 	text_entry = general_text.get_text_entry(GENERAL_press_start);
-	press_start_text_length = get_string_length(text_entry);
+	press_start_text_length = get_string_char_count(text_entry);
 	memcpy(press_start_text, text_entry, press_start_text_length + 1);
 	text_entry = general_text.get_text_entry(GENERAL_intro_legal);
 

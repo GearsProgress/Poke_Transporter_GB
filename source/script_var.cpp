@@ -140,7 +140,7 @@ u32 xse_var::get_loc_in_sec30()
 void textbox_var::set_text(const byte nText[])
 {
     text = nText;
-    text_length = get_string_length(nText);
+    text_length = get_string_char_count(nText);
 }
 
 void textbox_var::set_start()

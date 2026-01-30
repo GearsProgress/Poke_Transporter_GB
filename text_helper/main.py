@@ -685,7 +685,7 @@ mainDict = {}
 textSections = []
 fonts = {
     "International": Font("latin_normal", 1, 256, 16, 16, 16, 16, 16, 16),
-    "Japanese": Font("japanese_normal", 1, 256, 16, 16, 8, 16, 8, 16),
+    "Japanese": Font("japanese_normal", 1, 256, 16, 16, 16, 16, 16, 16),
 }
 charArrays = {
     "International": {
