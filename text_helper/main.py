@@ -225,9 +225,11 @@ def convert_item(ogDict, lang):
 
     # Change all the punctuation marks followed by spaces into being followed by _ .
     # These will end up being replaced by spaces anyway in the end (but ignore the error)
+    spaces = [' ', '　']
     puncts = ['.', '?', '!', '。', '！', '？']
-    for punct in puncts:
-        line = line.replace(punct + " ", punct + "_")
+    for space in spaces:
+        for punct in puncts:
+            line = line.replace(punct + space, punct + "_")
 
     split_sents = split_into_sentences(line)
     index = 0
