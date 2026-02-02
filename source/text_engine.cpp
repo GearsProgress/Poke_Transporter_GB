@@ -132,7 +132,6 @@ int text_loop(int script)
             {
                 tte_set_pos(LEFT, TOP);
                 tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
-                REG_BG3VOFS = 0;
                 ptgb_write(curr_text, false);
             }
 
@@ -245,7 +244,6 @@ int text_loop(int script)
             wait_for_user_to_continue(false);
             update_text = true;
             hide_text_box();
-            REG_BG3VOFS = 0;
 
             if (text_exit)
             {
@@ -440,7 +438,6 @@ void wait_for_user_to_continue(bool clear_text)
     {
         tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
         tte_set_pos(LEFT, TOP);
-        REG_BG3VOFS = 0;
     }
 }
 
@@ -455,6 +452,15 @@ void scroll_text(bool instant, TTC *tc)
             global_next_frame();
         }
     }
-    //  Remove text that went outside of the box
-    tte_erase_rect(LEFT, TOP - tc->font->charH, RIGHT, TOP);
+    REG_BG3VOFS = 0;
+
+    // The map starts at tile 0 in the top left, increases by 1 as you go down, and then loops back at the top.
+    for (int i = 0; i < 30; i++)
+    {
+        tonccpy(&tile_mem[TEXT_CBB][14 + (i * 20)], &tile_mem[TEXT_CBB][16 + (i * 20)], 2 * 2 * 32);
+    }
+
+    // Remove text that went outside of the box and set the position
+    tte_erase_rect(LEFT, TOP + tc->font->charH, RIGHT, BOTTOM);
+    tte_set_pos(LEFT, BOTTOM - (8 + (2 * tc->font->charH))); // The newline will trigger after this and move it down a line
 }
