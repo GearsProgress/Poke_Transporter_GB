@@ -8,7 +8,7 @@
 #define V_MAX 160
 #define LEFT 8
 #define RIGHT (H_MAX - LEFT)
-#define TOP 112
+#define TOP 120
 #define BOTTOM V_MAX
 
 #define INK_WHITE 15
