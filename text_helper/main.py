@@ -185,7 +185,7 @@ def convert_char_to_byte(incoming, array, lang):
     if chr(incoming) != '_':
         log_warning_error(lang, "Error", f"No match found for char [ {chr(incoming)} ]!")
     return 0
-
+    
 def log_warning_error(lang, type, text):
     nType = type + "s"
     nText = type + ": " + text
@@ -295,6 +295,16 @@ def convert_item(ogDict, lang):
 
         # A space right before a newline just takes up space
         newStr = newStr.replace(" Ň", "Ň")
+        newStr = newStr.replace("_Ň", "Ň")
+        # A space after a newline looks weird
+        newStr = newStr.replace("Ň ", "Ň")
+        newStr = newStr.replace("Ň_", "Ň")
+        # Same thing with a scroll
+        newStr = newStr.replace("Ş ", "Ş")
+        newStr = newStr.replace("Ş_", "Ş")
+        # Same thing with a new textbox
+        newStr = newStr.replace("ȼ ", "ȼ")
+        newStr = newStr.replace("ȼ_", "ȼ")
         # Newlines shouldn't happen right after a new textbox
         newStr = newStr.replace("ȼŇ", "ȼ")
         # Nor should newlines be right before a new textbox
