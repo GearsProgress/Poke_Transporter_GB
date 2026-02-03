@@ -191,7 +191,7 @@ def log_warning_error(lang, type, text):
     nText = type + ": " + text
     if nText not in mainDict[lang.name][nType].values():
         mainDict[lang.name][nType][max(mainDict[lang.name][nType].keys(), default =- 1) + 1] = nText
-        print(nText)
+        #print(nText)
 
 def hash_excel(path):
     sheets = pd.read_excel(path, sheet_name=None)

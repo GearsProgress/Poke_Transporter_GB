@@ -214,7 +214,7 @@ int credits()
 	{
 		if (update)
 		{
-			create_textbox(4, 1, 160, 80, true);
+			create_textbox(1, 1, 200, 120, true);
 			show_text_box();
 			ptgb_write(credits_text_table.get_text_entry(curr_credits_num), true);
 			update = false;
