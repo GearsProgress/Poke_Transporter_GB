@@ -244,24 +244,27 @@ def convert_item(ogDict, lang):
         if (out == "ȼ"):
             offset = 0
             currLine = 0
-            if outStr and outStr[-1] == " ":
+            if (outStr and (outStr[-1] == " ") or (outStr[-1] == 'Ň') or (outStr[-1] == 'Ş')):
                 outStr = outStr[:-1]
             outStr += "ȼ"
             index += 1
         elif (currLine < (numLines + int(include_scrolling))):
             #print(split_sents[index])
             index += 1
+            if ((outStr and out and outStr[-1] == 'ȼ') and ((out[0] == ' ') or (out[0] == 'Ň') or (out[0] == 'Ş'))):
+                out = out[:-1]
             outStr += out
         else:
-            if outStr and outStr[-1] == " ":
+            if not include_box_breaks:
+                log_warning_error(lang, "Error", f"Attempted to make a new text box when disabled, sentence \"{outStr}\" is too long!")
+            elif (outStr and ((outStr[-1] == " ") or (outStr[-1] == 'Ň') or (outStr[-1] == 'Ş'))):
                 outStr = outStr[:-1]
             outStr += "ȼ" # new textbox character
             offset = 0
             currLine = 0
             escapeCount += 1
-            #print(index)
-            if not include_box_breaks:
-                log_warning_error(lang, "Error", f"Made a line break when disabled, sentence \"{outStr}\" is too long!")
+                #print(index)
+
             
     if escapeCount == 100:
         log_warning_error(lang, "Error", f"Sentence \"{out}\" is too long!")
@@ -274,6 +277,9 @@ def convert_item(ogDict, lang):
         splitBoxes = outStr.split('ȼ')
         outIndex = 0
         for box in splitBoxes:
+            if box and ((box[0] == " ") or (box[0] == "_")):
+                box = box[1:]
+                outIndex += 1
             # Make sure both kinds of newlines are being accounted for
             box = box.replace('Ş', 'Ň')
             splitLines = box.split('Ň')
@@ -290,32 +296,9 @@ def convert_item(ogDict, lang):
                 outBox += split + breakChar
                 outIndex += 1
                 i += 1
-            newStr += f'{outBox}ȼ'
+            if (outBox and (outBox[-1] != 'ȼ') and (outBox[-1] != 'Ň')):
+                newStr += f'{outBox}ȼ'
         newStr = newStr[:-1] # remove the last ȼ
-
-        # A space right before a newline just takes up space
-        newStr = newStr.replace(" Ň", "Ň")
-        newStr = newStr.replace("_Ň", "Ň")
-        # A space after a newline looks weird
-        newStr = newStr.replace("Ň ", "Ň")
-        newStr = newStr.replace("Ň_", "Ň")
-        # Same thing with a scroll
-        newStr = newStr.replace("Ş ", "Ş")
-        newStr = newStr.replace("Ş_", "Ş")
-        # Same thing with a new textbox
-        newStr = newStr.replace("ȼ ", "ȼ")
-        newStr = newStr.replace("ȼ_", "ȼ")
-        # Newlines shouldn't happen right after a new textbox
-        newStr = newStr.replace("ȼŇ", "ȼ")
-        # Nor should newlines be right before a new textbox
-        newStr = newStr.replace("Ňȼ", "ȼ")
-        # Nor should a new textbox be after a new textbox
-        newStr = newStr.replace("ȼȼ", "ȼ")
-        # Nor should a new scroll be after a new textbox
-        newStr = newStr.replace("Şȼ", "Ş")
-        # Nor should a new scroll be after a new textbox
-        newStr = newStr.replace("ȼŞ", "ȼ")
-        
 
         if len(newStr) > 1023:
             newStr = newStr[:1023]
