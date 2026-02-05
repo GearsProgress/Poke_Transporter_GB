@@ -1,10 +1,17 @@
 #ifndef DEBUG_MODE_H
 #define DEBUG_MODE_H
 
-#define VERSION "v1.2.1"
-#define PTGB_BUILD_LANGUAGE 1
+#ifndef BUILD_INFO
+#define BUILD_INFO "NaN"
+#endif
 
-#define DEBUG_MODE true
+#ifndef PTGB_BUILD_LANGUAGE
+#define PTGB_BUILD_LANGUAGE 1
+#endif
+
+#ifndef DEBUG_MODE
+#define DEBUG_MODE 0
+#endif
 
 #define PRINT_LINK_DATA (false && DEBUG_MODE)
 #define INSTANT_TEXT_SPEED (false && DEBUG_MODE)

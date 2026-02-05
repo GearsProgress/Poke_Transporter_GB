@@ -1,5 +1,34 @@
-# Build configuration (set to either 'debug' or 'release')
-BUILD_TYPE := debug
+BUILD_LANGS := japanese english french german italian spanish-eu spanish-la
+BUILD_TYPES := release debug
+
+# defaults
+BUILD_LANG ?= english
+BUILD_TYPE ?= release
+GIT_VERSION ?= $(shell git describe --tags --abbrev=0)
+GIT_FULL ?= $(shell git describe --tags --always --dirty 2>/dev/null)
+
+CMD_GOALS := $(filter-out build,$(MAKECMDGOALS))
+
+LANG_INDEX := $(shell echo $(BUILD_LANGS) | tr ' ' '\n' | nl -v0 | grep -w $(BUILD_LANG) | awk '{print $$1}')
+TYPE_INDEX := $(shell echo $(BUILD_TYPES) | tr ' ' '\n' | nl -v0 | grep -w $(BUILD_TYPE) | awk '{print $$1}')
+
+CPPFLAGS   += -DPTGB_BUILD_LANGUAGE=$(LANG_INDEX)
+CPPFLAGS   += -DDEBUG_MODE=$(TYPE_INDEX)
+CPPFLAGS   += -DBUILD_INFO=\"$(GIT_FULL)\"
+
+CFLAGS += $(CPPFLAGS)
+CXXFLAGS += $(CPPFLAGS)
+
+# detect language
+ifneq ($(filter $(BUILD_LANGS),$(CMD_GOALS)),)
+BUILD_LANG := $(filter $(BUILD_LANGS),$(CMD_GOALS))
+endif
+
+# detect build type
+ifneq ($(filter $(BUILD_TYPES),$(CMD_GOALS)),)
+BUILD_TYPE := $(filter $(BUILD_TYPES),$(CMD_GOALS))
+endif
+
 
 #---------------------------------------------------------------------------------
 .SUFFIXES:
@@ -33,7 +62,7 @@ LIBPCCS := $(CURDIR)/PCCS
 # the makefile is found
 #
 #---------------------------------------------------------------------------------
-TARGET		:= $(notdir $(CURDIR))_mb
+TARGET		:= $(notdir $(CURDIR))_v$(GIT_VERSION)_$(BUILD_LANG)
 BUILD		:= build
 SOURCES     := source
 INCLUDES    := include PCCS/lib/include
@@ -46,12 +75,12 @@ GRAPHICS	:= graphics
 #---------------------------------------------------------------------------------
 ARCH	:=	-mthumb -mthumb-interwork
 
-CFLAGS	:=	-Wall -O2\
+CFLAGS	+=	-Wall -O2\
 		-mcpu=arm7tdmi -mtune=arm7tdmi -masm-syntax-unified\
 		$(ARCH) 
 
 CFLAGS	+=	$(INCLUDE) -ffunction-sections -fdata-sections -Os -Wall -mthumb -mcpu=arm7tdmi -mtune=arm7tdmi -fstack-usage
-CXXFLAGS	:=	$(CFLAGS) -g0 -fno-rtti -fno-exceptions -fdata-sections -ffunction-sections -std=c++20 -Wno-volatile -D_GLIBCXX_USE_CXX20_ABI=0 -fstack-usage
+CXXFLAGS	+=	$(CFLAGS) -g0 -fno-rtti -fno-exceptions -fdata-sections -ffunction-sections -std=c++20 -Wno-volatile -D_GLIBCXX_USE_CXX20_ABI=0 -fstack-usage
 
 ifeq ($(BUILD_TYPE), debug)
 	CFLAGS += -g -DDEBUG
@@ -149,6 +178,9 @@ export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 all: $(BUILD)
 
 generate_data:
+	@echo "----------------------------------------------------------------"
+	@echo "Building v$(GIT_VERSION) with parameters: $(BUILD_LANG), $(BUILD_TYPE)"
+	@echo "----------------------------------------------------------------"
 	mkdir -p data
 	mkdir -p to_compress
 	@env - \

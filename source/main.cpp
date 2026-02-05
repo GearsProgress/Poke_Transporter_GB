@@ -296,7 +296,7 @@ int credits()
 			ptgb_write_debug(charset, hexBuffer, true);
 
 			ptgb_write_debug(charset, "\n", true);
-			ptgb_write_debug(charset, VERSION, true);
+			ptgb_write_debug(charset, BUILD_INFO, true);
 			if (get_treecko_enabled())
 			{
 				ptgb_write_debug(charset, ".T", true);
