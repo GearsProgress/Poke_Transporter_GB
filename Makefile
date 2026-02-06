@@ -58,7 +58,7 @@ LIBPCCS := $(CURDIR)/PCCS
 # the makefile is found
 #
 #---------------------------------------------------------------------------------
-TARGET		:= $(notdir $(CURDIR))_v$(GIT_VERSION)_$(BUILD_LANG)
+TARGET		:= $(notdir $(CURDIR))_mb
 BUILD		:= build
 SOURCES     := source
 INCLUDES    := include PCCS/lib/include
