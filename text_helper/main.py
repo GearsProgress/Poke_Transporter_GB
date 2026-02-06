@@ -507,9 +507,11 @@ def generate_cpp_file():
             for section in textSections:
                 cppFile.write("#include \"" + section.upper() + "_" + lang.name.lower() + "_lz10_bin.h\"\n")
 
-        for lang in Languages:
-            cppFile.write(f"\n#if PTGB_BUILD_LANGUAGE == {lang.value + 1}\n")
-            cppFile.write("const u8* get_compressed_text_table(int table_index)\n")
+
+        cppFile.write("\nconst u8* get_compressed_text_table(int table_index)\n")
+
+        for i, lang in enumerate(Languages):
+            cppFile.write(f"\n#{"el" if i > 0 else ""}if PTGB_BUILD_LANGUAGE == {lang.value + 1}\n")
             cppFile.write("{\n")
             cppFile.write("\tswitch (table_index)\n\t{\n")
             for section in textSections:
@@ -519,8 +521,8 @@ def generate_cpp_file():
                 cppFile.write("\t\treturn " + section + "_" + lang.name.lower() + "_lz10_bin;\n")
                 cppFile.write("\t\tbreak;\n")
             cppFile.write("\t}\n")
-            cppFile.write("}\n\n")
-            cppFile.write(f"#endif\n\n\n")
+            cppFile.write("}\n")
+        cppFile.write(f"#else\n#error \"Unsupported PTGB_BUILD_LANGUAGE\"\n#endif")
 
 def output_json_file():
     print("\tOutputting json file")
@@ -566,7 +568,11 @@ class Font:
 def build_h():
     print("Building font.h")
     with open(fontDir + "/include/fonts.h", 'w') as f:
-        f.write(f'''#include "debug_mode.h"
+        f.write(f'''#ifndef PTGB_BUILD_LANGUAGE
+#error "PTGB_BUILD_LANGUAGE not defined"
+#endif
+
+#include "debug_mode.h"
 #include "pokemon_data.h"
 
 #ifndef __FONTS_H__

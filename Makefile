@@ -4,12 +4,18 @@ BUILD_TYPES := release debug
 # defaults
 BUILD_LANG ?= english
 BUILD_TYPE ?= release
-GIT_VERSION ?= $(shell git describe --tags --abbrev=0)
-GIT_FULL ?= $(shell git describe --tags --always --dirty 2>/dev/null)
+GIT_SUFFIX := $(shell git describe --tags --long --dirty | sed -E 's/^[^-]+-([0-9]+)-g[0-9a-f]+(-dirty)?$$/\1/')
+GIT_FULL := $(shell git describe --tags --always --dirty 2>/dev/null)
+
+ifeq ($(GIT_SUFFIX),0)
+GIT_VERSION = $(shell git describe --tags --abbrev=0)
+else
+GIT_VERSION = $(shell git describe --tags --abbrev=0)b
+endif
 
 CMD_GOALS := $(filter-out build,$(MAKECMDGOALS))
 
-LANG_INDEX := $(shell echo $(BUILD_LANGS) | tr ' ' '\n' | nl -v0 | grep -w $(BUILD_LANG) | awk '{print $$1}')
+LANG_INDEX := $(shell echo $(BUILD_LANGS) | tr ' ' '\n' | nl -v0 | grep -w $(BUILD_LANG) | awk '{print $$1 + 1}')
 TYPE_INDEX := $(shell echo $(BUILD_TYPES) | tr ' ' '\n' | nl -v0 | grep -w $(BUILD_TYPE) | awk '{print $$1}')
 
 CPPFLAGS   += -DPTGB_BUILD_LANGUAGE=$(LANG_INDEX)
@@ -18,16 +24,6 @@ CPPFLAGS   += -DBUILD_INFO=\"$(GIT_FULL)\"
 
 CFLAGS += $(CPPFLAGS)
 CXXFLAGS += $(CPPFLAGS)
-
-# detect language
-ifneq ($(filter $(BUILD_LANGS),$(CMD_GOALS)),)
-BUILD_LANG := $(filter $(BUILD_LANGS),$(CMD_GOALS))
-endif
-
-# detect build type
-ifneq ($(filter $(BUILD_TYPES),$(CMD_GOALS)),)
-BUILD_TYPE := $(filter $(BUILD_TYPES),$(CMD_GOALS))
-endif
 
 
 #---------------------------------------------------------------------------------
@@ -193,7 +189,7 @@ generate_data:
 		CXXFLAGS= \
 		LDFLAGS= \
 		AR=ar \
-		$(MAKE) -C tools/payload-generator
+		$(MAKE) -C tools/payload-generator BUILD_LANG=$(BUILD_LANG) BUILD_TYPE=$(BUILD_TYPE)
 	@echo
 	@echo "----------------------------------------------------------------"
 	@echo
