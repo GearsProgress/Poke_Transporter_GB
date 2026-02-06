@@ -20,7 +20,7 @@ class Languages(Enum):
     SpanishEU = 5
     SpanishLA = 6
 
-FIRST_TRANSLATION_COL_INDEX = 9
+FIRST_TRANSLATION_COL_INDEX = 10
 BASE_DIR = Path(__file__).resolve().parent
 
 # read by default 1st sheet of an excel file
@@ -210,6 +210,7 @@ def convert_item(ogDict, lang):
     pixelsInLine = ogDict["pixelsInLine"]
     include_box_breaks = ogDict["includeBoxBreaks"]
     include_scrolling = ogDict["includeScrolling"]
+    center_text = ogDict["centerText"]
 
     arr = charArrayOfLanguage[lang]["array"]
     escape_list = charArrayOfLanguage[lang]["escape"]
@@ -459,6 +460,7 @@ def transfer_xlsx_to_dict():
                                                                         "pixelsInLine" : currRow.iloc[4],
                                                                         "includeBoxBreaks": currRow.iloc[5],
                                                                         "includeScrolling": currRow.iloc[6],
+                                                                        "centerText": currRow.iloc[7]
                                                                         }
 
 def generate_header_file():
