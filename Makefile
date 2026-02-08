@@ -60,6 +60,7 @@ LIBPCCS := $(CURDIR)/PCCS
 #---------------------------------------------------------------------------------
 TARGET		:= $(notdir $(CURDIR))_mb
 BUILD		:= build
+GENERATED_DIR := $(BUILD)/generated
 SOURCES     := source
 INCLUDES    := include PCCS/lib/include
 DATA		:= data
@@ -124,14 +125,15 @@ ifneq ($(BUILD),$(notdir $(CURDIR)))
 
 export OUTPUT	:=	$(CURDIR)/$(TARGET)
 
-export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
+export VPATH	:=	$(CURDIR)/$(GENERATED_DIR) \
+			$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
 			$(foreach dir,$(DATA),$(CURDIR)/$(dir)) \
 			$(foreach dir,$(GRAPHICS),$(CURDIR)/$(dir))
 
 export DEPSDIR	:=	$(CURDIR)/$(BUILD)
 
 CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
-CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp))) translated_text.cpp
+CPPFILES	:=	$(sort $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp))) translated_text.cpp)
 SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 PNGFILES	:=	$(foreach dir,$(GRAPHICS),$(notdir $(wildcard $(dir)/*.png)))
 
@@ -160,25 +162,45 @@ export OFILES_GRAPHICS := $(PNGFILES:.png=.o)
 
 export OFILES := $(OFILES_SOURCES) $(OFILES_GRAPHICS)
 
-export HFILES := $(addsuffix .h,$(subst .,_,$(BINFILES))) $(PNGFILES:.png=.h) $(CURDIR)/include/translated_text.h $(CURDIR)/include/fonts.h
+export HFILES := $(addsuffix .h,$(subst .,_,$(BINFILES))) $(PNGFILES:.png=.h) \
+				 $(CURDIR)/$(GENERATED_DIR)/translated_text.h \
+				 $(CURDIR)/$(GENERATED_DIR)/fonts.h
 
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-iquote $(CURDIR)/$(dir)) \
 					$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
+					-I$(CURDIR)/$(GENERATED_DIR) \
 					-I$(CURDIR)/$(BUILD) \
 					-I$(CURDIR)/tools/payload-generator/include
 
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
-.PHONY: $(BUILD) generate_data clean
+.PHONY: $(BUILD) generate_data clean text_generated data to_compress generated_dir
 
 all: $(BUILD)
 
-generate_data:
+TEXT_GENERATED := $(CURDIR)/$(GENERATED_DIR)/translated_text.h \
+				  $(CURDIR)/$(GENERATED_DIR)/translated_text.cpp \
+				  $(CURDIR)/$(GENERATED_DIR)/fonts.h \
+				  $(CURDIR)/$(GENERATED_DIR)/output.json
+
+text_generated: $(TEXT_GENERATED)
+
+$(TEXT_GENERATED): tools/text_helper/main.py | data to_compress generated_dir
+	@PTGB_GEN_DIR="$(CURDIR)/$(GENERATED_DIR)" python3 tools/text_helper/main.py
+
+data:
+	@mkdir -p $@
+
+to_compress:
+	@mkdir -p $@
+
+generated_dir:
+	@mkdir -p $(GENERATED_DIR)
+
+generate_data: data to_compress text_generated
 	@echo "----------------------------------------------------------------"
 	@echo "Building v$(GIT_VERSION) with parameters: $(BUILD_LANG), $(BUILD_TYPE)"
 	@echo "----------------------------------------------------------------"
-	mkdir -p data
-	mkdir -p to_compress
 	@env - \
 		PATH="$(PATH)" \
 		TMPDIR=/tmp TMP=/tmp TEMP=/tmp \
@@ -194,7 +216,6 @@ generate_data:
 	@echo "----------------------------------------------------------------"
 	@echo
 	@tools/payload-generator/payload-generator to_compress
-	@python3 text_helper/main.py
 	@echo "Compressing bin files!" 
 	@echo -n "["
 	@find to_compress -name "*.bin" -print0 | xargs -0 -n1 ./compress_lz10.sh
@@ -225,10 +246,8 @@ clean:
 	@$(MAKE) -C loader clean
 	@$(MAKE) -C PCCS clean
 	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).gba data/ to_compress/
-	@rm -f text_helper/output.json
-	@rm -f include/fonts.h
-	@rm -f include/translated_text.h
-	@rm -f source/translated_text.cpp
+	@rm -f tools/text_helper/output.json
+	@rm -rf $(GENERATED_DIR)
 
 
 
