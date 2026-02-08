@@ -174,9 +174,15 @@ export INCLUDE	:=	$(foreach dir,$(INCLUDES),-iquote $(CURDIR)/$(dir)) \
 
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
-.PHONY: $(BUILD) generate_data clean text_generated data to_compress generated_dir
+.PHONY: clean
 
-all: $(BUILD)
+GENERATE_STAMP := $(BUILD)/.generate_data.$(BUILD_LANG).$(BUILD_TYPE).stamp
+BUILD_STAMP := $(BUILD)/.build.$(BUILD_LANG).$(BUILD_TYPE).stamp
+
+TEXT_HELPER_INPUTS := $(shell find tools/text_helper -type f \( -name "*.py" -o -name "*.xlsx" -o -name "*.png" \))
+PAYLOAD_GEN_INPUTS := $(shell find tools/payload-generator/src tools/payload-generator/include -type f \( -name "*.cpp" -o -name "*.h" -o -name "*.hpp" \))
+
+all: $(BUILD_STAMP)
 
 TEXT_GENERATED := $(CURDIR)/$(GENERATED_DIR)/translated_text.h \
 				  $(CURDIR)/$(GENERATED_DIR)/translated_text.cpp \
@@ -185,7 +191,7 @@ TEXT_GENERATED := $(CURDIR)/$(GENERATED_DIR)/translated_text.h \
 
 text_generated: $(TEXT_GENERATED)
 
-$(TEXT_GENERATED): tools/text_helper/main.py | data to_compress generated_dir
+$(TEXT_GENERATED): $(TEXT_HELPER_INPUTS) | data to_compress generated_dir
 	@PTGB_GEN_DIR="$(CURDIR)/$(GENERATED_DIR)" python3 tools/text_helper/main.py
 
 data:
@@ -197,7 +203,9 @@ to_compress:
 generated_dir:
 	@mkdir -p $(GENERATED_DIR)
 
-generate_data: data to_compress text_generated
+generate_data: $(GENERATE_STAMP)
+
+$(GENERATE_STAMP): text_generated $(PAYLOAD_GEN_INPUTS) compress_lz10.sh | data to_compress generated_dir
 	@echo "----------------------------------------------------------------"
 	@echo "Building v$(GIT_VERSION) with parameters: $(BUILD_LANG), $(BUILD_TYPE)"
 	@echo "----------------------------------------------------------------"
@@ -224,10 +232,10 @@ generate_data: data to_compress text_generated
 	@echo
 	@echo "----------------------------------------------------------------"
 	@echo
+	@touch $@
 
 #---------------------------------------------------------------------------------
-$(BUILD): generate_data
-	@[ -d $@ ] || mkdir -p $@
+$(BUILD_STAMP): generate_data | $(BUILD)
 	@$(MAKE) -C PCCS \
 		CC="$(CC)" \
 		CXX="$(CXX)" \
@@ -238,6 +246,10 @@ $(BUILD): generate_data
 	@mkdir -p loader/data
 	@cp $(TARGET).gba loader/data/multiboot_rom.bin
 	@$(MAKE) -C loader
+	@touch $@
+
+$(BUILD):
+	@mkdir -p $@
 
 #---------------------------------------------------------------------------------
 clean:
