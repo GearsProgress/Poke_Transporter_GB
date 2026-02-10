@@ -192,7 +192,7 @@ TEXT_GENERATED := $(CURDIR)/$(GENERATED_DIR)/translated_text.h \
 text_generated: $(TEXT_GENERATED)
 
 $(TEXT_GENERATED): $(TEXT_HELPER_INPUTS) | data to_compress generated_dir
-	@PTGB_GEN_DIR="$(CURDIR)/$(GENERATED_DIR)" python3 tools/text_helper/main.py
+	@PTGB_GEN_DIR="$(CURDIR)/$(GENERATED_DIR)" python3 tools/text_helper/main.py $(BUILD_LANG) $(BUILD_TYPE)
 
 data:
 	@mkdir -p $@
@@ -258,7 +258,7 @@ clean:
 	@$(MAKE) -C loader clean
 	@$(MAKE) -C PCCS clean
 	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).gba data/ to_compress/
-	@rm -f tools/text_helper/output.json
+	@rm -f tools/text_helper/build
 	@rm -rf $(GENERATED_DIR)
 
 

@@ -10,6 +10,7 @@ import hashlib
 import math
 import numpy as np
 import png
+import shutil
 
 class Languages(Enum):
     Japanese = 0
@@ -21,29 +22,29 @@ class Languages(Enum):
     SpanishLA = 6
 
 FIRST_TRANSLATION_COL_INDEX = 10
+
 BASE_DIR = Path(__file__).resolve().parent
-
-# read by default 1st sheet of an excel file
-textDir = str(BASE_DIR)
-
-gen_dir_env = os.environ.get("PTGB_GEN_DIR")
-if gen_dir_env:
-    GEN_DIR = Path(gen_dir_env)
-    GEN_DIR.mkdir(parents=True, exist_ok=True)
-    TRANSLATED_H_PATH = GEN_DIR / "translated_text.h"
-    TRANSLATED_CPP_PATH = GEN_DIR / "translated_text.cpp"
-    FONTS_H_PATH = GEN_DIR / "fonts.h"
-    OUTPUT_JSON_PATH = GEN_DIR / "output.json"
-else:
-    TRANSLATED_H_PATH = Path(os.curdir) / "include/translated_text.h"
-    TRANSLATED_CPP_PATH = Path(os.curdir) / "source/translated_text.cpp"
-    FONTS_H_PATH = Path(os.curdir) / "include/fonts.h"
-    OUTPUT_JSON_PATH = BASE_DIR / "output.json"
+BUILD_DIR = BASE_DIR / "build"
+GEN_DIR = BASE_DIR.parent.parent / "build" / "generated"
+GEN_DIR.mkdir(parents=True, exist_ok=True)
+TRANSLATED_H_PATH = GEN_DIR / "translated_text.h"
+TRANSLATED_CPP_PATH = GEN_DIR / "translated_text.cpp"
+FONTS_H_PATH = GEN_DIR / "fonts.h"
+OUTPUT_JSON_PATH = BUILD_DIR / "output.json"
+THIS_SCRIPT_PATH = BASE_DIR / "main.py"
 
 url = 'https://docs.google.com/spreadsheets/d/14LLs5lLqWasFcssBmJdGXjjYxARAJBa_QUOUhXZt4v8/export?format=xlsx'
-new_file_path = BASE_DIR / 'new_text.xlsx'
-old_file_path = BASE_DIR / 'text.xlsx'
-json_file_path = OUTPUT_JSON_PATH
+new_file_path = BUILD_DIR / 'new_text.xlsx'
+old_file_path = BUILD_DIR / 'text.xlsx'
+release_file_path = BASE_DIR / 'release.xlsx'
+json_file_path = BUILD_DIR / "output.json"
+
+if len(sys.argv) >= 3:
+    BUILD_LANG = sys.argv[1]
+    BUILD_TYPE = sys.argv[2]
+else:
+    BUILD_LANG = "" # Not implemented yet
+    BUILD_TYPE = "debug"
 
 def split_into_sentences(text: str) -> list[str]:
     # -*- coding: utf-8 -*-
@@ -380,30 +381,35 @@ def write_enum_to_header_file(hFile, prefix, dictionary):
     return num
 
 def download_xlsx_file():
-    print("Downloading xlsx file")
-    offline = False
-    # ---- Attempt download ----
-    try:
-        response = requests.get(url, timeout=5)
-        response.raise_for_status()
-        with open(new_file_path, 'wb') as f:
-            f.write(response.content)
-        print("File downloaded successfully")
+    if os.path.isfile(release_file_path):
+        print('Release file found. Using that instead!')
+        shutil.copy(release_file_path, new_file_path)
+        offline = False
+    else:
+        print("Downloading xlsx file")
+        offline = False
+        # ---- Attempt download ----
+        try:
+            response = requests.get(url, timeout=5)
+            response.raise_for_status()
+            with open(new_file_path, 'wb') as f:
+                f.write(response.content)
+            print("File downloaded successfully")
 
-    except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError):
-        if old_file_path.exists():
-            print("No internet. Using cached xlsx.")
-            offline = True
-        else:
-            print("ERROR: No internet and no cached xlsx. Cannot continue.")
-            sys.exit(1)
+        except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError):
+            if old_file_path.exists():
+                print("No internet. Using cached xlsx.")
+                offline = True
+            else:
+                print("ERROR: No internet and no cached xlsx. Cannot continue.")
+                sys.exit(1)
 
     # ---- Decision logic ----
     if offline:
         # XML exists (guaranteed here)
         if json_file_path.exists():
             print("Offline mode: trusting cached XML + JSON. Skipping parse.")
-            if os.path.getmtime(f'{textDir}/main.py') > os.path.getmtime(OUTPUT_JSON_PATH):
+            if os.path.getmtime(THIS_SCRIPT_PATH) > os.path.getmtime(OUTPUT_JSON_PATH):
                 print("\t...but the python file is new, so we're doing it anyway!")
                 return
             sys.exit(0)
@@ -419,7 +425,7 @@ def download_xlsx_file():
                 new_file_path.unlink()
                 if json_file_path.exists():
                     print("Skipping parse")
-                    if os.path.getmtime(f'{textDir}/main.py') > os.path.getmtime(OUTPUT_JSON_PATH):
+                    if os.path.getmtime(THIS_SCRIPT_PATH) > os.path.getmtime(OUTPUT_JSON_PATH):
                         print("\t...but the python file is new, so we're doing it anyway!")
                         return
                     sys.exit(0)
@@ -435,7 +441,7 @@ def download_xlsx_file():
 
 def transfer_xlsx_to_dict():
     print("\tGetting character arrays")
-    currSheet = pd.read_excel(textDir + "/text.xlsx", sheet_name="Character Arrays", header=None)
+    currSheet = pd.read_excel(old_file_path, sheet_name="Character Arrays", header=None)
     offset = 0
     for key, value in charArrays.items():
         for r in range(16):
@@ -450,7 +456,7 @@ def transfer_xlsx_to_dict():
 
 
     print("\tGetting string data")
-    currSheet = pd.read_excel(textDir + "/text.xlsx", sheet_name="Translations")
+    currSheet = pd.read_excel(old_file_path, sheet_name="Translations")
 
     for row in currSheet.iterrows():
         currRow = row[1]["Text Section"]
@@ -480,6 +486,10 @@ def transfer_xlsx_to_dict():
                                                                         "includeScrolling": currRow.iloc[6],
                                                                         "centerText": currRow.iloc[7]
                                                                         }
+def test_if_release():
+    if (BUILD_TYPE == 'release'):
+        print("\tis release. Saving text file as release.xlsx")
+        shutil.copy(old_file_path, release_file_path)
 
 def generate_header_file():
     print("\tGenerating header file")
@@ -760,6 +770,7 @@ print("Running text_helper:")
 generate_tables()
 build_h()
 download_xlsx_file()
+test_if_release()
 transfer_xlsx_to_dict()
 generate_header_file()
 generate_text_tables()
