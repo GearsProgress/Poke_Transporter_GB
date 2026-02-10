@@ -9,6 +9,7 @@ import copy
 import math
 import sys
 import filecmp
+import shutil
 
 update = True
 
@@ -19,28 +20,35 @@ if (update == True):
     url = 'https://docs.google.com/spreadsheets/d/14LLs5lLqWasFcssBmJdGXjjYxARAJBa_QUOUhXZt4v8/export?format=xlsx'
     new_file_path = 'text_helper/new_text.xlsx'
     old_file_path = 'text_helper/text.xlsx'
+    release_file_path = 'text_helper/release.xlsx'
     json_file_path = 'text_helper/output.json'
+
     no_file = False
 
-    try:
-        response = requests.get(url, timeout=5)
-        response.raise_for_status()
-        if response.status_code == 200:
-            with open(new_file_path, 'wb') as file:
-                file.write(response.content)
-            print('File downloaded successfully')
-    except requests.exceptions.ReadTimeout as errrt:
-        if os.path.exists(old_file_path):
-            print("Connection timed out. Continuing with locally downloaded file.")
-            no_file = True
-        else:
-            print("xlsx file is missing and connection timed out. Exiting...")
-    except requests.exceptions.ConnectionError as conerr:
-        if os.path.exists(old_file_path):
-            print("Connection error. Continuing with locally downloaded file.")
-            no_file = True
-        else:
-            print("xlsx file is missing and connection timed out. Exiting...")
+    if os.path.isfile(release_file_path):
+        print('Release file found. Using that instead!')
+        shutil.copy(release_file_path, new_file_path)
+
+    else:
+        try:
+            response = requests.get(url, timeout=5)
+            response.raise_for_status()
+            if response.status_code == 200:
+                with open(new_file_path, 'wb') as file:
+                    file.write(response.content)
+                print('File downloaded successfully')
+        except requests.exceptions.ReadTimeout as errrt:
+            if os.path.exists(old_file_path):
+                print("Connection timed out. Continuing with locally downloaded file.")
+                no_file = True
+            else:
+                print("xlsx file is missing and connection timed out. Exiting...")
+        except requests.exceptions.ConnectionError as conerr:
+            if os.path.exists(old_file_path):
+                print("Connection error. Continuing with locally downloaded file.")
+                no_file = True
+            else:
+                print("xlsx file is missing and connection timed out. Exiting...")
             
             
 if os.path.exists(old_file_path):
