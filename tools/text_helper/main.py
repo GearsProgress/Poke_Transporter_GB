@@ -26,6 +26,7 @@ FIRST_TRANSLATION_COL_INDEX = 10
 BASE_DIR = Path(__file__).resolve().parent
 BUILD_DIR = BASE_DIR / "build"
 GEN_DIR = BASE_DIR.parent.parent / "build" / "generated"
+BUILD_DIR.mkdir(parents=True, exist_ok=True)
 GEN_DIR.mkdir(parents=True, exist_ok=True)
 TRANSLATED_H_PATH = GEN_DIR / "translated_text.h"
 TRANSLATED_CPP_PATH = GEN_DIR / "translated_text.cpp"
