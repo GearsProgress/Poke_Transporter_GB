@@ -258,8 +258,8 @@ clean:
 	@$(MAKE) -C loader clean
 	@$(MAKE) -C PCCS clean
 	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).gba data/ to_compress/
-	@rm -f tools/text_helper/build
-	@rm -rf $(GENERATED_DIR)
+	@rm -fr tools/text_helper/build
+	@rm -fr $(GENERATED_DIR)
 
 
 
