@@ -244,6 +244,19 @@ def convert_item(ogDict, lang):
             line = line.replace(pair[0], escapeString)
             #print(line)
 
+    # Special case for the Level values
+    if (lang == Languages.English):
+            line = line.replace("{LVL}", 0x30)
+    elif (lang == Languages.French):
+            line = line.replace("{LVL}", 0x31)
+    elif (lang == Languages.German):
+            line = line.replace("{LVL}", 0x32)
+    elif (lang == Languages.Italian):
+            line = line.replace("{LVL}", 0x33)
+    elif (lang == Languages.SpanishEU or lang == Languages.SpanishLA):
+            line = line.replace("{LVL}", 0x34)
+
+
     # Change all the punctuation marks followed by spaces into being followed by _ .
     # These will end up being replaced by spaces anyway in the end (but ignore the error)
     spaces = [' ', '　']

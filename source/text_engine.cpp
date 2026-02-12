@@ -340,6 +340,16 @@ int ptgb_write(const byte *text, bool instant, int length)
                 }
                 wait_for_user_to_continue(true);
                 break;
+            case 0xFC:
+                if (DISPLAY_CONTROL_CHAR)
+                {
+                    tc->drawgProc(0xB9);
+                }
+                else
+                {
+                    tc->cursorX += tc->font->widths[0xFC];
+                }
+                break;
             case 0xFE:
                 if (DISPLAY_CONTROL_CHAR)
                 {
