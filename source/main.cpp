@@ -388,8 +388,8 @@ int main_menu_loop()
 // Legal stuff
 static void show_legal_text(const u8 *intro_text)
 {
-	tte_set_margins(8, 0, H_MAX - 8, V_MAX);
-	tte_set_pos(8, 0);
+	tte_set_margins(4, 0, H_MAX - 4, V_MAX);
+	tte_set_pos(4, 0);
 	tte_set_ink(INK_ROM_COLOR);
 	ptgb_write(intro_text, true);
 	bool wait = true;
