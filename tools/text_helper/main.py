@@ -21,7 +21,8 @@ class Languages(Enum):
     SpanishEU = 5
     SpanishLA = 6
 
-FIRST_TRANSLATION_COL_INDEX = 10
+FIRST_TRANSLATION_COL_INDEX = 9
+PURPOSEFUL_SPACE_CHAR = '|'
 
 BASE_DIR = Path(__file__).resolve().parent
 BUILD_DIR = BASE_DIR / "build"
@@ -102,12 +103,15 @@ def split_into_sentences(text: str) -> list[str]:
     text = text.replace("Ň", "<stop>Ň<stop>") # Split newlines into their own sentences
     text = text.replace("ȼ", "<stop>ȼ<stop>") # Split new boxes into their own sentences
     text = text.replace("Ş", "<stop>Ş<stop>") # Split new boxes into their own sentences
+    text = text.replace("Ω", "<stop>Ω<stop>") # Split centering into their own sentences
+    text = text.replace("ɑ", "<stop>ɑ<stop>") # Split centering into their own sentences
+
     sentences = text.split("<stop>")
     sentences = [s.strip() for s in sentences]
     if sentences and not sentences[-1]: sentences = sentences[:-1]
     return sentences
  
-def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, isCentered, lang):
+def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, centered, lang):
     outStr = ""
     currLine = ""
     lineCount = 0
@@ -115,7 +119,7 @@ def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, isC
     lineLength = 0
     spaceLength = 0
 
-    words = sentence.split()        
+    words = sentence.split()
 
 
     while(currWordIndex < len(words)):
@@ -125,9 +129,11 @@ def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, isC
         
         # Figure out the length of the word in pixels
         for char in word:
+            if (char == PURPOSEFUL_SPACE_CHAR):
+                char = " "
             if (pixelsPerChar == "Variable"):
                 wordLength += charArrayOfLanguage[lang]["font"].charWidthTable[convert_char_to_byte(ord(char), charArrayOfLanguage[lang]["array"], lang)]
-                spaceLength = charArrayOfLanguage[lang]["font"].charWidthTable[convert_char_to_byte(ord(' '), charArrayOfLanguage[lang]["array"], lang)]
+                spaceLength = charArrayOfLanguage[lang]["font"].charWidthTable[0]
             elif (pixelsPerChar == "Default"):
                 if (lang == Languages.Japanese):
                     wordLength += 8
@@ -143,6 +149,20 @@ def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, isC
                 outStr += "Ň"
             elif (sentence == "Ş"):
                 outStr += "Ş"
+            currLine = ""
+            lineCount += 1
+            offset = 0
+            lineLength = 0
+            currWordIndex += 1
+
+         # See if the whole sentence is a center character
+        elif (sentence == "ɑ" or sentence == "Ω"):
+            if (sentence == "ɑ"):
+                centered = True
+                outStr += "Ň"
+            else:
+                centered = False
+                outStr += "Ň"
             currLine = ""
             lineCount += 1
             offset = 0
@@ -182,13 +202,13 @@ def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, isC
             lineCount += 1
             lineLength = 0
             offset = 0
-    if (isCentered):
-        count = (pixelsInLine - lineLength) // 2
+    if (centered and (len(words) > 0) and words[0] != 'ɑ'):
+        count = ((pixelsInLine - lineLength) // 2)
         for i in range(count):
-            currLine = " " + currLine
-            lineLength += spaceLength
+            currLine = "_" + currLine
+            lineLength += 1 # This character should *always* be one pixel wide
     outStr += currLine
-    return lineLength + offset, lineCount, outStr
+    return lineLength + offset, lineCount, outStr, centered
 
 def convert_char_to_byte(incoming, array, lang):
     for pair in charConversionList:
@@ -230,7 +250,6 @@ def convert_item(ogDict, lang):
     pixelsInLine = ogDict["pixelsInLine"]
     include_box_breaks = ogDict["includeBoxBreaks"]
     include_scrolling = ogDict["includeScrolling"]
-    center_text = ogDict["centerText"]
 
     arr = charArrayOfLanguage[lang]["array"]
     escape_list = charArrayOfLanguage[lang]["escape"]
@@ -243,27 +262,39 @@ def convert_item(ogDict, lang):
             #print(f"Replacing {pair[0]} with {escapeString}!")
             line = line.replace(pair[0], escapeString)
             #print(line)
+    
+    # Special case for the centering escape character
+    line = line.replace("{CTR}", 'ɑ')
+    line = line.replace("{nCTR}", 'Ω')
 
-    # Special case for the Level values
+    # Special case for the values that change by language. Probably should be built into the lang struct eventually
     if (lang == Languages.English):
-            line = line.replace("{LVL}", 0x30)
+            line = line.replace("{LVL}", arr[0x30])
+            line = line.replace("{PP}", arr[0x60])
+            line = line.replace("{NO}", arr[0x70])
     elif (lang == Languages.French):
-            line = line.replace("{LVL}", 0x31)
+            line = line.replace("{LVL}", arr[0x31])
+            line = line.replace("{PP}", arr[0x60])
+            line = line.replace("{NO}", arr[0x71])            
     elif (lang == Languages.German):
-            line = line.replace("{LVL}", 0x32)
+            line = line.replace("{LVL}", arr[0x32])
+            line = line.replace("{PP}", arr[0x61])
+            line = line.replace("{NO}", arr[0x72])  
     elif (lang == Languages.Italian):
-            line = line.replace("{LVL}", 0x33)
+            line = line.replace("{LVL}", arr[0x33])
+            line = line.replace("{PP}", arr[0x60])
+            line = line.replace("{NO}", arr[0x71])  
     elif (lang == Languages.SpanishEU or lang == Languages.SpanishLA):
-            line = line.replace("{LVL}", 0x34)
+            line = line.replace("{LVL}", arr[0x34])
+            line = line.replace("{PP}", arr[0x60])
+            line = line.replace("{NO}", arr[0x72])  
 
-
-    # Change all the punctuation marks followed by spaces into being followed by _ .
-    # These will end up being replaced by spaces anyway in the end (but ignore the error)
+    # Change all the punctuation marks followed by spaces into being followed by | temporarily
     spaces = [' ', '　']
     puncts = ['.', '?', '!', '。', '！', '？']
     for space in spaces:
         for punct in puncts:
-            line = line.replace(punct + space, punct + "_")
+            line = line.replace(punct + space, punct + PURPOSEFUL_SPACE_CHAR)
 
     split_sents = split_into_sentences(line)
     index = 0
@@ -271,27 +302,31 @@ def convert_item(ogDict, lang):
     currLine = 0
     offset = 0
     escapeCount = 0
+    centered = False
     while index < len(split_sents) and escapeCount < 100:
-        offset, recievedLine, out = split_sentence_into_lines(split_sents[index], offset, pixelsPerChar, pixelsInLine, center_text, lang)
+        offset, recievedLine, out, centered = split_sentence_into_lines(split_sents[index], offset, pixelsPerChar, pixelsInLine, centered, lang)
         currLine += recievedLine
         
         if (out == "ȼ"):
             offset = 0
             currLine = 0
-            if (outStr and (outStr[-1] == " ") or (outStr[-1] == 'Ň') or (outStr[-1] == 'Ş')):
+            # This tests if the character before the new box is a space, newline, or scroll
+            if outStr and (outStr[-1] in (" ", "Ň", "Ş")):
                 outStr = outStr[:-1]
             outStr += "ȼ"
             index += 1
         elif (currLine < (numLines + int(include_scrolling))):
             #print(split_sents[index])
             index += 1
-            if ((outStr and out and outStr[-1] == 'ȼ') and ((out[0] == ' ') or (out[0] == 'Ň') or (out[0] == 'Ş'))):
-                out = out[:-1]
+            # This tests if the character after the new box is a space, newline, or scroll
+            if outStr and out and outStr[-1] == 'ȼ' and out[0] in (" ", "Ň", "Ş"):
+                out = out[1:]
             outStr += out
         else:
             if not include_box_breaks:
                 log_warning_error(lang, "Error", f"Attempted to make a new text box when disabled, sentence \"{outStr}\" is too long!")
-            elif (outStr and ((outStr[-1] == " ") or (outStr[-1] == 'Ň') or (outStr[-1] == 'Ş'))):
+            # This tests if the character before the new box is a space, newline, or scroll(?)
+            elif outStr and (outStr[-1] in (" ", "Ň", "Ş")):
                 outStr = outStr[:-1]
             outStr += "ȼ" # new textbox character
             offset = 0
@@ -302,7 +337,10 @@ def convert_item(ogDict, lang):
             
     if escapeCount == 100:
         log_warning_error(lang, "Error", f"Sentence \"{out}\" is too long!")
-            
+
+    # It's safe to swap the purposeful spaces back
+    outStr = outStr.replace(PURPOSEFUL_SPACE_CHAR, " ")
+
     # Some cases that should be fixed
     exitLoop = False
     while(not exitLoop):
@@ -311,7 +349,7 @@ def convert_item(ogDict, lang):
         splitBoxes = outStr.split('ȼ')
         outIndex = 0
         for box in splitBoxes:
-            if box and ((box[0] == " ") or (box[0] == "_")):
+            if box and ((box[0] == " ")):
                 box = box[1:]
                 outIndex += 1
             # Make sure both kinds of newlines are being accounted for
@@ -330,7 +368,9 @@ def convert_item(ogDict, lang):
                 outBox += split + breakChar
                 outIndex += 1
                 i += 1
-            if (outBox and (outBox[-1] != 'ȼ') and (outBox[-1] != 'Ň')):
+            if (outBox and (outBox[:-1] == 'ȼ') or (outBox[:-1] == 'Ň')):
+                newStr += f'{outBox[:-1]}ȼ'
+            elif (outBox):
                 newStr += f'{outBox}ȼ'
         newStr = newStr[:-1] # remove the last ȼ
 
@@ -498,7 +538,6 @@ def transfer_xlsx_to_dict():
                                                                         "pixelsInLine" : currRow.iloc[4],
                                                                         "includeBoxBreaks": currRow.iloc[5],
                                                                         "includeScrolling": currRow.iloc[6],
-                                                                        "centerText": currRow.iloc[7]
                                                                         }
 def test_if_release():
     if (BUILD_TYPE == 'release'):
