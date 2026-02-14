@@ -404,7 +404,16 @@ def convert_item(ogDict, lang):
     ogDict["bytes"] = byteStr
     return ogDict
 
-def write_text_bin_file(filename, dictionary, lang):
+def write_text_bin_file(filename, dictionary, lang, section):
+    MAX_BIN_SIZES = {
+        "PTGB": 6144,
+        "RSEFRLG": 3444,
+        "GB": 9999,
+        "GENERAL": 2048,
+        "CREDITS": 2048,
+        "PKMN_NAMES": 3072,
+    }
+    
     with open(filename, 'wb') as binFile:
         # Let the first byte indicate the number of entries
         dict_size = len(dictionary)
@@ -434,6 +443,9 @@ def write_text_bin_file(filename, dictionary, lang):
         # Write the index and bindata to the file
         binFile.write(index)
         binFile.write(bindata)
+        binFile.seek(0, os.SEEK_END)
+        if binFile.tell() > MAX_BIN_SIZES[section]:
+            log_warning_error(lang, "Error", f'Section {section} exceeds the max binary file size by {binFile.tell() - MAX_BIN_SIZES[section]} bytes!')
         binFile.close()
 
 def write_enum_to_header_file(hFile, prefix, dictionary):
@@ -590,7 +602,7 @@ def generate_text_tables():
     for lang in Languages:
         for section in textSections:
             table_file = os.curdir + '/to_compress/' + section + '_' + lang.name.lower() + '.bin'
-            write_text_bin_file(table_file, mainDict[lang.name][section], lang)
+            write_text_bin_file(table_file, mainDict[lang.name][section], lang, section)
 
 def generate_cpp_file():
     print("\tGenerating cpp file")
