@@ -204,9 +204,8 @@ def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, cen
             offset = 0
     if (centered and (len(words) > 0) and words[0] != 'ɑ'):
         count = ((pixelsInLine - lineLength) // 2)
-        for i in range(count):
-            currLine = "_" + currLine
-            lineLength += 1 # This character should *always* be one pixel wide
+        currLine = f'_[{count}]{currLine}'
+        lineLength += count
     outStr += currLine
     return lineLength + offset, lineCount, outStr, centered
 
@@ -383,8 +382,20 @@ def convert_item(ogDict, lang):
     
     byteStr = ""
     arr = charArrayOfLanguage[lang]["array"]
-    for char in outStr[:-1]:
-        byteStr += f"{convert_char_to_byte(ord(char), arr, lang):02x} "
+    i = 0
+    while i < len(outStr[:-1]):
+        char = outStr[i]
+        if (char == '['):
+            val = ''
+            i += 1
+            while outStr[i] != ']':
+                val = val + outStr[i]
+                i += 1
+            num = int(val)
+            byteStr += f"{num:02x} "
+        else:
+            byteStr += f"{convert_char_to_byte(ord(char), arr, lang):02x} "
+        i += 1
     if (len(outStr) > 0 and outStr[-1] != ' '): # Check if the last char is a space
         byteStr += f"{convert_char_to_byte(ord(outStr[-1]), arr, lang):02x} "
         
