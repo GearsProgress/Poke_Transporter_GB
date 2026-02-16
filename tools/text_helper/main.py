@@ -805,6 +805,7 @@ charArrays = {
                     ["{FEM}", [0xFC, 0x01, 0x04]],
                     ["{FPC}", [0xFC, 0x01, 0x06]],
                     ["{MLE}", [0xFC, 0x01, 0x08]],
+                    ["{SPA}", [0xFC]],
                     ["{PLR}", [0xFD, 0x01]],
                     ["{NEW}", [0xFE]],
                     ["{END}", [0xFF]],
@@ -819,6 +820,7 @@ charArrays = {
                     ["{DEF}", [0xFC, 0x06, 0x02]],
                     ["{FEM}", [0xFC, 0x06, 0x03]], # ???
                     ["{MLE}", [0xFC, 0x06, 0x04]],
+                    ["{SPA}", [0xFC]],
                     ["{FPC}", [0xFC, 0x06, 0x05]],
                     ["{PLR}", [0xFD, 0x01]],
                     ["{NEW}", [0xFE]],
