@@ -467,7 +467,7 @@ static void __attribute__((noinline)) show_intro()
 	{
 		fade = abs(((get_frame_count() / 6) % 24) - 12);
 		global_next_frame();
-		start_pressed = key_hit(KEY_START) | key_hit(KEY_A) | true;
+		start_pressed = key_hit(KEY_START) | key_hit(KEY_A);
 		REG_BLDALPHA = BLDA_BUILD(0b10000, fade);
 	}
 }
