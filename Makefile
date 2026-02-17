@@ -1,4 +1,4 @@
-BUILD_LANGS := japanese english french german italian spanish-eu spanish-la
+BUILD_LANGS := japanese english french german italian spanisheu spanishla
 BUILD_TYPES := release debug
 
 # defaults
