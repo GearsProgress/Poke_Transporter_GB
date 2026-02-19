@@ -617,7 +617,7 @@ def generate_cpp_file():
         cppFile.write("\nconst u8* get_compressed_text_table(int table_index)\n")
 
         for i, lang in enumerate(Languages):
-            cppFile.write(f"\n#{"el" if i > 0 else ""}if PTGB_BUILD_LANGUAGE == {lang.value + 1}\n")
+            cppFile.write(f"\n#{'el' if i > 0 else ''}if PTGB_BUILD_LANGUAGE == {lang.value + 1}\n")
             cppFile.write("{\n")
             cppFile.write("\tswitch (table_index)\n\t{\n")
             for section in textSections:

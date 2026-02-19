@@ -1,4 +1,4 @@
-FROM devkitpro/devkitarm
+FROM devkitpro/devkitarm:20251117
 
 LABEL author="Poke Transporter GB"
 
