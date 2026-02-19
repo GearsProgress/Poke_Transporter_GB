@@ -9,4 +9,4 @@ to_compress/
 *.zip
 *.exe
 .vscode/
-
+.venv/
