@@ -10,3 +10,4 @@ to_compress/
 *.exe
 .vscode/
 .venv/
+tools/payload-generator/payload-generator
