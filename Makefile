@@ -111,11 +111,6 @@ CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
 SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 PNGFILES	:=	$(foreach dir,$(GRAPHICS),$(notdir $(wildcard $(dir)/*.png)))
 
-#ifneq ($(strip $(MUSIC)),)
-#	export AUDIOFILES	:=	$(foreach dir,$(notdir $(wildcard $(MUSIC)/*.*)),$(CURDIR)/$(MUSIC)/$(dir))
-#	BINFILES += soundbank.bin
-#endif
-
 #---------------------------------------------------------------------------------
 # use CXX for linking C++ projects, CC for standard C
 #---------------------------------------------------------------------------------
@@ -135,6 +130,12 @@ export OFILES_SOURCES := $(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
 export OFILES_GRAPHICS := $(PNGFILES:.png=.o)
 
 export OFILES := $(OFILES_SOURCES) $(OFILES_GRAPHICS)
+
+ifneq ($(strip $(MUSIC)),)
+	export AUDIOFILES	:=	$(foreach dir,$(notdir $(wildcard $(MUSIC)/*.*)),$(CURDIR)/$(MUSIC)/$(dir))
+	BINFILES += soundbank.bin
+	OFILES += soundbank.bin.o
+endif
 
 export HFILES := $(addsuffix .h,$(subst .,_,$(BINFILES))) $(PNGFILES:.png=.h)
 
@@ -228,9 +229,9 @@ $(OFILES_SOURCES) : $(HFILES)
 #---------------------------------------------------------------------------------
 # rule to build soundbank from music files
 #---------------------------------------------------------------------------------
-#soundbank.bin soundbank.h : $(AUDIOFILES)
+soundbank.bin soundbank.h : $(AUDIOFILES)
 #---------------------------------------------------------------------------------
-#	@mmutil $^ -osoundbank.bin -hsoundbank.h
+	@mmutil $^ -osoundbank.bin -hsoundbank.h
 
 #---------------------------------------------------------------------------------
 # This rule links in binary data with the .bin extension
