@@ -498,7 +498,7 @@ def download_xlsx_file():
         if old_file_path.exists():
 
             if hash_excel(new_file_path) == hash_excel(old_file_path):
-                print("Downloaded file is identical")
+                print("Downloaded file is identical. Deleting new file: " + str(new_file_path))
                 new_file_path.unlink()
                 if json_file_path.exists():
                     print("Skipping parse")
@@ -513,7 +513,7 @@ def download_xlsx_file():
                 new_file_path.rename(old_file_path)
 
         else:
-            print("No cached xlsx - forcing rebuild")
+            print("No cached xlsx - forcing rebuild: " + str(new_file_path) + " renamed to " + str(old_file_path))
             new_file_path.rename(old_file_path)
 
 def transfer_xlsx_to_dict():
@@ -564,7 +564,7 @@ def transfer_xlsx_to_dict():
                                                                         }
 def test_if_release():
     if (BUILD_TYPE == 'release'):
-        print("\tis release. Saving text file as release.xlsx")
+        print("\tis release. Saving text file as release.xlsx. Copying " + str(old_file_path) + " to " + str(release_file_path))
         shutil.copy(old_file_path, release_file_path)
 
 def generate_header_file():

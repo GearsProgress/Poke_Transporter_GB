@@ -179,19 +179,11 @@ export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 GENERATE_STAMP := $(BUILD)/.generate_data.$(BUILD_LANG).$(BUILD_TYPE).stamp
 BUILD_STAMP := $(BUILD)/.build.$(BUILD_LANG).$(BUILD_TYPE).stamp
 
-TEXT_HELPER_INPUTS := $(shell find tools/text_helper -type f \( -name "*.py" -o -name "*.xlsx" -o -name "*.png" \))
 PAYLOAD_GEN_INPUTS := $(shell find tools/payload-generator/src tools/payload-generator/include -type f \( -name "*.cpp" -o -name "*.h" -o -name "*.hpp" \))
 
 all: $(BUILD_STAMP)
 
-TEXT_GENERATED := $(CURDIR)/$(GENERATED_DIR)/translated_text.h \
-				  $(CURDIR)/$(GENERATED_DIR)/translated_text.cpp \
-				  $(CURDIR)/$(GENERATED_DIR)/fonts.h \
-				  $(CURDIR)/$(GENERATED_DIR)/output.json
-
-text_generated: $(TEXT_GENERATED)
-
-$(TEXT_GENERATED): $(TEXT_HELPER_INPUTS) | data to_compress generated_dir
+text_generated: to_compress generated_dir data
 	@PTGB_GEN_DIR="$(CURDIR)/$(GENERATED_DIR)" python3 tools/text_helper/main.py $(BUILD_LANG) $(BUILD_TYPE)
 
 data:
