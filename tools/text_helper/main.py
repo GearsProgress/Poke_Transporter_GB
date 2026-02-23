@@ -498,7 +498,7 @@ def download_xlsx_file():
         if old_file_path.exists():
 
             if hash_excel(new_file_path) == hash_excel(old_file_path):
-                print("Downloaded file is identical.")
+                print("Downloaded file is identical")
                 new_file_path.unlink()
                 if json_file_path.exists():
                     print("Skipping parse")
