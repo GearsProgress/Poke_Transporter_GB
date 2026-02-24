@@ -19,23 +19,13 @@ Poke Transporter GB supports original gen III cartridges AND the gen III games i
 Poké Transporter GB is a Multiboot program for the Game Boy Advance.
 
 There are 3 main ways to run the Poké Transporter GB ROM on a Game Boy Advance:
-- Use a program such as FIX94's [GBA Link Cable ROM Sender](https://github.com/FIX94/gba-link-cable-rom-sender) on a GameCube or Wii running Homebrew along with a GBA GameCube Link Cable to send the Multiboot rom (Poke_Transporter_GB_mb.gba) to the gba over the link cable.
-
-- Upload the Multiboot ROM (Poke_Transporter_GB_mb.gba) to a GBA Flash Cart, launch the game in Multiboot mode (often by holding L when selecting the ROM), and swap the Game Pak after the program loads.
-
-- Copy the Loader ROM (Poke_Transporter_GB_standalone.gba) to a GBA Flash Cart and swap the Game Pak after the program loads. This is useful for flashcarts that don't support launching multiboot roms directly (SuperCard SD for example), although it should work on any flashcart.
+- Use a program such as FIX94's [GBA Link Cable ROM Sender](https://github.com/FIX94/gba-link-cable-rom-sender) on a GameCube or Wii running Homebrew along with a GBA GameCube Link Cable
+- Upload the Multiboot ROM to a GBA Flash Cart, launch the game in Multiboot mode (often by holding L when selecting the ROM), and swap the Game Pak after the program loads.
+- Copy the loader.gba file to a GBA Flash Cart and swap the Game Pak after the program loads. This is useful for flashcarts that don't support launching multiboot roms directly (SuperCard SD for example), although it should work on any flashcart.
 
 EZ Flash Omega DE users, read [this](docs/EZ_Flash_Omega_DE.md)!
 
 Please note that transfering Pokémon will only work with a Game Boy Color Link Cable. Game Boy Advance Link Cables will not work.
-
-NOTE: If you're using the Loader ROM (Poke_Transporter_GB_standalone.gba) instead of the Multiboot ROM (Poke_Transporter_GB_mb.gba),
-you could run into trouble when swapping in the gen3 cartridge: Some cartridges cause the GBA to reset when inserted.
-
-If you have this problem, you could:
-- Use the Multiboot ROM (Poke_Transporter_GB_mb.gba) instead (as described above)
-
-- Use the 2 GBA method as described [here](docs/EZ_Flash_Omega_DE.md#method-2-2-gbas)
 
 ## Modifications to Transfered Pokémon
 

@@ -26,19 +26,11 @@ void generate_payloads_for(uint8_t generation, bool yellow_version, const char *
 
     const struct GB_ROM *rom_value_sets[] = {
         gb_rom_values_eng,
-        gb_rom_values_fre,
-        gb_rom_values_ger,
-        gb_rom_values_ita,
-        gb_rom_values_spa,
-    };
+        gb_rom_values_fre};
 
     const u16 rom_value_sizes[] = {
         gb_rom_values_eng_size,
-        gb_rom_values_fre_size,
-        gb_rom_values_ger_size,
-        gb_rom_values_ita_size,
-        gb_rom_values_spa_size,
-    };
+        gb_rom_values_fre_size};
 
     const u8 num_elements = sizeof(rom_value_sizes) / sizeof(u16);
 
@@ -91,7 +83,7 @@ void generate_payloads_for(uint8_t generation, bool yellow_version, const char *
 
 void test_payloads(const char *full_path)
 {
-    uint8_t buffer[4096]; // 4096 bytes is enough for the payloads
+    uint8_t buffer[2048]; // 2048 bytes is enough for the payloads
     uint8_t reference_payload_buffer[PAYLOAD_SIZE];
     uint8_t reconstructed_payload_buffer[PAYLOAD_SIZE];
     FILE *file;
@@ -108,19 +100,11 @@ void test_payloads(const char *full_path)
 
     const struct GB_ROM *rom_value_sets[] = {
         gb_rom_values_eng,
-        gb_rom_values_fre,
-        gb_rom_values_ger,
-        gb_rom_values_ita,
-        gb_rom_values_spa,
-    };
+        gb_rom_values_fre};
 
     const u16 rom_value_sizes[] = {
         gb_rom_values_eng_size,
-        gb_rom_values_fre_size,
-        gb_rom_values_ger_size,
-        gb_rom_values_ita_size,
-        gb_rom_values_spa_size,
-    };
+        gb_rom_values_fre_size};
 
     const u8 num_elements = sizeof(rom_value_sizes) / sizeof(u16);
 
@@ -204,7 +188,7 @@ int main(int argc, char **argv)
 {
     printf("Converting data into bin files!\n[");
     const char *output_path = (argc > 1) ? argv[1] : "";
-    
+
     generate_and_test_payloads_for(1, false, output_path, "gb_gen1_payloads_RB.bin");
     generate_and_test_payloads_for(1, true, output_path, "gb_gen1_payloads_Y.bin");
     generate_and_test_payloads_for(2, false, output_path, "gb_gen2_payloads.bin");
