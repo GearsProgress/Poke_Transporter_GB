@@ -5,7 +5,6 @@
 #include <cstring>
 
 #define DATA_LOC (SHOW_DATA_PACKETS ? curr_rom.transferStringLocation : curr_rom.wEnemyMonSpecies)
-#define DEBUG_PAYLOADS (false && DEBUG_MODE)
 
 void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool debug)
 {

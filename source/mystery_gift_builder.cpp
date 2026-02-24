@@ -379,7 +379,7 @@ void mystery_gift_script::build_script(PokeBox *box)
 
     // this decompresses the ZX0 compressed text table into the buffer inside of the decompressed_store union
     // thereby reusing the stack (=IWRAM) memory used earlier for the PokemonTables instance we used above
-    decompressed_text_table.decompress(get_compressed_rsefrlg_table());
+    decompressed_text_table.decompress(get_compressed_text_table(RSEFRLG_INDEX));
     switch (curr_GBA_rom.gamecode)
     {
     case RUBY_ID:

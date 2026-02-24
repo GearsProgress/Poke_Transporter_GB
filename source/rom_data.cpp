@@ -16,14 +16,14 @@
 extern rom_data curr_GBA_rom;
 
 rom_data::rom_data() {}
-bool rom_data::load_rom()
+bool rom_data::load_rom(bool debug)
 {
     u8 rom_list_buffer[2048];
     u32 rom_list_size;
     const u8 *compressed_rom_list;
     const u8 *cur;
 
-    if (IGNORE_GAME_PAK)
+    if (debug)
     {
         gamecode = DEBUG_GAME;
         version = DEBUG_VERS;

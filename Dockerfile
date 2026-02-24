@@ -1,4 +1,4 @@
-FROM devkitpro/devkitarm
+FROM devkitpro/devkitarm:20251117
 
 LABEL author="Poke Transporter GB"
 
@@ -9,4 +9,4 @@ ARG GROUP_ID
 
 ENV DEBIAN_FRONTEND="noninteractive"
 
-RUN apt update && apt install -y build-essential python3-pip && pip install pandas requests openpyxl --break-system-packages
+RUN apt update && apt install -y build-essential python3-pip python3-png && pip install pandas requests openpyxl --break-system-packages
