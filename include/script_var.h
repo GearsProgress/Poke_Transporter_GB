@@ -59,10 +59,10 @@ class movement_var : public xse_var
 {
 public:
     using xse_var::xse_var;
-    void set_movement(const int movement[], unsigned int nSize);
+    void set_movement(const byte movement[], unsigned int nSize);
     void insert_movement(u8 mg_array[]);
     void set_start();
-    const int *movement;
+    const byte *movement;
     unsigned int size;
 };
 

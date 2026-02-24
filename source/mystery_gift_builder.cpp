@@ -179,7 +179,8 @@ void mystery_gift_script::build_script(PokeBox *box)
         }
     }
 
-    const int movementSlowSpinArray[16] = {
+    // Note that each MOVEMENT macro contains TWO bytes, one for Hoenn and one for FRLG.
+    static const byte movementSlowSpinArray[32] = {
         MOVEMENT_ACTION_FACE_LEFT,
         MOVEMENT_ACTION_DELAY_8,
         MOVEMENT_ACTION_FACE_UP,
@@ -199,7 +200,7 @@ void mystery_gift_script::build_script(PokeBox *box)
     };
     movementSlowSpin.set_movement(movementSlowSpinArray, 16);
 
-    const int movementFastSpinArray[30] = {
+    static const byte movementFastSpinArray[60] = {
         MOVEMENT_ACTION_FACE_LEFT,
         MOVEMENT_ACTION_DELAY_4,
         MOVEMENT_ACTION_FACE_UP,
@@ -233,16 +234,16 @@ void mystery_gift_script::build_script(PokeBox *box)
     };
     movementFastSpin.set_movement(movementFastSpinArray, 30);
 
-    const int movementExclaimArray[1] = {MOVEMENT_ACTION_EMOTE_EXCLAMATION_MARK};
+    static const byte movementExclaimArray[2] = {MOVEMENT_ACTION_EMOTE_EXCLAMATION_MARK};
     movementExclaim.set_movement(movementExclaimArray, 1);
 
-    const int movementToBoxesArrayRS[4] = {MOVEMENT_ACTION_WALK_FAST_UP, MOVEMENT_ACTION_WALK_FAST_LEFT, MOVEMENT_ACTION_WALK_FAST_UP, MOVEMENT_ACTION_EMOTE_EXCLAMATION_MARK};
-    const int movementToBoxesArrayFRLG[3] = {MOVEMENT_ACTION_WALK_FAST_UP, MOVEMENT_ACTION_WALK_FAST_UP, MOVEMENT_ACTION_EMOTE_EXCLAMATION_MARK};
-    const int movementToBoxesArrayE[6] = {MOVEMENT_ACTION_WALK_FAST_UP, MOVEMENT_ACTION_WALK_FAST_LEFT, MOVEMENT_ACTION_WALK_FAST_LEFT, MOVEMENT_ACTION_WALK_FAST_LEFT, MOVEMENT_ACTION_FACE_UP, MOVEMENT_ACTION_EMOTE_EXCLAMATION_MARK};
+    static const byte movementToBoxesArrayRS[8] = {MOVEMENT_ACTION_WALK_FAST_UP, MOVEMENT_ACTION_WALK_FAST_LEFT, MOVEMENT_ACTION_WALK_FAST_UP, MOVEMENT_ACTION_EMOTE_EXCLAMATION_MARK};
+    static const byte movementToBoxesArrayFRLG[6] = {MOVEMENT_ACTION_WALK_FAST_UP, MOVEMENT_ACTION_WALK_FAST_UP, MOVEMENT_ACTION_EMOTE_EXCLAMATION_MARK};
+    static const byte movementToBoxesArrayE[12] = {MOVEMENT_ACTION_WALK_FAST_UP, MOVEMENT_ACTION_WALK_FAST_LEFT, MOVEMENT_ACTION_WALK_FAST_LEFT, MOVEMENT_ACTION_WALK_FAST_LEFT, MOVEMENT_ACTION_FACE_UP, MOVEMENT_ACTION_EMOTE_EXCLAMATION_MARK};
 
-    const int movementWalkBackArrayRS[3] = {MOVEMENT_ACTION_WALK_FAST_DOWN, MOVEMENT_ACTION_WALK_FAST_RIGHT, MOVEMENT_ACTION_WALK_FAST_DOWN};
-    const int movementWalkBackArrayFRLG[2] = {MOVEMENT_ACTION_WALK_FAST_DOWN, MOVEMENT_ACTION_WALK_FAST_DOWN};
-    const int movementWalkBackArrayE[4] = {MOVEMENT_ACTION_WALK_FAST_RIGHT, MOVEMENT_ACTION_WALK_FAST_RIGHT, MOVEMENT_ACTION_WALK_FAST_RIGHT, MOVEMENT_ACTION_WALK_FAST_DOWN};
+    static const byte movementWalkBackArrayRS[6] = {MOVEMENT_ACTION_WALK_FAST_DOWN, MOVEMENT_ACTION_WALK_FAST_RIGHT, MOVEMENT_ACTION_WALK_FAST_DOWN};
+    static const byte movementWalkBackArrayFRLG[4] = {MOVEMENT_ACTION_WALK_FAST_DOWN, MOVEMENT_ACTION_WALK_FAST_DOWN};
+    static const byte movementWalkBackArrayE[8] = {MOVEMENT_ACTION_WALK_FAST_RIGHT, MOVEMENT_ACTION_WALK_FAST_RIGHT, MOVEMENT_ACTION_WALK_FAST_RIGHT, MOVEMENT_ACTION_WALK_FAST_DOWN};
 
     switch (curr_GBA_rom.gamecode)
     {
@@ -262,19 +263,19 @@ void mystery_gift_script::build_script(PokeBox *box)
         break;
     }
 
-    const int movementLookDownArray[1] = {MOVEMENT_ACTION_FACE_DOWN};
+    static const byte movementLookDownArray[2] = {MOVEMENT_ACTION_FACE_DOWN};
     movementLookDown.set_movement(movementLookDownArray, 1);
 
-    const int movementOutOfWayArray[2] = {MOVEMENT_ACTION_WALK_FAST_RIGHT, MOVEMENT_ACTION_FACE_LEFT};
+    static const byte movementOutOfWayArray[4] = {MOVEMENT_ACTION_WALK_FAST_RIGHT, MOVEMENT_ACTION_FACE_LEFT};
     movementOutOfWay.set_movement(movementOutOfWayArray, 2);
 
-    const int movementInWayArray[2] = {MOVEMENT_ACTION_WALK_FAST_LEFT, MOVEMENT_ACTION_FACE_DOWN};
+    static const byte movementInWayArray[4] = {MOVEMENT_ACTION_WALK_FAST_LEFT, MOVEMENT_ACTION_FACE_DOWN};
     movementInWay.set_movement(movementInWayArray, 2);
 
-    const int movementGoUpArray[1] = {MOVEMENT_ACTION_WALK_FAST_UP};
+    static const byte movementGoUpArray[2] = {MOVEMENT_ACTION_WALK_FAST_UP};
     movementGoUp.set_movement(movementGoUpArray, 1);
 
-    const int movementGoDownArray[2] = {MOVEMENT_ACTION_WALK_FAST_DOWN, MOVEMENT_ACTION_FACE_UP};
+    static const byte movementGoDownArray[4] = {MOVEMENT_ACTION_WALK_FAST_DOWN, MOVEMENT_ACTION_FACE_UP};
     movementGoDown.set_movement(movementGoDownArray, 2);
 
     // const byte track_1[] = {0xBC, 0x00, 0xBB, 0x38, 0xBD, 0x38, 0xC4, 0x00, 0xBE, 0x60, 0xBF, 0x3D, 0xC0, 0x40, 0xD4, 0x51, 0x70, 0x86, 0xD4, 0x8C, 0x53, 0x86, 0xD4, 0x8C, 0x54, 0x86, 0xD4, 0x92, 0xE8, 0x55, 0x92, 0xBE, 0x64, 0x82, 0x6C, 0x84, 0x74, 0x85, 0xB1};

@@ -182,7 +182,7 @@ void textbox_var::insert_text(const u16 *charset, u8 mg_array[], bool should_set
 
 // MOVEMENT VAR
 
-void movement_var::set_movement(const int nMovement[], unsigned int nSize)
+void movement_var::set_movement(const byte nMovement[], unsigned int nSize)
 {
     movement = nMovement;
     size = nSize;
@@ -196,9 +196,12 @@ void movement_var::set_start()
 void movement_var::insert_movement(u8 mg_array[])
 {
     set_start();
+    // movement data is { hoenn, frlg, hoenn, frlg, ...}
+    int offset = curr_GBA_rom.is_hoenn() ? 0 : 1;
+
     for (unsigned int parser = 0; parser < size; parser++)
     {
-        mg_array[*curr_loc_ptr] = movement[parser];
+        mg_array[*curr_loc_ptr] = movement[parser * 2 + offset];
         (*curr_loc_ptr)++;
     }
     mg_array[*curr_loc_ptr] = 0xFE; // End list
