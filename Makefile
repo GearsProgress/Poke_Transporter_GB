@@ -59,7 +59,6 @@ LIBPCCS := $(CURDIR)/PCCS
 #
 #---------------------------------------------------------------------------------
 TARGET		:= $(notdir $(CURDIR))_mb
-LOADERNAME  := $(notdir $(CURDIR))_standalone
 BUILD		:= build
 GENERATED_DIR := $(BUILD)/generated
 SOURCES     := source
@@ -138,6 +137,11 @@ CPPFILES	:=	$(sort $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp))) 
 SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 PNGFILES	:=	$(foreach dir,$(GRAPHICS),$(notdir $(wildcard $(dir)/*.png)))
 
+#ifneq ($(strip $(MUSIC)),)
+#	export AUDIOFILES	:=	$(foreach dir,$(notdir $(wildcard $(MUSIC)/*.*)),$(CURDIR)/$(MUSIC)/$(dir))
+#	BINFILES += soundbank.bin
+#endif
+
 #---------------------------------------------------------------------------------
 # use CXX for linking C++ projects, CC for standard C
 #---------------------------------------------------------------------------------
@@ -158,13 +162,9 @@ export OFILES_GRAPHICS := $(PNGFILES:.png=.o)
 
 export OFILES := $(OFILES_SOURCES) $(OFILES_GRAPHICS)
 
-ifneq ($(strip $(MUSIC)),)
-	export AUDIOFILES	:=	$(foreach dir,$(notdir $(wildcard $(MUSIC)/*.*)),$(CURDIR)/$(MUSIC)/$(dir))
-	BINFILES += soundbank.bin
-	OFILES += soundbank.bin.o
-endif
-
-export HFILES := $(addsuffix .h,$(subst .,_,$(BINFILES))) $(PNGFILES:.png=.h)
+export HFILES := $(addsuffix .h,$(subst .,_,$(BINFILES))) $(PNGFILES:.png=.h) \
+				 $(CURDIR)/$(GENERATED_DIR)/translated_text.h \
+				 $(CURDIR)/$(GENERATED_DIR)/fonts.h
 
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-iquote $(CURDIR)/$(dir)) \
 					$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
@@ -238,7 +238,6 @@ $(BUILD_STAMP): generate_data | $(BUILD)
 	@mkdir -p loader/data
 	@cp $(TARGET).gba loader/data/multiboot_rom.bin
 	@$(MAKE) -C loader
-	@cp loader/loader.gba $(LOADERNAME).gba
 	@touch $@
 
 $(BUILD):
@@ -250,8 +249,6 @@ clean:
 	@$(MAKE) -C tools/payload-generator clean
 	@$(MAKE) -C loader clean
 	@$(MAKE) -C PCCS clean
-	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).gba $(LOADERNAME).gba data/ to_compress/
-	@rm -f text_helper/output.json
 	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).gba data/ to_compress/
 	@rm -fr tools/text_helper/build
 	@rm -fr $(GENERATED_DIR)
@@ -283,9 +280,9 @@ $(OFILES_SOURCES) : $(HFILES)
 #---------------------------------------------------------------------------------
 # rule to build soundbank from music files
 #---------------------------------------------------------------------------------
-soundbank.bin soundbank.h : $(AUDIOFILES)
+#soundbank.bin soundbank.h : $(AUDIOFILES)
 #---------------------------------------------------------------------------------
-	@mmutil $^ -osoundbank.bin -hsoundbank.h
+#	@mmutil $^ -osoundbank.bin -hsoundbank.h
 
 #---------------------------------------------------------------------------------
 # This rule links in binary data with the .bin extension
