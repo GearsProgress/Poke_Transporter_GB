@@ -1,6 +1,5 @@
 #include <tonc.h>
 #include <cstdlib>
-// #include <maxmod.h> //Music
 #include "libstd_replacements.h"
 #include "flash_mem.h"
 #include "interrupt.h"
@@ -30,6 +29,7 @@
 #include "libraries/Pokemon-Gen3-to-Gen-X/include/save.h"
 #include "text_data_table.h"
 #include "custom_malloc.h"
+#include "sound.h"
 
 /*
 
@@ -52,36 +52,6 @@ int curr_selection = 0;
 bool skip = true;
 rom_data curr_GBA_rom;
 Button_Menu yes_no_menu(1, 2, 40, 24, false);
-
-/*
-int test_main(void) Music
-{
-
-	irq_init(NULL);
-	// Initialize maxmod with default settings
-	// pass soundbank address, and allocate 8 channels.
-
-	irq_set(II_VBLANK, mmVBlank, 0);
-	irq_enable(II_VBLANK);
-
-	mmInitDefault((mm_addr)soundbank_bin, 8);
-
-	mmStart(MOD_FLATOUTLIES, MM_PLAY_LOOP);
-	// Song is playing now (well... almost)
-	while (1)
-	{
-		// ..process game logic..
-
-		// Update Maxmod
-		mmFrame();
-
-		// Wait for new frame (SWI 5)
-		VBlankIntrWait();
-
-		// ..update graphical data..
-	}
-}
-*/
 
 // (R + G*32 + B*1024)
 #define RGB(r, g, b) (r + (g * 32) + (b * 1024))
@@ -106,8 +76,6 @@ void initalization_script(void)
 {
 	// Initalizations
 	REG_DISPCNT = DCNT_BLANK | DCNT_MODE0 | DCNT_BG0 | DCNT_BG1 | DCNT_BG2 | DCNT_BG3 | DCNT_OBJ | DCNT_OBJ_1D;
-	irq_init(NULL);
-	irq_enable(II_VBLANK);
 
 	// Disable for save data read/write
 	REG_IME = 0;
@@ -116,9 +84,7 @@ void initalization_script(void)
 	// Sound bank init
 	irq_init(NULL);
 	irq_enable(II_VBLANK);
-	// irq_set(II_VBLANK, mmVBlank, 0); //Music
-	// mmInitDefault((mm_addr)soundbank_bin, 8); //Music
-	// mmStart(MOD_FLATOUTLIES, MM_PLAY_LOOP); //Music
+	sound_init();
 
 	// Graphics init
 	oam_init(obj_buffer, 128);
@@ -331,6 +297,7 @@ int main_menu_loop()
 
 	general_text.decompress(get_compressed_general_table());
 
+	play_song(MOD_MAIN_MENU, true);
 	while (true)
 	{
 		if (update)
