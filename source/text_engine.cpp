@@ -8,9 +8,9 @@
 #include "debug_mode.h"
 #include "button_menu.h"
 #include "sprite_data.h"
-#include "latin_short.h"
-#include "japanese_small.h"
+#include "fonts.h"
 #include "text_data_table.h"
+#include "background_engine.h"
 
 #define TEXT_CBB 0
 #define TEXT_SBB 10
@@ -28,14 +28,14 @@ bool text_exit;
 // Doing it this way does mean that we need to completely restart decompression whenever we switch from dialog entry.
 // but given that it requires user input to do so, I believe it's worth it and not time-critical.
 // attribute noinline was used to make sure the compiler doesn't inline this code back into text_loop()
-static __attribute__((noinline)) const u8* read_dialogue_text_entry(uint8_t index, u8 *output_buffer)
+static __attribute__((noinline)) const u8 *read_dialogue_text_entry(uint8_t index, u8 *output_buffer)
 {
     u8 text_decompression_buffer[6144];
     const u8 *text_entry;
 
     text_data_table dialogue_table(text_decompression_buffer);
 
-    dialogue_table.decompress(get_compressed_PTGB_table());
+    dialogue_table.decompress(get_compressed_text_table(PTGB_INDEX));
 
     text_entry = dialogue_table.get_text_entry(index);
     memcpy(output_buffer, text_entry, dialogue_table.get_text_entry_size(index));
@@ -43,17 +43,41 @@ static __attribute__((noinline)) const u8* read_dialogue_text_entry(uint8_t inde
     return output_buffer;
 }
 
+static __attribute__((noinline)) const u8 *read_dialogue_text_entry(uint8_t index, uint8_t text_section, u8 *output_buffer)
+{
+    u8 text_decompression_buffer[6144];
+    const u8 *text_entry;
+
+    text_data_table dialogue_table(text_decompression_buffer);
+
+    dialogue_table.decompress(get_compressed_text_table(text_section));
+
+    text_entry = dialogue_table.get_text_entry(index);
+    memcpy(output_buffer, text_entry, dialogue_table.get_text_entry_size(index));
+
+    return output_buffer;
+}
+
+// This will have to be changed to be dynamic to support nicknamed Pokemon that are in a different language than the current build.
+// Maybe combine Japanese and Latin into one larger font?
+
+#if PTGB_BUILD_LANGUAGE == 1
+#define BUILD_FONT &japanese_normalFont
+#else
+#define BUILD_FONT &latin_normalFont
+#endif
+
 void init_text_engine()
 {
     // Load the TTE
     // tte_init_se(3, BG_CBB(TEXT_CBB) | BG_SBB(TEXT_SBB) | BG_PRIO(0), 0, CLR_WHITE, 14, &japanese_smallFont, NULL);
 
-    tte_init_chr4c(3,                                   // BG 0
-                   BG_CBB(TEXT_CBB) | BG_SBB(TEXT_SBB), // Charblock 0; screenblock 31
+    tte_init_chr4c(3,                                   // BG 3
+                   BG_CBB(TEXT_CBB) | BG_SBB(TEXT_SBB), // Charblock 0; screenblock 10
                    0xF000,                              // Screen-entry offset
                    bytes2word(                          // Color attributes:
-                       15,                              // Text color
-                       0,                               // Shadow color
+                       13,                              // Text color
+                       15,                              // Shadow color
                        0,                               // Paper
                        0),                              // Special
                    CLR_WHITE,                           // White text
@@ -82,51 +106,150 @@ int text_loop(int script)
     u8 diag_entry_text_buffer[1024];
     switch (script)
     {
-    case BTN_TRANSFER:
+    case SCRIPT_DEBUG:
+        curr_line = transfer_script_params[0];
+        break;
+
+    case SCRIPT_TRANSFER:
         curr_line = transfer_script_params[T_SCRIPT_START];
         break;
 
-    case BTN_EVENTS:
+    case SCRIPT_EVENT:
         curr_line = event_script_params[E_SCRIPT_START];
         break;
     }
 
     curr_text = (curr_line.has_text()) ? read_dialogue_text_entry(curr_line.get_text_entry_index(), diag_entry_text_buffer) : NULL;
 
-    REG_BG1CNT = (REG_BG1CNT && !BG_PRIO_MASK) | BG_PRIO(2); // Show Fennel
-    show_text_box();
     // tte_set_margins(LEFT, TOP, RIGHT, BOTTOM);
-    while (true) // This loops through all the connected script objects
+    if (script != SCRIPT_DEBUG)
     {
-        if (curr_text != NULL && curr_text[char_index] != 0xFF && curr_text[char_index] != 0xFB)
+        REG_BG1CNT = (REG_BG1CNT && !BG_PRIO_MASK) | BG_PRIO(2); // Show Fennel
+        show_text_box();
+        while (true) // This loops through all the connected script objects
         {
-            tte_set_pos(LEFT, TOP);
-            tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
-            ptgb_write(curr_text, char_index);
+            if (curr_text != NULL && curr_text[char_index] != 0xFF && curr_text[char_index] != 0xFB)
+            {
+                tte_set_pos(LEFT, TOP);
+                tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
+                ptgb_write(curr_text, false);
+            }
+
+            wait_for_user_to_continue(false);
+
+            line_char_index = 0;
+            switch (script)
+            {
+            case BTN_TRANSFER:
+                curr_line = transfer_script_params[text_next_obj_id(curr_line)];
+                break;
+            case BTN_EVENTS:
+                curr_line = event_script_params[text_next_obj_id(curr_line)];
+                break;
+            }
+
+            curr_text = (curr_line.has_text()) ? read_dialogue_text_entry(curr_line.get_text_entry_index(), diag_entry_text_buffer) : NULL;
+            char_index = 0;
+
+            if (text_exit)
+            {
+                hide_text_box();
+                tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
+                text_exit = false;
+                return 0;
+            }
         }
+    }
+    else // Debug script loop
+    {
+        u16 debug_charset[256];
+        load_localized_charset(debug_charset, 3, ENGLISH);
 
-        wait_for_user_to_continue(false);
-
-        line_char_index = 0;
-        switch (script)
+        int text_section = 0;
+        int text_identifier = 0;
+        while (true)
         {
-        case BTN_TRANSFER:
-            curr_line = transfer_script_params[text_next_obj_id(curr_line)];
-            break;
-        case BTN_EVENTS:
-            curr_line = event_script_params[text_next_obj_id(curr_line)];
-            break;
-        }
+            bool exit = false;
+            bool update_text = true;
+            bool instant_text = false;
+            key_poll();
+            while (!exit)
+            {
+                if (key_hit(KEY_LEFT))
+                {
+                    text_identifier = (text_identifier + (text_section_lengths[text_section] - 1)) % text_section_lengths[text_section];
+                    update_text = true;
+                }
+                else if (key_hit(KEY_RIGHT))
+                {
+                    text_identifier = (text_identifier + 1) % text_section_lengths[text_section];
+                    update_text = true;
+                }
+                else if (key_hit(KEY_UP))
+                {
+                    text_section = (text_section + 1) % NUM_TEXT_SECTIONS;
+                    update_text = true;
+                }
+                else if (key_hit(KEY_DOWN))
+                {
+                    text_section = (text_section + (NUM_TEXT_SECTIONS - 1)) % NUM_TEXT_SECTIONS;
+                    update_text = true;
+                }
+                else if (key_hit(KEY_START) || key_hit(KEY_SELECT))
+                {
+                    instant_text = key_hit(KEY_START); // instant with start, not with select
+                    exit = true;
+                }
+                if (update_text)
+                {
+                    if (text_identifier > text_section_lengths[text_section])
+                    {
+                        text_identifier = text_section_lengths[text_section];
+                    }
+                    if (text_section > NUM_TEXT_SECTIONS)
+                    {
+                        text_section = NUM_TEXT_SECTIONS;
+                    }
+                    tte_set_pos(0, 0);
+                    tte_erase_rect(0, 0, 240, 160);
+                    ptgb_write_debug(debug_charset, "(", true);
+                    ptgb_write_debug(debug_charset, ptgb::to_string(text_section), true);
+                    ptgb_write_debug(debug_charset, ", ", true);
+                    ptgb_write_debug(debug_charset, ptgb::to_string(text_identifier), true);
+                    ptgb_write_debug(debug_charset, ")", true);
+                    update_text = false;
+                }
+                global_next_frame();
+            }
 
-        curr_text = (curr_line.has_text()) ? read_dialogue_text_entry(curr_line.get_text_entry_index(), diag_entry_text_buffer) : NULL;
-        char_index = 0;
+            line_char_index = 0;
+            curr_text = read_dialogue_text_entry(text_identifier, text_section, diag_entry_text_buffer);
+            char_index = 0;
 
-        if (text_exit)
-        {
+            if (curr_text != NULL && curr_text[char_index] != 0xFF && curr_text[char_index] != 0xFB)
+            {
+                if (text_section == PTGB_INDEX)
+                {
+                    reset_textbox();
+                }
+                else
+                {
+                    create_textbox(4, 1, 160, 80, true);
+                }
+                show_text_box();
+                tte_erase_rect(0, 0, 240, 160);
+                ptgb_write(curr_text, instant_text);
+            }
+
+            wait_for_user_to_continue(false);
+            update_text = true;
             hide_text_box();
-            tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
-            text_exit = false;
-            return 0;
+
+            if (text_exit)
+            {
+                text_exit = false;
+                return 0;
+            }
         }
     }
 }
@@ -184,15 +307,15 @@ int ptgb_write(const byte *text, bool instant, int length)
     TFont *font;
     int num = 0;
 
-/*
-    if (curr_text[char_index] == 0xFB) // This will need to be moved
-    {
-        line_char_index += char_index;
-        line_char_index++;
-        // Low key kinda scuffed, but it works to split the string
-        curr_text = &curr_line.get_text()[line_char_index];
-    }
-*/
+    /*
+        if (curr_text[char_index] == 0xFB) // This will need to be moved
+        {
+            line_char_index += char_index;
+            line_char_index++;
+            // Low key kinda scuffed, but it works to split the string
+            curr_text = &curr_line.get_text()[line_char_index];
+        }
+    */
     while ((ch = *str) != 0xFF && num < length)
     {
         if (get_frame_count() % 2 == 0 || key_held(KEY_B) || key_held(KEY_A) || instant)
@@ -200,12 +323,37 @@ int ptgb_write(const byte *text, bool instant, int length)
             str++;
             switch (ch)
             {
+            case 0xFA:
+                if (DISPLAY_CONTROL_CHAR)
+                {
+                    tc->drawgProc(0x79);
+                }
+                wait_for_user_to_continue(false);
+                scroll_text(instant, tc);
+                tc->cursorY += tc->font->charH;
+                tc->cursorX = tc->marginLeft;
+                break;
             case 0xFB:
                 if (DISPLAY_CONTROL_CHAR)
                 {
                     tc->drawgProc(0xB9);
                 }
                 wait_for_user_to_continue(true);
+                break;
+            case 0xFC:
+                ch = *str;
+                str++;
+                num += 1;
+                if (DISPLAY_CONTROL_CHAR)
+                {
+                    for (uint i = 0; i < ch; i++){
+                        tc->drawgProc(0xB9);
+                    }
+                }
+                else
+                {
+                    tc->cursorX += tc->font->widths[0xFC] * ch;
+                }
                 break;
             case 0xFE:
                 if (DISPLAY_CONTROL_CHAR)
@@ -253,7 +401,7 @@ int ptgb_write(const byte *text, bool instant, int length)
     return 0; // str - text;
 }
 // This is mostly used for debug stuff, I shouldn't rely it on it much.
-int ptgb_write_debug(const u16* charset, const char *text, bool instant)
+int ptgb_write_debug(const u16 *charset, const char *text, bool instant)
 {
     byte temp_holding[256];
     int i;
@@ -296,6 +444,7 @@ void wait_for_user_to_continue(bool clear_text)
             fennel_speak(0);
         }
     }
+    key_poll();
     while (!(key_hit(KEY_A) || key_hit(KEY_B) || curr_text == NULL))
     {
         global_next_frame();
@@ -305,4 +454,28 @@ void wait_for_user_to_continue(bool clear_text)
         tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
         tte_set_pos(LEFT, TOP);
     }
+}
+
+void scroll_text(bool instant, TTC *tc)
+{
+    for (int i = 1; i <= tc->font->charH; i++)
+    {
+        REG_BG3VOFS = i;
+        tte_erase_rect(LEFT, TOP - tc->font->charH, RIGHT, TOP + i);
+        if (!instant)
+        {
+            global_next_frame();
+        }
+    }
+    REG_BG3VOFS = 0;
+
+    // The map starts at tile 0 in the top left, increases by 1 as you go down, and then loops back at the top.
+    for (int i = 0; i < 30; i++)
+    {
+        tonccpy(&tile_mem[TEXT_CBB][14 + (i * 20)], &tile_mem[TEXT_CBB][16 + (i * 20)], 2 * 2 * 32);
+    }
+
+    // Remove text that went outside of the box and set the position
+    tte_erase_rect(LEFT, TOP + tc->font->charH, RIGHT, BOTTOM);
+    tte_set_pos(LEFT, BOTTOM - (8 + (2 * tc->font->charH))); // The newline will trigger after this and move it down a line
 }

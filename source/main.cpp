@@ -147,7 +147,7 @@ void game_load_error(void)
 		u8 general_text_table_buffer[2048];
 		text_data_table general_text(general_text_table_buffer);
 
-		general_text.decompress(get_compressed_general_table());
+		general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
 		ptgb_write(general_text.get_text_entry(GENERAL_cart_load_error), true);
 	}
 
@@ -189,7 +189,7 @@ void first_load_message(void)
 		u8 general_text_table_buffer[2048];
 		text_data_table general_text(general_text_table_buffer);
 
-		general_text.decompress(get_compressed_general_table());
+		general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
 		ptgb_write(general_text.get_text_entry(GENERAL_intro_first), true);
 	}
 
@@ -206,7 +206,7 @@ int credits()
 	text_data_table credits_text_table(text_decompression_buffer);
 	int curr_credits_num = 0;
 
-	credits_text_table.decompress(get_compressed_credits_table());
+	credits_text_table.decompress(get_compressed_text_table(CREDITS_INDEX));
 	bool update = true;
 
 	global_next_frame();
@@ -214,7 +214,7 @@ int credits()
 	{
 		if (update)
 		{
-			create_textbox(4, 1, 160, 80, true);
+			create_textbox(1, 1, 200, 120, true);
 			show_text_box();
 			ptgb_write(credits_text_table.get_text_entry(curr_credits_num), true);
 			update = false;
@@ -296,7 +296,7 @@ int credits()
 			ptgb_write_debug(charset, hexBuffer, true);
 
 			ptgb_write_debug(charset, "\n", true);
-			ptgb_write_debug(charset, VERSION, true);
+			ptgb_write_debug(charset, BUILD_INFO, true);
 			if (get_treecko_enabled())
 			{
 				ptgb_write_debug(charset, ".T", true);
@@ -317,19 +317,25 @@ int credits()
 	}
 };
 
-#define NUM_MENU_OPTIONS 3
-
 int main_menu_loop()
 {
+#if ENABLE_TEXT_DEBUG_SCREEN
+#define NUM_MENU_OPTIONS 4
+	const uint8_t menu_options[NUM_MENU_OPTIONS] = {GENERAL_option_transfer, GENERAL_option_dreamdex, GENERAL_option_credits, GENERAL_option_text_debug};
+	int return_values[NUM_MENU_OPTIONS] = {BTN_TRANSFER, BTN_POKEDEX, BTN_CREDITS, BTN_TEXT_DEBUG};
+#else
+#define NUM_MENU_OPTIONS 3
+	const uint8_t menu_options[NUM_MENU_OPTIONS] = {GENERAL_option_transfer, GENERAL_option_dreamdex, GENERAL_option_credits};
+	int return_values[NUM_MENU_OPTIONS] = {BTN_TRANSFER, BTN_POKEDEX, BTN_CREDITS};
+#endif
+
 	uint8_t general_text_table_buffer[2048];
 	text_data_table general_text(general_text_table_buffer);
 	bool update = true;
-	const uint8_t menu_options[NUM_MENU_OPTIONS] = {GENERAL_option_transfer, GENERAL_option_dreamdex, GENERAL_option_credits};
 	const uint8_t *text_entry;
-	int return_values[NUM_MENU_OPTIONS] = {BTN_TRANSFER, BTN_POKEDEX, BTN_CREDITS};
 	u16 test = 0;
 
-	general_text.decompress(get_compressed_general_table());
+	general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
 
 	while (true)
 	{
@@ -339,10 +345,9 @@ int main_menu_loop()
 			for (int i = 0; i < NUM_MENU_OPTIONS; i++)
 			{
 				text_entry = general_text.get_text_entry(menu_options[i]);
-				int size = get_string_length(text_entry);
-				int char_width = (PTGB_BUILD_LANGUAGE == JPN_ID ? 8 : 6);
-				int x = ((240 - (size * char_width)) / 2);
-				tte_set_pos(x, ((i * 17) + 80));
+				int string_length = get_string_length(text_entry);
+				int x = ((240 - string_length) / 2);
+				tte_set_pos(x, ((i * (16 + 10)) + 70));
 				if (i == curr_selection)
 				{
 					tte_set_ink(INK_WHITE);
@@ -380,11 +385,11 @@ int main_menu_loop()
 	}
 }
 
-// Legal mumbo jumbo
-static void show_legal_text(const u8* intro_text)
+// Legal stuff
+static void show_legal_text(const u8 *intro_text)
 {
-	tte_set_margins(8, 8, H_MAX - 8, V_MAX - 8);
-	tte_set_pos(8, 8);
+	tte_set_margins(4, 0, H_MAX - 4, V_MAX);
+	tte_set_pos(4, 0);
 	tte_set_ink(INK_ROM_COLOR);
 	ptgb_write(intro_text, true);
 	bool wait = true;
@@ -429,10 +434,10 @@ static void __attribute__((noinline)) show_intro()
 	text_data_table general_text(general_text_table_buffer);
 	const u8 *text_entry;
 
-	general_text.decompress(get_compressed_general_table());
+	general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
 
 	text_entry = general_text.get_text_entry(GENERAL_press_start);
-	press_start_text_length = get_string_length(text_entry);
+	press_start_text_length = get_string_char_count(text_entry);
 	memcpy(press_start_text, text_entry, press_start_text_length + 1);
 	text_entry = general_text.get_text_entry(GENERAL_intro_legal);
 
@@ -442,7 +447,7 @@ static void __attribute__((noinline)) show_intro()
 	REG_BG1CNT = REG_BG1CNT | BG_PRIO(3);
 
 	key_poll(); // Reset the keys
-	curr_GBA_rom.load_rom();
+	curr_GBA_rom.load_rom(false);
 
 	obj_set_pos(ptgb_logo_l, 56, 12);
 	obj_set_pos(ptgb_logo_r, 56 + 64, 12);
@@ -464,7 +469,7 @@ static void __attribute__((noinline)) show_intro()
 		global_next_frame();
 		start_pressed = key_hit(KEY_START) | key_hit(KEY_A);
 		REG_BLDALPHA = BLDA_BUILD(0b10000, fade);
-	};
+	}
 }
 
 int main(void)
@@ -488,12 +493,20 @@ int main(void)
 	REG_BLDALPHA = BLDA_BUILD(0b10000, 0); // Reset fade
 
 	//  Check if the game has been loaded correctly.
-	while (!curr_GBA_rom.load_rom())
+	bool debug = false;
+	while (!curr_GBA_rom.load_rom(debug))
 	{
-		obj_hide_multi(ptgb_logo_l, 2);
-		global_next_frame();
-		game_load_error();
-		// initalization_script();
+		if (IGNORE_GAME_PAK)
+		{
+			debug = true;
+		}
+		else
+		{
+			obj_hide_multi(ptgb_logo_l, 2);
+			global_next_frame();
+			game_load_error();
+			// initalization_script();
+		}
 	}
 
 	// Initalize memory and save data after loading the game
@@ -535,7 +548,7 @@ int main(void)
 			tte_set_ink(INK_DARK_GREY);
 			obj_hide_multi(ptgb_logo_l, 2);
 			load_flex_background(BG_FENNEL, 3);
-			text_loop(BTN_TRANSFER);
+			text_loop(SCRIPT_TRANSFER);
 			break;
 		case (BTN_POKEDEX):
 			if (get_tutorial_flag())
@@ -560,7 +573,13 @@ int main(void)
 			break;
 		case (BTN_EVENTS):
 			obj_hide_multi(ptgb_logo_l, 2);
-			text_loop(BTN_EVENTS);
+			text_loop(SCRIPT_EVENT);
+			break;
+		case (BTN_TEXT_DEBUG):
+			tte_set_ink(INK_DARK_GREY);
+			REG_BG1CNT = (REG_BG1CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
+			obj_hide_multi(ptgb_logo_l, 2);
+			text_loop(SCRIPT_DEBUG);
 			break;
 		default:
 			global_next_frame();

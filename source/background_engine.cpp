@@ -36,7 +36,7 @@ void reset_textbox()
 {
         tte_erase_rect(0, 0, H_MAX, V_MAX);
         reload_textbox_background();
-        tte_set_pos(1 * 8, 14 * 8);
+        tte_set_pos(LEFT, TOP);
         tte_set_margins(LEFT, TOP, RIGHT, BOTTOM);
 }
 

@@ -27,7 +27,7 @@ static void __attribute__((noinline)) show_pulled_cart_error()
     u8 general_text_table_buffer[2048];
     text_data_table general_text(general_text_table_buffer);
 
-    general_text.decompress(get_compressed_general_table());
+    general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
     ptgb_write(general_text.get_text_entry(GENERAL_pulled_cart_error), true);
 }
 
@@ -267,7 +267,7 @@ bool get_treecko_enabled()
     return treecko_enabled;
 }
 
-int get_string_length(const byte *str)
+int get_string_char_count(const byte *str)
 {
     int size = 0;
     while (str[size] != 0xFF)
@@ -275,6 +275,18 @@ int get_string_length(const byte *str)
         size++;
     }
     return size;
+}
+
+int get_string_length(const byte *str)
+{
+    int size = 0;
+    int length = 0;
+    while (str[size] != 0xFF)
+    {
+        length += tte_get_glyph_width(str[size]);
+        size++;
+    }
+    return length;
 }
 
 void convert_int_to_ptgb_str(int val, byte str[], int min_length)

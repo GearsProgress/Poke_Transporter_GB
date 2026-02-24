@@ -41,7 +41,7 @@ static void load_text_entry_into_buffer(text_data_table& data_table, u8 *output_
 static void load_general_table_text_entries(u8 *decompression_buffer, u8 *kanto_buffer, u8 *johto_buffer)
 {
     text_data_table data_table(decompression_buffer);
-    data_table.decompress(get_compressed_general_table());
+    data_table.decompress(get_compressed_text_table(GENERAL_INDEX));
 
     load_text_entry_into_buffer(data_table, kanto_buffer, GENERAL_kanto_name);
     load_text_entry_into_buffer(data_table, johto_buffer, GENERAL_johto_name);
@@ -105,7 +105,7 @@ int pokedex_loop()
     load_general_table_text_entries(decompression_buffer, kanto_name, johto_name);
 
     text_data_table PKMN_NAMES(decompression_buffer);
-    PKMN_NAMES.decompress(get_compressed_pkmn_names_table());
+    PKMN_NAMES.decompress(get_compressed_text_table(PKMN_NAMES_INDEX));
 
     pokedex_init();
     pokedex_show();
@@ -116,7 +116,7 @@ int pokedex_loop()
                               // TODO: For some reason there is screen tearing here. Probably not noticable on console,
                               // but it should be removed at some point
 
-    tte_set_pos(8, 148);
+    tte_set_pos(8, 146);
     ptgb_write(kanto_name, true);
     convert_int_to_ptgb_str(kanto_dex_num, temp_string, 3);
     ptgb_write(temp_string, true);
@@ -126,7 +126,7 @@ int pokedex_loop()
     convert_int_to_ptgb_str(mew_caught ? 151 : 150, temp_string, 3);
     ptgb_write(temp_string, true);
 
-    tte_set_pos(128, 148);
+    tte_set_pos(128, 146);
     ptgb_write(johto_name, true);
     convert_int_to_ptgb_str(johto_dex_num, temp_string, 3);
     ptgb_write(temp_string, true);
@@ -216,18 +216,17 @@ int pokedex_loop()
 
                 if (is_caught(dex_shift + i + 1 + mythic_skip))
                 {
-                    tte_set_pos(dex_x_cord + (3 * 8 / 2), (i * 8 * 2) + 32);
+                    tte_set_pos(dex_x_cord + (3 * 8 / 2), (i * 8 * 2) + 28);
                     temp_string[0] = 0xF7;
-                    temp_string[1] = 0xF8;
-                    temp_string[2] = 0xFF;
+                    temp_string[1] = 0xFF;
                     ptgb_write(temp_string, true);
                 }
 
-                tte_set_pos(dex_x_cord + (3 * 8), (i * 8 * 2) + 32);
+                tte_set_pos(dex_x_cord + (3 * 8), (i * 8 * 2) + 28);
                 convert_int_to_ptgb_str(dex_shift + i + 1 + mythic_skip, temp_string, 3);
                 ptgb_write(temp_string, true);
 
-                tte_set_pos(dex_x_cord + (7 * 8), (i * 8 * 2) + 32);
+                tte_set_pos(dex_x_cord + (7 * 8), (i * 8 * 2) + 28);
                 ptgb_write(is_caught(dex_shift + i + 1 + mythic_skip) ? PKMN_NAMES.get_text_entry(dex_shift + i + 1 + mythic_skip) : undiscovered_text, true);
 
             }

@@ -1,5 +1,30 @@
-# Build configuration (set to either 'debug' or 'release')
-BUILD_TYPE := release
+BUILD_LANGS := japanese english french german italian spanishEU spanishLA
+BUILD_TYPES := release debug
+
+# defaults
+BUILD_LANG ?= english
+BUILD_TYPE ?= release
+GIT_SUFFIX := $(shell git describe --tags --long --dirty | sed -E 's/^[^-]+-([0-9]+)-g[0-9a-f]+(-dirty)?$$/\1/')
+GIT_FULL := $(shell git describe --tags --always --dirty 2>/dev/null)
+
+ifeq ($(GIT_SUFFIX),0)
+GIT_VERSION = $(shell git describe --tags --abbrev=0)
+else
+GIT_VERSION = $(shell git describe --tags --abbrev=0)b
+endif
+
+CMD_GOALS := $(filter-out build,$(MAKECMDGOALS))
+
+LANG_INDEX := $(shell echo $(BUILD_LANGS) | tr ' ' '\n' | nl -v0 | grep -w $(BUILD_LANG) | awk '{print $$1 + 1}')
+TYPE_INDEX := $(shell echo $(BUILD_TYPES) | tr ' ' '\n' | nl -v0 | grep -w $(BUILD_TYPE) | awk '{print $$1}')
+
+CPPFLAGS   += -DPTGB_BUILD_LANGUAGE=$(LANG_INDEX)
+CPPFLAGS   += -DDEBUG_MODE=$(TYPE_INDEX)
+CPPFLAGS   += -DBUILD_INFO=\"$(GIT_FULL)\"
+
+CFLAGS += $(CPPFLAGS)
+CXXFLAGS += $(CPPFLAGS)
+
 
 #---------------------------------------------------------------------------------
 .SUFFIXES:
@@ -35,6 +60,7 @@ LIBPCCS := $(CURDIR)/PCCS
 #---------------------------------------------------------------------------------
 TARGET		:= $(notdir $(CURDIR))_mb
 BUILD		:= build
+GENERATED_DIR := $(BUILD)/generated
 SOURCES     := source
 INCLUDES    := include PCCS/lib/include
 DATA		:= data
@@ -46,12 +72,12 @@ GRAPHICS	:= graphics
 #---------------------------------------------------------------------------------
 ARCH	:=	-mthumb -mthumb-interwork
 
-CFLAGS	:=	-Wall -O2\
+CFLAGS	+=	-Wall -O2\
 		-mcpu=arm7tdmi -mtune=arm7tdmi -masm-syntax-unified\
 		$(ARCH) 
 
 CFLAGS	+=	$(INCLUDE) -ffunction-sections -fdata-sections -Os -Wall -mthumb -mcpu=arm7tdmi -mtune=arm7tdmi -fstack-usage
-CXXFLAGS	:=	$(CFLAGS) -g0 -fno-rtti -fno-exceptions -fdata-sections -ffunction-sections -std=c++20 -Wno-volatile -D_GLIBCXX_USE_CXX20_ABI=0 -fstack-usage
+CXXFLAGS	+=	$(CFLAGS) -g0 -fno-rtti -fno-exceptions -fdata-sections -ffunction-sections -std=c++20 -Wno-volatile -D_GLIBCXX_USE_CXX20_ABI=0 -fstack-usage
 
 ifeq ($(BUILD_TYPE), debug)
 	CFLAGS += -g -DDEBUG
@@ -99,14 +125,15 @@ ifneq ($(BUILD),$(notdir $(CURDIR)))
 
 export OUTPUT	:=	$(CURDIR)/$(TARGET)
 
-export VPATH	:=	$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
+export VPATH	:=	$(CURDIR)/$(GENERATED_DIR) \
+			$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
 			$(foreach dir,$(DATA),$(CURDIR)/$(dir)) \
 			$(foreach dir,$(GRAPHICS),$(CURDIR)/$(dir))
 
 export DEPSDIR	:=	$(CURDIR)/$(BUILD)
 
 CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
-CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
+CPPFILES	:=	$(sort $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp))) translated_text.cpp)
 SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 PNGFILES	:=	$(foreach dir,$(GRAPHICS),$(notdir $(wildcard $(dir)/*.png)))
 
@@ -135,22 +162,45 @@ export OFILES_GRAPHICS := $(PNGFILES:.png=.o)
 
 export OFILES := $(OFILES_SOURCES) $(OFILES_GRAPHICS)
 
-export HFILES := $(addsuffix .h,$(subst .,_,$(BINFILES))) $(PNGFILES:.png=.h)
+export HFILES := $(addsuffix .h,$(subst .,_,$(BINFILES))) $(PNGFILES:.png=.h) \
+				 $(CURDIR)/$(GENERATED_DIR)/translated_text.h \
+				 $(CURDIR)/$(GENERATED_DIR)/fonts.h
 
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-iquote $(CURDIR)/$(dir)) \
 					$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
+					-I$(CURDIR)/$(GENERATED_DIR) \
 					-I$(CURDIR)/$(BUILD) \
 					-I$(CURDIR)/tools/payload-generator/include
 
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
-.PHONY: $(BUILD) generate_data clean
+.PHONY: clean
 
-all: $(BUILD)
+GENERATE_STAMP := $(BUILD)/.generate_data.$(BUILD_LANG).$(BUILD_TYPE).stamp
+BUILD_STAMP := $(BUILD)/.build.$(BUILD_LANG).$(BUILD_TYPE).stamp
 
-generate_data:
-	mkdir -p data
-	mkdir -p to_compress
+PAYLOAD_GEN_INPUTS := $(shell find tools/payload-generator/src tools/payload-generator/include -type f \( -name "*.cpp" -o -name "*.h" -o -name "*.hpp" \))
+
+all: $(BUILD_STAMP)
+
+text_generated: to_compress generated_dir data
+	@PTGB_GEN_DIR="$(CURDIR)/$(GENERATED_DIR)" python3 tools/text_helper/main.py $(BUILD_LANG) $(BUILD_TYPE)
+
+data:
+	@mkdir -p $@
+
+to_compress:
+	@mkdir -p $@
+
+generated_dir:
+	@mkdir -p $(GENERATED_DIR)
+
+generate_data: $(GENERATE_STAMP)
+
+$(GENERATE_STAMP): text_generated $(PAYLOAD_GEN_INPUTS) compress_lz10.sh | data to_compress generated_dir
+	@echo "----------------------------------------------------------------"
+	@echo "Building v$(GIT_VERSION) with parameters: $(BUILD_LANG), $(BUILD_TYPE)"
+	@echo "----------------------------------------------------------------"
 	@env - \
 		PATH="$(PATH)" \
 		TMPDIR=/tmp TMP=/tmp TEMP=/tmp \
@@ -161,12 +211,11 @@ generate_data:
 		CXXFLAGS= \
 		LDFLAGS= \
 		AR=ar \
-		$(MAKE) -C tools/payload-generator
+		$(MAKE) -C tools/payload-generator BUILD_LANG=$(BUILD_LANG) BUILD_TYPE=$(BUILD_TYPE)
 	@echo
 	@echo "----------------------------------------------------------------"
 	@echo
 	@tools/payload-generator/payload-generator to_compress
-	@python3 text_helper/main.py
 	@echo "Compressing bin files!" 
 	@echo -n "["
 	@find to_compress -name "*.bin" -print0 | xargs -0 -n1 ./compress_lz10.sh
@@ -175,10 +224,10 @@ generate_data:
 	@echo
 	@echo "----------------------------------------------------------------"
 	@echo
+	@touch $@
 
 #---------------------------------------------------------------------------------
-$(BUILD): generate_data
-	@[ -d $@ ] || mkdir -p $@
+$(BUILD_STAMP): generate_data | $(BUILD)
 	@$(MAKE) -C PCCS \
 		CC="$(CC)" \
 		CXX="$(CXX)" \
@@ -189,6 +238,10 @@ $(BUILD): generate_data
 	@mkdir -p loader/data
 	@cp $(TARGET).gba loader/data/multiboot_rom.bin
 	@$(MAKE) -C loader
+	@touch $@
+
+$(BUILD):
+	@mkdir -p $@
 
 #---------------------------------------------------------------------------------
 clean:
@@ -197,7 +250,8 @@ clean:
 	@$(MAKE) -C loader clean
 	@$(MAKE) -C PCCS clean
 	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).gba data/ to_compress/
-	@rm -f text_helper/output.json
+	@rm -fr tools/text_helper/build
+	@rm -fr $(GENERATED_DIR)
 
 
 
