@@ -9,6 +9,7 @@ to_compress/
 *.zip
 *.exe
 .vscode/
+.venv/
 source/test_payload.txt
 loader/data/multiboot_rom.bin
 include/translated_text.h
