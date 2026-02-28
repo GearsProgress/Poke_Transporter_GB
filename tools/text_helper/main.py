@@ -11,6 +11,7 @@ import math
 import numpy as np
 import png
 import shutil
+import debugpy
 
 class Languages(Enum):
     Japanese = 0
@@ -486,7 +487,10 @@ def download_xlsx_file():
         # XML exists (guaranteed here)
         if json_file_path.exists():
             print("Offline mode: trusting cached XML + JSON. Skipping parse.")
-            if os.path.getmtime(THIS_SCRIPT_PATH) > os.path.getmtime(OUTPUT_JSON_PATH):
+            if debugpy.is_client_connected():
+                print("\t...but we're running with a debugger, so we're doing it anyway!")
+                return
+            elif os.path.getmtime(THIS_SCRIPT_PATH) > os.path.getmtime(OUTPUT_JSON_PATH):
                 print("\t...but the python file is new, so we're doing it anyway!")
                 return
             sys.exit(0)
@@ -502,7 +506,10 @@ def download_xlsx_file():
                 new_file_path.unlink()
                 if json_file_path.exists():
                     print("Skipping parse")
-                    if os.path.getmtime(THIS_SCRIPT_PATH) > os.path.getmtime(OUTPUT_JSON_PATH):
+                    if debugpy.is_client_connected():
+                        print("\t...but we're running with a debugger, so we're doing it anyway!")
+                        return
+                    elif os.path.getmtime(THIS_SCRIPT_PATH) > os.path.getmtime(OUTPUT_JSON_PATH):
                         print("\t...but the python file is new, so we're doing it anyway!")
                         return
                     sys.exit(0)

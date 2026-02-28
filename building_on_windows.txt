@@ -19,4 +19,4 @@ break-system-packages = true
 
 pacman -S openssl-devel
 export CMAKE_TLS_VERIFY=0
-pip install pandas requests openpyxl pypng
+pip install pandas requests openpyxl pypng debugpy
