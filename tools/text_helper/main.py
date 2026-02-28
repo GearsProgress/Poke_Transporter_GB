@@ -22,7 +22,7 @@ class Languages(Enum):
     SpanishEU = 5
     SpanishLA = 6
 
-FIRST_TRANSLATION_COL_INDEX = 9
+FIRST_TRANSLATION_COL_INDEX = 10
 PURPOSEFUL_SPACE_CHAR = '|'
 
 BASE_DIR = Path(__file__).resolve().parent
@@ -203,7 +203,7 @@ def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, cen
             lineCount += 1
             lineLength = 0
             offset = 0
-    if (centered and (len(words) > 0) and words[0] != 'ɑ'):
+    if (centered and (len(words) > 0) and words[0] not in ['ɑ', 'ȼ', 'Ň', 'Ş']):
         count = ((pixelsInLine - lineLength) // 2)
         currLine = f'_[{count}]{currLine}'
         lineLength += count
@@ -562,12 +562,12 @@ def transfer_xlsx_to_dict():
             offset = lang.value
             if (pd.isna(currRow.iloc[FIRST_TRANSLATION_COL_INDEX + lang.value])):
                 offset = Languages.English.value
-            mainDict[lang.name][currRow.iloc[0]][currRow.iloc[1]] = {"bytes": currRow.iloc[FIRST_TRANSLATION_COL_INDEX + offset],
-                                                                        "numLines": currRow.iloc[2],
-                                                                        "pixelsPerChar": currRow.iloc[3],
-                                                                        "pixelsInLine" : currRow.iloc[4],
-                                                                        "includeBoxBreaks": currRow.iloc[5],
-                                                                        "includeScrolling": currRow.iloc[6],
+            mainDict[lang.name][currRow.iloc[1]][currRow.iloc[2]] = {"bytes": currRow.iloc[FIRST_TRANSLATION_COL_INDEX + offset],
+                                                                        "numLines": currRow.iloc[3],
+                                                                        "pixelsPerChar": currRow.iloc[4],
+                                                                        "pixelsInLine" : currRow.iloc[5],
+                                                                        "includeBoxBreaks": currRow.iloc[6],
+                                                                        "includeScrolling": currRow.iloc[7],
                                                                         }
 def test_if_release():
     if (BUILD_TYPE == 'release'):
