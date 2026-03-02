@@ -853,6 +853,9 @@ bool run_conditional(int index)
     case CMD_LANG_MENU:
         populate_lang_menu();
         lang = langs.select_menu_main();
+        // We have our choice, we should release
+        // the memory of the options since we won't need them anymore
+        langs.clear_options();
         if (lang == BUTTON_CANCEL)
         {
             return false;
@@ -863,6 +866,9 @@ bool run_conditional(int index)
     case CMD_GAME_MENU:
         populate_game_menu(party_data.get_lang());
         game = games.select_menu_main();
+        // We have our choice, we should release
+        // the memory of the options since we won't need them anymore
+        games.clear_options();
         if (game == BUTTON_CANCEL)
         {
             return false;
