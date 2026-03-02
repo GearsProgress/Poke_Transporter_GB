@@ -65,7 +65,7 @@ SOURCES     := source
 INCLUDES    := include PCCS/lib/include
 DATA		:= data
 MUSIC		:= audio
-GRAPHICS	:= graphics
+GRAPHICS	:= graphics graphics/languages/$(BUILD_LANG)
 
 #---------------------------------------------------------------------------------
 # options for code generation
