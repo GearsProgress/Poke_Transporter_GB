@@ -237,7 +237,6 @@ unsigned vertical_menu::run()
         switch(input_result)
         {
             case MenuInputHandleState::CHOICE_MADE:
-            case MenuInputHandleState::HANDLED:
                 return focused_index_;
             case MenuInputHandleState::CANCELLED:
                 return UINT32_MAX;
