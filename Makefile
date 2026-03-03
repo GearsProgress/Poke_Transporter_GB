@@ -1,9 +1,12 @@
 BUILD_LANGS := japanese english french german italian spanishEU spanishLA
 BUILD_TYPES := release debug
+BUILD_XLSXS := local cloud
 
 # defaults
 BUILD_LANG ?= english
 BUILD_TYPE ?= release
+BUILD_XLSX ?= local
+
 GIT_SUFFIX := $(shell git describe --tags --long --dirty | sed -E 's/^[^-]+-([0-9]+)-g[0-9a-f]+(-dirty)?$$/\1/')
 GIT_FULL := $(shell git describe --tags --always --dirty 2>/dev/null)
 
@@ -59,14 +62,13 @@ LIBPCCS := $(CURDIR)/PCCS
 #
 #---------------------------------------------------------------------------------
 TARGET		:= $(notdir $(CURDIR))_mb
-LOADERNAME  := $(notdir $(CURDIR))_standalone
 BUILD		:= build
 GENERATED_DIR := $(BUILD)/generated
 SOURCES     := source
 INCLUDES    := include PCCS/lib/include
 DATA		:= data
 MUSIC		:= audio
-GRAPHICS	:= graphics
+GRAPHICS	:= graphics graphics/languages/$(BUILD_LANG)
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -138,6 +140,11 @@ CPPFILES	:=	$(sort $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp))) 
 SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 PNGFILES	:=	$(foreach dir,$(GRAPHICS),$(notdir $(wildcard $(dir)/*.png)))
 
+#ifneq ($(strip $(MUSIC)),)
+#	export AUDIOFILES	:=	$(foreach dir,$(notdir $(wildcard $(MUSIC)/*.*)),$(CURDIR)/$(MUSIC)/$(dir))
+#	BINFILES += soundbank.bin
+#endif
+
 #---------------------------------------------------------------------------------
 # use CXX for linking C++ projects, CC for standard C
 #---------------------------------------------------------------------------------
@@ -158,13 +165,9 @@ export OFILES_GRAPHICS := $(PNGFILES:.png=.o)
 
 export OFILES := $(OFILES_SOURCES) $(OFILES_GRAPHICS)
 
-ifneq ($(strip $(MUSIC)),)
-	export AUDIOFILES	:=	$(foreach dir,$(notdir $(wildcard $(MUSIC)/*.*)),$(CURDIR)/$(MUSIC)/$(dir))
-	BINFILES += soundbank.bin
-	OFILES += soundbank.bin.o
-endif
-
-export HFILES := $(addsuffix .h,$(subst .,_,$(BINFILES))) $(PNGFILES:.png=.h)
+export HFILES := $(addsuffix .h,$(subst .,_,$(BINFILES))) $(PNGFILES:.png=.h) \
+				 $(CURDIR)/$(GENERATED_DIR)/translated_text.h \
+				 $(CURDIR)/$(GENERATED_DIR)/fonts.h
 
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-iquote $(CURDIR)/$(dir)) \
 					$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
@@ -174,17 +177,24 @@ export INCLUDE	:=	$(foreach dir,$(INCLUDES),-iquote $(CURDIR)/$(dir)) \
 
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
-.PHONY: clean
+.PHONY: all clean
 
-GENERATE_STAMP := $(BUILD)/.generate_data.$(BUILD_LANG).$(BUILD_TYPE).stamp
-BUILD_STAMP := $(BUILD)/.build.$(BUILD_LANG).$(BUILD_TYPE).stamp
+GENERATE_STAMP := $(BUILD)/.generate_data.$(BUILD_LANG).$(BUILD_TYPE).$(BUILD_XLSX).stamp
+BUILD_STAMP := $(BUILD)/.build.$(BUILD_LANG).$(BUILD_TYPE).$(BUILD_XLSX).stamp
 
 PAYLOAD_GEN_INPUTS := $(shell find tools/payload-generator/src tools/payload-generator/include -type f \( -name "*.cpp" -o -name "*.h" -o -name "*.hpp" \))
+TEXT_HELPER_INPUTS := tools/text_helper/main.py $(wildcard tools/text_helper/fonts/*.png) $(wildcard tools/text_helper/build/text.xlsx)
 
-all: $(BUILD_STAMP)
+all:
+	@before=$$(stat -c %Y $(BUILD_STAMP) 2>/dev/null || echo 0); \
+	$(MAKE) --no-print-directory $(BUILD_STAMP) BUILD_LANG=$(BUILD_LANG) BUILD_TYPE=$(BUILD_TYPE) BUILD_XLSX=$(BUILD_XLSX); \
+	after=$$(stat -c %Y $(BUILD_STAMP) 2>/dev/null || echo 0); \
+	if [ "$$before" = "$$after" ] && [ "$$after" != "0" ]; then \
+		echo "PTGB build up to date."; \
+	fi
 
 text_generated: to_compress generated_dir data
-	@PTGB_GEN_DIR="$(CURDIR)/$(GENERATED_DIR)" python3 tools/text_helper/main.py $(BUILD_LANG) $(BUILD_TYPE)
+	@PTGB_GEN_DIR="$(CURDIR)/$(GENERATED_DIR)" python3 tools/text_helper/main.py $(BUILD_LANG) $(BUILD_TYPE) $(BUILD_XLSX)
 
 data:
 	@mkdir -p $@
@@ -197,9 +207,10 @@ generated_dir:
 
 generate_data: $(GENERATE_STAMP)
 
-$(GENERATE_STAMP): text_generated $(PAYLOAD_GEN_INPUTS) compress_lz10.sh | data to_compress generated_dir
+$(GENERATE_STAMP): $(TEXT_HELPER_INPUTS) $(PAYLOAD_GEN_INPUTS) compress_lz10.sh | data to_compress generated_dir
+	@$(MAKE) --no-print-directory text_generated BUILD_LANG=$(BUILD_LANG) BUILD_TYPE=$(BUILD_TYPE) BUILD_XLSX=$(BUILD_XLSX)
 	@echo "----------------------------------------------------------------"
-	@echo "Building v$(GIT_VERSION) with parameters: $(BUILD_LANG), $(BUILD_TYPE)"
+	@echo "Building v$(GIT_VERSION) with parameters: $(BUILD_LANG), $(BUILD_TYPE), $(BUILD_XLSX)"
 	@echo "----------------------------------------------------------------"
 	@env - \
 		PATH="$(PATH)" \
@@ -227,7 +238,7 @@ $(GENERATE_STAMP): text_generated $(PAYLOAD_GEN_INPUTS) compress_lz10.sh | data 
 	@touch $@
 
 #---------------------------------------------------------------------------------
-$(BUILD_STAMP): generate_data | $(BUILD)
+$(BUILD_STAMP): $(GENERATE_STAMP) | $(BUILD)
 	@$(MAKE) -C PCCS \
 		CC="$(CC)" \
 		CXX="$(CXX)" \
@@ -238,7 +249,6 @@ $(BUILD_STAMP): generate_data | $(BUILD)
 	@mkdir -p loader/data
 	@cp $(TARGET).gba loader/data/multiboot_rom.bin
 	@$(MAKE) -C loader
-	@cp loader/loader.gba $(LOADERNAME).gba
 	@touch $@
 
 $(BUILD):
@@ -250,10 +260,7 @@ clean:
 	@$(MAKE) -C tools/payload-generator clean
 	@$(MAKE) -C loader clean
 	@$(MAKE) -C PCCS clean
-	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).gba $(LOADERNAME).gba data/ to_compress/
-	@rm -f text_helper/output.json
 	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).gba data/ to_compress/
-	@rm -fr tools/text_helper/build
 	@rm -fr $(GENERATED_DIR)
 
 
@@ -283,9 +290,9 @@ $(OFILES_SOURCES) : $(HFILES)
 #---------------------------------------------------------------------------------
 # rule to build soundbank from music files
 #---------------------------------------------------------------------------------
-soundbank.bin soundbank.h : $(AUDIOFILES)
+#soundbank.bin soundbank.h : $(AUDIOFILES)
 #---------------------------------------------------------------------------------
-	@mmutil $^ -osoundbank.bin -hsoundbank.h
+#	@mmutil $^ -osoundbank.bin -hsoundbank.h
 
 #---------------------------------------------------------------------------------
 # This rule links in binary data with the .bin extension

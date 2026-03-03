@@ -231,7 +231,7 @@ const struct GB_ROM gb_rom_values_fre[] = {
         .textBorderHeight = 1,
         .padding_2 = 0
     },
-    { // FRE_CRYSTAL
+    {
         .language = FRE_ID,
         .version = CRYSTAL_ID,
         .generation = 2,

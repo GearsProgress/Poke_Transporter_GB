@@ -17,7 +17,7 @@
 #define INSTANT_TEXT_SPEED (false && DEBUG_MODE)
 #define IGNORE_GAME_PAK (true && DEBUG_MODE)
 #define IGNORE_GAME_PAK_SPRITES (false && DEBUG_MODE)
-#define IGNORE_LINK_CABLE (true && DEBUG_MODE)
+#define IGNORE_LINK_CABLE (false && DEBUG_MODE)
 #define IGNORE_MG_E4_FLAGS (true && DEBUG_MODE)
 #define IGNORE_UNRECEIVED_PKMN (false && DEBUG_MODE)
 #define FORCE_TUTORIAL (false && DEBUG_MODE)
