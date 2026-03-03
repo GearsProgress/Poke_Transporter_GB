@@ -1,9 +1,12 @@
 BUILD_LANGS := japanese english french german italian spanishEU spanishLA
 BUILD_TYPES := release debug
+BUILD_XLSXS := local cloud
 
 # defaults
 BUILD_LANG ?= english
 BUILD_TYPE ?= release
+BUILD_XLSX ?= local
+
 GIT_SUFFIX := $(shell git describe --tags --long --dirty | sed -E 's/^[^-]+-([0-9]+)-g[0-9a-f]+(-dirty)?$$/\1/')
 GIT_FULL := $(shell git describe --tags --always --dirty 2>/dev/null)
 
@@ -184,7 +187,7 @@ PAYLOAD_GEN_INPUTS := $(shell find tools/payload-generator/src tools/payload-gen
 all: $(BUILD_STAMP)
 
 text_generated: to_compress generated_dir data
-	@PTGB_GEN_DIR="$(CURDIR)/$(GENERATED_DIR)" python3 tools/text_helper/main.py $(BUILD_LANG) $(BUILD_TYPE)
+	@PTGB_GEN_DIR="$(CURDIR)/$(GENERATED_DIR)" python3 tools/text_helper/main.py $(BUILD_LANG) $(BUILD_TYPE) $(BUILD_XLSX)
 
 data:
 	@mkdir -p $@
@@ -199,7 +202,7 @@ generate_data: $(GENERATE_STAMP)
 
 $(GENERATE_STAMP): text_generated $(PAYLOAD_GEN_INPUTS) compress_lz10.sh | data to_compress generated_dir
 	@echo "----------------------------------------------------------------"
-	@echo "Building v$(GIT_VERSION) with parameters: $(BUILD_LANG), $(BUILD_TYPE)"
+	@echo "Building v$(GIT_VERSION) with parameters: $(BUILD_LANG), $(BUILD_TYPE), $(BUILD_XLSX)"
 	@echo "----------------------------------------------------------------"
 	@env - \
 		PATH="$(PATH)" \
