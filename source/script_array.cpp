@@ -682,6 +682,8 @@ const script_obj_params event_script_params[SCRIPT_SIZE] = {
 
 void populate_lang_menu()
 {
+    langs.clear_options();
+
     langs.add_option(GENERAL_option_english, ENG_ID);
     langs.add_option(GENERAL_option_japanese, JPN_ID);
     langs.add_option(GENERAL_option_spanish, SPA_ID);
@@ -696,6 +698,8 @@ void populate_lang_menu()
 
 void populate_game_menu(int lang)
 {
+    games.clear_options();
+
     switch (lang)
     {
     case (JPN_ID):
@@ -849,6 +853,9 @@ bool run_conditional(int index)
     case CMD_LANG_MENU:
         populate_lang_menu();
         lang = langs.select_menu_main();
+        // We have our choice, we should release
+        // the memory of the options since we won't need them anymore
+        langs.clear_options();
         if (lang == BUTTON_CANCEL)
         {
             return false;
@@ -856,17 +863,18 @@ bool run_conditional(int index)
         games.set_lang(static_cast<u8>(lang));
         party_data.set_lang(static_cast<u8>(lang));
         return true;
-
     case CMD_GAME_MENU:
         populate_game_menu(party_data.get_lang());
         game = games.select_menu_main();
+        // We have our choice, we should release
+        // the memory of the options since we won't need them anymore
+        games.clear_options();
         if (game == BUTTON_CANCEL)
         {
             return false;
         }
         party_data.set_game(game);
         return true;
-
     case CMD_SLIDE_PROF_LEFT:
         for (int i = 0; i <= (8 * 7); i += 2)
         {
