@@ -177,14 +177,21 @@ export INCLUDE	:=	$(foreach dir,$(INCLUDES),-iquote $(CURDIR)/$(dir)) \
 
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
-.PHONY: clean
+.PHONY: all clean
 
-GENERATE_STAMP := $(BUILD)/.generate_data.$(BUILD_LANG).$(BUILD_TYPE).stamp
-BUILD_STAMP := $(BUILD)/.build.$(BUILD_LANG).$(BUILD_TYPE).stamp
+GENERATE_STAMP := $(BUILD)/.generate_data.$(BUILD_LANG).$(BUILD_TYPE).$(BUILD_XLSX).stamp
+BUILD_STAMP := $(BUILD)/.build.$(BUILD_LANG).$(BUILD_TYPE).$(BUILD_XLSX).stamp
 
 PAYLOAD_GEN_INPUTS := $(shell find tools/payload-generator/src tools/payload-generator/include -type f \( -name "*.cpp" -o -name "*.h" -o -name "*.hpp" \))
+TEXT_HELPER_INPUTS := tools/text_helper/main.py $(wildcard tools/text_helper/fonts/*.png) $(wildcard tools/text_helper/build/text.xlsx)
 
-all: $(BUILD_STAMP)
+all:
+	@before=$$(stat -c %Y $(BUILD_STAMP) 2>/dev/null || echo 0); \
+	$(MAKE) --no-print-directory $(BUILD_STAMP) BUILD_LANG=$(BUILD_LANG) BUILD_TYPE=$(BUILD_TYPE) BUILD_XLSX=$(BUILD_XLSX); \
+	after=$$(stat -c %Y $(BUILD_STAMP) 2>/dev/null || echo 0); \
+	if [ "$$before" = "$$after" ] && [ "$$after" != "0" ]; then \
+		echo "PTGB build up to date."; \
+	fi
 
 text_generated: to_compress generated_dir data
 	@PTGB_GEN_DIR="$(CURDIR)/$(GENERATED_DIR)" python3 tools/text_helper/main.py $(BUILD_LANG) $(BUILD_TYPE) $(BUILD_XLSX)
@@ -200,7 +207,8 @@ generated_dir:
 
 generate_data: $(GENERATE_STAMP)
 
-$(GENERATE_STAMP): text_generated $(PAYLOAD_GEN_INPUTS) compress_lz10.sh | data to_compress generated_dir
+$(GENERATE_STAMP): $(TEXT_HELPER_INPUTS) $(PAYLOAD_GEN_INPUTS) compress_lz10.sh | data to_compress generated_dir
+	@$(MAKE) --no-print-directory text_generated BUILD_LANG=$(BUILD_LANG) BUILD_TYPE=$(BUILD_TYPE) BUILD_XLSX=$(BUILD_XLSX)
 	@echo "----------------------------------------------------------------"
 	@echo "Building v$(GIT_VERSION) with parameters: $(BUILD_LANG), $(BUILD_TYPE), $(BUILD_XLSX)"
 	@echo "----------------------------------------------------------------"
@@ -230,7 +238,7 @@ $(GENERATE_STAMP): text_generated $(PAYLOAD_GEN_INPUTS) compress_lz10.sh | data 
 	@touch $@
 
 #---------------------------------------------------------------------------------
-$(BUILD_STAMP): generate_data | $(BUILD)
+$(BUILD_STAMP): $(GENERATE_STAMP) | $(BUILD)
 	@$(MAKE) -C PCCS \
 		CC="$(CC)" \
 		CXX="$(CXX)" \
@@ -253,7 +261,6 @@ clean:
 	@$(MAKE) -C loader clean
 	@$(MAKE) -C PCCS clean
 	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).gba data/ to_compress/
-	@rm -fr tools/text_helper/build
 	@rm -fr $(GENERATED_DIR)
 
 
