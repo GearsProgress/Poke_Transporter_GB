@@ -1,16 +1,13 @@
 import pandas as pd
-import os 
+import os
 from enum import Enum
 import json
 import requests
-from collections import defaultdict
 import sys
 from pathlib import Path
 import hashlib
 import math
-import numpy as np
 import png
-import shutil
 import debugpy
 
 class Languages(Enum):
@@ -22,8 +19,28 @@ class Languages(Enum):
     SpanishEU = 5
     SpanishLA = 6
 
+class Font:
+    def __init__(self, fileName, numColors, numChars, numCharsX, numCharsY, cellWidth, cellHeight, charWidth, charHeight):
+        self.fileName = fileName
+        self.numColors = numColors
+        self.numChars = numChars
+        self.numCharsX = numCharsX
+        self.numCharsY = numCharsY
+        self.cellWidth = cellWidth
+        self.cellHeight = cellHeight
+        self.charWidth = charWidth
+        self.charHeight = charHeight
+
+        self.bpp = int(math.log(numColors, 2)) + 1
+        self.numWords = self.numChars * self.cellWidth * self.cellHeight * self.bpp // (8 * 4)
+        self.numBytes = self.numWords * 4
+
+        self.charWordTable = [0] * self.numWords
+        self.charWidthTable = [0] * self.numBytes
+
 FIRST_TRANSLATION_COL_INDEX = 10
 PURPOSEFUL_SPACE_CHAR = '|'
+BACKGROUND_PAL_INDEX = 0
 
 BASE_DIR = Path(__file__).resolve().parent
 BUILD_DIR = BASE_DIR / "build"
@@ -36,18 +53,80 @@ FONTS_H_PATH = GEN_DIR / "fonts.h"
 OUTPUT_JSON_PATH = BUILD_DIR / "output.json"
 THIS_SCRIPT_PATH = BASE_DIR / "main.py"
 
-url = 'https://docs.google.com/spreadsheets/d/14LLs5lLqWasFcssBmJdGXjjYxARAJBa_QUOUhXZt4v8/export?format=xlsx'
-new_file_path = BUILD_DIR / 'new_text.xlsx'
-old_file_path = BUILD_DIR / 'text.xlsx'
-release_file_path = BASE_DIR / 'release.xlsx'
-json_file_path = BUILD_DIR / "output.json"
+XLSX_URL = 'https://docs.google.com/spreadsheets/d/14LLs5lLqWasFcssBmJdGXjjYxARAJBa_QUOUhXZt4v8/export?format=xlsx'
+NEW_TEXT_XLSX_PATH = BUILD_DIR / 'new_text.xlsx'
+TEXT_XLSX_PATH = BUILD_DIR / 'text.xlsx'
 
-if len(sys.argv) >= 3:
-    BUILD_LANG = sys.argv[1]
-    BUILD_TYPE = sys.argv[2]
-else:
-    BUILD_LANG = "" # Not implemented yet
-    BUILD_TYPE = "debug"
+LANGUAGE_TOKEN_INDEXES = {
+    Languages.English: (0x30, 0x60, 0x70),
+    Languages.French: (0x31, 0x60, 0x71),
+    Languages.German: (0x32, 0x61, 0x72),
+    Languages.Italian: (0x33, 0x60, 0x71),
+    Languages.SpanishEU: (0x34, 0x60, 0x72),
+    Languages.SpanishLA: (0x34, 0x60, 0x72),
+}
+
+def parse_build_args(argv):
+    if len(argv) >= 4:
+        return argv[1], argv[2], argv[3]
+    return "", "debug", "local"  # BUILD_LANG not implemented yet
+
+mainDict = {}
+textSections = []
+fonts = {
+    "International": Font("latin_normal", 1, 256, 16, 16, 16, 16, 16, 16),
+    "Japanese": Font("japanese_normal", 1, 256, 16, 16, 16, 16, 16, 16),
+}
+
+charArrays = {
+    "International": {
+        "array": [0] * 0x100,
+        "font": fonts["International"],
+        "escape": [
+            ["{SCL}", [0xFA]],
+            ["{CLR}", [0xFB]],
+            ["{DEF}", [0xFC, 0x01, 0x02]],
+            ["{FEM}", [0xFC, 0x01, 0x04]],
+            ["{FPC}", [0xFC, 0x01, 0x06]],
+            ["{MLE}", [0xFC, 0x01, 0x08]],
+            ["{SPA}", [0xFC]],
+            ["{PLR}", [0xFD, 0x01]],
+            ["{NEW}", [0xFE]],
+            ["{END}", [0xFF]],
+        ]
+    },
+    "Japanese": {
+        "array": [0] * 0x100,
+        "font": fonts["Japanese"],
+        "escape": [
+            ["{SCL}", [0xFA]],
+            ["{CLR}", [0xFB]],
+            ["{DEF}", [0xFC, 0x06, 0x02]],
+            ["{FEM}", [0xFC, 0x06, 0x03]], # ???
+            ["{MLE}", [0xFC, 0x06, 0x04]],
+            ["{SPA}", [0xFC]],
+            ["{FPC}", [0xFC, 0x06, 0x05]],
+            ["{PLR}", [0xFD, 0x01]],
+            ["{NEW}", [0xFE]],
+            ["{END}", [0xFF]],
+        ]
+    },
+}
+
+charArrayOfLanguage = {
+    Languages.Japanese: charArrays["Japanese"],
+    Languages.English: charArrays["International"],
+    Languages.French: charArrays["International"],
+    Languages.German: charArrays["International"],
+    Languages.Italian: charArrays["International"],
+    Languages.SpanishEU: charArrays["International"],
+    Languages.SpanishLA: charArrays["International"],
+}
+
+charConversionList = [
+    # replaces the first char in the list with the latter
+    ["'", "’"],
+]
 
 def split_into_sentences(text: str) -> list[str]:
     # -*- coding: utf-8 -*-
@@ -243,6 +322,30 @@ def hash_excel(path):
         ).values)
     return h.digest()
 
+def apply_escape_sequences(line, arr, escape_list):
+    for token, char_indexes in escape_list:
+        if token in line:
+            escape_string = "".join(arr[idx] for idx in char_indexes)
+            line = line.replace(token, escape_string)
+
+    # Special case for centering escape characters
+    line = line.replace("{CTR}", 'ɑ')
+    line = line.replace("{nCTR}", 'Ω')
+    return line
+
+def apply_language_tokens(line, arr, lang):
+    indexes = LANGUAGE_TOKEN_INDEXES.get(lang)
+    if indexes is None:
+        return line
+
+    lvl_index, pp_index, no_index = indexes
+    return (
+        line
+        .replace("{LVL}", arr[lvl_index])
+        .replace("{PP}", arr[pp_index])
+        .replace("{NO}", arr[no_index])
+    )
+
 def convert_item(ogDict, lang):
     line = ogDict["bytes"]
     numLines = ogDict["numLines"]
@@ -254,40 +357,8 @@ def convert_item(ogDict, lang):
     arr = charArrayOfLanguage[lang]["array"]
     escape_list = charArrayOfLanguage[lang]["escape"]
 
-    for pair in escape_list:
-        if pair[0] in line:
-            escapeString = ""
-            for char in pair[1]:
-                escapeString += arr[char]
-            #print(f"Replacing {pair[0]} with {escapeString}!")
-            line = line.replace(pair[0], escapeString)
-            #print(line)
-    
-    # Special case for the centering escape character
-    line = line.replace("{CTR}", 'ɑ')
-    line = line.replace("{nCTR}", 'Ω')
-
-    # Special case for the values that change by language. Probably should be built into the lang struct eventually
-    if (lang == Languages.English):
-            line = line.replace("{LVL}", arr[0x30])
-            line = line.replace("{PP}", arr[0x60])
-            line = line.replace("{NO}", arr[0x70])
-    elif (lang == Languages.French):
-            line = line.replace("{LVL}", arr[0x31])
-            line = line.replace("{PP}", arr[0x60])
-            line = line.replace("{NO}", arr[0x71])            
-    elif (lang == Languages.German):
-            line = line.replace("{LVL}", arr[0x32])
-            line = line.replace("{PP}", arr[0x61])
-            line = line.replace("{NO}", arr[0x72])  
-    elif (lang == Languages.Italian):
-            line = line.replace("{LVL}", arr[0x33])
-            line = line.replace("{PP}", arr[0x60])
-            line = line.replace("{NO}", arr[0x71])  
-    elif (lang == Languages.SpanishEU or lang == Languages.SpanishLA):
-            line = line.replace("{LVL}", arr[0x34])
-            line = line.replace("{PP}", arr[0x60])
-            line = line.replace("{NO}", arr[0x72])  
+    line = apply_escape_sequences(line, arr, escape_list)
+    line = apply_language_tokens(line, arr, lang)
 
     # Change all the punctuation marks followed by spaces into being followed by | temporarily
     spaces = [' ', '　']
@@ -458,74 +529,70 @@ def write_enum_to_header_file(hFile, prefix, dictionary):
     hFile.write("\n")
     return num
 
-def download_xlsx_file():
-    if os.path.isfile(release_file_path):
-        print('Release file found. Using that instead!')
-        shutil.copy(release_file_path, new_file_path)
-        offline = False
-    else:
-        print("Downloading xlsx file")
-        offline = False
-        # ---- Attempt download ----
+def update_xlsx_file(build_xlsx_mode):
+
+    if build_xlsx_mode == "local":
+        print("\tUsing local XLSX file.")
+
+        if not TEXT_XLSX_PATH.exists():
+            print("ERROR: Local XLSX file not found.")
+            sys.exit(1)
+        return
+
+    elif build_xlsx_mode == "cloud":
+        print("\tDownloading XLSX.")
+
         try:
-            response = requests.get(url, timeout=5)
+            response = requests.get(XLSX_URL, timeout=5)
             response.raise_for_status()
-            with open(new_file_path, 'wb') as f:
+
+            with open(NEW_TEXT_XLSX_PATH, 'wb') as f:
                 f.write(response.content)
-            print("File downloaded successfully")
 
-        except (requests.exceptions.ReadTimeout, requests.exceptions.ConnectionError):
-            if old_file_path.exists():
-                print("No internet. Using cached xlsx.")
-                offline = True
-            else:
-                print("ERROR: No internet and no cached xlsx. Cannot continue.")
-                sys.exit(1)
+            print("\tDownload successful.")
 
-    # ---- Decision logic ----
-    if offline:
-        # XML exists (guaranteed here)
-        if json_file_path.exists():
-            print("Offline mode: trusting cached XML + JSON. Skipping parse.")
-            if debugpy.is_client_connected():
-                print("\t...but we're running with a debugger, so we're doing it anyway!")
-                return
-            elif os.path.getmtime(THIS_SCRIPT_PATH) > os.path.getmtime(OUTPUT_JSON_PATH):
-                print("\t...but the python file is new, so we're doing it anyway!")
-                return
-            sys.exit(0)
-        else:
-            print("Offline mode: XML present but JSON missing. Rebuilding.")
+        except requests.exceptions.RequestException as e:
+            print("ERROR: Failed to download XLSX.")
+            print(f"Reason: {e}")
+            sys.exit(1)
 
-    else:
-        # Online mode
-        if old_file_path.exists():
+        # If cached file exists, compare hashes
+        if TEXT_XLSX_PATH.exists():
+            if hash_excel(NEW_TEXT_XLSX_PATH) == hash_excel(TEXT_XLSX_PATH):
+                print("\tDownloaded file is identical. Skipping parse.")
+                NEW_TEXT_XLSX_PATH.unlink()
 
-            if hash_excel(new_file_path) == hash_excel(old_file_path):
-                print("Downloaded file is identical")
-                new_file_path.unlink()
-                if json_file_path.exists():
-                    print("Skipping parse")
+                if OUTPUT_JSON_PATH.exists():
                     if debugpy.is_client_connected():
-                        print("\t...but we're running with a debugger, so we're doing it anyway!")
+                        print("\t...but we're running with a debugger, so rebuilding anyway!")
                         return
-                    elif os.path.getmtime(THIS_SCRIPT_PATH) > os.path.getmtime(OUTPUT_JSON_PATH):
-                        print("\t...but the python file is new, so we're doing it anyway!")
-                        return
+
                     sys.exit(0)
                 else:
-                    print("JSON missing - forcing rebuild")
+                    print("JSON missing - forcing rebuild.")
             else:
-                old_file_path.unlink()
-                new_file_path.rename(old_file_path)
-
+                TEXT_XLSX_PATH.unlink()
+                NEW_TEXT_XLSX_PATH.rename(TEXT_XLSX_PATH)
         else:
-            print("No cached xlsx - forcing rebuild")
-            new_file_path.rename(old_file_path)
+            print("\tNo cached XLSX - forcing rebuild.")
+            NEW_TEXT_XLSX_PATH.rename(TEXT_XLSX_PATH)
+
+        return
+
+    else:
+        print(f"ERROR: Invalid BUILD_XLSX value '{build_xlsx_mode}'")
+        sys.exit(1)
+
+def initialize_translation_storage():
+    mainDict.clear()
+    for lang in Languages:
+        mainDict[lang.name] = {section: {} for section in textSections}
+        mainDict[lang.name]["Warnings"] = {}
+        mainDict[lang.name]["Errors"] = {}
 
 def transfer_xlsx_to_dict():
     print("\tGetting character arrays")
-    currSheet = pd.read_excel(old_file_path, sheet_name="Character Arrays", header=None)
+    currSheet = pd.read_excel(TEXT_XLSX_PATH, sheet_name="Character Arrays", header=None)
     offset = 0
     for key, value in charArrays.items():
         for r in range(16):
@@ -540,19 +607,15 @@ def transfer_xlsx_to_dict():
 
 
     print("\tGetting string data")
-    currSheet = pd.read_excel(old_file_path, sheet_name="Translations")
+    currSheet = pd.read_excel(TEXT_XLSX_PATH, sheet_name="Translations")
 
+    textSections.clear()
     for row in currSheet.iterrows():
         currRow = row[1]["Text Section"]
         if (currRow not in textSections):
             textSections.append(currRow)
 
-    for lang in Languages:
-        mainDict[lang.name] = {}
-        for section in textSections:
-            mainDict[lang.name][section] = {}
-            mainDict[lang.name]["Warnings"] = {}
-            mainDict[lang.name]["Errors"] = {}
+    initialize_translation_storage()
 
     for row in currSheet.iterrows():
         #print(row)
@@ -569,10 +632,6 @@ def transfer_xlsx_to_dict():
                                                                         "includeBoxBreaks": currRow.iloc[6],
                                                                         "includeScrolling": currRow.iloc[7],
                                                                         }
-def test_if_release():
-    if (BUILD_TYPE == 'release'):
-        print("\tis release. Saving text file as release.xlsx")
-        shutil.copy(old_file_path, release_file_path)
 
 def generate_header_file():
     print("\tGenerating header file")
@@ -652,34 +711,37 @@ def output_json_file():
 
     with open(OUTPUT_JSON_PATH, 'w') as jsonFile:
         jsonFile.write(json.dumps(mainDict))
-     
 
-# This is for the font generation
-fontDir = os.curdir
-BACKGROUND_PAL_INDEX = 0
-CELL_PAL_INDEX = 1
+def are_generated_files_stale(source_files, generated_files):
+    source_paths = [Path(path) for path in source_files]
+    generated_paths = [Path(path) for path in generated_files]
 
-class Font:
-    def __init__(self, fileName, numColors, numChars, numCharsX, numCharsY, cellWidth, cellHeight, charWidth, charHeight):
-        self.fileName = fileName
-        self.numColors = numColors
-        self.numChars = numChars
-        self.numCharsX = numCharsX
-        self.numCharsY = numCharsY
-        self.cellWidth = cellWidth
-        self.cellHeight = cellHeight
-        self.charWidth = charWidth
-        self.charHeight = charHeight
+    missing_sources = [path for path in source_paths if not path.exists()]
+    if missing_sources:
+        raise FileNotFoundError(f"Missing source files: {', '.join(str(path) for path in missing_sources)}")
 
-        self.bpp = int(math.log(numColors, 2)) + 1
-        self.numWords = self.numChars * self.cellWidth * self.cellHeight * self.bpp // (8 * 4)
-        self.numBytes = self.numWords * 4
+    if any(not path.exists() for path in generated_paths):
+        return True
 
-        self.charWordTable = [0] * self.numWords
-        self.charWidthTable = [0] * self.numBytes
+    newest_source_mtime = max(path.stat().st_mtime for path in source_paths)
+    oldest_generated_mtime = min(path.stat().st_mtime for path in generated_paths)
+    return newest_source_mtime > oldest_generated_mtime
+
+def update_generated_files(target_name, source_files, generated_files, generate_function):
+    if debugpy.is_client_connected():
+        print(f"\tDebugger connected, rebuilding {target_name}!")
+        generate_function()
+        return
+
+    if are_generated_files_stale(source_files, generated_files):
+        print(f"\t{target_name} outputs are outdated or missing. Rebuilding...")
+        generate_function()
+        return
+
+    print(f"\t{target_name} outputs are up to date. Skipping rebuild.")
 
 def build_h():
-    print("Building font.h")
+    print("\tBuilding font.h")
     with open(FONTS_H_PATH, 'w') as f:
         f.write(f'''#ifndef PTGB_BUILD_LANGUAGE
 #error "PTGB_BUILD_LANGUAGE not defined"
@@ -737,9 +799,8 @@ def build_h():
     f.close()
 
 def generate_tables():
-    print("Generating font tables")
     for myFont in fonts.values():
-        print(f'\t{myFont.fileName}')
+        print(f'\t\t{myFont.fileName}')
         reader = png.Reader(f'{BASE_DIR}/fonts/{myFont.fileName}.png')
         png_info = reader.read()[3]
         palette = png_info.get('palette')
@@ -795,70 +856,57 @@ def generate_tables():
                         myFont.charWidthTable[(charY * charsPerChartX) + charX] = x
                         break
 
-mainDict = {}
-textSections = []
-fonts = {
-    "International": Font("latin_normal", 1, 256, 16, 16, 16, 16, 16, 16),
-    "Japanese": Font("japanese_normal", 1, 256, 16, 16, 16, 16, 16, 16),
-}
-charArrays = {
-    "International": {
-        "array": [0] * 0x100,
-        "font": fonts["International"],
-        "escape": [
-                    ["{SCL}", [0xFA]],
-                    ["{CLR}", [0xFB]],
-                    ["{DEF}", [0xFC, 0x01, 0x02]],
-                    ["{FEM}", [0xFC, 0x01, 0x04]],
-                    ["{FPC}", [0xFC, 0x01, 0x06]],
-                    ["{MLE}", [0xFC, 0x01, 0x08]],
-                    ["{SPA}", [0xFC]],
-                    ["{PLR}", [0xFD, 0x01]],
-                    ["{NEW}", [0xFE]],
-                    ["{END}", [0xFF]],
-                    ]
-    },
-    "Japanese": {
-        "array": [0] * 0x100,
-        "font": fonts["Japanese"],
-        "escape": [
-                    ["{SCL}", [0xFA]],
-                    ["{CLR}", [0xFB]],
-                    ["{DEF}", [0xFC, 0x06, 0x02]],
-                    ["{FEM}", [0xFC, 0x06, 0x03]], # ???
-                    ["{MLE}", [0xFC, 0x06, 0x04]],
-                    ["{SPA}", [0xFC]],
-                    ["{FPC}", [0xFC, 0x06, 0x05]],
-                    ["{PLR}", [0xFD, 0x01]],
-                    ["{NEW}", [0xFE]],
-                    ["{END}", [0xFF]],
-                ]
-    },
-}
-charArrayOfLanguage = {
-    Languages.Japanese: charArrays["Japanese"],
-    Languages.English: charArrays["International"],
-    Languages.French: charArrays["International"],
-    Languages.German: charArrays["International"],
-    Languages.Italian: charArrays["International"],
-    Languages.SpanishEU: charArrays["International"],
-    Languages.SpanishLA: charArrays["International"],
-}
+def get_font_source_files():
+    return [THIS_SCRIPT_PATH] + [BASE_DIR / "fonts" / f"{font.fileName}.png" for font in fonts.values()]
 
-charConversionList = [
-    # replaces the first char in the list with the latter
-    ["'", "’"],
-]
+def get_font_generated_files():
+    return [FONTS_H_PATH]
 
-# Main
-print("Running text_helper:")
-generate_tables()
-build_h()
-download_xlsx_file()
-test_if_release()
-transfer_xlsx_to_dict()
-generate_header_file()
-generate_text_tables()
-generate_cpp_file()
-output_json_file()
-print("text_helper finished!\n")
+def generate_font_files():
+    print("\tGenerating font tables:")
+    generate_tables()
+    build_h()
+
+def update_font_files():
+    update_generated_files(
+        target_name="Fonts.h",
+        source_files=get_font_source_files(),
+        generated_files=get_font_generated_files(),
+        generate_function=generate_font_files,
+    )
+
+def get_text_source_files():
+    return [THIS_SCRIPT_PATH, TEXT_XLSX_PATH]
+
+def get_text_generated_files():
+    generated_files = [TRANSLATED_H_PATH, TRANSLATED_CPP_PATH, OUTPUT_JSON_PATH]
+    for lang in Languages:
+        for section in textSections:
+            generated_files.append(Path(os.curdir) / "to_compress" / f"{section}_{lang.name.lower()}.bin")
+    return generated_files
+
+def generate_text_files():
+    generate_header_file()
+    generate_text_tables()
+    generate_cpp_file()
+    output_json_file()
+
+def update_text_files():
+    update_generated_files(
+        target_name="Text",
+        source_files=get_text_source_files(),
+        generated_files=get_text_generated_files(),
+        generate_function=generate_text_files,
+    )
+
+def main():
+    _, _, build_xlsx_mode = parse_build_args(sys.argv)
+    print("Running text_helper:")
+    update_font_files()
+    update_xlsx_file(build_xlsx_mode)
+    transfer_xlsx_to_dict()
+    update_text_files()
+    print("text_helper finished!\n")
+
+if __name__ == "__main__":
+    main()
