@@ -18,6 +18,10 @@ class Languages(Enum):
     Italian = 4
     SpanishEU = 5
     SpanishLA = 6
+    Korean = 7
+    ChineseSI = 8
+    ChineseTR = 9
+    PortugueseBR = 10
 
 class Font:
     def __init__(self, fileName, numColors, numChars, numCharsX, numCharsY, cellWidth, cellHeight, charWidth, charHeight):
@@ -121,6 +125,10 @@ charArrayOfLanguage = {
     Languages.Italian: charArrays["International"],
     Languages.SpanishEU: charArrays["International"],
     Languages.SpanishLA: charArrays["International"],
+    Languages.Korean: charArrays["International"],
+    Languages.ChineseSI: charArrays["International"],
+    Languages.ChineseTR: charArrays["International"],
+    Languages.PortugueseBR: charArrays["International"],
 }
 
 charConversionList = [

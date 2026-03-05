@@ -1,4 +1,4 @@
-BUILD_LANGS := japanese english french german italian spanishEU spanishLA
+BUILD_LANGS := japanese english french german italian spanishEU spanishLA korean chineseSI chineseTR portuguese
 BUILD_TYPES := release debug
 BUILD_XLSXS := local cloud
 
