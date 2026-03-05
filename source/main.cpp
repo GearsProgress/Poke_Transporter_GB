@@ -455,6 +455,16 @@ static void __attribute__((noinline)) show_intro()
 
 	REG_BLDCNT = BLD_BUILD(BLD_BG3, BLD_BG0, 1);
 
+#ifndef PTGB_BUILD_LANGUAGE
+
+#error PTGB_NOT_DEFINED
+#endif
+#ifndef JPN_ID
+#error JPN_ID_NOT_DEFINED
+#endif
+#pragma message "PTGB_BUILD_LANGUAGE=" PTGB_BUILD_LANGUAGE
+#pragma message "JPN_ID=" JPN_ID
+
 	int char_width = (PTGB_BUILD_LANGUAGE == JPN_ID ? 8 : 6);
 	int x = ((240 - (press_start_text_length * char_width)) / 2);
 	tte_set_pos(x, 12 * 8);

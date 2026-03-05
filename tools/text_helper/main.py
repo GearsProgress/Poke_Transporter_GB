@@ -73,7 +73,7 @@ LANGUAGE_TOKEN_INDEXES = {
 def parse_build_args(argv):
     if len(argv) >= 4:
         return argv[1], argv[2], argv[3]
-    return "", "debug", "local"  # BUILD_LANG not implemented yet
+    return "", "debug", "cloud"  # BUILD_LANG not implemented yet
 
 mainDict = {}
 textSections = []
