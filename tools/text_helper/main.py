@@ -73,7 +73,7 @@ LANGUAGE_TOKEN_INDEXES = {
 def parse_build_args(argv):
     if len(argv) >= 4:
         return argv[1], argv[2], argv[3]
-    return "", "debug", "cloud"  # BUILD_LANG not implemented yet
+    return "", "debug", "local"  # BUILD_LANG not implemented yet
 
 mainDict = {}
 textSections = []
@@ -493,7 +493,8 @@ def write_text_bin_file(filename, dictionary, lang, section):
         "CREDITS": 2048,
         "PKMN_NAMES": 3072,
     }
-    
+
+    Path(filename).parent.mkdir(parents=True, exist_ok=True)
     with open(filename, 'wb') as binFile:
         # Let the first byte indicate the number of entries
         dict_size = len(dictionary)
@@ -545,9 +546,9 @@ def update_xlsx_file(build_xlsx_mode):
         if not TEXT_XLSX_PATH.exists():
             print("ERROR: Local XLSX file not found.")
             sys.exit(1)
-        return
+        return False
 
-    elif build_xlsx_mode == "cloud":
+    elif build_xlsx_mode == "remote":
         print("\tDownloading XLSX.")
 
         try:
@@ -569,27 +570,37 @@ def update_xlsx_file(build_xlsx_mode):
             if hash_excel(NEW_TEXT_XLSX_PATH) == hash_excel(TEXT_XLSX_PATH):
                 print("\tDownloaded file is identical. Skipping parse.")
                 NEW_TEXT_XLSX_PATH.unlink()
-
-                if OUTPUT_JSON_PATH.exists():
-                    if debugpy.is_client_connected():
-                        print("\t...but we're running with a debugger, so rebuilding anyway!")
-                        return
-
-                    sys.exit(0)
-                else:
-                    print("JSON missing - forcing rebuild.")
+                return False
             else:
                 TEXT_XLSX_PATH.unlink()
                 NEW_TEXT_XLSX_PATH.rename(TEXT_XLSX_PATH)
+                return True
         else:
             print("\tNo cached XLSX - forcing rebuild.")
             NEW_TEXT_XLSX_PATH.rename(TEXT_XLSX_PATH)
-
-        return
+            return True
 
     else:
         print(f"ERROR: Invalid BUILD_XLSX value '{build_xlsx_mode}'")
         sys.exit(1)
+
+def are_text_build_artifacts_newer():
+    if debugpy.is_client_connected():
+        print("\tDebugger connected, forcing text rebuild.")
+        return False
+
+    artifacts = [TRANSLATED_H_PATH, TRANSLATED_CPP_PATH, OUTPUT_JSON_PATH]
+    if any(not path.exists() for path in artifacts):
+        print("\tText artifacts missing - forcing rebuild.")
+        return False
+
+    artifacts_are_stale = are_generated_files_stale(get_text_source_files(), artifacts)
+    if artifacts_are_stale:
+        print("\tText artifacts are older than sources - forcing rebuild.")
+        return False
+
+    print("\tText artifacts are newer than sources. Skipping text rebuild.")
+    return True
 
 def initialize_translation_storage():
     mainDict.clear()
@@ -911,7 +922,10 @@ def main():
     _, _, build_xlsx_mode = parse_build_args(sys.argv)
     print("Running text_helper:")
     update_font_files()
-    update_xlsx_file(build_xlsx_mode)
+    xlsx_changed = update_xlsx_file(build_xlsx_mode)
+    if not xlsx_changed and are_text_build_artifacts_newer():
+        print("text_helper finished!\n")
+        return
     transfer_xlsx_to_dict()
     update_text_files()
     print("text_helper finished!\n")
