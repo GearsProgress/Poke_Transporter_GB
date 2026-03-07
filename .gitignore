@@ -10,6 +10,6 @@ to_compress/
 *.exe
 .vscode/
 .venv/
-tools/payload-generator/payload-generatorterminal_output.txt
+tools/payload-generator/payload-generator
 text_errors.txt
 terminal_output.txt

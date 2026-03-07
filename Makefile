@@ -7,6 +7,21 @@ BUILD_LANG ?= english
 BUILD_TYPE ?= release
 BUILD_XLSX ?= local
 
+ifneq ($(filter $(BUILD_LANG),$(BUILD_LANGS)),)
+else
+    $(error $(BUILD_LANG) is not a valid build language)
+endif
+
+ifneq ($(filter $(BUILD_TYPE),$(BUILD_TYPES)),)
+else
+    $(error $(BUILD_TYPE) is not a valid build type)
+endif
+
+ifneq ($(filter $(BUILD_XLSX),$(BUILD_XLSXS)),)
+else
+    $(error $(BUILD_XLSX) is not a valid xlsx source)
+endif
+
 GIT_SUFFIX := $(shell git describe --tags --long --dirty | sed -E 's/^[^-]+-([0-9]+)-g[0-9a-f]+(-dirty)?$$/\1/')
 GIT_FULL := $(shell git describe --tags --always --dirty 2>/dev/null)
 
