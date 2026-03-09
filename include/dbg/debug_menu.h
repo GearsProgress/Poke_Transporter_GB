@@ -3,7 +3,7 @@
 
 #include "vertical_menu.h"
 
-typedef void (*on_execute_callback)(unsigned user_param);
+typedef void (*on_execute_callback)(void *context, unsigned user_param);
 
 /**
  * @brief This struct represents the metadata associated to a single option of a single row in the debug menu.
@@ -27,12 +27,13 @@ typedef struct debug_menu_row_data
         const option_data *options;
         on_execute_callback on_option_activate;
         u8 selected_option_index;
-        bool should_delete_on_destruct;
+        bool should_free_on_destruct;
     } option_section;
     /**
      * @brief A callback that you can set to execute when the user selects this row and presses the A button.
      */
     on_execute_callback on_execute;
+    void *context;
     unsigned user_param;
 } debug_menu_row_data;
 

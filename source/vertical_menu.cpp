@@ -144,7 +144,6 @@ MenuInputHandleState vertical_menu::handle_input()
 {
     MenuInputHandleState result;
     bool did_navigate = false;
-    bool viewport_updated = false;
 
     // If no items or not focused, there's nothing to handle.
     if(items_.size() <= 1 || !is_focused_)
@@ -182,7 +181,6 @@ MenuInputHandleState vertical_menu::handle_input()
         if(focused_index_ >= current_viewport_end_index)
         {
             ++viewport_start_index_;
-            viewport_updated = true;
         }
         did_navigate = true;
     }
@@ -192,7 +190,6 @@ MenuInputHandleState vertical_menu::handle_input()
         if(focused_index_ < viewport_start_index_)
         {
             --viewport_start_index_;
-            viewport_updated = true;
         }
         did_navigate = true;
     }
@@ -201,10 +198,7 @@ MenuInputHandleState vertical_menu::handle_input()
     if(did_navigate)
     {
         const unsigned render_index = focused_index_ - viewport_start_index_;
-        if(viewport_updated)
-        {
-            update_viewport();
-        }
+        update_viewport();
         handle_selection_change(focused_index_, settings_.x, settings_.y + settings_.margin_top + (render_index * settings_.item_height));
         return MenuInputHandleState::HANDLED;
     }

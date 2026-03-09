@@ -16,8 +16,6 @@
 #include "button_menu.h"
 #include "dbg/debug_mode.h"
 #include "dbg/debug_menu.h"
-// #include "soundbank.h"
-// #include "soundbank_bin.h"
 #include "dex_handler.h"
 #include "pokedex.h"
 #include "global_frame_controller.h"
@@ -222,7 +220,6 @@ int main_menu_loop()
 
 	general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
 
-	play_song(MOD_MAIN_MENU, true);
 	while (true)
 	{
 		if (update)

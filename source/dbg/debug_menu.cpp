@@ -4,10 +4,13 @@
 #include "sprite_data.h"
 #include "background_engine.h"
 #include "vertical_menu_cursor_handler.h"
+#include "libraries/nanoprintf/nanoprintf.h"
 
 #include <tonc.h>
+#include <cstdlib>
 
 static on_execute_callback delayed_execute_callback = nullptr;
+static void *delayed_execute_context = nullptr;
 static unsigned delayed_execute_user_param = 0;
 
 void show_debug_menu()
@@ -57,8 +60,9 @@ void show_debug_menu()
     // to avoid rendering issues.
     if(delayed_execute_callback)
     {
-        delayed_execute_callback(delayed_execute_user_param);
+        delayed_execute_callback(delayed_execute_context, delayed_execute_user_param);
         delayed_execute_callback = nullptr;
+        delayed_execute_context = nullptr;
         delayed_execute_user_param = 0;
     }
 }
@@ -70,6 +74,11 @@ debug_menu_row_widget::debug_menu_row_widget(const debug_menu_row_data &data)
 
 debug_menu_row_widget::~debug_menu_row_widget()
 {
+    if(data_.option_section.should_free_on_destruct)
+    {
+        free(const_cast<option_data*>(data_.option_section.options));
+        data_.option_section.options = nullptr;
+    }
 }
 
 void debug_menu_row_widget::render_item(text_data_table &text_table, unsigned x, unsigned y, bool is_focused)
@@ -89,7 +98,16 @@ void debug_menu_row_widget::render_item(text_data_table &text_table, unsigned x,
         const u8 selected_option_index = data_.option_section.selected_option_index;
 
         tte_set_pos(x + option_margin_left, y + margin_top);
-        ptgb_write_debug(data_.charset, data_.option_section.options[selected_option_index].text, true);
+        if(data_.option_section.options[selected_option_index].text)
+        {
+            ptgb_write_debug(data_.charset, data_.option_section.options[selected_option_index].text, true);
+        }
+        else
+        {
+            char buf[32];
+            npf_snprintf(buf, sizeof(buf), "%u", data_.option_section.options[selected_option_index].value);
+            ptgb_write_debug(data_.charset, buf, true);
+        }
     }
 
     if(is_focused)
@@ -135,7 +153,7 @@ MenuInputHandleState debug_menu_row_widget::handle_input()
 
         if(handled && data_.option_section.on_option_activate)
         {
-            data_.option_section.on_option_activate(data_.option_section.options[data_.option_section.selected_option_index].value);
+            data_.option_section.on_option_activate(data_.context, data_.option_section.options[data_.option_section.selected_option_index].value);
         }
         
         if(handled)
@@ -147,6 +165,7 @@ MenuInputHandleState debug_menu_row_widget::handle_input()
     if(key_hit(KEY_A) && data_.on_execute)
     {
         delayed_execute_callback = data_.on_execute;
+        delayed_execute_context = data_.context;
         delayed_execute_user_param = data_.user_param;
         return MenuInputHandleState::CHOICE_MADE;
     }

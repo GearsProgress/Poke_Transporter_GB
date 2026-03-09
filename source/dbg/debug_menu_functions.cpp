@@ -8,21 +8,11 @@
 #include "save_data_manager.h"
 #include "background_engine.h"
 #include "libstd_replacements.h"
+#include "sound.h"
 
-void dbg_menu_print_number(unsigned user_param)
+void show_text_debug_screen(void *context, unsigned user_param)
 {
-    char buf[64];
-    npf_snprintf(buf, sizeof(buf), "%u", user_param);
-    uint16_t charset[256];
-    load_localized_charset(charset, 3, ENGLISH);
-
-    tte_erase_rect(0, 0, 100, 12);
-    tte_set_pos(0, 0);
-    ptgb_write_debug(charset, buf, true);
-}
-
-void show_text_debug_screen(unsigned user_param)
-{
+    (void)context;
     (void)user_param;
 
     tte_set_ink(INK_DARK_GREY);
@@ -31,8 +21,11 @@ void show_text_debug_screen(unsigned user_param)
     text_loop(SCRIPT_DEBUG);
 }
 
-void show_debug_info_screen(unsigned user_param)
+void show_debug_info_screen(void *context, unsigned user_param)
 {
+    (void)context;
+    (void)user_param;
+
     char hexBuffer[16];
     uint16_t charset[256];
     load_localized_charset(charset, 3, ENGLISH);
@@ -107,4 +100,20 @@ void show_debug_info_screen(unsigned user_param)
         }
         global_next_frame();
     }
+}
+
+void dbg_set_boolean_flag(void *context, unsigned user_param)
+{
+    bool *flag_ptr = (bool*)context;
+    *flag_ptr = (user_param != 0);
+}
+
+void dbg_play_song(void *context, unsigned user_param)
+{
+    if(user_param == UINT32_MAX)
+    {
+        stop_song();
+        return;
+    }
+    play_song(user_param, true);
 }
