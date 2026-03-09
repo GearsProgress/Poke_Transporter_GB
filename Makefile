@@ -194,14 +194,22 @@ export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
 .PHONY: all clean
 
-GENERATE_STAMP := $(BUILD)/.generate_data.$(BUILD_LANG).$(BUILD_TYPE).$(BUILD_XLSX).stamp
-BUILD_STAMP := $(BUILD)/.build.$(BUILD_LANG).$(BUILD_TYPE).$(BUILD_XLSX).stamp
+GENERATE_STAMP := $(BUILD)/.generate_data.$(BUILD_LANG).$(BUILD_TYPE).stamp
+BUILD_STAMP := $(BUILD)/.build.$(BUILD_LANG).$(BUILD_TYPE).stamp
 
 PAYLOAD_GEN_INPUTS := $(shell find tools/payload-generator/src tools/payload-generator/include -type f \( -name "*.cpp" -o -name "*.h" -o -name "*.hpp" \))
-TEXT_HELPER_INPUTS := tools/text_helper/main.py $(wildcard tools/text_helper/fonts/*.png) $(wildcard tools/text_helper/build/text.xlsx)
+TEXT_HELPER_INPUTS := tools/text_helper/main.py $(wildcard tools/text_helper/fonts/*.png) $(wildcard tools/text_helper/text.xlsx)
+TEXT_GENERATED_OUTPUTS := \
+	$(GENERATED_DIR)/translated_text.h \
+	$(GENERATED_DIR)/translated_text.cpp \
+	$(GENERATED_DIR)/fonts.h
 
 all:
-	@before=$$(stat -c %Y $(BUILD_STAMP) 2>/dev/null || echo 0); \
+	@set -e; \
+	if [ "$(BUILD_XLSX)" = "remote" ]; then \
+		$(MAKE) --no-print-directory text_generated BUILD_LANG=$(BUILD_LANG) BUILD_TYPE=$(BUILD_TYPE) BUILD_XLSX=$(BUILD_XLSX); \
+	fi; \
+	before=$$(stat -c %Y $(BUILD_STAMP) 2>/dev/null || echo 0); \
 	$(MAKE) --no-print-directory $(BUILD_STAMP) BUILD_LANG=$(BUILD_LANG) BUILD_TYPE=$(BUILD_TYPE) BUILD_XLSX=$(BUILD_XLSX); \
 	after=$$(stat -c %Y $(BUILD_STAMP) 2>/dev/null || echo 0); \
 	if [ "$$before" = "$$after" ] && [ "$$after" != "0" ]; then \
@@ -223,7 +231,9 @@ generated_dir:
 generate_data: $(GENERATE_STAMP)
 
 $(GENERATE_STAMP): $(TEXT_HELPER_INPUTS) $(PAYLOAD_GEN_INPUTS) compress_lz10.sh | data to_compress generated_dir
-	@$(MAKE) --no-print-directory text_generated BUILD_LANG=$(BUILD_LANG) BUILD_TYPE=$(BUILD_TYPE) BUILD_XLSX=$(BUILD_XLSX)
+	@if [ "$(BUILD_XLSX)" != "remote" ]; then \
+		$(MAKE) --no-print-directory text_generated BUILD_LANG=$(BUILD_LANG) BUILD_TYPE=$(BUILD_TYPE) BUILD_XLSX=$(BUILD_XLSX); \
+	fi
 	@echo "----------------------------------------------------------------"
 	@echo "Building v$(GIT_VERSION) with parameters: $(BUILD_LANG), $(BUILD_TYPE), $(BUILD_XLSX)"
 	@echo "----------------------------------------------------------------"
@@ -253,7 +263,7 @@ $(GENERATE_STAMP): $(TEXT_HELPER_INPUTS) $(PAYLOAD_GEN_INPUTS) compress_lz10.sh 
 	@touch $@
 
 #---------------------------------------------------------------------------------
-$(BUILD_STAMP): $(GENERATE_STAMP) | $(BUILD)
+$(BUILD_STAMP): $(GENERATE_STAMP) $(TEXT_GENERATED_OUTPUTS) | $(BUILD)
 	@$(MAKE) -C PCCS \
 		CC="$(CC)" \
 		CXX="$(CXX)" \
