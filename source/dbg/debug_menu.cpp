@@ -7,6 +7,9 @@
 
 #include <tonc.h>
 
+static on_execute_callback delayed_execute_callback = nullptr;
+static unsigned delayed_execute_user_param = 0;
+
 void show_debug_menu()
 {
     u16 charset[256];
@@ -48,6 +51,16 @@ void show_debug_menu()
 
     hide_text_box();
     tte_erase_rect(0, 0, H_MAX, V_MAX);
+
+    // execute any callback that was delayed by pressing the A button on an executable row.
+    // This is done to make sure the debug menu is fully hidden before executing the callback,
+    // to avoid rendering issues.
+    if(delayed_execute_callback)
+    {
+        delayed_execute_callback(delayed_execute_user_param);
+        delayed_execute_callback = nullptr;
+        delayed_execute_user_param = 0;
+    }
 }
 
 debug_menu_row_widget::debug_menu_row_widget(const debug_menu_row_data &data)
@@ -122,7 +135,7 @@ MenuInputHandleState debug_menu_row_widget::handle_input()
 
         if(handled && data_.option_section.on_option_activate)
         {
-            data_.option_section.on_option_activate(this, data_.option_section.options[data_.option_section.selected_option_index].value);
+            data_.option_section.on_option_activate(data_.option_section.options[data_.option_section.selected_option_index].value);
         }
         
         if(handled)
@@ -133,8 +146,9 @@ MenuInputHandleState debug_menu_row_widget::handle_input()
 
     if(key_hit(KEY_A) && data_.on_execute)
     {
-        data_.on_execute(this, data_.user_param);
-        return MenuInputHandleState::HANDLED;
+        delayed_execute_callback = data_.on_execute;
+        delayed_execute_user_param = data_.user_param;
+        return MenuInputHandleState::CHOICE_MADE;
     }
     
     return MenuInputHandleState::NOT_HANDLED;

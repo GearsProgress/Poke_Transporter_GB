@@ -372,7 +372,7 @@ int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, PokeBo
 
   while (true)
   {
-    if (PRINT_LINK_DATA && key_held(KEY_L))
+    if (g_debug_options.print_link_data && key_held(KEY_L))
     {
       while (!key_hit(KEY_R))
       {
@@ -383,7 +383,7 @@ int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, PokeBo
     // TODO: Restore Errors
     in_data = linkSPI->transfer(out_data);
 
-    if (PRINT_LINK_DATA && !key_held(KEY_DOWN))
+    if (g_debug_options.print_link_data && !key_held(KEY_DOWN))
     {
       // tte_set_margins(0, 0, H_MAX, V_MAX);
       // print("%d: [%d][%d][%" PRIu8 "][%" PRIu8 "]\n\n", counter, data_counter, state, in_data, out_data);
@@ -410,7 +410,7 @@ int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, PokeBo
       create_textbox(0, 0, 125, 80, false);
       ptgb_write_debug(debug_charset, *stuff, true);
     }
-    else if (WRITE_CABLE_DATA_TO_SAVE)
+    else if (g_debug_options.write_cable_data_to_save)
     {
       global_memory_buffer[link_cable_array_index] = in_data;
       link_cable_array_index++;
@@ -442,7 +442,7 @@ int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, PokeBo
     if (state == end1)
     {
       state = reboot;
-      if (WRITE_CABLE_DATA_TO_SAVE)
+      if (g_debug_options.write_cable_data_to_save)
       {
         for (int i = 0; i < 16; i++)
         {

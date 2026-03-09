@@ -31,7 +31,7 @@ void write_custom_save_data()
 
 bool is_caught(int dex_num)
 {
-    return (((save_data_array[CAUGHT_DATA + (dex_num / 8)]) >> dex_num % 8) & 1) || FORCE_ALL_CAUGHT;
+    return (((save_data_array[CAUGHT_DATA + (dex_num / 8)]) >> dex_num % 8) & 1) || g_debug_options.force_all_caught;
 }
 
 void set_caught(int dex_num)

@@ -84,13 +84,15 @@ void fill_debug_menu_with_entries(vertical_menu &menu, u16 *charset)
     debug_menu_row_widget row_widget_default_off = define_toggle_row(charset, "Def_Off", dbg_menu_print_number, false);
     debug_menu_row_widget row_widget_default_on = define_toggle_row(charset, "Def_On", dbg_menu_print_number, true);
     debug_menu_row_widget row_widget_custom_options = define_debug_choice_row(charset, "Custom", dbg_menu_print_number, custom_options, 3, false, 1);
-    debug_menu_row_widget row_widget_executable = define_executable_row(charset, "Exec", dbg_menu_print_number, 128);
+    debug_menu_row_widget txt_dbg_screen = define_executable_row(charset, "Text Debug Screen", show_text_debug_screen, 0);
+    debug_menu_row_widget dbg_info_screen = define_executable_row(charset, "Debug Info Screen", show_debug_info_screen, 0);
 
     i_item_widget* item_widgets[] = {
         &row_widget_default_off,
         &row_widget_default_on,
         &row_widget_custom_options,
-        &row_widget_executable
+        &txt_dbg_screen,
+        &dbg_info_screen
     };
 
     menu.add_item_widgets(item_widgets, sizeof(item_widgets) / sizeof(item_widgets[0]));

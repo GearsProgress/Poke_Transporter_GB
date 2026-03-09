@@ -3,7 +3,7 @@
 
 #include "vertical_menu.h"
 
-typedef void (*on_execute_callback)(void *context, unsigned user_param);
+typedef void (*on_execute_callback)(unsigned user_param);
 
 /**
  * @brief This struct represents the metadata associated to a single option of a single row in the debug menu.

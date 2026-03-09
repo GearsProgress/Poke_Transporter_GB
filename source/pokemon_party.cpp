@@ -160,7 +160,7 @@ Pokemon_Party::Pokemon_Party()
 
 void Pokemon_Party::start_link()
 {
-	if (IGNORE_LINK_CABLE)
+	if (g_debug_options.ignore_link_cable)
 	{
 		if (curr_gb_rom.generation == 1 && curr_gb_rom.version)
 		{
@@ -186,7 +186,7 @@ void Pokemon_Party::start_link()
 		last_error = loop(&box_data_array[0], current_payload, &curr_gb_rom, &box, debug_charset, false);
 		box.loadData(curr_gb_rom.generation, (Language)curr_gb_rom.language, box_data_array);
 
-		if (WRITE_CABLE_DATA_TO_SAVE)
+		if (g_debug_options.write_cable_data_to_save)
 		{
 			for (int i = 0; i < 1122; i++)
 			{
@@ -203,7 +203,7 @@ void Pokemon_Party::start_link()
 
 void Pokemon_Party::continue_link(bool cancel_connection)
 {
-	if (!IGNORE_LINK_CABLE)
+	if (!g_debug_options.ignore_link_cable)
 	{
 		u16 debug_charset[256];
 

@@ -297,7 +297,7 @@ int ptgb_write(const byte *text, bool instant)
 // Re-implementing TTE's "tte_write" to use the gen 3 character encoding chart
 int ptgb_write(const byte *text, bool instant, int length)
 {
-    instant = instant || INSTANT_TEXT_SPEED;
+    instant = instant || g_debug_options.instant_text_speed;
     if (text == NULL)
         return 0;
 
@@ -324,7 +324,7 @@ int ptgb_write(const byte *text, bool instant, int length)
             switch (ch)
             {
             case 0xFA:
-                if (DISPLAY_CONTROL_CHAR)
+                if (g_debug_options.display_control_char)
                 {
                     tc->drawgProc(0x79);
                 }
@@ -334,7 +334,7 @@ int ptgb_write(const byte *text, bool instant, int length)
                 tc->cursorX = tc->marginLeft;
                 break;
             case 0xFB:
-                if (DISPLAY_CONTROL_CHAR)
+                if (g_debug_options.display_control_char)
                 {
                     tc->drawgProc(0xB9);
                 }
@@ -344,7 +344,7 @@ int ptgb_write(const byte *text, bool instant, int length)
                 ch = *str;
                 str++;
                 num += 1;
-                if (DISPLAY_CONTROL_CHAR)
+                if (g_debug_options.display_control_char)
                 {
                     for (uint i = 0; i < ch; i++){
                         tc->drawgProc(0xB9);
@@ -356,7 +356,7 @@ int ptgb_write(const byte *text, bool instant, int length)
                 }
                 break;
             case 0xFE:
-                if (DISPLAY_CONTROL_CHAR)
+                if (g_debug_options.display_control_char)
                 {
                     tc->drawgProc(0xEF);
                 }

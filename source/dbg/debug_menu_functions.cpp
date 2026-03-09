@@ -2,10 +2,15 @@
 #include "libraries/nanoprintf/nanoprintf.h"
 #include "text_engine.h"
 #include "pokemon_data.h"
+#include "sprite_data.h"
+#include "global_frame_controller.h"
+#include "flash_mem.h"
+#include "save_data_manager.h"
+#include "background_engine.h"
+#include "libstd_replacements.h"
 
-void dbg_menu_print_number(void *context, unsigned user_param)
+void dbg_menu_print_number(unsigned user_param)
 {
-    (void)context;
     char buf[64];
     npf_snprintf(buf, sizeof(buf), "%u", user_param);
     uint16_t charset[256];
@@ -14,4 +19,92 @@ void dbg_menu_print_number(void *context, unsigned user_param)
     tte_erase_rect(0, 0, 100, 12);
     tte_set_pos(0, 0);
     ptgb_write_debug(charset, buf, true);
+}
+
+void show_text_debug_screen(unsigned user_param)
+{
+    (void)user_param;
+
+    tte_set_ink(INK_DARK_GREY);
+    REG_BG1CNT = (REG_BG1CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
+    obj_hide_multi(ptgb_logo_l, 2);
+    text_loop(SCRIPT_DEBUG);
+}
+
+void show_debug_info_screen(unsigned user_param)
+{
+    char hexBuffer[16];
+    uint16_t charset[256];
+    load_localized_charset(charset, 3, ENGLISH);
+    if (key_held(KEY_UP) && key_held(KEY_L) && key_held(KEY_R))
+    {
+        set_treecko(true);
+    }
+    u32 pkmn_flags = 0;
+    bool e4_flag = read_flag(curr_GBA_rom.e4_flag);
+    bool mg_flag = read_flag(curr_GBA_rom.mg_flag);
+    bool all_collected_flag = read_flag(curr_GBA_rom.all_collected_flag);
+    for (int i = 0; i < 30; i++)
+    {
+        pkmn_flags |= (read_flag(curr_GBA_rom.pkmn_collected_flag_start + i) << i);
+    }
+
+    bool tutorial = get_tutorial_flag();
+    int def_lang = get_def_lang_num();
+
+    create_textbox(4, 1, 160, 80, true);
+    show_text_box();
+    ptgb_write_debug(charset, "Debug info:\n\nG: ", true);
+    ptgb_write_debug(charset, ptgb::to_string(curr_GBA_rom.language), true);
+    switch (curr_GBA_rom.gamecode)
+    {
+    case RUBY_ID:
+        ptgb_write_debug(charset, "-R-", true);
+        break;
+    case SAPPHIRE_ID:
+        ptgb_write_debug(charset, "-S-", true);
+        break;
+    case FIRERED_ID:
+        ptgb_write_debug(charset, "-F-", true);
+        break;
+    case LEAFGREEN_ID:
+        ptgb_write_debug(charset, "-L-", true);
+        break;
+    case EMERALD_ID:
+        ptgb_write_debug(charset, "-E-", true);
+        break;
+    }
+
+    ptgb_write_debug(charset, ptgb::to_string(curr_GBA_rom.version), true);
+
+    ptgb_write_debug(charset, "\nF: ", true);
+    ptgb_write_debug(charset, ptgb::to_string(e4_flag), true);
+    ptgb_write_debug(charset, ptgb::to_string(mg_flag), true);
+    ptgb_write_debug(charset, ptgb::to_string(all_collected_flag), true);
+    ptgb_write_debug(charset, "-", true);
+
+    n2hexstr(hexBuffer, pkmn_flags);
+    ptgb_write_debug(charset, hexBuffer, true);
+    ptgb_write_debug(charset, "\nS:   ", true);
+    ptgb_write_debug(charset, ptgb::to_string(tutorial), true);
+    ptgb_write_debug(charset, "-", true);
+    n2hexstr(hexBuffer, def_lang);
+    ptgb_write_debug(charset, hexBuffer, true);
+
+    ptgb_write_debug(charset, "\n", true);
+    ptgb_write_debug(charset, BUILD_INFO, true);
+    if (get_treecko_enabled())
+    {
+        ptgb_write_debug(charset, ".T", true);
+    }
+    while (true)
+    {
+        if (key_hit(KEY_B))
+        {
+            hide_text_box();
+            reset_textbox();
+            return;
+        }
+        global_next_frame();
+    }
 }

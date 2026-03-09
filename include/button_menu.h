@@ -12,8 +12,7 @@
 #define BTN_EVENTS 3
 #define BTN_CREDITS 4
 #define BTN_OPENING 5
-#define BTN_TEXT_DEBUG 6
-#define BTN_DEBUG_MENU 7
+#define BTN_DEBUG_MENU 6
 
 #define BUTTON_CANCEL UINT8_MAX
 

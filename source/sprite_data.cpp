@@ -473,12 +473,12 @@ void load_temp_box_sprites(PokeBox *box)
 {
     u32 curr_tile_id = global_tile_id_end;
 
-    if (!(IGNORE_GAME_PAK || IGNORE_GAME_PAK_SPRITES))
+    if (!(g_debug_options.ignore_game_pak || g_debug_options.ignore_game_pak_sprites))
     {
         for (int i = 0; i < 30; i++)
         {
             GBPokemon *curr_pkmn = box->getGBPokemon(i);
-            if (curr_pkmn->isValid || DONT_HIDE_INVALID_PKMN)
+            if (curr_pkmn->isValid || g_debug_options.dont_hide_invalid_pkmn)
             {
                 int dex_num = curr_pkmn->getSpeciesIndexNumber();
                 if (dex_num == 201)
@@ -859,7 +859,7 @@ void update_y_offset()
 
 void update_front_box_sprite(GBPokemon *curr_pkmn)
 {
-    if (IGNORE_GAME_PAK || IGNORE_GAME_PAK_SPRITES)
+    if (g_debug_options.ignore_game_pak || g_debug_options.ignore_game_pak_sprites)
     {
         return; // We don't want to look into garbage data, get out of here.
     }
@@ -904,7 +904,7 @@ void update_front_box_sprite(GBPokemon *curr_pkmn)
 
 void update_menu_sprite(PokeBox *box, int index, int frame)
 {
-    if (IGNORE_GAME_PAK || IGNORE_GAME_PAK_SPRITES)
+    if (g_debug_options.ignore_game_pak || g_debug_options.ignore_game_pak_sprites)
     {
         return; // We don't want to look into garbage data, get out of here.
     }
