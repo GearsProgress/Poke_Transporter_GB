@@ -1,7 +1,7 @@
 #include <tonc.h>
 #include <cstring>
 #include "sprite_data.h"
-#include "debug_mode.h"
+#include "dbg/debug_mode.h"
 #include "gba_rom_values/base_gba_rom_struct.h"
 #include "global_frame_controller.h"
 
@@ -368,6 +368,8 @@ OBJ_ATTR *type_sprites[14] = {
 
 OBJ_ATTR *up_arrow = &obj_buffer[num_sprites++];
 OBJ_ATTR *down_arrow = &obj_buffer[num_sprites++];
+OBJ_ATTR *toggle_arrow_left = &obj_buffer[num_sprites++];
+OBJ_ATTR *toggle_arrow_right = &obj_buffer[num_sprites++];
 OBJ_ATTR *point_arrow = &obj_buffer[num_sprites++];
 
 OBJ_ATTR *box_select = &obj_buffer[num_sprites++];
@@ -449,6 +451,8 @@ void load_eternal_sprites()
     unsigned int tempTileBuf[48];
     BitUnPack(arrowsTiles, tempTileBuf, arrowsTilesLen, 1, 4);
     load_sprite(point_arrow, &tempTileBuf[32], 32, curr_tile_id, BTN_PAL, ATTR0_SQUARE, ATTR1_SIZE_8x8, 1);
+    load_sprite(toggle_arrow_right, &tempTileBuf[40], 32, curr_tile_id, BTN_PAL, ATTR0_SQUARE, ATTR1_SIZE_8x8, 1);
+    load_sprite(toggle_arrow_left, &tempTileBuf[40], 32, curr_tile_id, BTN_PAL, ATTR0_SQUARE, ATTR1_SIZE_8x8 | ATTR1_HFLIP, 1);
     load_sprite(down_arrow, &tempTileBuf[0], 64, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_16x8, 1);
     load_sprite(up_arrow, &tempTileBuf[16], 64, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_16x8, 1);
     load_sprite_compressed(link_frame1, link_frame1Tiles, curr_tile_id, LINK_CABLE_PAL, ATTR0_SQUARE, ATTR1_SIZE_32x32, 1);

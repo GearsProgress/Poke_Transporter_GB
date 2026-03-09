@@ -2,11 +2,12 @@
 #define SELECT_MENU_H
 
 #include "vertical_menu.h"
+#include "vertical_menu_cursor_handler.h"
 
 #define LANG_MENU 1
 #define CART_MENU 2
 
-class Select_Menu : public i_vertical_menu_state_changed_handler, public i_run_cycle_handler
+class Select_Menu : public vertical_menu_cursor_handler, public i_run_cycle_handler
 {
 public:
     Select_Menu(bool enable_cancel, u8 nMenu_type, unsigned nStartX, unsigned nStartY);
@@ -15,7 +16,6 @@ public:
     void clear_options();
     void set_lang(u8 nLang);
 
-    void on_show() override;
     void on_hide() override;
     void on_selection_changed(unsigned new_index, unsigned x, unsigned y) override;
 

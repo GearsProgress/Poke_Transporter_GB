@@ -9,7 +9,7 @@
 #include "gameboy_colour.h"
 #include "pokemon_trade.h"
 #include "script_array.h"
-#include "debug_mode.h"
+#include "dbg/debug_mode.h"
 #include "interrupt.h"
 #include "text_engine.h"
 #include "global_frame_controller.h"

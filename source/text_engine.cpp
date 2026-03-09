@@ -5,7 +5,7 @@
 #include "global_frame_controller.h"
 #include "pkmn_font.h"
 #include "script_array.h"
-#include "debug_mode.h"
+#include "dbg/debug_mode.h"
 #include "button_menu.h"
 #include "sprite_data.h"
 #include "fonts.h"

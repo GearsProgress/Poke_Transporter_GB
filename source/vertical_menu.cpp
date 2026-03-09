@@ -144,6 +144,7 @@ MenuInputHandleState vertical_menu::handle_input()
 {
     MenuInputHandleState result;
     bool did_navigate = false;
+    bool viewport_updated = false;
 
     // If no items or not focused, there's nothing to handle.
     if(items_.size() <= 1 || !is_focused_)
@@ -154,6 +155,14 @@ MenuInputHandleState vertical_menu::handle_input()
     // the focused item widget gets the first chance to handle input, 
     // since it might have some special behavior for certain keys.
     result = items_[focused_index_]->handle_input();
+    if(result == MenuInputHandleState::HANDLED_UPDATE_VIEWPORT)
+    {
+        // the child widget is requesting that we update the viewport.
+        //  so we do that here and then degrade the result to HANDLED, 
+        // since we've already done the viewport update that the child widget requested.
+        update_viewport();
+        result = MenuInputHandleState::HANDLED; // degrade to HANDLED after updating the viewport
+    }
     if(result != MenuInputHandleState::NOT_HANDLED)
     {
         return result;
@@ -173,6 +182,7 @@ MenuInputHandleState vertical_menu::handle_input()
         if(focused_index_ >= current_viewport_end_index)
         {
             ++viewport_start_index_;
+            viewport_updated = true;
         }
         did_navigate = true;
     }
@@ -182,6 +192,7 @@ MenuInputHandleState vertical_menu::handle_input()
         if(focused_index_ < viewport_start_index_)
         {
             --viewport_start_index_;
+            viewport_updated = true;
         }
         did_navigate = true;
     }
@@ -190,7 +201,10 @@ MenuInputHandleState vertical_menu::handle_input()
     if(did_navigate)
     {
         const unsigned render_index = focused_index_ - viewport_start_index_;
-        update_viewport();
+        if(viewport_updated)
+        {
+            update_viewport();
+        }
         handle_selection_change(focused_index_, settings_.x, settings_.y + settings_.margin_top + (render_index * settings_.item_height));
         return MenuInputHandleState::HANDLED;
     }
@@ -205,7 +219,10 @@ void vertical_menu::update_viewport()
 
     clear_viewport();
 
-    text_table.decompress(get_compressed_text_table(settings_.text_table_index));
+    if(settings_.text_table_index != INT32_MAX)
+    {
+        text_table.decompress(get_compressed_text_table(settings_.text_table_index));
+    }
 
     const unsigned num_visible_items = get_num_visible_items(settings_.height, settings_.margin_top, settings_.margin_bottom, settings_.item_height);
     const unsigned viewport_end_index = get_viewport_end_index(viewport_start_index_, num_visible_items, items_.size());

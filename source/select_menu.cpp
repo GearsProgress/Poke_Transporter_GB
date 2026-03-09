@@ -10,7 +10,8 @@
 #define TILE_WIDTH 8
 
 Select_Menu::Select_Menu(bool enable_cancel, u8 nMenu_type, unsigned nStartTileX, unsigned nStartTileY)
-    : menu_widget_(vertical_menu_settings{
+    : vertical_menu_cursor_handler(TEXT_WIDTH, 3)
+    , menu_widget_(vertical_menu_settings{
         .x = static_cast<unsigned>(nStartTileX * TILE_WIDTH),
         .y = static_cast<unsigned>(nStartTileY * TILE_HEIGHT),
         .width = 10 * TEXT_WIDTH,
@@ -84,14 +85,10 @@ void Select_Menu::set_lang(u8 nLang)
     lang = nLang;
 }
 
-void Select_Menu::on_show()
-{
-    obj_unhide(point_arrow, 0);
-}
-
 void Select_Menu::on_hide()
 {
-    obj_hide(point_arrow);
+    // call the base implementation to hide the cursor
+    vertical_menu_cursor_handler::on_hide();
     obj_hide(cart_shell);
     obj_hide(cart_label);
     obj_hide(flag);
@@ -99,8 +96,8 @@ void Select_Menu::on_hide()
 
 void Select_Menu::on_selection_changed(unsigned new_index, unsigned x, unsigned y)
 {
-    // set the cursor accordingly
-    obj_set_pos(point_arrow, x + TEXT_WIDTH, y + 3);
+    // call the base implementation to move the cursor
+    vertical_menu_cursor_handler::on_selection_changed(new_index, x, y);
 
     simple_item_renderer* widget = static_cast<simple_item_renderer*>(menu_widget_.get_item_widget_at(new_index));
     const unsigned item_value = (widget) ? widget->get_data().value : UINT8_MAX;

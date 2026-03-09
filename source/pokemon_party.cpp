@@ -1,7 +1,7 @@
 #include "gameboy_colour.h"
 #include "pokemon_party.h"
 #include "flash_mem.h"
-#include "debug_mode.h"
+#include "dbg/debug_mode.h"
 #include "mystery_gift_injector.h"
 #include "gb_rom_values/gb_rom_values.h"
 #include "sprite_data.h"

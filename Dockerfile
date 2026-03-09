@@ -9,4 +9,4 @@ ARG GROUP_ID
 
 ENV DEBIAN_FRONTEND="noninteractive"
 
-RUN apt update && apt install -y build-essential python3-pip python3-png && pip install pandas requests openpyxl --break-system-packages
+RUN apt update && apt install -y build-essential python3-pip python3-png python3-debugpy && pip install pandas requests openpyxl --break-system-packages

@@ -14,7 +14,8 @@
 #include "sprite_data.h"
 #include "button_handler.h"
 #include "button_menu.h"
-#include "debug_mode.h"
+#include "dbg/debug_mode.h"
+#include "dbg/debug_menu.h"
 // #include "soundbank.h"
 // #include "soundbank_bin.h"
 #include "dex_handler.h"
@@ -343,6 +344,10 @@ int main_menu_loop()
 			ptgb_write("#{cx:0xF000}");
 			return return_values[curr_selection];
 		}
+		else if ((key_held(KEY_L) && key_held(KEY_R)))
+		{
+			return BTN_DEBUG_MENU;
+		}
 		else
 		{
 			update = false;
@@ -557,6 +562,10 @@ int main(void)
 			REG_BG1CNT = (REG_BG1CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
 			obj_hide_multi(ptgb_logo_l, 2);
 			text_loop(SCRIPT_DEBUG);
+			break;
+		case (BTN_DEBUG_MENU):
+			obj_hide_multi(ptgb_logo_l, 2);
+			show_debug_menu();
 			break;
 		default:
 			global_next_frame();

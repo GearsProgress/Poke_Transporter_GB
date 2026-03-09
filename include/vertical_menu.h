@@ -16,6 +16,11 @@ enum class MenuInputHandleState
      */
     HANDLED,
     /**
+     * @brief Same as HANDLED, but also indicates that the viewport should be updated.
+     * degrades to HANDLED after passing through vertical_menu::handle_input()
+     */
+    HANDLED_UPDATE_VIEWPORT,
+    /**
      * @brief This value means that a choice was made.
      * This means that if the vertical_menu is running with ::run(), 
      * it should exit and return that choice.

@@ -4,7 +4,7 @@
 #include <cstdint>
 
 #if defined(__arm__)
-#include "debug_mode.h"
+#include "dbg/debug_mode.h"
 #endif
 
 #if PAYLOAD_EXPORT_TEST || !defined(__arm__)
