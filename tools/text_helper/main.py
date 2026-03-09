@@ -58,8 +58,8 @@ OUTPUT_JSON_PATH = BUILD_DIR / "output.json"
 THIS_SCRIPT_PATH = BASE_DIR / "main.py"
 
 XLSX_URL = 'https://docs.google.com/spreadsheets/d/14LLs5lLqWasFcssBmJdGXjjYxARAJBa_QUOUhXZt4v8/export?format=xlsx'
-NEW_TEXT_XLSX_PATH = BUILD_DIR / 'new_text.xlsx'
-TEXT_XLSX_PATH = BUILD_DIR / 'text.xlsx'
+NEW_TEXT_XLSX_PATH = BASE_DIR / 'new_text.xlsx'
+TEXT_XLSX_PATH = BASE_DIR / 'text.xlsx'
 
 LANGUAGE_TOKEN_INDEXES = {
     Languages.English: (0x30, 0x60, 0x70),
