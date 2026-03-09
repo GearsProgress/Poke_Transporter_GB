@@ -472,10 +472,12 @@ int main(void)
 			obj_hide_multi(ptgb_logo_l, 2);
 			text_loop(SCRIPT_EVENT);
 			break;
+#if ENABLE_DEBUG_MENU
 		case (BTN_DEBUG_MENU):
 			obj_hide_multi(ptgb_logo_l, 2);
 			show_debug_menu();
 			break;
+#endif
 		default:
 			global_next_frame();
 		}
