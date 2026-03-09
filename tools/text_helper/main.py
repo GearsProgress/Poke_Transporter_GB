@@ -42,7 +42,13 @@ class Font:
         self.charWordTable = [0] * self.numWords
         self.charWidthTable = [0] * self.numBytes
 
-FIRST_TRANSLATION_COL_INDEX = 10
+class LanguageConfig:
+    def __init__(self, language, column_aliases, char_array, token_indexes=None):
+        self.language = language
+        self.column_aliases = column_aliases
+        self.char_array = char_array
+        self.token_indexes = token_indexes
+
 PURPOSEFUL_SPACE_CHAR = '|'
 BACKGROUND_PAL_INDEX = 0
 
@@ -61,19 +67,21 @@ XLSX_URL = 'https://docs.google.com/spreadsheets/d/14LLs5lLqWasFcssBmJdGXjjYxARA
 NEW_TEXT_XLSX_PATH = BASE_DIR / 'new_text.xlsx'
 TEXT_XLSX_PATH = BASE_DIR / 'text.xlsx'
 
-LANGUAGE_TOKEN_INDEXES = {
-    Languages.English: (0x30, 0x60, 0x70),
-    Languages.French: (0x31, 0x60, 0x71),
-    Languages.German: (0x32, 0x61, 0x72),
-    Languages.Italian: (0x33, 0x60, 0x71),
-    Languages.SpanishEU: (0x34, 0x60, 0x72),
-    Languages.SpanishLA: (0x34, 0x60, 0x72),
-}
-
 def parse_build_args(argv):
     if len(argv) >= 4:
         return argv[1], argv[2], argv[3]
     return "", "debug", "local"  # BUILD_LANG not implemented yet
+
+def normalize_column_name(name):
+    return str(name).strip().lower()
+
+def find_column_by_aliases(columns, aliases):
+    normalized_columns = {normalize_column_name(col): col for col in columns}
+    for alias in aliases:
+        match = normalized_columns.get(normalize_column_name(alias))
+        if match is not None:
+            return match
+    raise KeyError(f"Could not find column matching aliases: {aliases}")
 
 mainDict = {}
 textSections = []
@@ -117,19 +125,22 @@ charArrays = {
     },
 }
 
-charArrayOfLanguage = {
-    Languages.Japanese: charArrays["Japanese"],
-    Languages.English: charArrays["International"],
-    Languages.French: charArrays["International"],
-    Languages.German: charArrays["International"],
-    Languages.Italian: charArrays["International"],
-    Languages.SpanishEU: charArrays["International"],
-    Languages.SpanishLA: charArrays["International"],
-    Languages.Korean: charArrays["International"],
-    Languages.ChineseSI: charArrays["International"],
-    Languages.ChineseTR: charArrays["International"],
-    Languages.PortugueseBR: charArrays["International"],
+LANGUAGE_CONFIGS = {
+    Languages.Japanese: LanguageConfig(Languages.Japanese, ("Japanese",), charArrays["Japanese"]),
+    Languages.English: LanguageConfig(Languages.English, ("English",), charArrays["International"], (0x30, 0x60, 0x70)),
+    Languages.French: LanguageConfig(Languages.French, ("French",), charArrays["International"], (0x31, 0x60, 0x71)),
+    Languages.German: LanguageConfig(Languages.German, ("German",), charArrays["International"], (0x32, 0x61, 0x72)),
+    Languages.Italian: LanguageConfig(Languages.Italian, ("Italian",), charArrays["International"], (0x33, 0x60, 0x71)),
+    Languages.SpanishEU: LanguageConfig(Languages.SpanishEU, ("Spanish (EU)",), charArrays["International"], (0x34, 0x60, 0x72)),
+    Languages.SpanishLA: LanguageConfig(Languages.SpanishLA, ("Spanish (LA)",), charArrays["International"], (0x34, 0x60, 0x72)),
+    Languages.Korean: LanguageConfig(Languages.Korean, ("Korean",), charArrays["International"]),
+    Languages.ChineseSI: LanguageConfig(Languages.ChineseSI, ("Chinese (Simplified)",), charArrays["International"]),
+    Languages.ChineseTR: LanguageConfig(Languages.ChineseTR, ("Chinese (Traditional)",), charArrays["International"]),
+    Languages.PortugueseBR: LanguageConfig(Languages.PortugueseBR, ("Brazilian Portuguese",), charArrays["International"]),
 }
+
+def get_language_config(lang):
+    return LANGUAGE_CONFIGS[lang]
 
 charConversionList = [
     # replaces the first char in the list with the latter
@@ -208,6 +219,8 @@ def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, cen
     spaceLength = 0
 
     words = sentence.split()
+    language_config = get_language_config(lang)
+    language_char_array = language_config.char_array
 
 
     while(currWordIndex < len(words)):
@@ -220,8 +233,8 @@ def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, cen
             if (char == PURPOSEFUL_SPACE_CHAR):
                 char = " "
             if (pixelsPerChar == "Variable"):
-                wordLength += charArrayOfLanguage[lang]["font"].charWidthTable[convert_char_to_byte(ord(char), charArrayOfLanguage[lang]["array"], lang)]
-                spaceLength = charArrayOfLanguage[lang]["font"].charWidthTable[0]
+                wordLength += language_char_array["font"].charWidthTable[convert_char_to_byte(ord(char), language_char_array["array"], lang)]
+                spaceLength = language_char_array["font"].charWidthTable[0]
             elif (pixelsPerChar == "Default"):
                 if (lang == Languages.Japanese):
                     wordLength += 8
@@ -342,7 +355,7 @@ def apply_escape_sequences(line, arr, escape_list):
     return line
 
 def apply_language_tokens(line, arr, lang):
-    indexes = LANGUAGE_TOKEN_INDEXES.get(lang)
+    indexes = get_language_config(lang).token_indexes
     if indexes is None:
         return line
 
@@ -362,8 +375,9 @@ def convert_item(ogDict, lang):
     include_box_breaks = ogDict["includeBoxBreaks"]
     include_scrolling = ogDict["includeScrolling"]
 
-    arr = charArrayOfLanguage[lang]["array"]
-    escape_list = charArrayOfLanguage[lang]["escape"]
+    language_char_array = get_language_config(lang).char_array
+    arr = language_char_array["array"]
+    escape_list = language_char_array["escape"]
 
     line = apply_escape_sequences(line, arr, escape_list)
     line = apply_language_tokens(line, arr, lang)
@@ -461,7 +475,7 @@ def convert_item(ogDict, lang):
         outStr = newStr
     
     byteStr = ""
-    arr = charArrayOfLanguage[lang]["array"]
+    arr = language_char_array["array"]
     i = 0
     while i < len(outStr[:-1]):
         char = outStr[i]
@@ -627,10 +641,26 @@ def transfer_xlsx_to_dict():
 
     print("\tGetting string data")
     currSheet = pd.read_excel(TEXT_XLSX_PATH, sheet_name="Translations")
+    sheet_columns = list(currSheet.columns)
+
+    text_section_col = find_column_by_aliases(sheet_columns, ("Text Section",))
+    text_key_col = find_column_by_aliases(sheet_columns, ("Text Key", "Text ID", "Key"))
+
+    num_lines_col = find_column_by_aliases(sheet_columns, ("# of Lines",))
+    pixels_per_char_col = find_column_by_aliases(sheet_columns, ("Pixels per Char",))
+    pixels_in_line_col = find_column_by_aliases(sheet_columns, ("Pixels per line",))
+    include_box_breaks_col = find_column_by_aliases(sheet_columns, ("Include box breaks",))
+    include_scrolling_col = find_column_by_aliases(sheet_columns, ("Include one line of scrolling",))
+
+    language_columns = {
+        lang: find_column_by_aliases(sheet_columns, get_language_config(lang).column_aliases)
+        for lang in Languages
+    }
+    english_col = language_columns[Languages.English]
 
     textSections.clear()
     for row in currSheet.iterrows():
-        currRow = row[1]["Text Section"]
+        currRow = row[1][text_section_col]
         if (currRow not in textSections):
             textSections.append(currRow)
 
@@ -640,17 +670,17 @@ def transfer_xlsx_to_dict():
         #print(row)
         for lang in Languages:
             currRow = row[1]
-            #print(currRow)
-            offset = lang.value
-            if (pd.isna(currRow.iloc[FIRST_TRANSLATION_COL_INDEX + lang.value])):
-                offset = Languages.English.value
-            mainDict[lang.name][currRow.iloc[1]][currRow.iloc[2]] = {"bytes": currRow.iloc[FIRST_TRANSLATION_COL_INDEX + offset],
-                                                                        "numLines": currRow.iloc[3],
-                                                                        "pixelsPerChar": currRow.iloc[4],
-                                                                        "pixelsInLine" : currRow.iloc[5],
-                                                                        "includeBoxBreaks": currRow.iloc[6],
-                                                                        "includeScrolling": currRow.iloc[7],
-                                                                        }
+            lang_col = language_columns[lang]
+            text_value = currRow[lang_col]
+            if pd.isna(text_value):
+                text_value = currRow[english_col]
+            mainDict[lang.name][currRow[text_section_col]][currRow[text_key_col]] = {"bytes": text_value,
+                                                                                       "numLines": currRow[num_lines_col],
+                                                                                       "pixelsPerChar": currRow[pixels_per_char_col],
+                                                                                       "pixelsInLine" : currRow[pixels_in_line_col],
+                                                                                       "includeBoxBreaks": currRow[include_box_breaks_col],
+                                                                                       "includeScrolling": currRow[include_scrolling_col],
+                                                                                       }
 
 def generate_header_file():
     print("\tGenerating header file")
@@ -722,7 +752,7 @@ def output_json_file():
             for item in mainDict[lang.name][section]:
                 string = mainDict[lang.name][section][item]["bytes"].split(" ")
                 outText = ""
-                arr = charArrayOfLanguage[lang]["array"]
+                arr = get_language_config(lang).char_array["array"]
                 for byte in string:
                     byte = arr[int(byte, 16)]
                     outText += str(byte)
@@ -922,8 +952,8 @@ def main():
     _, _, build_xlsx_mode = parse_build_args(sys.argv)
     print("Running text_helper:")
     update_font_files()
-    xlsx_changed = update_xlsx_file(build_xlsx_mode)
-    if not xlsx_changed and are_text_build_artifacts_newer():
+    update_xlsx_file(build_xlsx_mode)
+    if are_text_build_artifacts_newer():
         print("text_helper finished!\n")
         return
     transfer_xlsx_to_dict()
