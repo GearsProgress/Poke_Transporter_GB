@@ -17,7 +17,6 @@ void show_text_debug_screen(void *context, unsigned user_param)
 
     tte_set_ink(INK_DARK_GREY);
     REG_BG1CNT = (REG_BG1CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
-    obj_hide_multi(ptgb_logo_l, 2);
     text_loop(SCRIPT_DEBUG);
 }
 
