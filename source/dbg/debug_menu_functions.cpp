@@ -25,14 +25,19 @@ void show_debug_info_screen(void *context, unsigned user_param)
     (void)context;
     (void)user_param;
 
-    char hexBuffer[16];
+    char flags_hex_str[16];
+    char def_lang_hex_str[16];
+    char text_buffer[256];
     uint16_t charset[256];
+    const char *game_code;
+    u32 pkmn_flags = 0;
+
     load_localized_charset(charset, 3, ENGLISH);
     if (key_held(KEY_UP) && key_held(KEY_L) && key_held(KEY_R))
     {
         set_treecko(true);
     }
-    u32 pkmn_flags = 0;
+
     bool e4_flag = read_flag(curr_GBA_rom.e4_flag);
     bool mg_flag = read_flag(curr_GBA_rom.mg_flag);
     bool all_collected_flag = read_flag(curr_GBA_rom.all_collected_flag);
@@ -44,51 +49,48 @@ void show_debug_info_screen(void *context, unsigned user_param)
     bool tutorial = get_tutorial_flag();
     int def_lang = get_def_lang_num();
 
-    create_textbox(4, 1, 160, 80, true);
-    show_text_box();
-    ptgb_write_debug(charset, "Debug info:\n\nG: ", true);
-    ptgb_write_debug(charset, ptgb::to_string(curr_GBA_rom.language), true);
     switch (curr_GBA_rom.gamecode)
     {
     case RUBY_ID:
-        ptgb_write_debug(charset, "-R-", true);
+        game_code = "-R-";
         break;
     case SAPPHIRE_ID:
-        ptgb_write_debug(charset, "-S-", true);
+        game_code = "-S-";
         break;
     case FIRERED_ID:
-        ptgb_write_debug(charset, "-F-", true);
+        game_code = "-F-";
         break;
     case LEAFGREEN_ID:
-        ptgb_write_debug(charset, "-L-", true);
+        game_code = "-L-";
         break;
     case EMERALD_ID:
-        ptgb_write_debug(charset, "-E-", true);
+        game_code = "-E-";
         break;
     }
 
-    ptgb_write_debug(charset, ptgb::to_string(curr_GBA_rom.version), true);
+    n2hexstr(flags_hex_str, pkmn_flags);
+    n2hexstr(def_lang_hex_str, def_lang);
 
-    ptgb_write_debug(charset, "\nF: ", true);
-    ptgb_write_debug(charset, ptgb::to_string(e4_flag), true);
-    ptgb_write_debug(charset, ptgb::to_string(mg_flag), true);
-    ptgb_write_debug(charset, ptgb::to_string(all_collected_flag), true);
-    ptgb_write_debug(charset, "-", true);
+    create_textbox(4, 1, 160, 80, true);
+    show_text_box();
 
-    n2hexstr(hexBuffer, pkmn_flags);
-    ptgb_write_debug(charset, hexBuffer, true);
-    ptgb_write_debug(charset, "\nS:   ", true);
-    ptgb_write_debug(charset, ptgb::to_string(tutorial), true);
-    ptgb_write_debug(charset, "-", true);
-    n2hexstr(hexBuffer, def_lang);
-    ptgb_write_debug(charset, hexBuffer, true);
+    npf_snprintf(text_buffer, sizeof(text_buffer),
+        "Debug info:\n\nG: %d%s%d\nF: %d%d%d-%s\nS:   %d-%s\n%s%s",
+        curr_GBA_rom.language,
+        game_code,
+        curr_GBA_rom.version,
+        e4_flag,
+        mg_flag,
+        all_collected_flag,
+        flags_hex_str,
+        tutorial,
+        def_lang_hex_str,
+        BUILD_INFO,
+        get_treecko_enabled() ? ".T" : ""
+    );
 
-    ptgb_write_debug(charset, "\n", true);
-    ptgb_write_debug(charset, BUILD_INFO, true);
-    if (get_treecko_enabled())
-    {
-        ptgb_write_debug(charset, ".T", true);
-    }
+    ptgb_write_debug(charset, text_buffer, true);
+
     while (true)
     {
         if (key_hit(KEY_B))

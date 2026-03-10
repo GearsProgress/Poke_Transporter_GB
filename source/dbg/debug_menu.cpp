@@ -38,7 +38,7 @@ void show_debug_menu()
         .item_height = 10,
         .text_table_index = INT32_MAX,
         .allow_cancel = true,
-        .should_delete_item_widgets_on_destruct = false,
+        .should_delete_item_widgets_on_destruct = true,
         .should_hide_state_changed_handler_on_not_focused = true
     };
 
