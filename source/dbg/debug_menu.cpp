@@ -52,6 +52,8 @@ void show_debug_menu()
     debug_menu.run();
     debug_menu.hide();
 
+    obj_hide(toggle_arrow_left);
+    obj_hide(toggle_arrow_right);
     hide_text_box();
     tte_erase_rect(0, 0, H_MAX, V_MAX);
 
