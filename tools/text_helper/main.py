@@ -83,8 +83,38 @@ def find_column_by_aliases(columns, aliases):
             return match
     raise KeyError(f"Could not find column matching aliases: {aliases}")
 
+def find_optional_column_by_aliases(columns, aliases):
+    try:
+        return find_column_by_aliases(columns, aliases)
+    except KeyError:
+        return None
+
+def sanitize_macro_token(text):
+    out = ""
+    for char in str(text).upper():
+        out += char if char.isalnum() else "_"
+    while "__" in out:
+        out = out.replace("__", "_")
+    return out.strip("_")
+
+def sanitize_c_identifier(text):
+    out = ""
+    for char in str(text).lower():
+        out += char if char.isalnum() else "_"
+    while "__" in out:
+        out = out.replace("__", "_")
+    out = out.strip("_")
+    if not out:
+        out = "unnamed"
+    if out[0].isdigit():
+        out = "n_" + out
+    return out
+
 mainDict = {}
 textSections = []
+boxTypeDefinitions = {}
+boxTypeNames = []
+boxTypeIdByName = {}
 fonts = {
     "International": Font("latin_normal", 1, 256, 16, 16, 16, 16, 16, 16),
     "Japanese": Font("japanese_normal", 1, 256, 16, 16, 16, 16, 16, 16),
@@ -624,6 +654,10 @@ def initialize_translation_storage():
         mainDict[lang.name]["Errors"] = {}
 
 def transfer_xlsx_to_dict():
+    global boxTypeDefinitions
+    global boxTypeNames
+    global boxTypeIdByName
+
     print("\tGetting character arrays")
     currSheet = pd.read_excel(TEXT_XLSX_PATH, sheet_name="Character Arrays", header=None)
     offset = 0
@@ -643,14 +677,44 @@ def transfer_xlsx_to_dict():
     currSheet = pd.read_excel(TEXT_XLSX_PATH, sheet_name="Translations")
     sheet_columns = list(currSheet.columns)
 
+    print("\tGetting box types")
+    boxTypeSheet = pd.read_excel(TEXT_XLSX_PATH, sheet_name="Box Types")
+    box_type_columns = list(boxTypeSheet.columns)
+    box_type_name_col = find_column_by_aliases(box_type_columns, ("Box Type",))
+    box_type_num_lines_col = find_column_by_aliases(box_type_columns, ("# of Lines",))
+    box_type_pixels_in_line_col = find_column_by_aliases(box_type_columns, ("Pixels per line",))
+    box_type_include_box_breaks_col = find_column_by_aliases(box_type_columns, ("Include box breaks",))
+    box_type_include_scrolling_col = find_column_by_aliases(box_type_columns, ("Include one line of scrolling",))
+    box_type_pixels_per_char_col = find_optional_column_by_aliases(box_type_columns, ("Pixels per Char",))
+
+    boxTypeDefinitions = {}
+    boxTypeNames = []
+    boxTypeIdByName = {}
+    for _, box_type_row in boxTypeSheet.iterrows():
+        box_type_name = box_type_row[box_type_name_col]
+        if pd.isna(box_type_name):
+            continue
+        box_type_name = str(box_type_name).strip()
+        if box_type_name in boxTypeDefinitions:
+            raise KeyError(f"Duplicate Box Type '{box_type_name}' found in Box Types sheet.")
+        pixels_per_char = "Default"
+        if box_type_pixels_per_char_col is not None:
+            value = box_type_row[box_type_pixels_per_char_col]
+            if not pd.isna(value):
+                pixels_per_char = value
+        boxTypeDefinitions[box_type_name] = {
+            "numLines": box_type_row[box_type_num_lines_col],
+            "pixelsPerChar": pixels_per_char,
+            "pixelsInLine": box_type_row[box_type_pixels_in_line_col],
+            "includeBoxBreaks": box_type_row[box_type_include_box_breaks_col],
+            "includeScrolling": box_type_row[box_type_include_scrolling_col],
+        }
+        boxTypeIdByName[box_type_name] = len(boxTypeNames)
+        boxTypeNames.append(box_type_name)
+
     text_section_col = find_column_by_aliases(sheet_columns, ("Text Section",))
     text_key_col = find_column_by_aliases(sheet_columns, ("Text Key", "Text ID", "Key"))
-
-    num_lines_col = find_column_by_aliases(sheet_columns, ("# of Lines",))
-    pixels_per_char_col = find_column_by_aliases(sheet_columns, ("Pixels per Char",))
-    pixels_in_line_col = find_column_by_aliases(sheet_columns, ("Pixels per line",))
-    include_box_breaks_col = find_column_by_aliases(sheet_columns, ("Include box breaks",))
-    include_scrolling_col = find_column_by_aliases(sheet_columns, ("Include one line of scrolling",))
+    box_type_col = find_column_by_aliases(sheet_columns, ("Box Type",))
 
     language_columns = {
         lang: find_column_by_aliases(sheet_columns, get_language_config(lang).column_aliases)
@@ -674,12 +738,23 @@ def transfer_xlsx_to_dict():
             text_value = currRow[lang_col]
             if pd.isna(text_value):
                 text_value = currRow[english_col]
+            box_type_name = currRow[box_type_col]
+            if pd.isna(box_type_name):
+                raise KeyError(f"Missing Box Type for row key '{currRow[text_key_col]}' in section '{currRow[text_section_col]}'.")
+            box_type_name = str(box_type_name).strip()
+            box_type_data = boxTypeDefinitions.get(box_type_name)
+            if box_type_data is None:
+                raise KeyError(
+                    f"Unknown Box Type '{box_type_name}' for row key '{currRow[text_key_col]}' "
+                    f"in section '{currRow[text_section_col]}'."
+                )
             mainDict[lang.name][currRow[text_section_col]][currRow[text_key_col]] = {"bytes": text_value,
-                                                                                       "numLines": currRow[num_lines_col],
-                                                                                       "pixelsPerChar": currRow[pixels_per_char_col],
-                                                                                       "pixelsInLine" : currRow[pixels_in_line_col],
-                                                                                       "includeBoxBreaks": currRow[include_box_breaks_col],
-                                                                                       "includeScrolling": currRow[include_scrolling_col],
+                                                                                       "boxType": box_type_name,
+                                                                                       "numLines": box_type_data["numLines"],
+                                                                                       "pixelsPerChar": box_type_data["pixelsPerChar"],
+                                                                                       "pixelsInLine" : box_type_data["pixelsInLine"],
+                                                                                       "includeBoxBreaks": box_type_data["includeBoxBreaks"],
+                                                                                       "includeScrolling": box_type_data["includeScrolling"],
                                                                                        }
 
 def generate_header_file():
@@ -706,7 +781,22 @@ def generate_header_file():
             hFile.write("\t" + str(end) + ",\n")
         hFile.write("};\n\n")
 
+        hFile.write("#define BOX_TYPE_INVALID 0xFF\n")
+        for box_type_name in boxTypeNames:
+            box_type_id = boxTypeIdByName[box_type_name]
+            hFile.write(f"#define BOX_TYPE_{sanitize_macro_token(box_type_name)} {box_type_id}\n")
+        hFile.write(f"#define NUM_BOX_TYPES {len(boxTypeNames)}\n\n")
+        for index, definitions in enumerate(boxTypeDefinitions[boxTypeNames[0]]):
+            hFile.write(f"#define BOX_TYPE_VAL_{sanitize_macro_token(definitions)} {index}\n")
+        hFile.write(f"#define NUM_BOX_TYPE_VALS {len(boxTypeDefinitions[boxTypeNames[0]])}\n\n")
+        hFile.write("const int box_type_info[NUM_BOX_TYPES][NUM_BOX_TYPE_VALS] = {\n")
+        for box_type_name in boxTypeNames:
+            boxType = boxTypeDefinitions[box_type_name]
+            hFile.write(f"\t{{{boxType["numLines"]}, {boxType["pixelsInLine"]}, {boxType["pixelsPerChar"]}, {int(boxType["includeBoxBreaks"])}, {int(boxType["includeScrolling"])}}},\n")
+        hFile.write("};\n\n")
+
         hFile.write("const u8* get_compressed_text_table(int table_index);\n")
+        hFile.write("u8 get_text_box_type(int table_index, int text_index);\n")
 
 
         hFile.write("\n#endif")
@@ -728,6 +818,16 @@ def generate_cpp_file():
             for section in textSections:
                 cppFile.write("#include \"" + section.upper() + "_" + lang.name.lower() + "_lz10_bin.h\"\n")
 
+        cppFile.write("\n")
+        for section in textSections:
+            section_var = sanitize_c_identifier(section)
+            box_type_macros = []
+            for _, entry in mainDict[Languages.English.name][section].items():
+                box_type_name = entry["boxType"]
+                box_type_macros.append(f"\n\tBOX_TYPE_{sanitize_macro_token(box_type_name)}")
+            cppFile.write(f"\nstatic const u8 {section_var}_box_types[] = {{")
+            cppFile.write(",".join(box_type_macros))
+            cppFile.write("\n};\n")
 
         cppFile.write("\nconst u8* get_compressed_text_table(int table_index)\n")
 
@@ -736,7 +836,7 @@ def generate_cpp_file():
             cppFile.write("{\n")
             cppFile.write("\tswitch (table_index)\n\t{\n")
             for section in textSections:
-                cppFile.write("\tcase(" + section + "_INDEX):\n")
+                cppFile.write("\tcase (" + section + "_INDEX):\n")
                 if(section == "PTGB"):
                     cppFile.write("\tdefault:\n")
                 cppFile.write("\t\treturn " + section + "_" + lang.name.lower() + "_lz10_bin;\n")
@@ -744,6 +844,23 @@ def generate_cpp_file():
             cppFile.write("\t}\n")
             cppFile.write("}\n")
         cppFile.write(f"#else\n#error \"Unsupported PTGB_BUILD_LANGUAGE\"\n#endif")
+
+        cppFile.write("\n\nu8 get_text_box_type(int table_index, int text_index)\n")
+        cppFile.write("{\n")
+        cppFile.write("\tif (text_index < 0)\n")
+        cppFile.write("\t\treturn BOX_TYPE_INVALID;\n")
+        cppFile.write("\tswitch (table_index)\n")
+        cppFile.write("\t{\n")
+        for section in textSections:
+            section_var = sanitize_c_identifier(section)
+            cppFile.write(f"\tcase({section}_INDEX):\n")
+            cppFile.write(f"\t\tif (text_index >= {section}_LENGTH)\n")
+            cppFile.write("\t\t\treturn BOX_TYPE_INVALID;\n")
+            cppFile.write(f"\t\treturn {section_var}_box_types[text_index];\n")
+        cppFile.write("\tdefault:\n")
+        cppFile.write("\t\treturn BOX_TYPE_INVALID;\n")
+        cppFile.write("\t}\n")
+        cppFile.write("}\n")
 
 def output_json_file():
     print("\tOutputting json file")
