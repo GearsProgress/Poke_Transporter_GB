@@ -130,6 +130,7 @@ void mystery_gift_script::build_script(PokeBox *box)
     asm_var customSoundASM(sec30_variable_list, &curr_section30_index);
     asm_var loadPalette(sec30_variable_list, &curr_section30_index);
     asm_var loadSec30(mg_variable_list, &curr_mg_index);
+    asm_var newPkmnFunct(mg_variable_list, &curr_mg_index);
 
     xse_var jumpLoop(mg_variable_list, &curr_mg_index);
     xse_var jumpBoxFull(mg_variable_list, &curr_mg_index);
@@ -575,6 +576,33 @@ void mystery_gift_script::build_script(PokeBox *box)
     add_word(gPlttBufferFaded_ptr.place_word());
     add_word(copySizeControl.place_word());
 
+    newPkmnFunct.set_start(false);
+    unsigned char unpack_pokemon_bin[] = {
+        0xf0, 0xb5, 0x95, 0xb0, 0x26, 0x4f, 0x1e, 0x24, 0x14, 0x97, 0x00, 0x22,
+        0x50, 0x23, 0x6d, 0x46, 0x1b, 0x1f, 0xea, 0x50, 0xfc, 0xd1, 0x4b, 0xcf,
+        0x4b, 0xc5, 0x0b, 0xcf, 0x0b, 0xc5, 0x3e, 0x88, 0x00, 0x2e, 0x2a, 0xd0,
+        0x00, 0xf0, 0x38, 0xf8, 0x0c, 0xcf, 0x0c, 0xc0, 0x3a, 0x88, 0x02, 0x80,
+        0x02, 0x22, 0x00, 0xf0, 0x31, 0xf8, 0x06, 0x23, 0xfa, 0x5a, 0x9b, 0x1e,
+        0xc2, 0x52, 0xfb, 0xd1, 0x08, 0x37, 0x01, 0x22, 0x00, 0xf0, 0x28, 0xf8,
+        0x0c, 0xcf, 0x0c, 0xc0, 0x03, 0x22, 0x00, 0xf0, 0x23, 0xf8, 0x0e, 0xcf,
+        0x0e, 0xc0, 0x15, 0xa5, 0x03, 0x27, 0x08, 0xcd, 0x00, 0xf0, 0x1e, 0xf8,
+        0x7f, 0x1e, 0xfa, 0xd1, 0x01, 0x28, 0x0e, 0xd1, 0xfb, 0x2e, 0x00, 0xdd,
+        0xfc, 0x26, 0x02, 0x21, 0x00, 0xf0, 0x0f, 0xf8, 0x03, 0x21, 0x00, 0xf0,
+        0x0c, 0xf8, 0x14, 0x9f, 0x00, 0x21, 0xb9, 0x83, 0x40, 0x37, 0x64, 0x1e,
+        0xc0, 0xd1, 0x0c, 0x49, 0x08, 0x60, 0x15, 0xb0, 0xf0, 0xbc, 0x02, 0xbc,
+        0x08, 0x47, 0x05, 0x4b, 0x30, 0x00, 0x18, 0x47, 0x00, 0x99, 0x02, 0x4b,
+        0x68, 0x46, 0x18, 0x47};
+    for (int i = 0; i < 40; i++){
+        add_word(unpack_pokemon_bin[i * 4]);
+    }
+    // These are specifically for Emerald
+    add_word(0x1c800);
+    add_word(0x806a270);
+    add_word(0x80c0664);
+    add_word(0x806a228);
+    add_word(0x8068c78);
+    add_word(0x1c7f0);
+
     // The start of the Mystery Gift Script
 
     asm_payload_location = MG_SCRIPT;
@@ -696,13 +724,13 @@ void mystery_gift_script::build_script(PokeBox *box)
     jumpLoop.set_start();                                                            // Set the jump destination for the JUMP_LOOP
     call(ptr_call_check_flag);                                                       // Call the check flag ASM
     virtualgotoif(COND_FLAGFALSE, jumpPkmnCollected.add_reference(2));               // If the "pokemon collected" flag is false, jump to the end of the loop
-    callASM(mainAsmStart.get_loc_in_sec30());                                        // Call SendMonToPC ASM
+    callASM(newPkmnFunct.get_loc_in_sec30());                                        // Call SendMonToPC ASM
     compare(var_box_return, 2);                                                      // Compare the resulting return to #2
     virtualgotoif(COND_EQUALS, jumpBoxFull.add_reference(2));                        // If the return value was #2, jump to the box full message
     setvar(var_dex_seen_caught, 2);                                                  // set the seen caught variable to 2, so that the Pokemon is set to "seen"
-    callASM(dexAsmStart.get_loc_in_sec30());                                         // call "PTR_DEX_START"
+    //callASM(dexAsmStart.get_loc_in_sec30());                                         // call "PTR_DEX_START"
     addvar(var_dex_seen_caught, 1);                                                  // add 1 to the seen caught variable so that the Pokemon will be "Caught"
-    callASM(dexAsmStart.get_loc_in_sec30());                                         // Call "PTR_DEX_START" again
+    //callASM(dexAsmStart.get_loc_in_sec30());                                         // Call "PTR_DEX_START" again
     jumpPkmnCollected.set_start();                                                   // Set the jump destination for if the Pokemon has already been collected
     addvar(var_pkmn_offset, POKEMON_SIZE);                                           // Add the size of one Pokmeon to the Pokemon offset
     addvar(var_index, 1);                                                            // Add one to the index
