@@ -15,7 +15,7 @@
 #include "ptgb_save_data_manager.h"
 #include "libraries/Pokemon-Gen3-to-Gen-X/include/save.h"
 
-static byte gen1_rb_debug_box_data[0x462] = {
+static const byte gen1_rb_debug_box_data[0x462] = {
 	// Num of Pokemon
 	0x14,
 	// Pokemon 1-20
@@ -84,7 +84,7 @@ static byte gen1_rb_debug_box_data[0x462] = {
 	0x91, 0x80, 0x93, 0x93, 0x80, 0x93, 0x80, 0x50, 0x50, 0x50, 0x50,
 	0x8F, 0x88, 0x83, 0x86, 0x84, 0x98, 0x50, 0x50, 0x50, 0x50, 0x50};
 
-static byte gen2_debug_box_data[0x44E] = {
+static const byte gen2_debug_box_data[0x44E] = {
 	// Num of Pokemon
 	0x14,
 	// Pokemon 1-20
