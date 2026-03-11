@@ -144,15 +144,17 @@ ifneq ($(BUILD),$(notdir $(CURDIR)))
 
 export OUTPUT	:=	$(CURDIR)/$(TARGET)
 
+SOURCE_DIRS_RECURSIVE := $(shell find $(SOURCES) -type d)
+
 export VPATH	:=	$(CURDIR)/$(GENERATED_DIR) \
-			$(foreach dir,$(SOURCES),$(CURDIR)/$(dir)) \
+			$(foreach dir,$(SOURCE_DIRS_RECURSIVE),$(CURDIR)/$(dir)) \
 			$(foreach dir,$(DATA),$(CURDIR)/$(dir)) \
 			$(foreach dir,$(GRAPHICS),$(CURDIR)/$(dir))
 
 export DEPSDIR	:=	$(CURDIR)/$(BUILD)
 
-CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
-CPPFILES	:=	$(sort $(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp))) translated_text.cpp)
+CFILES		:=	$(sort $(notdir $(shell find $(SOURCES) -type f -name "*.c")))
+CPPFILES	:=	$(sort $(notdir $(shell find $(SOURCES) -type f -name "*.cpp")) translated_text.cpp)
 SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 PNGFILES	:=	$(foreach dir,$(GRAPHICS),$(notdir $(wildcard $(dir)/*.png)))
 

@@ -2,7 +2,7 @@
 #include "libstd_replacements.h"
 #include "script_var.h"
 #include "pokemon_data.h"
-#include "debug_mode.h"
+#include "dbg/debug_mode.h"
 #include "global_frame_controller.h"
 
 extern rom_data curr_GBA_rom;

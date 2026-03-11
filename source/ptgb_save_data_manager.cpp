@@ -1,7 +1,7 @@
 #include <tonc.h>
 #include "ptgb_save_data_manager.h"
 #include "flash_mem.h"
-#include "debug_mode.h"
+#include "dbg/debug_mode.h"
 #include "button_menu.h"
 #include "pokemon_data.h"
 #include "libraries/Pokemon-Gen3-to-Gen-X/include/save.h"
@@ -26,7 +26,7 @@ void write_custom_save_data()
 
 bool is_caught(int dex_num)
 {
-    return (((save_data_array[CAUGHT_DATA + (dex_num / 8)]) >> dex_num % 8) & 1) || FORCE_ALL_CAUGHT;
+    return (((save_data_array[CAUGHT_DATA + (dex_num / 8)]) >> dex_num % 8) & 1) || g_debug_options.force_all_caught;
 }
 
 void set_caught(int dex_num)

@@ -756,13 +756,13 @@ bool run_conditional(int index)
         return party_data.get_last_error() != COND_ERROR_COLOSSEUM;
 
     case COND_BEAT_E4:
-        return read_flag(curr_GBA_rom.e4_flag) || IGNORE_MG_E4_FLAGS;
+        return read_flag(curr_GBA_rom.e4_flag) || g_debug_options.ignore_mg_e4_flags;
 
     case COND_MG_ENABLED:
-        return read_flag(curr_GBA_rom.mg_flag) || IGNORE_MG_E4_FLAGS;
+        return read_flag(curr_GBA_rom.mg_flag) || g_debug_options.ignore_mg_e4_flags;
 
     case COND_TUTORIAL_COMPLETE:
-        return get_tutorial_flag() && !FORCE_TUTORIAL;
+        return get_tutorial_flag() && !g_debug_options.force_tutorial;
 
     case COND_NEW_POKEMON:
         return party_data.get_has_new_pkmn();
@@ -774,10 +774,10 @@ bool run_conditional(int index)
         return !curr_GBA_rom.is_ruby_sapphire();
 
     case COND_MG_OTHER_EVENT:
-        return compare_map_and_npc_data(curr_GBA_rom.def_map_bank, curr_GBA_rom.def_map_id, curr_GBA_rom.def_npc_id) && !IGNORE_MG_E4_FLAGS;
+        return compare_map_and_npc_data(curr_GBA_rom.def_map_bank, curr_GBA_rom.def_map_id, curr_GBA_rom.def_npc_id) && !g_debug_options.ignore_mg_e4_flags;
 
     case COND_PKMN_TO_COLLECT:
-        return compare_map_and_npc_data(curr_GBA_rom.map_bank, curr_GBA_rom.map_id, curr_GBA_rom.npc_id) && !read_flag(curr_GBA_rom.all_collected_flag) && !IGNORE_UNRECEIVED_PKMN;
+        return compare_map_and_npc_data(curr_GBA_rom.map_bank, curr_GBA_rom.map_id, curr_GBA_rom.npc_id) && !read_flag(curr_GBA_rom.all_collected_flag) && !g_debug_options.ignore_unreceived_pkmn;
 
     case COND_GB_ROM_EXISTS:
         return party_data.load_gb_rom();
@@ -788,11 +788,11 @@ bool run_conditional(int index)
     case COND_CHECK_DEX:
         if (party_data.get_game_gen() == 1)
         {
-            return (get_dex_completion(1, false) == 150) || IGNORE_DEX_COMPLETION;
+            return (get_dex_completion(1, false) == 150) || g_debug_options.ignore_dex_completion;
         }
         else
         {
-            return (get_dex_completion(1, false) == 99) || IGNORE_DEX_COMPLETION;
+            return (get_dex_completion(1, false) == 99) || g_debug_options.ignore_dex_completion;
         }
 
     case COND_CHECK_KANTO:
@@ -879,7 +879,7 @@ bool run_conditional(int index)
         for (int i = 0; i <= (8 * 7); i += 2)
         {
             REG_BG1HOFS = i + FENNEL_SHIFT;
-            if (!INSTANT_TEXT_SPEED)
+            if (!g_debug_options.instant_text_speed)
             {
                 global_next_frame();
             }
@@ -890,7 +890,7 @@ bool run_conditional(int index)
         for (int i = (8 * 7); i >= 0; i -= 2)
         {
             REG_BG1HOFS = i + FENNEL_SHIFT;
-            if (!INSTANT_TEXT_SPEED)
+            if (!g_debug_options.instant_text_speed)
             {
                 global_next_frame();
             }
@@ -912,7 +912,7 @@ bool run_conditional(int index)
         return true;
 
     case CMD_IS_A_VALID_PKMN:
-        return party_data.box.getNumValid() > 0 || DONT_HIDE_INVALID_PKMN;
+        return party_data.box.getNumValid() > 0 || g_debug_options.dont_hide_invalid_pkmn;
 
     case CMD_CANCEL_LINK:
         party_data.continue_link(true);
