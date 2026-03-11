@@ -4,7 +4,7 @@
 #include <tonc.h>
 #include "pokemon_party.h"
 #include "dbg/debug_mode.h"
-#include "save_data_manager.h"
+#include "ptgb_save_data_manager.h"
 #include "script_var.h"
 #include "pokemon_data.h"
 

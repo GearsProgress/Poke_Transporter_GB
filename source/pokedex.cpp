@@ -6,7 +6,7 @@
 #include "sprite_data.h"
 #include "pokemon_data.h"
 #include "global_frame_controller.h"
-#include "save_data_manager.h"
+#include "ptgb_save_data_manager.h"
 #include "button_handler.h"
 #include "translated_text.h"
 #include "text_engine.h"
