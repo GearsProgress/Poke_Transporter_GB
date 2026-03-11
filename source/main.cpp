@@ -83,7 +83,8 @@ void initialization_script(void)
 	// Sound bank init
 	irq_init(NULL);
 	irq_enable(II_VBLANK);
-	sound_init();
+	// This currently crashes when you try to transfer a Pokemon:
+	//sound_init();
 
 	// Graphics init
 	oam_init(obj_buffer, 128);
