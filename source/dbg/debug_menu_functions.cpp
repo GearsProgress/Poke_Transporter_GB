@@ -5,7 +5,7 @@
 #include "sprite_data.h"
 #include "global_frame_controller.h"
 #include "flash_mem.h"
-#include "save_data_manager.h"
+#include "ptgb_save_data_manager.h"
 #include "background_engine.h"
 #include "libstd_replacements.h"
 #include "sound.h"
