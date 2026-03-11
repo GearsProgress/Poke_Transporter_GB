@@ -14,9 +14,8 @@
 #include "sprite_data.h"
 #include "button_handler.h"
 #include "button_menu.h"
-#include "debug_mode.h"
-// #include "soundbank.h"
-// #include "soundbank_bin.h"
+#include "dbg/debug_mode.h"
+#include "dbg/debug_menu.h"
 #include "dex_handler.h"
 #include "pokedex.h"
 #include "global_frame_controller.h"
@@ -202,82 +201,6 @@ int credits()
 			curr_credits_num++;
 			update = true;
 		}
-		if (ENABLE_DEBUG_SCREEN && key_hit(KEY_SELECT))
-		{
-			char hexBuffer[16];
-			uint16_t charset[256];
-			load_localized_charset(charset, 3, ENGLISH);
-			if (key_held(KEY_UP) && key_held(KEY_L) && key_held(KEY_R))
-			{
-				set_treecko(true);
-			}
-			u32 pkmn_flags = 0;
-			bool e4_flag = read_flag(curr_GBA_rom.e4_flag);
-			bool mg_flag = read_flag(curr_GBA_rom.mg_flag);
-			bool all_collected_flag = read_flag(curr_GBA_rom.all_collected_flag);
-			for (int i = 0; i < 30; i++)
-			{
-				pkmn_flags |= (read_flag(curr_GBA_rom.pkmn_collected_flag_start + i) << i);
-			}
-
-			bool tutorial = get_tutorial_flag();
-			int def_lang = get_def_lang_num();
-
-			create_textbox(4, 1, 160, 80, true);
-			ptgb_write_debug(charset, "Debug info:\n\nG: ", true);
-			ptgb_write_debug(charset, ptgb::to_string(curr_GBA_rom.language), true);
-			switch (curr_GBA_rom.gamecode)
-			{
-			case RUBY_ID:
-				ptgb_write_debug(charset, "-R-", true);
-				break;
-			case SAPPHIRE_ID:
-				ptgb_write_debug(charset, "-S-", true);
-				break;
-			case FIRERED_ID:
-				ptgb_write_debug(charset, "-F-", true);
-				break;
-			case LEAFGREEN_ID:
-				ptgb_write_debug(charset, "-L-", true);
-				break;
-			case EMERALD_ID:
-				ptgb_write_debug(charset, "-E-", true);
-				break;
-			}
-
-			ptgb_write_debug(charset, ptgb::to_string(curr_GBA_rom.version), true);
-
-			ptgb_write_debug(charset, "\nF: ", true);
-			ptgb_write_debug(charset, ptgb::to_string(e4_flag), true);
-			ptgb_write_debug(charset, ptgb::to_string(mg_flag), true);
-			ptgb_write_debug(charset, ptgb::to_string(all_collected_flag), true);
-			ptgb_write_debug(charset, "-", true);
-
-			n2hexstr(hexBuffer, pkmn_flags);
-			ptgb_write_debug(charset, hexBuffer, true);
-			ptgb_write_debug(charset, "\nS:   ", true);
-			ptgb_write_debug(charset, ptgb::to_string(tutorial), true);
-			ptgb_write_debug(charset, "-", true);
-			n2hexstr(hexBuffer, def_lang);
-			ptgb_write_debug(charset, hexBuffer, true);
-
-			ptgb_write_debug(charset, "\n", true);
-			ptgb_write_debug(charset, BUILD_INFO, true);
-			if (get_treecko_enabled())
-			{
-				ptgb_write_debug(charset, ".T", true);
-			}
-			while (true)
-			{
-				if (key_hit(KEY_B))
-				{
-					hide_text_box();
-					reset_textbox();
-					return 0;
-				}
-				global_next_frame();
-			}
-		}
 
 		global_next_frame();
 	}
@@ -285,15 +208,9 @@ int credits()
 
 int main_menu_loop()
 {
-#if ENABLE_TEXT_DEBUG_SCREEN
-#define NUM_MENU_OPTIONS 4
-	const uint8_t menu_options[NUM_MENU_OPTIONS] = {GENERAL_option_transfer, GENERAL_option_dreamdex, GENERAL_option_credits, GENERAL_option_text_debug};
-	int return_values[NUM_MENU_OPTIONS] = {BTN_TRANSFER, BTN_POKEDEX, BTN_CREDITS, BTN_TEXT_DEBUG};
-#else
 #define NUM_MENU_OPTIONS 3
 	const uint8_t menu_options[NUM_MENU_OPTIONS] = {GENERAL_option_transfer, GENERAL_option_dreamdex, GENERAL_option_credits};
 	int return_values[NUM_MENU_OPTIONS] = {BTN_TRANSFER, BTN_POKEDEX, BTN_CREDITS};
-#endif
 
 	uint8_t general_text_table_buffer[2048];
 	text_data_table general_text(general_text_table_buffer);
@@ -303,7 +220,6 @@ int main_menu_loop()
 
 	general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
 
-	play_song(MOD_MAIN_MENU, true);
 	while (true)
 	{
 		if (update)
@@ -342,6 +258,10 @@ int main_menu_loop()
 			tte_erase_rect(0, test, H_MAX, V_MAX);
 			ptgb_write("#{cx:0xF000}");
 			return return_values[curr_selection];
+		}
+		else if ((key_held(KEY_L) && key_held(KEY_R)))
+		{
+			return BTN_DEBUG_MENU;
 		}
 		else
 		{
@@ -473,7 +393,7 @@ int main(void)
 	bool debug = false;
 	while (!curr_GBA_rom.load_rom(debug))
 	{
-		if (IGNORE_GAME_PAK)
+		if (g_debug_options.ignore_game_pak)
 		{
 			debug = true;
 		}
@@ -495,7 +415,7 @@ int main(void)
 
 	set_background_pal(curr_GBA_rom.gamecode, false, true);
 
-	if (!IGNORE_MG_E4_FLAGS && (!get_tutorial_flag() || FORCE_TUTORIAL))
+	if (!g_debug_options.ignore_mg_e4_flags && (!get_tutorial_flag() || g_debug_options.force_tutorial))
 	{
 		obj_hide_multi(ptgb_logo_l, 2);
 		text_loop(BTN_TRANSFER);
@@ -552,12 +472,12 @@ int main(void)
 			obj_hide_multi(ptgb_logo_l, 2);
 			text_loop(SCRIPT_EVENT);
 			break;
-		case (BTN_TEXT_DEBUG):
-			tte_set_ink(INK_DARK_GREY);
-			REG_BG1CNT = (REG_BG1CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
+#if ENABLE_DEBUG_MENU
+		case (BTN_DEBUG_MENU):
 			obj_hide_multi(ptgb_logo_l, 2);
-			text_loop(SCRIPT_DEBUG);
+			show_debug_menu();
 			break;
+#endif
 		default:
 			global_next_frame();
 		}

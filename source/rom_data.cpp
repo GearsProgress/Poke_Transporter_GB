@@ -187,7 +187,7 @@ void rom_data::print_rom_info()
 bool rom_data::verify_rom()
 {
     return !rom_loaded ||
-           IGNORE_GAME_PAK ||
+           g_debug_options.ignore_game_pak ||
            ((gamecode == ((*(vu8 *)(0x80000AC)) << 0x10 | (*(vu8 *)(0x80000AD)) << 0x08 | (*(vu8 *)(0x80000AE)) << 0x00)) &&
             (language == (*(vu8 *)(0x80000AF))) &&
             (version == (*(vu8 *)(0x80000BC))));

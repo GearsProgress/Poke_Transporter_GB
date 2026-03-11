@@ -1,7 +1,7 @@
 #include "payloads/payload_builder.h"
 #include "gb_rom_values/base_gb_rom_struct.h"
 #include "payloads/z80_asm.h"
-#include "../../../include/debug_mode.h"
+#include "../../../include/dbg/debug_mode.h"
 #include <cstring>
 
 #define DATA_LOC (SHOW_DATA_PACKETS ? curr_rom.transferStringLocation : curr_rom.wEnemyMonSpecies)

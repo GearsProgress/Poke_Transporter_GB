@@ -154,6 +154,14 @@ MenuInputHandleState vertical_menu::handle_input()
     // the focused item widget gets the first chance to handle input, 
     // since it might have some special behavior for certain keys.
     result = items_[focused_index_]->handle_input();
+    if(result == MenuInputHandleState::HANDLED_UPDATE_VIEWPORT)
+    {
+        // the child widget is requesting that we update the viewport.
+        //  so we do that here and then degrade the result to HANDLED, 
+        // since we've already done the viewport update that the child widget requested.
+        update_viewport();
+        result = MenuInputHandleState::HANDLED; // degrade to HANDLED after updating the viewport
+    }
     if(result != MenuInputHandleState::NOT_HANDLED)
     {
         return result;
@@ -205,7 +213,10 @@ void vertical_menu::update_viewport()
 
     clear_viewport();
 
-    text_table.decompress(get_compressed_text_table(settings_.text_table_index));
+    if(settings_.text_table_index != INT32_MAX)
+    {
+        text_table.decompress(get_compressed_text_table(settings_.text_table_index));
+    }
 
     const unsigned num_visible_items = get_num_visible_items(settings_.height, settings_.margin_top, settings_.margin_bottom, settings_.item_height);
     const unsigned viewport_end_index = get_viewport_end_index(viewport_start_index_, num_visible_items, items_.size());

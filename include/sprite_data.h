@@ -46,6 +46,8 @@ extern OBJ_ATTR *cart_shell;
 #include "arrows.h"
 extern OBJ_ATTR *up_arrow;
 extern OBJ_ATTR *down_arrow;
+extern OBJ_ATTR *toggle_arrow_left;
+extern OBJ_ATTR *toggle_arrow_right;
 extern OBJ_ATTR *point_arrow;
 
 #include "unique_duel_frame_menu_sprites.h"

@@ -1,7 +1,7 @@
 #include <tonc.h>
 #include <cstring>
 #include "sprite_data.h"
-#include "debug_mode.h"
+#include "dbg/debug_mode.h"
 #include "gba_rom_values/base_gba_rom_struct.h"
 #include "global_frame_controller.h"
 
@@ -368,6 +368,8 @@ OBJ_ATTR *type_sprites[14] = {
 
 OBJ_ATTR *up_arrow = &obj_buffer[num_sprites++];
 OBJ_ATTR *down_arrow = &obj_buffer[num_sprites++];
+OBJ_ATTR *toggle_arrow_left = &obj_buffer[num_sprites++];
+OBJ_ATTR *toggle_arrow_right = &obj_buffer[num_sprites++];
 OBJ_ATTR *point_arrow = &obj_buffer[num_sprites++];
 
 OBJ_ATTR *box_select = &obj_buffer[num_sprites++];
@@ -446,11 +448,23 @@ void load_eternal_sprites()
     load_sprite_compressed(button_yes, button_yesTiles, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
     load_sprite_compressed(button_no, button_noTiles, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_64x32, 1);
     load_sprite_compressed(cart_label, Label_GreenTiles, curr_tile_id, GB_CART_PAL, ATTR0_SQUARE, ATTR1_SIZE_32x32, 1);
+
+    /**
+     * @brief Okay, the next lines to load the arrows are a bit confusing.
+     * Be aware that tempTileBuf is NOT a u8 array, but a u32 array!
+     * The incoming arrows image is 1bpp, but we convert it into 4bpp in tempTileBuf. So every pixel is a nibble.
+     *
+     * Still, every index of tempTileBuf is a full 32 bit integer, yet the third argument of load_sprite is a size_in_bytes.
+     * This is why those indexes look off. But they are correct.
+     */
     unsigned int tempTileBuf[48];
     BitUnPack(arrowsTiles, tempTileBuf, arrowsTilesLen, 1, 4);
     load_sprite(point_arrow, &tempTileBuf[32], 32, curr_tile_id, BTN_PAL, ATTR0_SQUARE, ATTR1_SIZE_8x8, 1);
+    load_sprite(toggle_arrow_right, &tempTileBuf[40], 32, curr_tile_id, BTN_PAL, ATTR0_SQUARE, ATTR1_SIZE_8x8, 1);
+    load_sprite(toggle_arrow_left, &tempTileBuf[40], 32, curr_tile_id, BTN_PAL, ATTR0_SQUARE, ATTR1_SIZE_8x8 | ATTR1_HFLIP, 1);
     load_sprite(down_arrow, &tempTileBuf[0], 64, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_16x8, 1);
     load_sprite(up_arrow, &tempTileBuf[16], 64, curr_tile_id, BTN_PAL, ATTR0_WIDE, ATTR1_SIZE_16x8, 1);
+
     load_sprite_compressed(link_frame1, link_frame1Tiles, curr_tile_id, LINK_CABLE_PAL, ATTR0_SQUARE, ATTR1_SIZE_32x32, 1);
     load_sprite_compressed(link_frame2, link_frame2Tiles, curr_tile_id, LINK_CABLE_PAL, ATTR0_WIDE, ATTR1_SIZE_8x32, 1);
     load_sprite_compressed(link_frame3, link_frame3Tiles, curr_tile_id, LINK_CABLE_PAL, ATTR0_WIDE, ATTR1_SIZE_16x32, 1);
@@ -469,12 +483,12 @@ void load_temp_box_sprites(PokeBox *box)
 {
     u32 curr_tile_id = global_tile_id_end;
 
-    if (!(IGNORE_GAME_PAK || IGNORE_GAME_PAK_SPRITES))
+    if (!(g_debug_options.ignore_game_pak || g_debug_options.ignore_game_pak_sprites))
     {
         for (int i = 0; i < 30; i++)
         {
             GBPokemon *curr_pkmn = box->getGBPokemon(i);
-            if (curr_pkmn->isValid || DONT_HIDE_INVALID_PKMN)
+            if (curr_pkmn->isValid || g_debug_options.dont_hide_invalid_pkmn)
             {
                 int dex_num = curr_pkmn->getSpeciesIndexNumber();
                 if (dex_num == 201)
@@ -855,7 +869,7 @@ void update_y_offset()
 
 void update_front_box_sprite(GBPokemon *curr_pkmn)
 {
-    if (IGNORE_GAME_PAK || IGNORE_GAME_PAK_SPRITES)
+    if (g_debug_options.ignore_game_pak || g_debug_options.ignore_game_pak_sprites)
     {
         return; // We don't want to look into garbage data, get out of here.
     }
@@ -900,7 +914,7 @@ void update_front_box_sprite(GBPokemon *curr_pkmn)
 
 void update_menu_sprite(PokeBox *box, int index, int frame)
 {
-    if (IGNORE_GAME_PAK || IGNORE_GAME_PAK_SPRITES)
+    if (g_debug_options.ignore_game_pak || g_debug_options.ignore_game_pak_sprites)
     {
         return; // We don't want to look into garbage data, get out of here.
     }

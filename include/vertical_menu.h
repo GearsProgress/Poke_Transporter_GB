@@ -16,6 +16,11 @@ enum class MenuInputHandleState
      */
     HANDLED,
     /**
+     * @brief Same as HANDLED, but also indicates that the viewport should be updated.
+     * degrades to HANDLED after passing through vertical_menu::handle_input()
+     */
+    HANDLED_UPDATE_VIEWPORT,
+    /**
      * @brief This value means that a choice was made.
      * This means that if the vertical_menu is running with ::run(), 
      * it should exit and return that choice.
@@ -75,14 +80,35 @@ private:
 
 typedef struct vertical_menu_settings
 {
+    // bounds properties
     unsigned x;
     unsigned y;
     unsigned width;
     unsigned height;
+
+    /**
+     * @brief The top margin (in pixels) after which we start rendering the first menu item.
+     */
     unsigned margin_top;
+
+    /**
+     * @brief The bottom margin (in pixels) after which we stop rendering the last menu item.
+     */
     unsigned margin_bottom;
+
+    /**
+     * @brief The index of the first item to be focused when the menu is shown.
+     */
     unsigned initial_focus_index;
+
+    /**
+     * @brief The height of each menu item in pixels. Will be used to position the items.
+     */
     unsigned item_height;
+
+    /**
+     * @brief This index defines which text table to use for the menu entries.
+     */
     int text_table_index;
 
     /**
@@ -215,18 +241,49 @@ private:
     bool is_focused_;
 };
 
+/**
+ * @brief Metadata for the simple_item_renderer below.
+ */
 typedef struct simple_item_widget_data
 {
+    /**
+     * @brief label text related properties.
+     */
     struct
     {
+        /**
+         * @brief The index of the text table (see vertical_menu_settings) entry to use as the label of this item.
+         */
         unsigned text_table_index;
+
+        /**
+         * @brief The left pixel offset after which we render the label text.
+         */
         unsigned margin_left;
+        /**
+         * @brief The top pixel offset after which we render the label text.
+         */
         unsigned margin_top;
     } text;
+
+    /**
+     * @brief The value this widget represents. This is useful for choice/input handling.
+     * But it won't be used if an on_execute_callback is set.
+     */
     unsigned value;
+
+    /**
+     * @brief Optional execute callback. This will be executed when the user presses A while this item is focused.
+     * If this is nullptr, then MenuInputHandleState::CHOICE_MADE will be returned when the user presses A,
+     * and the caller can check the value field to know what choice was made.
+     */
     void (*on_execute_callback)(void *context);
 } simple_item_widget_data;
 
+/**
+ * @brief This is the simplest possible item widget, which will just render a single line of text for a single item
+ * and allow you to press A to execute a callback. It's useful for simple menus that don't require toggles or multiple options.
+ */
 class simple_item_renderer : public i_item_widget
 {
 public:
