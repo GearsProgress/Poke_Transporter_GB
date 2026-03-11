@@ -21,7 +21,7 @@
 #include "pokedex.h"
 #include "global_frame_controller.h"
 #include "pkmn_font.h"
-#include "save_data_manager.h"
+#include "ptgb_save_data_manager.h"
 #include "mystery_gift_injector.h"
 #include "mystery_gift_builder.h"
 #include "multiboot_upload.h"
@@ -72,9 +72,9 @@ void load_graphics()
 	yes_no_menu.add_button(Button(button_no), false);
 }
 
-void initalization_script(void)
+void initialization_script(void)
 {
-	// Initalizations
+	// Initializations
 	REG_DISPCNT = DCNT_BLANK | DCNT_MODE0 | DCNT_BG0 | DCNT_BG1 | DCNT_BG2 | DCNT_BG3 | DCNT_OBJ | DCNT_OBJ_1D;
 
 	// Disable for save data read/write
@@ -452,7 +452,7 @@ static void __attribute__((noinline)) show_intro()
 int main(void)
 {
 	malloc_init_default_pool();
-	initalization_script();
+	initialization_script();
 
 	// Set colors based on current ROM
 	set_background_pal(0, false, false);
@@ -482,15 +482,15 @@ int main(void)
 			obj_hide_multi(ptgb_logo_l, 2);
 			global_next_frame();
 			game_load_error();
-			// initalization_script();
+			// initialization_script();
 		}
 	}
 
-	// Initalize memory and save data after loading the game
+	// Initialize memory and save data after loading the game
 	reset_textbox();
 	REG_BG2CNT = REG_BG2CNT | BG_PRIO(3);
 	init_bank();
-	initalize_memory_locations();
+	initialize_memory_locations();
 	load_custom_save_data();
 
 	set_background_pal(curr_GBA_rom.gamecode, false, true);
@@ -499,7 +499,7 @@ int main(void)
 	{
 		obj_hide_multi(ptgb_logo_l, 2);
 		text_loop(BTN_TRANSFER);
-		initalize_save_data();
+		initialize_save_data();
 		// TODO: We should be able to test for a Bootleg rom in here- if the save data isn't written, then it is bootleg.
 	}
 

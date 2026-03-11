@@ -12,7 +12,7 @@
 #include "gb_gen1_payloads_RB_lz10_bin.h"
 #include "gb_gen1_payloads_Y_lz10_bin.h"
 #include "gb_gen2_payloads_lz10_bin.h"
-#include "save_data_manager.h"
+#include "ptgb_save_data_manager.h"
 #include "libraries/Pokemon-Gen3-to-Gen-X/include/save.h"
 
 static byte gen1_rb_debug_box_data[0x462] = {

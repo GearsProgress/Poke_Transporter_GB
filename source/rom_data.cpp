@@ -3,7 +3,7 @@
 #include "pokemon_party.h"
 #include "pokemon_data.h"
 #include "text_engine.h"
-#include "save_data_manager.h"
+#include "ptgb_save_data_manager.h"
 #include "gba_rom_values/gba_rom_values.h"
 #include "libraries/nanoprintf/nanoprintf.h"
 #include "gba_rom_values_eng_lz10_bin.h"

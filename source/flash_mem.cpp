@@ -6,19 +6,17 @@
 #include "libraries/Pokemon-Gen3-to-Gen-X/include/save.h"
 #include "text_engine.h"
 
-#define pkmn_length 80
-#define READ_SAVE_SECTIONS 5
+#define READ_SAVE_SECTIONS 14
 #define TOTAL_SAVE_SECTIONS 14
 
 vu32 newest_save_offset = SAVE_A_OFFSET;
 
-vu32 memory_section_array[READ_SAVE_SECTIONS] = {};
+vu32 memory_section_array[READ_SAVE_SECTIONS];
 u8 global_memory_buffer[0x1000];
-char mem_name = 'A';
 u8 mem_id;
 
 // Fills the variables with the current offset information
-void initalize_memory_locations()
+void initialize_memory_locations()
 {
     u8 save_A_index[4];
     u8 save_B_index[4];
@@ -31,10 +29,12 @@ void initalize_memory_locations()
     if (*(vu32 *)save_B_index > *(vu32 *)save_A_index)
     {
         newest_save_offset = SAVE_B_OFFSET;
-        mem_name = 'B';
     }
 
     // Populates the memory_section_array with the correct pointer locations
+    // The sections within the save slot are rotated on every save. So it doesn't 
+    // start at the first section. However, the next sections follow sequentially.
+    // https://bulbapedia.bulbagarden.net/wiki/Save_data_structure_(Generation_III)#Section_ID
     copy_save_to_ram(newest_save_offset + SECTION_ID_OFFSET, &mem_id, 1);
     for (int i = 0; i < TOTAL_SAVE_SECTIONS; i++)
     {
@@ -99,6 +99,7 @@ void print_mem_section()
     /*
     uint16_t charset[256];
     byte out[4] = {0, 0, 0, 0xFF};
+    const char mem_name = (newest_save_offset == SAVE_A_OFFSET) ? 'A' : 'B';
 
     load_localized_charset(charset, 3, ENGLISH);
 
@@ -124,33 +125,28 @@ void reverse_endian(u8 *data, size_t size)
 
 void update_memory_buffer_checksum(bool hall_of_fame)
 {
-    vu32 checksum = 0x00;
+    u32 checksum = 0x00;
 
-    vu32 num_of_bytes = 3968;
-    if (global_memory_buffer[0x0FF4] == 13)
+    // Section 13 is the last PC buffer (I) and that one only has 2000 bytes of data.
+    // source: https://bulbapedia.bulbagarden.net/wiki/Save_data_structure_(Generation_III)#Section_ID
+    const u32 num_of_bytes = (global_memory_buffer[SECTION_ID_OFFSET] != 13) ? 3968 : 2000;
+
+    // the cpu is little endian and the data is read as little endian too.
+    // therefore, we can do a straightforward sum of the data as u32's.
+    const u32 *cur = (const u32 *)global_memory_buffer;
+    const u32 * const end = (const u32 *)(global_memory_buffer + num_of_bytes);
+    while (cur < end)
     {
-        num_of_bytes = 2000;
+        checksum += *cur;
+        ++cur;
     }
 
-    for (unsigned int i = 0; i < num_of_bytes / 4; i++)
-    {
-        checksum += (global_memory_buffer[(4 * i) + 3] << 24) |
-                    (global_memory_buffer[(4 * i) + 2] << 16) |
-                    (global_memory_buffer[(4 * i) + 1] << 8) |
-                    (global_memory_buffer[(4 * i) + 0] << 0);
-    }
+    const u16 small_checksum = ((checksum & 0xFFFF0000) >> 16) + (checksum & 0x0000FFFF);
+    const u32 checksum_offset = hall_of_fame ? 0x0FF4 : 0x0FF6;
+    
+    global_memory_buffer[checksum_offset] = small_checksum & 0x00FF;
+    global_memory_buffer[checksum_offset + 1] = (small_checksum & 0xFF00) >> 8;
 
-    vu16 small_checksum = ((checksum & 0xFFFF0000) >> 16) + (checksum & 0x0000FFFF);
-    if (hall_of_fame)
-    {
-        global_memory_buffer[0x0FF4] = small_checksum & 0x00FF;
-        global_memory_buffer[0x0FF5] = (small_checksum & 0xFF00) >> 8;
-    }
-    else
-    {
-        global_memory_buffer[0x0FF6] = small_checksum & 0x00FF;
-        global_memory_buffer[0x0FF7] = (small_checksum & 0xFF00) >> 8;
-    }
 }
 
 bool read_flag(u16 flag_id)

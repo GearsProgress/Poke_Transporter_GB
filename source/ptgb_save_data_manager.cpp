@@ -1,5 +1,5 @@
 #include <tonc.h>
-#include "save_data_manager.h"
+#include "ptgb_save_data_manager.h"
 #include "flash_mem.h"
 #include "debug_mode.h"
 #include "button_menu.h"
@@ -11,19 +11,14 @@ byte save_data_array[SAVE_DATA_SIZE];
 void load_custom_save_data()
 {
     copy_save_to_ram(HALL_OF_FAME + 0x1000, &global_memory_buffer[0], 0x1000);
-    for (int i = 0; i < SAVE_DATA_SIZE; i++)
-    {
-        save_data_array[i] = global_memory_buffer[HOF_SECTION + i];
-    }
+    memcpy(save_data_array, global_memory_buffer + HOF_SECTION, SAVE_DATA_SIZE);
 }
 
 void write_custom_save_data()
 {
     copy_save_to_ram(HALL_OF_FAME + 0x1000, &global_memory_buffer[0], 0x1000);
-    for (int i = 0; i < SAVE_DATA_SIZE; i++)
-    {
-        global_memory_buffer[HOF_SECTION + i] = save_data_array[i];
-    }
+    memcpy(global_memory_buffer + HOF_SECTION, save_data_array, SAVE_DATA_SIZE);
+
     update_memory_buffer_checksum(true);
     erase_sector(HALL_OF_FAME + 0x1000);
     copy_ram_to_save(&global_memory_buffer[0], HALL_OF_FAME + 0x1000, 0x1000);
@@ -59,12 +54,9 @@ bool get_tutorial_flag()
     return save_data_array[TUTORIAL_FLAG];
 }
 
-void initalize_save_data()
+void initialize_save_data()
 {
-    for (int i = 0; i < SAVE_DATA_SIZE; i++)
-    {
-        save_data_array[i] = 0;
-    }
+    memset(save_data_array, 0, SAVE_DATA_SIZE);
     set_tutorial_flag(true);
     write_custom_save_data();
 }
