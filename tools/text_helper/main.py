@@ -686,6 +686,7 @@ def transfer_xlsx_to_dict():
     box_type_include_box_breaks_col = find_column_by_aliases(box_type_columns, ("Include box breaks",))
     box_type_include_scrolling_col = find_column_by_aliases(box_type_columns, ("Include one line of scrolling",))
     box_type_pixels_per_char_col = find_optional_column_by_aliases(box_type_columns, ("Pixels per Char",))
+    box_type_box_style = find_column_by_aliases(box_type_columns, ("Box Style",))
 
     boxTypeDefinitions = {}
     boxTypeNames = []
@@ -708,6 +709,7 @@ def transfer_xlsx_to_dict():
             "pixelsInLine": box_type_row[box_type_pixels_in_line_col],
             "includeBoxBreaks": box_type_row[box_type_include_box_breaks_col],
             "includeScrolling": box_type_row[box_type_include_scrolling_col],
+            "boxStyle": box_type_row[box_type_box_style],
         }
         boxTypeIdByName[box_type_name] = len(boxTypeNames)
         boxTypeNames.append(box_type_name)
@@ -755,6 +757,7 @@ def transfer_xlsx_to_dict():
                                                                                        "pixelsInLine" : box_type_data["pixelsInLine"],
                                                                                        "includeBoxBreaks": box_type_data["includeBoxBreaks"],
                                                                                        "includeScrolling": box_type_data["includeScrolling"],
+                                                                                       "boxStyle": box_type_data["boxStyle"],
                                                                                        }
 
 def generate_header_file():
@@ -792,7 +795,7 @@ def generate_header_file():
         hFile.write("const int box_type_info[NUM_BOX_TYPES][NUM_BOX_TYPE_VALS] = {\n")
         for box_type_name in boxTypeNames:
             boxType = boxTypeDefinitions[box_type_name]
-            hFile.write(f"\t{{{boxType["numLines"]}, {boxType["pixelsInLine"]}, {boxType["pixelsPerChar"]}, {int(boxType["includeBoxBreaks"])}, {int(boxType["includeScrolling"])}}},\n")
+            hFile.write(f"\t{{{boxType["numLines"]}, {boxType["pixelsInLine"]}, {boxType["pixelsPerChar"]}, {int(boxType["includeBoxBreaks"])}, {int(boxType["includeScrolling"])}, {int(boxType["boxStyle"])}}},\n")
         hFile.write("};\n\n")
 
         hFile.write("const u8* get_compressed_text_table(int table_index);\n")
