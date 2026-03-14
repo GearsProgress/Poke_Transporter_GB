@@ -22,7 +22,7 @@ void show_debug_menu()
     load_localized_charset(charset, 3, ENGLISH);
     tte_erase_rect(0, 0, H_MAX, V_MAX);
     erase_textbox_tiles();
-    show_text_box();
+    show_textbox();
     tte_set_ink(INK_DARK_GREY);
 
     obj_unhide(toggle_arrow_left, 0);
@@ -54,7 +54,7 @@ void show_debug_menu()
 
     obj_hide(toggle_arrow_left);
     obj_hide(toggle_arrow_right);
-    hide_text_box();
+    hide_textbox();
     tte_erase_rect(0, 0, H_MAX, V_MAX);
 
     // execute any callback that was delayed by pressing the A button on an executable row.

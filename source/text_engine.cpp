@@ -124,15 +124,15 @@ int text_loop(int script)
     // tte_set_margins(LEFT, TOP, RIGHT, BOTTOM);
     if (script != SCRIPT_DEBUG)
     {
-        REG_BG1CNT = (REG_BG1CNT && !BG_PRIO_MASK) | BG_PRIO(2); // Show Fennel
-        show_text_box();
+        BG_FLEX = (BG_FLEX && !BG_PRIO_MASK) | BG_PRIO(2); // Show Fennel
+        show_textbox();
         while (true) // This loops through all the connected script objects
         {
             if (curr_text != NULL && curr_text[char_index] != 0xFF && curr_text[char_index] != 0xFB)
             {
                 tte_set_pos(LEFT, TOP);
                 tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
-                ptgb_write(curr_text, false);
+                ptgb_write_simple(curr_text, false);
             }
 
             wait_for_user_to_continue(false);
@@ -153,7 +153,7 @@ int text_loop(int script)
 
             if (text_exit)
             {
-                hide_text_box();
+                hide_textbox();
                 tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
                 text_exit = false;
                 return 0;
@@ -236,14 +236,14 @@ int text_loop(int script)
                 {
                     create_textbox(4, 1, 160, 80, true);
                 }
-                show_text_box();
+                show_textbox();
                 tte_erase_rect(0, 0, 240, 160);
-                ptgb_write(curr_text, instant_text);
+                ptgb_write_simple(curr_text, instant_text);
             }
 
             wait_for_user_to_continue(false);
             update_text = true;
-            hide_text_box();
+            hide_textbox();
 
             if (text_exit)
             {
@@ -272,24 +272,22 @@ int text_next_obj_id(script_obj current_line)
     }
 }
 
-void show_text_box()
-{
-    REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(1);
-}
-
-void hide_text_box()
-{
-    REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
-}
-
 void set_text_exit()
 {
     text_exit = true;
     key_poll(); // This removes the "A Hit" when exiting the text
 }
 
+// Implement a version that creates the textbox as well
+int ptgb_write_textbox(const byte *text, bool instant,
+                       int text_section, int text_key, bool eraseMainBox)
+{
+    create_textbox_new(text_section, text_key, eraseMainBox);
+    return ptgb_write(text, instant, 9999); // This is kinda silly but it'll work.
+}
+
 // Implement a version that just writes the whole string
-int ptgb_write(const byte *text, bool instant)
+int ptgb_write_simple(const byte *text, bool instant)
 {
     return ptgb_write(text, instant, 9999); // This is kinda silly but it'll work.
 }
@@ -346,7 +344,8 @@ int ptgb_write(const byte *text, bool instant, int length)
                 num += 1;
                 if (g_debug_options.display_control_char)
                 {
-                    for (uint i = 0; i < ch; i++){
+                    for (uint i = 0; i < ch; i++)
+                    {
                         tc->drawgProc(0xB9);
                     }
                 }
@@ -387,7 +386,7 @@ int ptgb_write(const byte *text, bool instant, int length)
             }
             num += 1;
         }
-        if (get_curr_flex_background() == BG_FENNEL && !instant)
+        if (get_curr_flex_background() == FLEXBG_FENNEL && !instant)
         {
             fennel_speak(((num / 4) % 4) + 1);
         }
@@ -421,18 +420,12 @@ int ptgb_write_debug(const u16 *charset, const char *text, bool instant)
             temp_holding[i] = get_char_from_charset(charset, text[i]);
         }
     }
-    return ptgb_write(temp_holding, instant);
-}
-
-// Adding this to avoid compiler issues temporarilly
-int ptgb_write(const char *text)
-{
-    return 0;
+    return ptgb_write_simple(temp_holding, instant);
 }
 
 void wait_for_user_to_continue(bool clear_text)
 {
-    if (get_curr_flex_background() == BG_FENNEL)
+    if (get_curr_flex_background() == FLEXBG_FENNEL)
     {
         if (get_missingno_enabled())
         {

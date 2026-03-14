@@ -107,7 +107,7 @@ void print_mem_section()
     out[1] = get_char_from_charset(charset, '-');
     out[2] = get_char_from_charset(charset, mem_id + 0xA1); // Kinda a dumb way to 
     tte_set_pos(0, 0);
-    ptgb_write(out, true);
+    ptgb_write_simple(out, true);
     */
 }
 

@@ -126,8 +126,8 @@ void print(const char *format, ...)
   tte_set_pos(LEFT, 0);
   for (int j = 0; j < 10; j++)
   {
-    ptgb_write("#{cx:0xE000}");
-    ptgb_write(spi_text_out_array[j]);
+    ptgb_write_simple(reinterpret_cast<const byte *>("#{cx:0xE000}"), true);
+    ptgb_write_simple(reinterpret_cast<const byte *>(spi_text_out_array[j]), true);
   }
 }
 
@@ -170,7 +170,7 @@ void setup(const u16 *debug_charset)
     text_data_table general_text(general_text_table_buffer);
 
     general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
-    ptgb_write(general_text.get_text_entry(GENERAL_connecting), true);
+    ptgb_write_simple(general_text.get_text_entry(GENERAL_connecting), true);
   }
 }
 
@@ -229,7 +229,7 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
         text_data_table general_text(general_text_table_buffer);
 
         general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
-        ptgb_write(general_text.get_text_entry(curr_gb_rom->version != YELLOW_ID ? GENERAL_link_success : GENERAL_link_success_yellow), true);
+        ptgb_write_simple(general_text.get_text_entry(curr_gb_rom->version != YELLOW_ID ? GENERAL_link_success : GENERAL_link_success_yellow), true);
       }
 
       link_animation_state(STATE_NO_ANIM);
@@ -281,7 +281,7 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
         text_data_table general_text(general_text_table_buffer);
 
         general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
-        ptgb_write(general_text.get_text_entry(GENERAL_transferring), true);
+        ptgb_write_simple(general_text.get_text_entry(GENERAL_transferring), true);
       }
 
       link_animation_state(STATE_TRANSFER);

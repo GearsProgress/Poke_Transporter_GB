@@ -4,6 +4,7 @@
 #include "dbg/debug_mode.h"
 #include "gba_rom_values/base_gba_rom_struct.h"
 #include "global_frame_controller.h"
+#include "background_engine.h"
 
 #define SPRITE_CHAR_BLOCK 4
 
@@ -27,7 +28,7 @@ void load_background()
     LZ77UnCompVram(backgroundTiles, &tile_mem[CBB][0]);
     // Load map into SBB 0
     LZ77UnCompVram(backgroundMap, &se_mem[SBB][0]);
-    REG_BG0CNT = BG_CBB(CBB) | BG_SBB(SBB) | BG_4BPP | BG_REG_32x32 | BG_PRIO(3);
+    BG_BACKDROP = BG_CBB(CBB) | BG_SBB(SBB) | BG_4BPP | BG_REG_32x32 | BG_PRIO(3);
 }
 
 void set_background_pal(int curr_rom_id, bool dark, bool fade)
@@ -127,13 +128,13 @@ void load_flex_background(int background_id, int layer)
 {
     // This prevents screen tearing on this frame
     global_next_frame();
-    REG_BG1CNT = (REG_BG1CNT && !BG_PRIO_MASK) | BG_PRIO(3);
+    BG_FLEX = (BG_FLEX && !BG_PRIO_MASK) | BG_PRIO(3);
 
     int CBB = 3;  // CBB is the tiles that make up the sprite
     int SBB = 31; // SSB is the array of which tile goes where
     switch (background_id)
     {
-    case (BG_OPENING):
+    case (FLEXBG_OPENING):
         // Load palette
         tonccpy(pal_bg_mem + 32, openingBGPal, openingBGPalLen);
         // Load tiles into CBB 0
@@ -144,7 +145,7 @@ void load_flex_background(int background_id, int layer)
         LZ77UnCompVram(openingBGMap, &se_mem[SBB][0]);
         REG_BG1VOFS = 96;
         break;
-    case (BG_FENNEL):
+    case (FLEXBG_FENNEL):
         // Load palette
         tonccpy(pal_bg_mem + 32, fennelBGPal, fennelBGPalLen);
         // Load tiles into CBB 0
@@ -155,7 +156,7 @@ void load_flex_background(int background_id, int layer)
         LZ77UnCompVram(fennelBGMap, &se_mem[SBB][0]);
         REG_BG1VOFS = FENNEL_SHIFT;
         break;
-    case (BG_DEX):
+    case (FLEXBG_DEX):
         // Load palette
         tonccpy(pal_bg_mem + 32, dexBGPal, dexBGPalLen);
         // Load tiles into CBB 0
@@ -166,7 +167,7 @@ void load_flex_background(int background_id, int layer)
         LZ77UnCompVram(dexBGMap, &se_mem[SBB][0]);
         REG_BG1VOFS = 0;
         break;
-    case (BG_MAIN_MENU):
+    case (FLEXBG_MAIN_MENU):
         // Load palette
         tonccpy(pal_bg_mem + 32, pal_bg_mem, backgroundPalLen);
         // Load tiles into CBB 0
@@ -177,7 +178,7 @@ void load_flex_background(int background_id, int layer)
         LZ77UnCompVram(menu_barsMap, &se_mem[SBB][0]);
         REG_BG1VOFS = 0;
         break;
-    case (BG_BOX):
+    case (FLEXBG_BOX):
         // Load palette
         tonccpy(pal_bg_mem + 32, boxBGPal, boxBGPalLen);
         // Load tiles into CBB 0
@@ -190,7 +191,7 @@ void load_flex_background(int background_id, int layer)
         break;
     }
 
-    REG_BG1CNT = BG_CBB(CBB) | BG_SBB(SBB) | BG_4BPP | BG_REG_32x32 | BG_PRIO(layer);
+    BG_FLEX = BG_CBB(CBB) | BG_SBB(SBB) | BG_4BPP | BG_REG_32x32 | BG_PRIO(layer);
     curr_flex_background = background_id;
 }
 #include "textBoxBG.h"
@@ -206,7 +207,7 @@ void load_textbox_background()
     reload_textbox_background();
 
     REG_BG2VOFS = 96;
-    REG_BG2CNT = BG_CBB(CBB) | BG_SBB(SBB) | BG_4BPP | BG_REG_32x32 | BG_PRIO(3);
+    BG_TEXTBOX = BG_CBB(CBB) | BG_SBB(SBB) | BG_4BPP | BG_REG_32x32 | BG_PRIO(3);
 }
 
 void reload_textbox_background()

@@ -1,6 +1,7 @@
 #include <tonc.h>
 #include "pokemon_data.h"
 #include "background_engine.h"
+#include "translated_text.h"
 
 #define CBB 0
 #define SBB 24
@@ -18,9 +19,18 @@ void background_frame(int global_frame_count)
         }
 }
 
-// This could honestly be an object... might want to do that in the future, depending on how complex using this gets
 void create_textbox(int startTileX, int startTileY, int text_space_width, int text_space_height, bool eraseMainBox)
+{ // Empty function for compiling
+}
+
+// This could honestly be an object... might want to do that in the future, depending on how complex using this gets
+void create_textbox_new(int text_section, int text_key, bool eraseMainBox)
 {
+        int box_type = text_box_type_tables[text_section][text_key];
+        int startTileX = box_type_info[box_type][BOX_TYPE_VAL_START_TILE_X];
+        int startTileY = box_type_info[box_type][BOX_TYPE_VAL_START_TILE_Y];
+        int text_space_width = box_type_info[box_type][BOX_TYPE_VAL_PIXELS_PER_LINE];
+        int text_space_height = box_type_info[box_type][BOX_TYPE_VAL_NUM_OF_LINES] * 16;
         if (eraseMainBox)
         {
                 erase_textbox_tiles();
@@ -42,12 +52,10 @@ void reset_textbox()
 
 void show_textbox()
 {
-        REG_BG0CNT = (REG_BG0CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
-        REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(2);
+        BG_TEXTBOX = (BG_TEXTBOX & ~BG_PRIO_MASK) | BG_PRIO(1);
 }
 
 void hide_textbox()
 {
-        REG_BG0CNT = (REG_BG0CNT & ~BG_PRIO_MASK) | BG_PRIO(2);
-        REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
+        BG_TEXTBOX = (BG_TEXTBOX & ~BG_PRIO_MASK) | BG_PRIO(3);
 }

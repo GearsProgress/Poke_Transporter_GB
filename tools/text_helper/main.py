@@ -50,7 +50,7 @@ class LanguageConfig:
         self.token_indexes = token_indexes
 
 PURPOSEFUL_SPACE_CHAR = '|'
-BACKGROUND_PAL_INDEX = 0
+BG_PAL_INDEX = 0
 
 BASE_DIR = Path(__file__).resolve().parent
 BUILD_DIR = BASE_DIR / "build"
@@ -74,6 +74,36 @@ def parse_build_args(argv):
 
 def normalize_column_name(name):
     return str(name).strip().lower()
+
+def normalize_box_type_header(name):
+    return "".join(ch for ch in str(name).lower() if ch.isalnum())
+
+def find_required_box_type_column(columns_by_normalized, required_key):
+    matches = []
+    for normalized, col in columns_by_normalized.items():
+        if required_key == "numLines":
+            if "line" in normalized and ("num" in normalized or "number" in normalized) and "pixel" not in normalized:
+                matches.append(col)
+        elif required_key == "pixelsPerChar":
+            if "pixel" in normalized and "char" in normalized:
+                matches.append(col)
+        elif required_key == "pixelsInLine":
+            if "pixel" in normalized and "line" in normalized:
+                matches.append(col)
+        elif required_key == "includeBoxBreaks":
+            if "box" in normalized and "break" in normalized:
+                matches.append(col)
+        elif required_key == "includeScrolling":
+            if "scroll" in normalized:
+                matches.append(col)
+        elif required_key == "boxStyle":
+            if "style" in normalized:
+                matches.append(col)
+    if len(matches) == 1:
+        return matches[0]
+    if len(matches) > 1:
+        raise KeyError(f"Multiple Box Types columns match '{required_key}': {matches}")
+    return None
 
 def find_column_by_aliases(columns, aliases):
     normalized_columns = {normalize_column_name(col): col for col in columns}
@@ -115,6 +145,8 @@ textSections = []
 boxTypeDefinitions = {}
 boxTypeNames = []
 boxTypeIdByName = {}
+boxTypeValueKeys = []
+boxTypeValueMeta = []
 fonts = {
     "International": Font("latin_normal", 1, 256, 16, 16, 16, 16, 16, 16),
     "Japanese": Font("japanese_normal", 1, 256, 16, 16, 16, 16, 16, 16),
@@ -262,17 +294,12 @@ def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, cen
         for char in word:
             if (char == PURPOSEFUL_SPACE_CHAR):
                 char = " "
-            if (pixelsPerChar == "Variable"):
+            if (pixelsPerChar == -1):
                 wordLength += language_char_array["font"].charWidthTable[convert_char_to_byte(ord(char), language_char_array["array"], lang)]
                 spaceLength = language_char_array["font"].charWidthTable[0]
-            elif (pixelsPerChar == "Default"):
-                if (lang == Languages.Japanese):
-                    wordLength += 8
-                    spaceLength = 8
-                
-                else:
-                    wordLength += 6
-                    spaceLength = 6
+            else:
+                wordLength += pixelsPerChar
+                spaceLength = pixelsPerChar
         
         # See if the whole sentence is a newline or scroll
         if (sentence == "Ň" or sentence == "Ş"):
@@ -371,6 +398,13 @@ def hash_excel(path):
         h.update(pd.util.hash_pandas_object(
             sheets[name], index=True
         ).values)
+    return h.digest()
+
+def hash_file_bytes(path):
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            h.update(chunk)
     return h.digest()
 
 def apply_escape_sequences(line, arr, escape_list):
@@ -611,7 +645,7 @@ def update_xlsx_file(build_xlsx_mode):
 
         # If cached file exists, compare hashes
         if TEXT_XLSX_PATH.exists():
-            if hash_excel(NEW_TEXT_XLSX_PATH) == hash_excel(TEXT_XLSX_PATH):
+            if hash_file_bytes(NEW_TEXT_XLSX_PATH) == hash_file_bytes(TEXT_XLSX_PATH):
                 print("\tDownloaded file is identical. Skipping parse.")
                 NEW_TEXT_XLSX_PATH.unlink()
                 return False
@@ -657,6 +691,8 @@ def transfer_xlsx_to_dict():
     global boxTypeDefinitions
     global boxTypeNames
     global boxTypeIdByName
+    global boxTypeValueKeys
+    global boxTypeValueMeta
 
     print("\tGetting character arrays")
     currSheet = pd.read_excel(TEXT_XLSX_PATH, sheet_name="Character Arrays", header=None)
@@ -680,13 +716,26 @@ def transfer_xlsx_to_dict():
     print("\tGetting box types")
     boxTypeSheet = pd.read_excel(TEXT_XLSX_PATH, sheet_name="Box Types")
     box_type_columns = list(boxTypeSheet.columns)
-    box_type_name_col = find_column_by_aliases(box_type_columns, ("Box Type",))
-    box_type_num_lines_col = find_column_by_aliases(box_type_columns, ("# of Lines",))
-    box_type_pixels_in_line_col = find_column_by_aliases(box_type_columns, ("Pixels per line",))
-    box_type_include_box_breaks_col = find_column_by_aliases(box_type_columns, ("Include box breaks",))
-    box_type_include_scrolling_col = find_column_by_aliases(box_type_columns, ("Include one line of scrolling",))
-    box_type_pixels_per_char_col = find_optional_column_by_aliases(box_type_columns, ("Pixels per Char",))
-    box_type_box_style = find_column_by_aliases(box_type_columns, ("Box Style",))
+    box_type_name_col = None
+    for col in box_type_columns:
+        if normalize_box_type_header(col) == "boxtype":
+            box_type_name_col = col
+            break
+    if box_type_name_col is None:
+        raise KeyError("Could not find 'Box Type' column in Box Types sheet.")
+
+    boxTypeValueKeys = []
+    boxTypeValueMeta = []
+    box_type_columns_by_normalized = {}
+    for col in box_type_columns:
+        if col == box_type_name_col:
+            continue
+        normalized = normalize_box_type_header(col)
+        if normalized in box_type_columns_by_normalized:
+            raise KeyError(f"Duplicate normalized Box Types column '{normalized}' found.")
+        box_type_columns_by_normalized[normalized] = col
+        boxTypeValueKeys.append(col)
+        boxTypeValueMeta.append({"key": col, "macro_name": str(col)})
 
     boxTypeDefinitions = {}
     boxTypeNames = []
@@ -698,19 +747,26 @@ def transfer_xlsx_to_dict():
         box_type_name = str(box_type_name).strip()
         if box_type_name in boxTypeDefinitions:
             raise KeyError(f"Duplicate Box Type '{box_type_name}' found in Box Types sheet.")
-        pixels_per_char = "Default"
-        if box_type_pixels_per_char_col is not None:
-            value = box_type_row[box_type_pixels_per_char_col]
-            if not pd.isna(value):
-                pixels_per_char = value
-        boxTypeDefinitions[box_type_name] = {
-            "numLines": box_type_row[box_type_num_lines_col],
-            "pixelsPerChar": pixels_per_char,
-            "pixelsInLine": box_type_row[box_type_pixels_in_line_col],
-            "includeBoxBreaks": box_type_row[box_type_include_box_breaks_col],
-            "includeScrolling": box_type_row[box_type_include_scrolling_col],
-            "boxStyle": box_type_row[box_type_box_style],
-        }
+        boxTypeDefinitions[box_type_name] = {}
+        for col in boxTypeValueKeys:
+            value = box_type_row[col]
+            if normalize_box_type_header(col) == "pixelsperchar" and pd.isna(value):
+                value = "Default"
+            boxTypeDefinitions[box_type_name][col] = value
+
+        required_keys = (
+            "numLines",
+            "pixelsPerChar",
+            "pixelsInLine",
+            "includeBoxBreaks",
+            "includeScrolling",
+            "boxStyle",
+        )
+        for internal_key in required_keys:
+            col = find_required_box_type_column(box_type_columns_by_normalized, internal_key)
+            if col is None:
+                raise KeyError(f"Missing required Box Types column matching '{internal_key}'.")
+            boxTypeDefinitions[box_type_name][internal_key] = boxTypeDefinitions[box_type_name][col]
         boxTypeIdByName[box_type_name] = len(boxTypeNames)
         boxTypeNames.append(box_type_name)
 
@@ -750,15 +806,9 @@ def transfer_xlsx_to_dict():
                     f"Unknown Box Type '{box_type_name}' for row key '{currRow[text_key_col]}' "
                     f"in section '{currRow[text_section_col]}'."
                 )
-            mainDict[lang.name][currRow[text_section_col]][currRow[text_key_col]] = {"bytes": text_value,
-                                                                                       "boxType": box_type_name,
-                                                                                       "numLines": box_type_data["numLines"],
-                                                                                       "pixelsPerChar": box_type_data["pixelsPerChar"],
-                                                                                       "pixelsInLine" : box_type_data["pixelsInLine"],
-                                                                                       "includeBoxBreaks": box_type_data["includeBoxBreaks"],
-                                                                                       "includeScrolling": box_type_data["includeScrolling"],
-                                                                                       "boxStyle": box_type_data["boxStyle"],
-                                                                                       }
+            entry = {"bytes": text_value, "boxType": box_type_name}
+            entry.update(box_type_data)
+            mainDict[lang.name][currRow[text_section_col]][currRow[text_key_col]] = entry
 
 def generate_header_file():
     print("\tGenerating header file")
@@ -789,17 +839,25 @@ def generate_header_file():
             box_type_id = boxTypeIdByName[box_type_name]
             hFile.write(f"#define BOX_TYPE_{sanitize_macro_token(box_type_name)} {box_type_id}\n")
         hFile.write(f"#define NUM_BOX_TYPES {len(boxTypeNames)}\n\n")
-        for index, definitions in enumerate(boxTypeDefinitions[boxTypeNames[0]]):
-            hFile.write(f"#define BOX_TYPE_VAL_{sanitize_macro_token(definitions)} {index}\n")
-        hFile.write(f"#define NUM_BOX_TYPE_VALS {len(boxTypeDefinitions[boxTypeNames[0]])}\n\n")
+        for index, meta in enumerate(boxTypeValueMeta):
+            hFile.write(f"#define BOX_TYPE_VAL_{sanitize_macro_token(meta['macro_name'])} {index}\n")
+        hFile.write(f"#define NUM_BOX_TYPE_VALS {len(boxTypeValueMeta)}\n\n")
         hFile.write("const int box_type_info[NUM_BOX_TYPES][NUM_BOX_TYPE_VALS] = {\n")
         for box_type_name in boxTypeNames:
             boxType = boxTypeDefinitions[box_type_name]
-            hFile.write(f"\t{{{boxType["numLines"]}, {boxType["pixelsInLine"]}, {boxType["pixelsPerChar"]}, {int(boxType["includeBoxBreaks"])}, {int(boxType["includeScrolling"])}, {int(boxType["boxStyle"])}}},\n")
+            values = []
+            for meta in boxTypeValueMeta:
+                key = meta["key"]
+                value = boxType[key]
+                if key in ("includeBoxBreaks", "includeScrolling", "boxStyle"):
+                    value = int(value)
+                values.append(str(value))
+            hFile.write(f"\t{{{', '.join(values)}}},\n")
         hFile.write("};\n\n")
 
         hFile.write("const u8* get_compressed_text_table(int table_index);\n")
         hFile.write("u8 get_text_box_type(int table_index, int text_index);\n")
+        hFile.write("extern const u8* const text_box_type_tables[NUM_TEXT_SECTIONS];\n")
 
 
         hFile.write("\n#endif")
@@ -831,6 +889,12 @@ def generate_cpp_file():
             cppFile.write(f"\nstatic const u8 {section_var}_box_types[] = {{")
             cppFile.write(",".join(box_type_macros))
             cppFile.write("\n};\n")
+
+        cppFile.write("\nextern const u8* const text_box_type_tables[NUM_TEXT_SECTIONS] = {")
+        for section in textSections:
+            section_var = sanitize_c_identifier(section)
+            cppFile.write(f"\n\t{section_var}_box_types,")
+        cppFile.write("\n};\n")
 
         cppFile.write("\nconst u8* get_compressed_text_table(int table_index)\n")
 
@@ -1021,7 +1085,7 @@ def generate_tables():
                     globalX = x + (charX * tilesPerCharX * pixelsPerTileX)
                     globalY = 0 + (charY * tilesPerCharY * pixelsPerTileY)
                     #print(f'x: {globalX}, y: {globalY}')
-                    if (pixels[globalY][globalX] == BACKGROUND_PAL_INDEX):
+                    if (pixels[globalY][globalX] == BG_PAL_INDEX):
                         myFont.charWidthTable[(charY * charsPerChartX) + charX] = x
                         break
 

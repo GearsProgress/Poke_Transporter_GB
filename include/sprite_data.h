@@ -106,11 +106,11 @@ extern OBJ_ATTR *grabbed_front_sprite;
 #define LINK_CABLE_PAL 13
 #define PULLED_SPRITE_PAL 14
 
-#define BG_OPENING 0
-#define BG_FENNEL 1
-#define BG_DEX 2
-#define BG_MAIN_MENU 3
-#define BG_BOX 4
+#define FLEXBG_OPENING 0
+#define FLEXBG_FENNEL 1
+#define FLEXBG_DEX 2
+#define FLEXBG_MAIN_MENU 3
+#define FLEXBG_BOX 4
 
 extern rom_data curr_GBA_rom;
 

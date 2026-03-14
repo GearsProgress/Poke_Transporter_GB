@@ -181,7 +181,7 @@ void rom_data::print_rom_info()
     npf_snprintf(buffer, sizeof(buffer), "%c-%d-%c", gameTypeChar, version, language);
 
     tte_set_pos(0, 8);
-    ptgb_write(buffer);
+    ptgb_write_simple(reinterpret_cast<const byte *>(buffer), true);
 }
 
 bool rom_data::verify_rom()

@@ -60,7 +60,7 @@ void load_graphics()
 
 	tte_erase_rect(0, 0, H_MAX, V_MAX);
 	// Load opening background first so it hides everything else
-	load_flex_background(BG_OPENING, 1);
+	load_flex_background(FLEXBG_OPENING, 1);
 	load_background();
 	load_textbox_background();
 	load_eternal_sprites();
@@ -105,7 +105,7 @@ void initialization_script(void)
 
 void game_load_error(void)
 {
-	REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(1);
+	BG_TEXTBOX = (BG_TEXTBOX & ~BG_PRIO_MASK) | BG_PRIO(1);
 
 	create_textbox(4, 1, 152, 100, true);
 
@@ -114,7 +114,7 @@ void game_load_error(void)
 		text_data_table general_text(general_text_table_buffer);
 
 		general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
-		ptgb_write(general_text.get_text_entry(GENERAL_cart_load_error), true);
+		ptgb_write_simple(general_text.get_text_entry(GENERAL_cart_load_error), true);
 	}
 
 	key_poll();
@@ -156,7 +156,7 @@ void first_load_message(void)
 		text_data_table general_text(general_text_table_buffer);
 
 		general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
-		ptgb_write(general_text.get_text_entry(GENERAL_intro_first), true);
+		ptgb_write_simple(general_text.get_text_entry(GENERAL_intro_first), true);
 	}
 
 	while (!key_hit(KEY_A))
@@ -181,14 +181,14 @@ int credits()
 		if (update)
 		{
 			create_textbox(1, 1, 200, 120, true);
-			show_text_box();
-			ptgb_write(credits_text_table.get_text_entry(curr_credits_num), true);
+			show_textbox();
+			ptgb_write_simple(credits_text_table.get_text_entry(curr_credits_num), true);
 			update = false;
 		}
 
 		if (key_hit(KEY_B))
 		{
-			hide_text_box();
+			hide_textbox();
 			reset_textbox();
 			return 0;
 		}
@@ -240,7 +240,7 @@ int main_menu_loop()
 				{
 					tte_set_ink(INK_ROM_COLOR);
 				}
-				ptgb_write(text_entry, true);
+				ptgb_write_simple(text_entry, true);
 				test++;
 			}
 		}
@@ -257,7 +257,7 @@ int main_menu_loop()
 		else if (key_hit(KEY_A))
 		{
 			tte_erase_rect(0, test, H_MAX, V_MAX);
-			ptgb_write("#{cx:0xF000}");
+			ptgb_write_simple(reinterpret_cast<const byte *>("#{cx:0xF000}"), true);
 			return return_values[curr_selection];
 		}
 		else if ((key_held(KEY_L) && key_held(KEY_R)))
@@ -279,7 +279,7 @@ static void show_legal_text(const u8 *intro_text)
 	tte_set_margins(4, 0, H_MAX - 4, V_MAX);
 	tte_set_pos(4, 0);
 	tte_set_ink(INK_ROM_COLOR);
-	ptgb_write(intro_text, true);
+	ptgb_write_simple(intro_text, true);
 	bool wait = true;
 	while (wait)
 	{
@@ -332,7 +332,7 @@ static void __attribute__((noinline)) show_intro()
 	show_legal_text(text_entry);
 	show_gears_of_progress();
 
-	REG_BG1CNT = REG_BG1CNT | BG_PRIO(3);
+	BG_FLEX = BG_FLEX | BG_PRIO(3);
 
 	key_poll(); // Reset the keys
 	curr_GBA_rom.load_rom(false);
@@ -358,7 +358,7 @@ static void __attribute__((noinline)) show_intro()
 	tte_set_pos(x, 12 * 8);
 
 	tte_set_ink(INK_DARK_GREY);
-	ptgb_write(press_start_text, true);
+	ptgb_write_simple(press_start_text, true);
 
 	int fade = 0;
 	while (!start_pressed)
@@ -409,7 +409,7 @@ int main(void)
 
 	// Initialize memory and save data after loading the game
 	reset_textbox();
-	REG_BG2CNT = REG_BG2CNT | BG_PRIO(3);
+	BG_TEXTBOX = BG_TEXTBOX | BG_PRIO(3);
 	init_bank();
 	initialize_memory_locations();
 	load_custom_save_data();
@@ -434,7 +434,7 @@ int main(void)
 			print_mem_section();
 			curr_GBA_rom.print_rom_info();
 		}
-		load_flex_background(BG_MAIN_MENU, 2);
+		load_flex_background(FLEXBG_MAIN_MENU, 2);
 
 		obj_unhide_multi(ptgb_logo_l, 1, 2);
 		obj_set_pos(ptgb_logo_l, 56, 12);
@@ -445,7 +445,7 @@ int main(void)
 		case (BTN_TRANSFER):
 			tte_set_ink(INK_DARK_GREY);
 			obj_hide_multi(ptgb_logo_l, 2);
-			load_flex_background(BG_FENNEL, 3);
+			load_flex_background(FLEXBG_FENNEL, 3);
 			text_loop(SCRIPT_TRANSFER);
 			break;
 		case (BTN_POKEDEX):
@@ -453,18 +453,18 @@ int main(void)
 			{
 				obj_hide_multi(ptgb_logo_l, 2);
 				global_next_frame();
-				load_flex_background(BG_DEX, 2);
+				load_flex_background(FLEXBG_DEX, 2);
 				set_background_pal(curr_GBA_rom.gamecode, true, false);
 				pokedex_loop();
-				load_flex_background(BG_DEX, 3);
+				load_flex_background(FLEXBG_DEX, 3);
 				set_background_pal(curr_GBA_rom.gamecode, false, false);
 			}
 			break;
 		case (BTN_CREDITS):
 			tte_set_ink(INK_DARK_GREY);
 			// create_textbox(0, 0, 160, 80, true);
-			// show_text_box();
-			REG_BG1CNT = (REG_BG1CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
+			// show_textbox();
+			BG_FLEX = (BG_FLEX & ~BG_PRIO_MASK) | BG_PRIO(3);
 			obj_set_pos(ptgb_logo_l, 56, 108);
 			obj_set_pos(ptgb_logo_r, 56 + 64, 108);
 			credits();

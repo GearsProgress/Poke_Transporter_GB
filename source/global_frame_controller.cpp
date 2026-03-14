@@ -28,7 +28,8 @@ static void __attribute__((noinline)) show_pulled_cart_error()
     text_data_table general_text(general_text_table_buffer);
 
     general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
-    ptgb_write(general_text.get_text_entry(GENERAL_pulled_cart_error), true);
+    ptgb_write_textbox(general_text.get_text_entry(GENERAL_pulled_cart_error), true,
+                       GENERAL_INDEX, GENERAL_pulled_cart_error, true);
 }
 
 void global_next_frame()
@@ -50,10 +51,9 @@ void global_next_frame()
         set_menu_sprite_pal(0);
         if (!curr_GBA_rom.verify_rom())
         {
-            REG_BG0CNT = (REG_BG0CNT & ~BG_PRIO_MASK) | BG_PRIO(2);
-            REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(1);
+            BG_BACKDROP = (BG_BACKDROP & ~BG_PRIO_MASK) | BG_PRIO(2);
+            BG_TEXTBOX = (BG_TEXTBOX & ~BG_PRIO_MASK) | BG_PRIO(1);
             tte_set_pos(40, 24);
-            create_textbox(4, 1, 160, 80, true);
             obj_hide_multi(ptgb_logo_l, num_sprites);
 
             show_pulled_cart_error();
@@ -215,7 +215,7 @@ void link_animation_state(int state)
 
 void determine_fennel_blink()
 {
-    if (get_curr_flex_background() == BG_FENNEL)
+    if (get_curr_flex_background() == FLEXBG_FENNEL)
     {
         if (fennel_blink_timer == 0)
         {
@@ -324,7 +324,9 @@ void convert_int_to_ptgb_str(int val, byte str[], int min_length)
             {
                 str[count] = 0xA1; // 0xA1 is 0 in the chart
                 count++;
-            } else {
+            }
+            else
+            {
                 first = false;
             }
         }
