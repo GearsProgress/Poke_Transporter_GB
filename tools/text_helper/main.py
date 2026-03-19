@@ -317,13 +317,13 @@ def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, cen
         elif (sentence == "ɑ" or sentence == "Ω"):
             if (sentence == "ɑ"):
                 centered = True
-                # If this is the first thing being added to outStr, don't add a newline
-                if (currLineCount != 0):
+                # Only advance when centering starts in the middle of an occupied line.
+                if (currLineCount != 0 and offset != 0):
                     outStr += "Ň"
             else:
                 centered = False
-                # Only advance if we're not already at the end of the box.
-                if (currLineCount != numLines):
+                # Only advance when centered text actually occupied the current line.
+                if (currLineCount != numLines and offset != 0):
                     outStr += "Ň"
             currLine = ""
             offset = 0
@@ -411,6 +411,10 @@ def hash_file_bytes(path):
     return h.digest()
 
 def apply_escape_sequences(line, arr, escape_list):
+    # Convert structural text controls to the formatter's internal sentinels
+    # before generic escape replacement so layout logic can see them reliably.
+    line = line.replace("{NEW}", 'Ň')
+
     for token, char_indexes in escape_list:
         if token in line:
             escape_string = "".join(arr[idx] for idx in char_indexes)
@@ -514,6 +518,7 @@ def convert_item(ogDict, lang):
                 outIndex += 1
             # Make sure both kinds of newlines are being accounted for
             box = box.replace('Ş', 'Ň')
+            leading_newlines = len(box) - len(box.lstrip('Ň'))
             splitLines = box.split('Ň')
             outBox = ""
             i = 1
@@ -528,6 +533,10 @@ def convert_item(ogDict, lang):
                 outBox += split + breakChar
                 outIndex += 1
                 i += 1
+            if leading_newlines:
+                existing_leading_newlines = len(outBox) - len(outBox.lstrip('Ň'))
+                if existing_leading_newlines < leading_newlines:
+                    outBox = ('Ň' * (leading_newlines - existing_leading_newlines)) + outBox
             if (outBox and (outBox[:-1] == 'ȼ') or (outBox[:-1] == 'Ň')):
                 newStr += f'{outBox[:-1]}ȼ'
             elif (outBox):

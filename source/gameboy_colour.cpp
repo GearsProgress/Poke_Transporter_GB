@@ -166,8 +166,8 @@ void setup(const u16 *debug_charset)
     text_data_table general_text(general_text_table_buffer);
 
     general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
-    ptgb_write_textbox(general_text.get_text_entry(GENERAL_connecting), true, true,
-                       GENERAL_INDEX, GENERAL_connecting, true);
+    ptgb_write_textbox(general_text.get_text_entry(GENERAL_connecting), true, false,
+                       GENERAL_INDEX, GENERAL_connecting, false);
   }
 }
 

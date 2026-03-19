@@ -127,7 +127,7 @@ int text_loop(int script)
             if (curr_text != NULL && curr_text[char_index] != 0xFF && curr_text[char_index] != 0xFB)
             {
                 ptgb_write_textbox(curr_text, false, true,
-                                   PTGB_INDEX, curr_line.get_text_entry_index(), true);
+                                   PTGB_INDEX, curr_line.get_text_entry_index(), false);
             }
 
             // wait_for_user_to_continue();
@@ -149,6 +149,7 @@ int text_loop(int script)
             if (text_exit)
             {
                 hide_textbox();
+                erase_textbox_tiles();
                 tte_erase_screen();
                 text_exit = false;
                 return 0;
@@ -198,13 +199,13 @@ int text_loop(int script)
                 }
                 if (update_text)
                 {
-                    if (text_key > text_section_lengths[text_section])
+                    if (text_key >= text_section_lengths[text_section])
                     {
-                        text_key = text_section_lengths[text_section];
+                        text_key = text_section_lengths[text_section] - 1;
                     }
-                    if (text_section > NUM_TEXT_SECTIONS)
+                    if (text_section >= NUM_TEXT_SECTIONS)
                     {
-                        text_section = NUM_TEXT_SECTIONS;
+                        text_section = NUM_TEXT_SECTIONS - 1;
                     }
                     tte_set_pos(0, 0);
                     tte_erase_rect(0, 0, 240, 160);
@@ -269,6 +270,7 @@ void set_text_exit()
 int ptgb_write_textbox(const byte *text, bool instant, bool waitForUser,
                        int text_section, int text_key, bool eraseMainBox)
 {
+    erase_textbox_tiles();
     create_textbox_new(text_section, text_key, eraseMainBox);
     int out = ptgb_write(text, instant, 9999, text_box_type_tables[text_section][text_key]); // This is kinda silly but it'll work.
     if (waitForUser)
