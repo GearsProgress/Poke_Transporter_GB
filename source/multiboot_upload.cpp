@@ -10,7 +10,7 @@
 static void multiboot_show_textbox()
 {
 	tte_erase_rect(0, 0, H_MAX, V_MAX);
-	create_textbox(4, 1, 152, 100, true);
+	//create_textbox(4, 1, 152, 100, true);
 }
 
 void multiboot_upload_screen()

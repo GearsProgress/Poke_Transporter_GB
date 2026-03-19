@@ -71,7 +71,7 @@ void show_debug_info_screen(void *context, unsigned user_param)
     n2hexstr(flags_hex_str, pkmn_flags);
     n2hexstr(def_lang_hex_str, def_lang);
 
-    create_textbox(4, 1, 160, 80, true);
+    //create_textbox(4, 1, 160, 80, true);
     show_textbox();
 
     npf_snprintf(text_buffer, sizeof(text_buffer),
