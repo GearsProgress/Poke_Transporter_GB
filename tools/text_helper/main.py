@@ -272,7 +272,7 @@ def split_into_sentences(text: str) -> list[str]:
     if sentences and not sentences[-1]: sentences = sentences[:-1]
     return sentences
  
-def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, centered, lang):
+def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, centered, lang, currLineCount, numLines):
     outStr = ""
     currLine = ""
     lineCount = 0
@@ -317,12 +317,15 @@ def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, cen
         elif (sentence == "ɑ" or sentence == "Ω"):
             if (sentence == "ɑ"):
                 centered = True
-                outStr += "Ň"
+                # If this is the first thing being added to outStr, don't add a newline
+                if (currLineCount != 0):
+                    outStr += "Ň"
             else:
                 centered = False
-                outStr += "Ň"
+                # Only advance if we're not already at the end of the box.
+                if (currLineCount != numLines):
+                    outStr += "Ň"
             currLine = ""
-            lineCount += 1
             offset = 0
             lineLength = 0
             currWordIndex += 1
@@ -461,7 +464,7 @@ def convert_item(ogDict, lang):
     escapeCount = 0
     centered = False
     while index < len(split_sents) and escapeCount < 100:
-        offset, recievedLine, out, centered = split_sentence_into_lines(split_sents[index], offset, pixelsPerChar, pixelsInLine, centered, lang)
+        offset, recievedLine, out, centered = split_sentence_into_lines(split_sents[index], offset, pixelsPerChar, pixelsInLine, centered, lang, currLine, numLines)
         currLine += recievedLine
         
         if (out == "ȼ"):
