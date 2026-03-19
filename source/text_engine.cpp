@@ -86,9 +86,6 @@ void init_text_engine()
     );
     tte_init_con();
 
-    // tte_set_margins(LEFT, TOP, RIGHT, BOTTOM);
-    // tte_set_pos(LEFT, TOP);
-
     pal_bg_bank[15][INK_WHITE] = CLR_WHITE;              // White
     pal_bg_bank[15][INK_DARK_GREY] = 0b0000110001100010; // Dark Grey
     // 14 will be changed to game color
@@ -152,7 +149,6 @@ int text_loop(int script)
             if (text_exit)
             {
                 hide_textbox();
-                // tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
                 tte_erase_screen();
                 text_exit = false;
                 return 0;
@@ -232,7 +228,6 @@ int text_loop(int script)
                                    text_section, text_key, true);
             }
 
-            // wait_for_user_to_continue();
             update_text = true;
             hide_textbox();
             tte_erase_rect(0, 0, H_MAX, V_MAX);

@@ -19,11 +19,6 @@ void background_frame(int global_frame_count)
         }
 }
 
-void create_textbox(int startTileX, int startTileY, int text_space_width, int text_space_height, bool eraseMainBox)
-{
-        // Blank for compiling for now
-}
-
 // This could honestly be an object... might want to do that in the future, depending on how complex using this gets
 void create_textbox_new(int text_section, int text_key, bool eraseMainBox)
 {
@@ -42,14 +37,6 @@ void create_textbox_new(int text_section, int text_key, bool eraseMainBox)
                         ((startTileX + 1) * 8) + text_space_width, ((startTileY + 1) * 8) + text_space_height);
         tte_erase_rect(0, 0, H_MAX, V_MAX);
         show_textbox();
-}
-
-void reset_textbox()
-{
-        //tte_erase_rect(0, 0, H_MAX, V_MAX);
-        reload_textbox_background();
-        //tte_set_pos(, TOP);
-        //tte_set_margins(LEFT, TOP, RIGHT, BOTTOM);
 }
 
 void show_textbox()

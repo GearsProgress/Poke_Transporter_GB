@@ -96,7 +96,7 @@ void show_debug_info_screen(void *context, unsigned user_param)
         if (key_hit(KEY_B))
         {
             hide_textbox();
-            reset_textbox();
+            reload_textbox_background();
             return;
         }
         global_next_frame();

@@ -816,7 +816,7 @@ bool run_conditional(int index)
         load_flex_background(FLEXBG_FENNEL, 3);
         link_animation_state(STATE_CONNECTION);
         party_data.start_link();
-        reset_textbox();
+        reload_textbox_background();
         load_flex_background(FLEXBG_FENNEL, 2);
         link_animation_state(0);
         return true;
