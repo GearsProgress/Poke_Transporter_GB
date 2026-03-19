@@ -58,8 +58,7 @@ Button_Menu yes_no_menu(1, 2, 40, 24, false);
 void load_graphics()
 {
 
-	tte_erase_rect(0, 0, H_MAX, V_MAX);
-	// Load opening background first so it hides everything else
+	//  Load opening background first so it hides everything else
 	load_flex_background(FLEXBG_OPENING, 1);
 	load_background();
 	load_textbox_background();
@@ -84,7 +83,7 @@ void initialization_script(void)
 	irq_init(NULL);
 	irq_enable(II_VBLANK);
 	// This currently crashes when you try to transfer a Pokemon:
-	//sound_init();
+	// sound_init();
 
 	// Graphics init
 	oam_init(obj_buffer, 128);
@@ -97,7 +96,6 @@ void initialization_script(void)
 	rand_set_seed(0x1216);
 
 	// Clean up the main screen quick
-	tte_erase_rect(0, 0, 240, 160);
 
 	VBlankIntrWait();
 	REG_DISPCNT &= ~DCNT_BLANK;
@@ -107,14 +105,13 @@ void game_load_error(void)
 {
 	BG_TEXTBOX = (BG_TEXTBOX & ~BG_PRIO_MASK) | BG_PRIO(1);
 
-	create_textbox(4, 1, 152, 100, true);
-
 	{
 		u8 general_text_table_buffer[2048];
 		text_data_table general_text(general_text_table_buffer);
 
 		general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
-		ptgb_write_simple(general_text.get_text_entry(GENERAL_cart_load_error), true);
+		ptgb_write_textbox(general_text.get_text_entry(GENERAL_cart_load_error), true, true,
+						   GENERAL_INDEX, GENERAL_cart_load_error, true);
 	}
 
 	key_poll();
@@ -122,8 +119,6 @@ void game_load_error(void)
 	{
 		global_next_frame();
 	} while (!key_hit(KEY_A) && !key_hit(KEY_SELECT));
-
-	tte_erase_rect(0, 0, H_MAX, V_MAX);
 
 	if (key_hit(KEY_SELECT))
 	{
@@ -147,8 +142,6 @@ void game_load_error(void)
 
 void first_load_message(void)
 {
-	tte_set_margins(8, 8, H_MAX - 8, V_MAX);
-	tte_set_pos(8, 8);
 	tte_set_ink(INK_ROM_COLOR);
 
 	{
@@ -163,7 +156,6 @@ void first_load_message(void)
 	{
 		global_next_frame();
 	}
-	tte_erase_rect(0, 0, H_MAX, V_MAX);
 }
 
 int credits()
@@ -180,16 +172,16 @@ int credits()
 	{
 		if (update)
 		{
-			create_textbox(1, 1, 200, 120, true);
-			show_textbox();
-			ptgb_write_simple(credits_text_table.get_text_entry(curr_credits_num), true);
+			ptgb_write_textbox(credits_text_table.get_text_entry(curr_credits_num), true, false,
+							   CREDITS_INDEX, curr_credits_num, false);
 			update = false;
 		}
 
 		if (key_hit(KEY_B))
 		{
+			tte_erase_rect(0, 0, H_MAX, V_MAX);
 			hide_textbox();
-			reset_textbox();
+			erase_textbox_tiles();
 			return 0;
 		}
 		if (key_hit(KEY_LEFT) && curr_credits_num > 0)
@@ -225,7 +217,6 @@ int main_menu_loop()
 	{
 		if (update)
 		{
-			tte_erase_rect(0, 80, 240, 160);
 			for (int i = 0; i < NUM_MENU_OPTIONS; i++)
 			{
 				text_entry = general_text.get_text_entry(menu_options[i]);
@@ -257,7 +248,6 @@ int main_menu_loop()
 		else if (key_hit(KEY_A))
 		{
 			tte_erase_rect(0, test, H_MAX, V_MAX);
-			ptgb_write_simple(reinterpret_cast<const byte *>("#{cx:0xF000}"), true);
 			return return_values[curr_selection];
 		}
 		else if ((key_held(KEY_L) && key_held(KEY_R)))
@@ -273,28 +263,9 @@ int main_menu_loop()
 	}
 }
 
-// Legal stuff
-static void show_legal_text(const u8 *intro_text)
-{
-	tte_set_margins(4, 0, H_MAX - 4, V_MAX);
-	tte_set_pos(4, 0);
-	tte_set_ink(INK_ROM_COLOR);
-	ptgb_write_simple(intro_text, true);
-	bool wait = true;
-	while (wait)
-	{
-		global_next_frame();
-		if (key_hit(KEY_A))
-		{
-			wait = false;
-		}
-	}
-}
-
 // Gears of Progress
 static void show_gears_of_progress()
 {
-	tte_erase_rect(0, 0, 240, 160);
 	REG_BG1VOFS = 0;
 	delay_counter = 0;
 	while (delay_counter < (15 * 60))
@@ -316,20 +287,17 @@ static void __attribute__((noinline)) show_intro()
 {
 	bool start_pressed = false;
 	u8 general_text_table_buffer[2048];
-	u8 press_start_text[32];
-	u8 press_start_text_length;
 
 	text_data_table general_text(general_text_table_buffer);
 	const u8 *text_entry;
 
 	general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
-
-	text_entry = general_text.get_text_entry(GENERAL_press_start);
-	press_start_text_length = get_string_char_count(text_entry);
-	memcpy(press_start_text, text_entry, press_start_text_length + 1);
 	text_entry = general_text.get_text_entry(GENERAL_intro_legal);
 
-	show_legal_text(text_entry);
+	tte_set_ink(INK_ROM_COLOR);
+	ptgb_write_textbox(text_entry, true, true,
+					   GENERAL_INDEX, GENERAL_intro_legal, true);
+
 	show_gears_of_progress();
 
 	BG_FLEX = BG_FLEX | BG_PRIO(3);
@@ -343,22 +311,12 @@ static void __attribute__((noinline)) show_intro()
 
 	REG_BLDCNT = BLD_BUILD(BLD_BG3, BLD_BG0, 1);
 
-#ifndef PTGB_BUILD_LANGUAGE
+	general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
+	text_entry = general_text.get_text_entry(GENERAL_press_start);
 
-#error PTGB_NOT_DEFINED
-#endif
-#ifndef JPN_ID
-#error JPN_ID_NOT_DEFINED
-#endif
-#pragma message "PTGB_BUILD_LANGUAGE=" PTGB_BUILD_LANGUAGE
-#pragma message "JPN_ID=" JPN_ID
-
-	int char_width = (PTGB_BUILD_LANGUAGE == JPN_ID ? 8 : 6);
-	int x = ((240 - (press_start_text_length * char_width)) / 2);
-	tte_set_pos(x, 12 * 8);
-
+	tte_set_pos(0, 12 * 8);
 	tte_set_ink(INK_DARK_GREY);
-	ptgb_write_simple(press_start_text, true);
+	ptgb_write_simple(text_entry, true);
 
 	int fade = 0;
 	while (!start_pressed)
@@ -383,7 +341,6 @@ int main(void)
 	{
 		first_load_message();
 	}*/
-
 	show_intro();
 
 	key_poll();
@@ -408,7 +365,6 @@ int main(void)
 	}
 
 	// Initialize memory and save data after loading the game
-	reset_textbox();
 	BG_TEXTBOX = BG_TEXTBOX | BG_PRIO(3);
 	init_bank();
 	initialize_memory_locations();
@@ -462,11 +418,8 @@ int main(void)
 			break;
 		case (BTN_CREDITS):
 			tte_set_ink(INK_DARK_GREY);
-			// create_textbox(0, 0, 160, 80, true);
-			// show_textbox();
 			BG_FLEX = (BG_FLEX & ~BG_PRIO_MASK) | BG_PRIO(3);
-			obj_set_pos(ptgb_logo_l, 56, 108);
-			obj_set_pos(ptgb_logo_r, 56 + 64, 108);
+			obj_hide_multi(ptgb_logo_l, 2);
 			credits();
 			break;
 		case (BTN_EVENTS):

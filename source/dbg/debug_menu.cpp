@@ -30,7 +30,7 @@ void show_debug_menu()
     const vertical_menu_settings menu_settings = {
         .x = 20,
         .y = 0,
-        .width = 200,
+        .width = 208,
         .height = 155,
         .margin_top = 8,
         .margin_bottom = 8,

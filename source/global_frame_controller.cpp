@@ -28,7 +28,7 @@ static void __attribute__((noinline)) show_pulled_cart_error()
     text_data_table general_text(general_text_table_buffer);
 
     general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
-    ptgb_write_textbox(general_text.get_text_entry(GENERAL_pulled_cart_error), true,
+    ptgb_write_textbox(general_text.get_text_entry(GENERAL_pulled_cart_error), true, true,
                        GENERAL_INDEX, GENERAL_pulled_cart_error, true);
 }
 
@@ -36,8 +36,6 @@ void global_next_frame()
 {
     key_poll();
     rand_next_frame();
-    // tte_set_pos(0, 0);
-    // tte_write(ptgb::to_string(get_rand_u32()));
     background_frame(global_frame_count);
     determine_fennel_blink();
     if (missingno_enabled)
@@ -53,7 +51,6 @@ void global_next_frame()
         {
             BG_BACKDROP = (BG_BACKDROP & ~BG_PRIO_MASK) | BG_PRIO(2);
             BG_TEXTBOX = (BG_TEXTBOX & ~BG_PRIO_MASK) | BG_PRIO(1);
-            tte_set_pos(40, 24);
             obj_hide_multi(ptgb_logo_l, num_sprites);
 
             show_pulled_cart_error();

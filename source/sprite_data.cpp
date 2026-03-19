@@ -275,37 +275,37 @@ void add_menu_box(int startTileX, int startTileY, int full_width, int full_heigh
     int SBB = 20;
 
     int start = (32 * startTileY) + startTileX;
-    int tiles = (full_height / 8) - 2; // For the extra 2 tiles
-    int rem = full_height % 8;
-    full_width /= 8;
+    int tiles = (full_height / 8) - 1; // For the flex edge
+    int vert_rem = full_height % 8;
+    full_width = (full_width / 8) - 1; // For the right edge
 
     // Corners
     se_mem[SBB][start] = TILE_NW;
     se_mem[SBB][start + full_width] = TILE_NE;
-    se_mem[SBB][start + (32 * (tiles + 1))] = TILE_SW_U_ARR[rem / 2];
-    se_mem[SBB][start + (32 * (tiles + 2))] = TILE_SW_L_ARR[rem / 2];
-    se_mem[SBB][start + (32 * (tiles + 1)) + full_width] = TILE_SE_U_ARR[rem / 2];
-    se_mem[SBB][start + (32 * (tiles + 2)) + full_width] = TILE_SE_L_ARR[rem / 2];
+    se_mem[SBB][start + (32 * (tiles))] = TILE_SW_U_ARR[vert_rem / 2];
+    se_mem[SBB][start + (32 * (tiles + 1))] = TILE_SW_L_ARR[vert_rem / 2];
+    se_mem[SBB][start + (32 * (tiles)) + full_width] = TILE_SE_U_ARR[vert_rem / 2];
+    se_mem[SBB][start + (32 * (tiles + 1)) + full_width] = TILE_SE_L_ARR[vert_rem / 2];
 
     // Top and bottom edge
     for (int i = 1; i < full_width; i++)
     {
         se_mem[SBB][start + i] = TILE_N;
-        se_mem[SBB][start + ((32 * (tiles + 1))) + i] = TILE_S_U_ARR[rem / 2];
-        se_mem[SBB][start + ((32 * (tiles + 2))) + i] = TILE_S_L_ARR[rem / 2];
+        se_mem[SBB][start + ((32 * (tiles))) + i] = TILE_S_U_ARR[vert_rem / 2];
+        se_mem[SBB][start + ((32 * (tiles + 1))) + i] = TILE_S_L_ARR[vert_rem / 2];
     }
 
     // Sides
-    for (int i = 0; i < tiles; i++)
+    for (int i = 1; i < tiles; i++)
     {
-        se_mem[SBB][start + (32 * (i + 1)) + full_width] = TILE_E;
-        se_mem[SBB][start + (32 * (i + 1))] = TILE_W;
+        se_mem[SBB][start + (32 * i) + full_width] = TILE_E;
+        se_mem[SBB][start + (32 * i)] = TILE_W;
     }
 
     // Middle
     for (int x = 1; x < full_width; x++)
     {
-        for (int y = 1; y < tiles + 1; y++)
+        for (int y = 1; y < tiles; y++)
         {
             se_mem[SBB][start + (32 * y) + x] = TILE_MID;
         }
