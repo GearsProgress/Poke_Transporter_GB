@@ -13,7 +13,8 @@
 #define BG_TEXT REG_BG3CNT
 
 void background_frame(int global_frame_count);
-void create_textbox_new(int text_section, int text_key, bool eraseMainBox);
+void create_textbox(int text_section, int text_key, bool eraseMainBox);
+void create_textbox(int startTileX, int startTileY, int text_space_width, int text_space_height, bool eraseMainBox);
 void show_textbox();
 void hide_textbox();
 #endif

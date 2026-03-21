@@ -98,6 +98,7 @@ int link_cable_memory_section_index = 0;
 
 void print(const char *format, ...)
 {
+  // I don't think this function is called anymore...
   va_list args;
   va_start(args, format);
 
@@ -123,10 +124,13 @@ void print(const char *format, ...)
   va_end(args);
 
   tte_erase_rect(0, 0, H_MAX, V_MAX);
+
   for (int j = 0; j < 10; j++)
   {
+    tte_erase_rect(0, 0, H_MAX, V_MAX);
+    tte_set_pos(0, 0);
     ptgb_write_simple(reinterpret_cast<const byte *>("#{cx:0xE000}"), true);
-    ptgb_write_simple(reinterpret_cast<const byte *>(spi_text_out_array[j]), true);
+    ptgb_write_simple((byte*)(spi_text_out_array[j]), true);
   }
 }
 
@@ -362,7 +366,6 @@ int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, PokeBo
 #define NUM_LINES 8
   int counter = 0;
   char stuff[NUM_LINES][LINE_WIDTH];
-
   while (true)
   {
     if (g_debug_options.print_link_data && key_held(KEY_L))
@@ -397,7 +400,7 @@ int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, PokeBo
       n2hexstr(&stuff[NUM_LINES - 1][18], out_data & 0xFF, 2);
       stuff[NUM_LINES - 1][20] = '\0';
 
-      //  create_textbox(0, 0, 125, 80, false);
+      create_textbox(0, 0, 125, 128, false);
       ptgb_write_debug(debug_charset, *stuff, true);
     }
     else if (g_debug_options.write_cable_data_to_save)

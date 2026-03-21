@@ -9,6 +9,7 @@
 #include "string.h"
 #include "text_data_table.h"
 #include "translated_text.h"
+#include "dbg/debug_mode.h"
 
 int global_frame_count = 0;
 bool rand_enabled = true;
@@ -208,6 +209,12 @@ void link_animation_state(int state)
         break;
     }
     curr_link_animation_state = state;
+
+    if (g_debug_options.print_link_data)
+    {
+        obj_hide(cart_shell);
+        obj_hide(cart_label);
+    }
 }
 
 void determine_fennel_blink()
