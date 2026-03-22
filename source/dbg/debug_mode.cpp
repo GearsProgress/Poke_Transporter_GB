@@ -4,7 +4,7 @@ debug_options g_debug_options =
 {
     .print_link_data = (false && DEBUG_MODE),
     .instant_text_speed = (false && DEBUG_MODE),
-    .ignore_game_pak = (true && DEBUG_MODE),
+    .ignore_game_pak = (false && DEBUG_MODE),
     .ignore_game_pak_sprites = (false && DEBUG_MODE),
     .ignore_link_cable = (false && DEBUG_MODE),
     .ignore_mg_e4_flags = (true && DEBUG_MODE),

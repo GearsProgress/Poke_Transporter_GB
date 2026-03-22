@@ -110,8 +110,8 @@ void game_load_error(void)
 		text_data_table general_text(general_text_table_buffer);
 
 		general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
-		ptgb_write_textbox(general_text.get_text_entry(GENERAL_cart_load_error), true, true,
-						   GENERAL_INDEX, GENERAL_cart_load_error, true);
+		ptgb_write_textbox(general_text.get_text_entry(GENERAL_cart_load_error), true, false,
+						   GENERAL_INDEX, GENERAL_cart_load_error, false);
 	}
 
 	key_poll();
@@ -119,6 +119,9 @@ void game_load_error(void)
 	{
 		global_next_frame();
 	} while (!key_hit(KEY_A) && !key_hit(KEY_SELECT));
+
+	tte_erase_rect(0, 0, H_MAX, V_MAX);
+	erase_textbox_tiles();
 
 	if (key_hit(KEY_SELECT))
 	{

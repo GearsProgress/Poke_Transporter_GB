@@ -7,12 +7,6 @@
 #include "translated_text.h"
 #include "text_data_table.h"
 
-static void multiboot_show_textbox()
-{
-	tte_erase_rect(0, 0, H_MAX, V_MAX);
-	//create_textbox(4, 1, 152, 100, true);
-}
-
 void multiboot_upload_screen()
 {
 	u8 general_text_table_buffer[2048];
@@ -21,8 +15,9 @@ void multiboot_upload_screen()
 
 	general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
 
-	multiboot_show_textbox();
-	ptgb_write_simple(general_text.get_text_entry(GENERAL_send_multiboot_instructions), true);
+	// multiboot_show_textbox();
+	ptgb_write_textbox(general_text.get_text_entry(GENERAL_send_multiboot_instructions), true,
+					   false, GENERAL_INDEX, GENERAL_send_multiboot_instructions, false);
 
 	// wait for key press
 	do
@@ -37,8 +32,9 @@ void multiboot_upload_screen()
 	}
 
 	// start upload
-	multiboot_show_textbox();
-	ptgb_write_simple(general_text.get_text_entry(GENERAL_send_multiboot_wait), true);
+	// multiboot_show_textbox();
+	ptgb_write_textbox(general_text.get_text_entry(GENERAL_send_multiboot_wait), true,
+					   false, GENERAL_INDEX, GENERAL_send_multiboot_wait, false);
 	global_next_frame();
 
 	const u32 romSize = 256 * 1024; // EWRAM = 256 KB
@@ -52,14 +48,16 @@ void multiboot_upload_screen()
 			// (when this returns true, the transfer will be canceled)
 		});
 	// show result
-	multiboot_show_textbox();
+	// multiboot_show_textbox();
 	if (multibootResult == LinkCableMultiboot::Result::SUCCESS)
 	{
-		ptgb_write_simple(general_text.get_text_entry(GENERAL_send_multiboot_success), true);
+		ptgb_write_textbox(general_text.get_text_entry(GENERAL_send_multiboot_success), true,
+						   false, GENERAL_INDEX, GENERAL_send_multiboot_success, false);
 	}
 	else
 	{
-		ptgb_write_simple(general_text.get_text_entry(GENERAL_send_multiboot_failure), true);
+		ptgb_write_textbox(general_text.get_text_entry(GENERAL_send_multiboot_failure), true,
+						   false, GENERAL_INDEX, GENERAL_send_multiboot_failure, false);
 	}
 
 	// wait for keypress again.
