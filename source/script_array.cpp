@@ -832,11 +832,11 @@ bool run_conditional(int index)
         return true;
 
     case CMD_SHOW_PROF:
-        load_flex_background(FLEXBG_FENNEL, 2);
+        //load_flex_background(FLEXBG_FENNEL, 3);
         return true;
 
     case CMD_HIDE_PROF:
-        load_flex_background(FLEXBG_FENNEL, 3);
+        //load_flex_background(FLEXBG_FENNEL, 3);
         return true;
 
     case CMD_SET_TUTOR_TRUE:

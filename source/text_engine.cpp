@@ -121,8 +121,7 @@ int text_loop(int script)
     // tte_set_margins(LEFT, TOP, RIGHT, BOTTOM);
     if (script != SCRIPT_DEBUG)
     {
-        BG_FLEX = (BG_FLEX && !BG_PRIO_MASK) | BG_PRIO(2); // Show Fennel
-        while (true)                                       // This loops through all the connected script objects
+        while (true) // This loops through all the connected script objects
         {
             if (curr_text != NULL && curr_text[char_index] != 0xFF && curr_text[char_index] != 0xFB)
             {
@@ -273,6 +272,11 @@ int ptgb_write_textbox(const byte *text, bool instant, bool waitForUser,
     tte_erase_rect(0, 0, H_MAX, V_MAX);
     erase_textbox_tiles();
     create_textbox(text_section, text_key, eraseMainBox);
+    // Set up Fennel if we are in a PTGB dialogue box
+    if (get_curr_flex_background() == FLEXBG_FENNEL && text_section == PTGB_INDEX)
+    {
+        load_flex_background(FLEXBG_FENNEL, 2);
+    }
     int out = ptgb_write(text, instant, 9999, text_box_type_tables[text_section][text_key]); // This is kinda silly but it'll work.
     if (waitForUser)
     {

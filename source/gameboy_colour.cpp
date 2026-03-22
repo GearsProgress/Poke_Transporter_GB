@@ -130,7 +130,7 @@ void print(const char *format, ...)
     tte_erase_rect(0, 0, H_MAX, V_MAX);
     tte_set_pos(0, 0);
     ptgb_write_simple(reinterpret_cast<const byte *>("#{cx:0xE000}"), true);
-    ptgb_write_simple((byte*)(spi_text_out_array[j]), true);
+    ptgb_write_simple((byte *)(spi_text_out_array[j]), true);
   }
 }
 
@@ -228,7 +228,8 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
         text_data_table general_text(general_text_table_buffer);
 
         general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
-        ptgb_write_simple(general_text.get_text_entry(curr_gb_rom->version != YELLOW_ID ? GENERAL_link_success : GENERAL_link_success_yellow), true);
+        ptgb_write_textbox(general_text.get_text_entry(GENERAL_link_success), true, false,
+                           GENERAL_INDEX, GENERAL_link_success, false);
       }
 
       link_animation_state(STATE_NO_ANIM);
@@ -278,7 +279,8 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
         text_data_table general_text(general_text_table_buffer);
 
         general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
-        ptgb_write_simple(general_text.get_text_entry(GENERAL_transferring), true);
+        ptgb_write_textbox(general_text.get_text_entry(GENERAL_transferring), true, false,
+                           GENERAL_INDEX, GENERAL_transferring, false);
       }
 
       link_animation_state(STATE_TRANSFER);
@@ -609,7 +611,7 @@ byte exchange_boxes(byte curr_in, byte *box_data_storage, GB_ROM *curr_gb_rom, c
       n2hexstr(&outArr[currRow][14], init_packet, 2);
       outArr[currRow][16] = ' ';
 
-      //create_textbox(0, 0, 125, 110, false);
+      // create_textbox(0, 0, 125, 110, false);
       link_animation_state(0);
       ptgb_write_debug(debug_charset, *outArr, true);
 
