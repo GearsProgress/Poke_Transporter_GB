@@ -116,6 +116,7 @@ int pokedex_loop()
                               // TODO: For some reason there is screen tearing here. Probably not noticable on console,
                               // but it should be removed at some point
 
+	tte_set_ink(INK_DARK_GREY);
     tte_set_pos(8, 146);
     ptgb_write_simple(kanto_name, true);
     convert_int_to_ptgb_str(kanto_dex_num, temp_string, 3);
@@ -205,6 +206,7 @@ int pokedex_loop()
         }
         if (update)
         {
+            tte_set_ink(INK_ROM_COLOR);
             tte_erase_rect(0, 0, 240, 140);
             int mythic_skip = 0;
             for (int i = 0; i < DEX_MAX; i++)
