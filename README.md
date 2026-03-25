@@ -27,6 +27,8 @@ EZ Flash Omega DE users, read [this](docs/EZ_Flash_Omega_DE.md)!
 
 Please note that transfering Pokémon will only work with a Game Boy Color Link Cable. Game Boy Advance Link Cables will not work.
 
+*Due to Poké Transporter GB being built off of a niche intereaction between the GameBoy and Game Boy Advance, there is currently **no** emulator that supports it. The code is expected to run correctly, but there is no way to communicate between the GameBoy and Game Boy Advanced within an emulator context at this time. Please check back in the future for other options if you do not have the physcial hardware needed to run it!*
+
 ## Modifications to Transfered Pokémon
 
 Poké Transporter GB utilizes the Pokémon Community Conversion Standard for converting Pokémon from Generation 1 and 2 to Generation 3. You can view the documentation for the PCCS [here](https://github.com/GearsProgress/Pokemon-Community-Conversion-Standard)!
