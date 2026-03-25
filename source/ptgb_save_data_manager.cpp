@@ -19,7 +19,7 @@ void write_custom_save_data()
     copy_save_to_ram(HALL_OF_FAME + 0x1000, &global_memory_buffer[0], 0x1000);
     memcpy(global_memory_buffer + HOF_SECTION, save_data_array, SAVE_DATA_SIZE);
 
-    update_memory_buffer_checksum(true);
+    update_memory_buffer_checksum(global_memory_buffer, true);
     erase_sector(HALL_OF_FAME + 0x1000);
     copy_ram_to_save(&global_memory_buffer[0], HALL_OF_FAME + 0x1000, 0x1000);
 }

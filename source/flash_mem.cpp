@@ -123,18 +123,18 @@ void reverse_endian(u8 *data, size_t size)
     }
 }
 
-void update_memory_buffer_checksum(bool hall_of_fame)
+void update_memory_buffer_checksum(u8 *sector_buffer, bool hall_of_fame)
 {
     u32 checksum = 0x00;
 
     // Section 13 is the last PC buffer (I) and that one only has 2000 bytes of data.
     // source: https://bulbapedia.bulbagarden.net/wiki/Save_data_structure_(Generation_III)#Section_ID
-    const u32 num_of_bytes = (global_memory_buffer[SECTION_ID_OFFSET] != 13) ? 3968 : 2000;
+    const u32 num_of_bytes = (sector_buffer[SECTION_ID_OFFSET] != 13) ? 3968 : 2000;
 
     // the cpu is little endian and the data is read as little endian too.
     // therefore, we can do a straightforward sum of the data as u32's.
-    const u32 *cur = (const u32 *)global_memory_buffer;
-    const u32 * const end = (const u32 *)(global_memory_buffer + num_of_bytes);
+    const u32 *cur = (const u32 *)sector_buffer;
+    const u32 * const end = (const u32 *)(sector_buffer + num_of_bytes);
     while (cur < end)
     {
         checksum += *cur;
@@ -144,8 +144,8 @@ void update_memory_buffer_checksum(bool hall_of_fame)
     const u16 small_checksum = ((checksum & 0xFFFF0000) >> 16) + (checksum & 0x0000FFFF);
     const u32 checksum_offset = hall_of_fame ? 0x0FF4 : 0x0FF6;
     
-    global_memory_buffer[checksum_offset] = small_checksum & 0x00FF;
-    global_memory_buffer[checksum_offset + 1] = (small_checksum & 0xFF00) >> 8;
+    sector_buffer[checksum_offset] = small_checksum & 0x00FF;
+    sector_buffer[checksum_offset + 1] = (small_checksum & 0xFF00) >> 8;
 
 }
 

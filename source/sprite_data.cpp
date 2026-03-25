@@ -874,6 +874,8 @@ void update_front_box_sprite(GBPokemon *curr_pkmn)
         return; // We don't want to look into garbage data, get out of here.
     }
 
+    // in load_temp_sprites(), we reserve 30 box sprite icons after global_tile_id_end. Each of them occupy 16 tiles.
+    // the grabbed_front_sprite comes right after it. And we load the pokémon front sprite directly into its tiles.
     u32 curr_tile_id = global_tile_id_end + (30 * 16);
 
     int dex_num = curr_pkmn->getSpeciesIndexNumber();

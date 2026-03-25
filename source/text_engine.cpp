@@ -11,6 +11,7 @@
 #include "fonts.h"
 #include "text_data_table.h"
 #include "background_engine.h"
+#include "pokemon_data.h"
 
 #define TEXT_CBB 0
 #define TEXT_SBB 10
@@ -418,7 +419,14 @@ int ptgb_write_debug(const u16 *charset, const char *text, bool instant)
         }
         else
         {
-            temp_holding[i] = get_char_from_charset(charset, text[i]);
+            u16 utf16_char;
+            // we need to use this conversion function in order to convert char values >= 0x80
+            // correctly to UTF-16 (which is used by the charset)
+            convert_utf8_to_utf16_char((const u8*)(text + i), utf16_char);
+            // WARNING: the conversion of the text characters from u8 to u16 done here, is incorrect
+            // for every character value >= 0x80. The character set uses UTF-16 to represent characters.
+            // But the input text is in UTF-8.
+            temp_holding[i] = get_char_from_charset(charset, utf16_char);
         }
     }
     return ptgb_write(temp_holding, instant);

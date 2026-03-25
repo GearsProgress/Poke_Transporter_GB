@@ -29,12 +29,13 @@ void print_mem_section();
 void reverse_endian(u8 *data, size_t size);
 
 /**
- * @brief This function will update the checksum in global_memory_buffer.
- * It assumes that global_memory_buffer contains one of the save data sections.
+ * @brief This function will update the checksum in the given sector buffer.
+ * It assumes that the sector buffer contains one of the save data sections.
  * 
+ * @param sector_buffer The buffer containing the save data section.
  * @param hall_of_fame This is needed to indicate if you're trying to save the hall of fame section. The checksum offset is slightly different there.
  */
-void update_memory_buffer_checksum(bool hall_of_fame);
+void update_memory_buffer_checksum(u8 *sector_buffer, bool hall_of_fame);
 bool read_flag(u16 flag_id);
 bool compare_map_and_npc_data(int map_bank, int map_id, int npc_id);
 

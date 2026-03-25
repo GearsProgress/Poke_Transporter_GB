@@ -40,7 +40,7 @@ bool inject_mystery(PokeBox* box)
 
     memcpy(global_memory_buffer, script.get_section30(), 0x1000);
 
-    update_memory_buffer_checksum(false);
+    update_memory_buffer_checksum(global_memory_buffer, false);
     erase_sector(0x1E000);
     copy_ram_to_save(&global_memory_buffer[0], 0x1E000, 0x1000);
 
@@ -74,7 +74,7 @@ bool inject_mystery(PokeBox* box)
     // Add in Mystery Script data
     memcpy(global_memory_buffer + curr_GBA_rom.offset_script + 4, script.get_script(), MG_SCRIPT_SIZE);
 
-    update_memory_buffer_checksum(false);
+    update_memory_buffer_checksum(global_memory_buffer, false);
     erase_sector(memory_section_array[4]);
     copy_ram_to_save(&global_memory_buffer[0], memory_section_array[4], 0x1000);
 
@@ -94,7 +94,7 @@ bool inject_mystery(PokeBox* box)
         }
     }
 
-    update_memory_buffer_checksum(false);
+    update_memory_buffer_checksum(global_memory_buffer, false);
     erase_sector(memory_section_array[memory_section]);
     copy_ram_to_save(&global_memory_buffer[0], memory_section_array[memory_section], 0x1000);
 
