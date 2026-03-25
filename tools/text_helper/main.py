@@ -272,7 +272,7 @@ def split_into_sentences(text: str) -> list[str]:
     if sentences and not sentences[-1]: sentences = sentences[:-1]
     return sentences
  
-def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, centered, lang, currLineCount, numLines):
+def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, centered, lang, currLineCount, numLines, entry_id=None):
     outStr = ""
     currLine = ""
     lineCount = 0
@@ -287,20 +287,7 @@ def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, cen
 
     while(currWordIndex < len(words)):
         word = words[currWordIndex]
-        wordLength = 0
-        # print(word)
-        
-        # Figure out the length of the word in pixels
-        for char in word:
-            if (char == PURPOSEFUL_SPACE_CHAR):
-                char = " "
-            if (pixelsPerChar == -1):
-                wordLength += language_char_array["font"].charWidthTable[convert_char_to_byte(ord(char), language_char_array["array"], lang)]
-                spaceLength = language_char_array["font"].charWidthTable[0]
-            else:
-                wordLength += pixelsPerChar
-                spaceLength = pixelsPerChar
-        
+
         # See if the whole sentence is a newline or scroll
         if (sentence == "Ň" or sentence == "Ş"):
             if (sentence == "Ň"):
@@ -313,7 +300,7 @@ def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, cen
             lineLength = 0
             currWordIndex += 1
 
-         # See if the whole sentence is a center character
+        # See if the whole sentence is a center character
         elif (sentence == "ɑ" or sentence == "Ω"):
             if (sentence == "ɑ"):
                 centered = True
@@ -329,7 +316,7 @@ def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, cen
             offset = 0
             lineLength = 0
             currWordIndex += 1
-            
+
         # See if the sentence is a new box
         elif(sentence == "ȼ"):
             outStr += sentence
@@ -337,32 +324,46 @@ def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, cen
             offset = 0
             lineLength = 0
             currWordIndex += 1
-            
-        # Test if the word is too long in general
-        elif (wordLength > pixelsInLine):
-            log_warning_error(lang, "Error", f"Word {word} exceeds alloted length ({pixelsInLine} pixels)")
-            currWordIndex += 1
-            
-        # Test if adding the word will go over our alloted space
-        elif ((wordLength + lineLength + offset) <= pixelsInLine):
-            # If not, add the word and increase the index
-            if (currWordIndex == (len(words) - 1)):
-                # Don't add a space to the end of the sentence.
-                currLine += word
-                lineLength += wordLength
-            else:
-                currLine += (word + " ")
-                lineLength += (wordLength + spaceLength)
-            currWordIndex += 1
-            
-        # We need to move to the next line
+
         else:
-            # Every line should already have a space at the end of it. Remove it here
-            outStr += (currLine[:-1] + "Ň")
-            currLine = ""
-            lineCount += 1
-            lineLength = 0
-            offset = 0
+            wordLength = 0
+
+            # Figure out the length of the word in pixels
+            for char in word:
+                if (char == PURPOSEFUL_SPACE_CHAR):
+                    char = " "
+                if (pixelsPerChar == -1):
+                    wordLength += language_char_array["font"].charWidthTable[convert_char_to_byte(ord(char), language_char_array["array"], lang, entry_id)]
+                    spaceLength = language_char_array["font"].charWidthTable[0]
+                else:
+                    wordLength += pixelsPerChar
+                    spaceLength = pixelsPerChar
+
+            # Test if the word is too long in general
+            if (wordLength > pixelsInLine):
+                log_warning_error(lang, "Error", f"Word {word} exceeds alloted length ({pixelsInLine} pixels)", entry_id)
+                currWordIndex += 1
+
+            # Test if adding the word will go over our alloted space
+            elif ((wordLength + lineLength + offset) <= pixelsInLine):
+                # If not, add the word and increase the index
+                if (currWordIndex == (len(words) - 1)):
+                    # Don't add a space to the end of the sentence.
+                    currLine += word
+                    lineLength += wordLength
+                else:
+                    currLine += (word + " ")
+                    lineLength += (wordLength + spaceLength)
+                currWordIndex += 1
+
+            # We need to move to the next line
+            else:
+                # Every line should already have a space at the end of it. Remove it here
+                outStr += (currLine[:-1] + "Ň")
+                currLine = ""
+                lineCount += 1
+                lineLength = 0
+                offset = 0
     if (centered and (len(words) > 0) and words[0] not in ['ɑ', 'ȼ', 'Ň', 'Ş']):
         count = ((pixelsInLine - lineLength) // 2)
         currLine = f'_[{count}]{currLine}'
@@ -370,11 +371,25 @@ def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, cen
     outStr += currLine
     return lineLength + offset, lineCount, outStr, centered
 
-def convert_char_to_byte(incoming, array, lang):
+def get_text_pixel_length(text, pixelsPerChar, language_char_array, lang, entry_id=None):
+    if not text:
+        return 0
+
+    total = 0
+    for char in text:
+        if char == PURPOSEFUL_SPACE_CHAR:
+            char = " "
+        if pixelsPerChar == -1:
+            total += language_char_array["font"].charWidthTable[convert_char_to_byte(ord(char), language_char_array["array"], lang, entry_id)]
+        else:
+            total += pixelsPerChar
+    return total
+
+def convert_char_to_byte(incoming, array, lang, entry_id=None):
     for pair in charConversionList:
         if incoming == ord(pair[0]):
             incoming = ord(pair[1])
-            log_warning_error(lang, "Warning", f"Character {pair[0]} was used but is not in character table. Replaced with {pair[1]} .")
+            log_warning_error(lang, "Warning", f"Character {pair[0]} was used but is not in character table. Replaced with {pair[1]} .", entry_id)
     
     index = 0
     #print(array)
@@ -383,12 +398,13 @@ def convert_char_to_byte(incoming, array, lang):
             return index
         index += 1    
     if chr(incoming) != '_':
-        log_warning_error(lang, "Error", f"No match found for char [ {chr(incoming)} ]!")
+        log_warning_error(lang, "Error", f"No match found for char [ {chr(incoming)} ]!", entry_id)
     return 0
     
-def log_warning_error(lang, type, text):
+def log_warning_error(lang, type, text, entry_id=None):
     nType = type + "s"
-    nText = type + ": " + text
+    prefix = f"[{entry_id}] " if entry_id is not None and str(entry_id).strip() != "" else ""
+    nText = prefix + type + ": " + text
     if nText not in mainDict[lang.name][nType].values():
         mainDict[lang.name][nType][max(mainDict[lang.name][nType].keys(), default =- 1) + 1] = nText
         #print(nText)
@@ -440,6 +456,7 @@ def apply_language_tokens(line, arr, lang):
 
 def convert_item(ogDict, lang):
     line = ogDict["bytes"]
+    entry_id = ogDict.get("entryId")
     numLines = ogDict["numLines"]
     pixelsPerChar = ogDict["pixelsPerChar"]
     pixelsInLine = ogDict["pixelsInLine"]
@@ -468,7 +485,9 @@ def convert_item(ogDict, lang):
     escapeCount = 0
     centered = False
     while index < len(split_sents) and escapeCount < 100:
-        offset, recievedLine, out, centered = split_sentence_into_lines(split_sents[index], offset, pixelsPerChar, pixelsInLine, centered, lang, currLine, numLines)
+        prev_offset = offset
+        prev_curr_line = currLine
+        offset, recievedLine, out, centered = split_sentence_into_lines(split_sents[index], offset, pixelsPerChar, pixelsInLine, centered, lang, currLine, numLines, entry_id)
         currLine += recievedLine
         
         if (out == "ȼ"):
@@ -488,7 +507,18 @@ def convert_item(ogDict, lang):
             outStr += out
         else:
             if not include_box_breaks:
-                log_warning_error(lang, "Error", f"Attempted to make a new text box when disabled, sentence \"{outStr}\" is too long!")
+                remaining_lines = max(0, (numLines + int(include_scrolling)) - prev_curr_line)
+                if remaining_lines > 0:
+                    remaining_pixels = max(0, pixelsInLine - prev_offset) + ((remaining_lines - 1) * pixelsInLine)
+                else:
+                    remaining_pixels = 0
+                required_pixels = get_text_pixel_length(out.replace('Ň', '').replace('Ş', ''), pixelsPerChar, language_char_array, lang, entry_id)
+                overflow_pixels = max(0, required_pixels - remaining_pixels)
+                if overflow_pixels > 0:
+                    log_warning_error(lang, "Error", f"Attempted to make a new text box when disabled, sentence \"{outStr}\" is too long by at least {overflow_pixels} pixels!", entry_id)
+                else:
+                    extra_lines = max(1, currLine - (numLines + int(include_scrolling)) + 1)
+                    log_warning_error(lang, "Error", f"Attempted to make a new text box when disabled, sentence \"{outStr}\" requires at least {extra_lines} additional line(s)!", entry_id)
             # This tests if the character before the new box is a space, newline, or scroll(?)
             elif outStr and (outStr[-1] in (" ", "Ň", "Ş")):
                 outStr = outStr[:-1]
@@ -500,9 +530,17 @@ def convert_item(ogDict, lang):
 
             
     if escapeCount == 100:
-        log_warning_error(lang, "Error", f"Sentence \"{out}\" is too long!")
+        total_capacity = (numLines + int(include_scrolling)) * pixelsInLine
+        required_pixels = get_text_pixel_length(out.replace('Ň', '').replace('Ş', ''), pixelsPerChar, language_char_array, lang, entry_id)
+        overflow_pixels = max(0, required_pixels - total_capacity)
+        if overflow_pixels > 0:
+            log_warning_error(lang, "Error", f"Sentence \"{out}\" is too long by at least {overflow_pixels} pixels!", entry_id)
+        else:
+            log_warning_error(lang, "Error", f"Sentence \"{out}\" requires additional line(s) beyond the available box height!", entry_id)
 
     # It's safe to swap the purposeful spaces back
+    outStr = outStr.replace(f"Ň{PURPOSEFUL_SPACE_CHAR}", "Ň")
+    outStr = outStr.replace(f"Ş{PURPOSEFUL_SPACE_CHAR}", "Ş")
     outStr = outStr.replace(PURPOSEFUL_SPACE_CHAR, " ")
 
     # Some cases that should be fixed
@@ -545,7 +583,7 @@ def convert_item(ogDict, lang):
 
         if len(newStr) > 1023:
             newStr = newStr[:1023]
-            log_warning_error(lang, "Warning", f"String {newStr} exceeds character limit of 1023 and has been truncated.")
+            log_warning_error(lang, "Warning", f"String {newStr} exceeds character limit of 1023 and has been truncated.", entry_id)
 
         exitLoop = (newStr == outStr)
         outStr = newStr
@@ -564,10 +602,10 @@ def convert_item(ogDict, lang):
             num = int(val)
             byteStr += f"{num:02x} "
         else:
-            byteStr += f"{convert_char_to_byte(ord(char), arr, lang):02x} "
+            byteStr += f"{convert_char_to_byte(ord(char), arr, lang, entry_id):02x} "
         i += 1
     if (len(outStr) > 0 and outStr[-1] != ' '): # Check if the last char is a space
-        byteStr += f"{convert_char_to_byte(ord(outStr[-1]), arr, lang):02x} "
+        byteStr += f"{convert_char_to_byte(ord(outStr[-1]), arr, lang, entry_id):02x} "
         
     byteStr += "ff"
     
@@ -785,6 +823,7 @@ def transfer_xlsx_to_dict():
     text_section_col = find_column_by_aliases(sheet_columns, ("Text Section",))
     text_key_col = find_column_by_aliases(sheet_columns, ("Text Key", "Text ID", "Key"))
     box_type_col = find_column_by_aliases(sheet_columns, ("Box Type",))
+    entry_id_col = sheet_columns[0]
 
     language_columns = {
         lang: find_column_by_aliases(sheet_columns, get_language_config(lang).column_aliases)
@@ -818,7 +857,7 @@ def transfer_xlsx_to_dict():
                     f"Unknown Box Type '{box_type_name}' for row key '{currRow[text_key_col]}' "
                     f"in section '{currRow[text_section_col]}'."
                 )
-            entry = {"bytes": text_value, "boxType": box_type_name}
+            entry = {"bytes": text_value, "boxType": box_type_name, "entryId": currRow[entry_id_col]}
             entry.update(box_type_data)
             mainDict[lang.name][currRow[text_section_col]][currRow[text_key_col]] = entry
 
