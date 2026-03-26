@@ -280,9 +280,30 @@ def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, cen
     lineLength = 0
     spaceLength = 0
 
-    words = sentence.split()
     language_config = get_language_config(lang)
     language_char_array = language_config.char_array
+
+    def format_output_line(line, line_pixel_length, trim_trailing_space=False):
+        if trim_trailing_space and line.endswith(" "):
+            line = line[:-1]
+            line_pixel_length -= spaceLength
+
+        if centered and line:
+            count = ((pixelsInLine - line_pixel_length) // 2)
+            line = f'_[{count}]{line}'
+            line_pixel_length += count
+        return line, line_pixel_length
+
+    # A centered block may get split into multiple sentences for wrapping, but each
+    # centered sentence still needs to begin at a real line start.
+    if centered and offset != 0 and sentence not in ['ɑ', 'Ω', 'ȼ', 'Ň', 'Ş', '']:
+        outStr += "Ň"
+        lineCount += 1
+        offset = 0
+        if sentence.startswith(PURPOSEFUL_SPACE_CHAR):
+            sentence = sentence[1:]
+
+    words = sentence.split()
 
 
     while(currWordIndex < len(words)):
@@ -358,16 +379,15 @@ def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, cen
 
             # We need to move to the next line
             else:
-                # Every line should already have a space at the end of it. Remove it here
-                outStr += (currLine[:-1] + "Ň")
+                # Every wrapped line in a centered block needs its own horizontal offset.
+                formatted_line, _ = format_output_line(currLine, lineLength, trim_trailing_space=True)
+                outStr += (formatted_line + "Ň")
                 currLine = ""
                 lineCount += 1
                 lineLength = 0
                 offset = 0
     if (centered and (len(words) > 0) and words[0] not in ['ɑ', 'ȼ', 'Ň', 'Ş']):
-        count = ((pixelsInLine - lineLength) // 2)
-        currLine = f'_[{count}]{currLine}'
-        lineLength += count
+        currLine, lineLength = format_output_line(currLine, lineLength)
     outStr += currLine
     return lineLength + offset, lineCount, outStr, centered
 
@@ -988,13 +1008,19 @@ def output_json_file():
                 string = mainDict[lang.name][section][item]["bytes"].split(" ")
                 outText = ""
                 arr = get_language_config(lang).char_array["array"]
-                for byte in string:
-                    byte = arr[int(byte, 16)]
-                    outText += str(byte)
+                index = 0
+                while index < len(string):
+                    byte_value = int(string[index], 16)
+                    if byte_value == 0xFC and index + 1 < len(string):
+                        outText += f"_[{int(string[index + 1], 16)}]"
+                        index += 2
+                        continue
+                    outText += str(arr[byte_value])
+                    index += 1
                 mainDict[lang.name][section][item]["text"] = outText
 
-    with open(OUTPUT_JSON_PATH, 'w') as jsonFile:
-        jsonFile.write(json.dumps(mainDict))
+    with open(OUTPUT_JSON_PATH, 'w', encoding='utf-8') as jsonFile:
+        jsonFile.write(json.dumps(mainDict, ensure_ascii=False, indent=2))
 
 def are_generated_files_stale(source_files, generated_files):
     source_paths = [Path(path) for path in source_files]
