@@ -9,6 +9,7 @@ import hashlib
 import math
 import png
 import debugpy
+from dataclasses import dataclass
 
 class Languages(Enum):
     Japanese = 0
@@ -51,6 +52,30 @@ class LanguageConfig:
 
 PURPOSEFUL_SPACE_CHAR = '|'
 BG_PAL_INDEX = 0
+TOKEN_NEWLINE = "\uE000"
+TOKEN_BOX_BREAK = "\uE001"
+TOKEN_SCROLL_BREAK = "\uE002"
+TOKEN_CENTER_ON = "\uE003"
+TOKEN_CENTER_OFF = "\uE004"
+
+FORMAT_TOKEN_TO_BYTE_CHAR = {
+    TOKEN_NEWLINE: "Ň",
+    TOKEN_BOX_BREAK: "ȼ",
+    TOKEN_SCROLL_BREAK: "Ş",
+    TOKEN_CENTER_ON: "ɑ",
+    TOKEN_CENTER_OFF: "Ω",
+}
+BYTE_CHAR_TO_FORMAT_TOKEN = {value: key for key, value in FORMAT_TOKEN_TO_BYTE_CHAR.items()}
+
+def format_internal_tokens(text):
+    for token, byte_char in FORMAT_TOKEN_TO_BYTE_CHAR.items():
+        text = text.replace(token, byte_char)
+    return text
+
+def normalize_control_glyphs_to_tokens(text):
+    for byte_char, token in BYTE_CHAR_TO_FORMAT_TOKEN.items():
+        text = text.replace(byte_char, token)
+    return text
 
 BASE_DIR = Path(__file__).resolve().parent
 BUILD_DIR = BASE_DIR / "build"
@@ -140,7 +165,26 @@ def sanitize_c_identifier(text):
         out = "n_" + out
     return out
 
+@dataclass
+class TextBuildContext:
+    storage: dict
+
+    def initialize_storage(self, sections):
+        self.storage.clear()
+        for lang in Languages:
+            self.storage[lang.name] = {section: {} for section in sections}
+            self.storage[lang.name]["Warnings"] = {}
+            self.storage[lang.name]["Errors"] = {}
+
+    def log(self, lang, level, text, entry_id=None):
+        bucket = level + "s"
+        prefix = f"[{entry_id}] " if entry_id is not None and str(entry_id).strip() != "" else ""
+        message = prefix + level + ": " + format_internal_tokens(text)
+        if message not in self.storage[lang.name][bucket].values():
+            self.storage[lang.name][bucket][max(self.storage[lang.name][bucket].keys(), default=-1) + 1] = message
+
 mainDict = {}
+build_context = TextBuildContext(mainDict)
 textSections = []
 boxTypeDefinitions = {}
 boxTypeNames = []
@@ -261,18 +305,21 @@ def split_into_sentences(text: str) -> list[str]:
     text = text.replace("？","？<stop>") # Added for Japanese support
     text = text.replace("！","！<stop>") # Added for Japanese support
     text = text.replace("<prd>",".")
-    text = text.replace("Ň", "<stop>Ň<stop>") # Split newlines into their own sentences
-    text = text.replace("ȼ", "<stop>ȼ<stop>") # Split new boxes into their own sentences
-    text = text.replace("Ş", "<stop>Ş<stop>") # Split new boxes into their own sentences
-    text = text.replace("Ω", "<stop>Ω<stop>") # Split centering into their own sentences
-    text = text.replace("ɑ", "<stop>ɑ<stop>") # Split centering into their own sentences
+    for token in (
+        TOKEN_NEWLINE,
+        TOKEN_BOX_BREAK,
+        TOKEN_SCROLL_BREAK,
+        TOKEN_CENTER_OFF,
+        TOKEN_CENTER_ON,
+    ):
+        text = text.replace(token, f"<stop>{token}<stop>")
 
     sentences = text.split("<stop>")
     sentences = [s.strip() for s in sentences]
     if sentences and not sentences[-1]: sentences = sentences[:-1]
     return sentences
  
-def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, centered, lang, currLineCount, numLines, entry_id=None):
+def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, centered, lang, currLineCount, numLines, entry_id=None, context=None):
     outStr = ""
     currLine = ""
     lineCount = 0
@@ -296,8 +343,8 @@ def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, cen
 
     # A centered block may get split into multiple sentences for wrapping, but each
     # centered sentence still needs to begin at a real line start.
-    if centered and offset != 0 and sentence not in ['ɑ', 'Ω', 'ȼ', 'Ň', 'Ş', '']:
-        outStr += "Ň"
+    if centered and offset != 0 and sentence not in [TOKEN_CENTER_ON, TOKEN_CENTER_OFF, TOKEN_BOX_BREAK, TOKEN_NEWLINE, TOKEN_SCROLL_BREAK, '']:
+        outStr += TOKEN_NEWLINE
         lineCount += 1
         offset = 0
         if sentence.startswith(PURPOSEFUL_SPACE_CHAR):
@@ -310,11 +357,11 @@ def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, cen
         word = words[currWordIndex]
 
         # See if the whole sentence is a newline or scroll
-        if (sentence == "Ň" or sentence == "Ş"):
-            if (sentence == "Ň"):
-                outStr += "Ň"
-            elif (sentence == "Ş"):
-                outStr += "Ş"
+        if (sentence == TOKEN_NEWLINE or sentence == TOKEN_SCROLL_BREAK):
+            if (sentence == TOKEN_NEWLINE):
+                outStr += TOKEN_NEWLINE
+            elif (sentence == TOKEN_SCROLL_BREAK):
+                outStr += TOKEN_SCROLL_BREAK
             currLine = ""
             lineCount += 1
             offset = 0
@@ -322,24 +369,24 @@ def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, cen
             currWordIndex += 1
 
         # See if the whole sentence is a center character
-        elif (sentence == "ɑ" or sentence == "Ω"):
-            if (sentence == "ɑ"):
+        elif (sentence == TOKEN_CENTER_ON or sentence == TOKEN_CENTER_OFF):
+            if (sentence == TOKEN_CENTER_ON):
                 centered = True
                 # Only advance when centering starts in the middle of an occupied line.
                 if (currLineCount != 0 and offset != 0):
-                    outStr += "Ň"
+                    outStr += TOKEN_NEWLINE
             else:
                 centered = False
                 # Only advance when centered text actually occupied the current line.
                 if (currLineCount != numLines and offset != 0):
-                    outStr += "Ň"
+                    outStr += TOKEN_NEWLINE
             currLine = ""
             offset = 0
             lineLength = 0
             currWordIndex += 1
 
         # See if the sentence is a new box
-        elif(sentence == "ȼ"):
+        elif(sentence == TOKEN_BOX_BREAK):
             outStr += sentence
             currLine = ""
             offset = 0
@@ -362,7 +409,7 @@ def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, cen
 
             # Test if the word is too long in general
             if (wordLength > pixelsInLine):
-                log_warning_error(lang, "Error", f"Word {word} exceeds alloted length ({pixelsInLine} pixels)", entry_id)
+                log_warning_error(lang, "Error", f"Word {word} exceeds alloted length ({pixelsInLine} pixels)", entry_id, context)
                 currWordIndex += 1
 
             # Test if adding the word will go over our alloted space
@@ -381,17 +428,17 @@ def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, cen
             else:
                 # Every wrapped line in a centered block needs its own horizontal offset.
                 formatted_line, _ = format_output_line(currLine, lineLength, trim_trailing_space=True)
-                outStr += (formatted_line + "Ň")
+                outStr += (formatted_line + TOKEN_NEWLINE)
                 currLine = ""
                 lineCount += 1
                 lineLength = 0
                 offset = 0
-    if (centered and (len(words) > 0) and words[0] not in ['ɑ', 'ȼ', 'Ň', 'Ş']):
+    if (centered and (len(words) > 0) and words[0] not in [TOKEN_CENTER_ON, TOKEN_BOX_BREAK, TOKEN_NEWLINE, TOKEN_SCROLL_BREAK]):
         currLine, lineLength = format_output_line(currLine, lineLength)
     outStr += currLine
     return lineLength + offset, lineCount, outStr, centered
 
-def get_text_pixel_length(text, pixelsPerChar, language_char_array, lang, entry_id=None):
+def get_text_pixel_length(text, pixelsPerChar, language_char_array, lang, entry_id=None, context=None):
     if not text:
         return 0
 
@@ -400,16 +447,16 @@ def get_text_pixel_length(text, pixelsPerChar, language_char_array, lang, entry_
         if char == PURPOSEFUL_SPACE_CHAR:
             char = " "
         if pixelsPerChar == -1:
-            total += language_char_array["font"].charWidthTable[convert_char_to_byte(ord(char), language_char_array["array"], lang, entry_id)]
+            total += language_char_array["font"].charWidthTable[convert_char_to_byte(ord(char), language_char_array["array"], lang, entry_id, context)]
         else:
             total += pixelsPerChar
     return total
 
-def convert_char_to_byte(incoming, array, lang, entry_id=None):
+def convert_char_to_byte(incoming, array, lang, entry_id=None, context=None):
     for pair in charConversionList:
         if incoming == ord(pair[0]):
             incoming = ord(pair[1])
-            log_warning_error(lang, "Warning", f"Character {pair[0]} was used but is not in character table. Replaced with {pair[1]} .", entry_id)
+            log_warning_error(lang, "Warning", f"Character {pair[0]} was used but is not in character table. Replaced with {pair[1]} .", entry_id, context)
     
     index = 0
     #print(array)
@@ -418,16 +465,11 @@ def convert_char_to_byte(incoming, array, lang, entry_id=None):
             return index
         index += 1    
     if chr(incoming) != '_':
-        log_warning_error(lang, "Error", f"No match found for char [ {chr(incoming)} ]!", entry_id)
+        log_warning_error(lang, "Error", f"No match found for char [ {chr(incoming)} ]!", entry_id, context)
     return 0
     
-def log_warning_error(lang, type, text, entry_id=None):
-    nType = type + "s"
-    prefix = f"[{entry_id}] " if entry_id is not None and str(entry_id).strip() != "" else ""
-    nText = prefix + type + ": " + text
-    if nText not in mainDict[lang.name][nType].values():
-        mainDict[lang.name][nType][max(mainDict[lang.name][nType].keys(), default =- 1) + 1] = nText
-        #print(nText)
+def log_warning_error(lang, type, text, entry_id=None, context=None):
+    (context or build_context).log(lang, type, text, entry_id)
 
 def hash_excel(path):
     sheets = pd.read_excel(path, sheet_name=None)
@@ -449,7 +491,7 @@ def hash_file_bytes(path):
 def apply_escape_sequences(line, arr, escape_list):
     # Convert structural text controls to the formatter's internal sentinels
     # before generic escape replacement so layout logic can see them reliably.
-    line = line.replace("{NEW}", 'Ň')
+    line = line.replace("{NEW}", TOKEN_NEWLINE)
 
     for token, char_indexes in escape_list:
         if token in line:
@@ -457,9 +499,11 @@ def apply_escape_sequences(line, arr, escape_list):
             line = line.replace(token, escape_string)
 
     # Special case for centering escape characters
-    line = line.replace("{CTR}", 'ɑ')
-    line = line.replace("{nCTR}", 'Ω')
-    return line
+    line = line.replace("{CTR}", TOKEN_CENTER_ON)
+    line = line.replace("{nCTR}", TOKEN_CENTER_OFF)
+    # Some control markers also arrive via the language escape table as visible
+    # glyphs. Normalize those too so layout treats them consistently.
+    return normalize_control_glyphs_to_tokens(line)
 
 def apply_language_tokens(line, arr, lang):
     indexes = get_language_config(lang).token_indexes
@@ -474,7 +518,147 @@ def apply_language_tokens(line, arr, lang):
         .replace("{NO}", arr[no_index])
     )
 
-def convert_item(ogDict, lang):
+@dataclass
+class FormatState:
+    out_text: str = ""
+    current_line_count: int = 0
+    current_offset: int = 0
+    escape_count: int = 0
+    centered: bool = False
+
+def preserve_punctuation_spacing(line):
+    spaces = [' ', '　']
+    puncts = ['.', '?', '!', '。', '！', '？']
+    for space in spaces:
+        for punct in puncts:
+            line = line.replace(punct + space, punct + PURPOSEFUL_SPACE_CHAR)
+    return line
+
+def append_formatted_sentence(state, out, include_scrolling, numLines):
+    if out == TOKEN_BOX_BREAK:
+        state.current_offset = 0
+        state.current_line_count = 0
+        if state.out_text and (state.out_text[-1] in (" ", TOKEN_NEWLINE, TOKEN_SCROLL_BREAK)):
+            state.out_text = state.out_text[:-1]
+        state.out_text += TOKEN_BOX_BREAK
+        return True
+
+    if state.current_line_count < (numLines + int(include_scrolling)):
+        if state.out_text and out and state.out_text[-1] == TOKEN_BOX_BREAK and out[0] in (" ", TOKEN_NEWLINE, TOKEN_SCROLL_BREAK):
+            out = out[1:]
+        state.out_text += out
+        return True
+
+    return False
+
+def handle_box_overflow(state, out, numLines, include_scrolling, include_box_breaks, prev_offset, prev_curr_line,
+                        pixelsInLine, pixelsPerChar, language_char_array, lang, entry_id, context=None):
+    if not include_box_breaks:
+        remaining_lines = max(0, (numLines + int(include_scrolling)) - prev_curr_line)
+        if remaining_lines > 0:
+            remaining_pixels = max(0, pixelsInLine - prev_offset) + ((remaining_lines - 1) * pixelsInLine)
+        else:
+            remaining_pixels = 0
+        required_pixels = get_text_pixel_length(out.replace(TOKEN_NEWLINE, '').replace(TOKEN_SCROLL_BREAK, ''), pixelsPerChar, language_char_array, lang, entry_id, context)
+        overflow_pixels = max(0, required_pixels - remaining_pixels)
+        if overflow_pixels > 0:
+            log_warning_error(lang, "Error", f"Attempted to make a new text box when disabled, sentence \"{state.out_text}\" is too long by at least {overflow_pixels} pixels!", entry_id, context)
+        else:
+            extra_lines = max(1, state.current_line_count - (numLines + int(include_scrolling)) + 1)
+            log_warning_error(lang, "Error", f"Attempted to make a new text box when disabled, sentence \"{state.out_text}\" requires at least {extra_lines} additional line(s)!", entry_id, context)
+    elif state.out_text and (state.out_text[-1] in (" ", TOKEN_NEWLINE, TOKEN_SCROLL_BREAK)):
+        state.out_text = state.out_text[:-1]
+
+    state.out_text += TOKEN_BOX_BREAK
+    state.current_offset = 0
+    state.current_line_count = 0
+    state.escape_count += 1
+
+def normalize_formatted_text(out_text, numLines, include_scrolling, lang, entry_id, context=None):
+    out_text = out_text.replace(f"{TOKEN_NEWLINE}{PURPOSEFUL_SPACE_CHAR}", TOKEN_NEWLINE)
+    out_text = out_text.replace(f"{TOKEN_SCROLL_BREAK}{PURPOSEFUL_SPACE_CHAR}", TOKEN_SCROLL_BREAK)
+    out_text = out_text.replace(PURPOSEFUL_SPACE_CHAR, " ")
+
+    exitLoop = False
+    while(not exitLoop):
+        newStr = ""
+
+        splitBoxes = out_text.split(TOKEN_BOX_BREAK)
+        outIndex = 0
+        for box in splitBoxes:
+            if box and ((box[0] == " ")):
+                box = box[1:]
+                outIndex += 1
+            box = box.replace(TOKEN_SCROLL_BREAK, TOKEN_NEWLINE)
+            leading_newlines = len(box) - len(box.lstrip(TOKEN_NEWLINE))
+            splitLines = box.split(TOKEN_NEWLINE)
+            outBox = ""
+            i = 1
+            for split in splitLines:
+                outIndex += len(split)
+                if split == splitLines[-1]:
+                    breakChar = ""
+                elif ((i >= numLines) and include_scrolling):
+                    breakChar = TOKEN_SCROLL_BREAK
+                else:
+                    breakChar = out_text[outIndex]
+                outBox += split + breakChar
+                outIndex += 1
+                i += 1
+            if leading_newlines:
+                existing_leading_newlines = len(outBox) - len(outBox.lstrip(TOKEN_NEWLINE))
+                if existing_leading_newlines < leading_newlines:
+                    outBox = (TOKEN_NEWLINE * (leading_newlines - existing_leading_newlines)) + outBox
+            if (outBox and (outBox[:-1] == TOKEN_BOX_BREAK) or (outBox[:-1] == TOKEN_NEWLINE)):
+                newStr += f'{outBox[:-1]}{TOKEN_BOX_BREAK}'
+            elif (outBox):
+                newStr += f'{outBox}{TOKEN_BOX_BREAK}'
+        newStr = newStr[:-1]
+
+        if len(newStr) > 1023:
+            newStr = newStr[:1023]
+            log_warning_error(lang, "Warning", f"String {newStr} exceeds character limit of 1023 and has been truncated.", entry_id, context)
+
+        exitLoop = (newStr == out_text)
+        out_text = newStr
+    return out_text
+
+def encode_formatted_text(out_text, arr, lang, entry_id, context=None):
+    byteStr = ""
+    i = 0
+    while i < len(out_text[:-1]):
+        char = FORMAT_TOKEN_TO_BYTE_CHAR.get(out_text[i], out_text[i])
+        if (char == '['):
+            val = ''
+            i += 1
+            while out_text[i] != ']':
+                val = val + out_text[i]
+                i += 1
+            num = int(val)
+            byteStr += f"{num:02x} "
+        else:
+            byteStr += f"{convert_char_to_byte(ord(char), arr, lang, entry_id, context):02x} "
+        i += 1
+    if (len(out_text) > 0 and out_text[-1] != ' '):
+        byteStr += f"{convert_char_to_byte(ord(FORMAT_TOKEN_TO_BYTE_CHAR.get(out_text[-1], out_text[-1])), arr, lang, entry_id, context):02x} "
+
+    return byteStr + "ff"
+
+def render_debug_text(byte_string, arr):
+    byte_values = byte_string.split(" ")
+    outText = ""
+    index = 0
+    while index < len(byte_values):
+        byte_value = int(byte_values[index], 16)
+        if byte_value == 0xFC and index + 1 < len(byte_values):
+            outText += f"_[{int(byte_values[index + 1], 16)}]"
+            index += 2
+            continue
+        outText += str(arr[byte_value])
+        index += 1
+    return outText
+
+def format_text_entry(ogDict, lang, context=None):
     line = ogDict["bytes"]
     entry_id = ogDict.get("entryId")
     numLines = ogDict["numLines"]
@@ -489,150 +673,54 @@ def convert_item(ogDict, lang):
 
     line = apply_escape_sequences(line, arr, escape_list)
     line = apply_language_tokens(line, arr, lang)
-
-    # Change all the punctuation marks followed by spaces into being followed by | temporarily
-    spaces = [' ', '　']
-    puncts = ['.', '?', '!', '。', '！', '？']
-    for space in spaces:
-        for punct in puncts:
-            line = line.replace(punct + space, punct + PURPOSEFUL_SPACE_CHAR)
+    line = preserve_punctuation_spacing(line)
 
     split_sents = split_into_sentences(line)
+    state = FormatState()
     index = 0
-    outStr = ""
-    currLine = 0
-    offset = 0
-    escapeCount = 0
-    centered = False
-    while index < len(split_sents) and escapeCount < 100:
-        prev_offset = offset
-        prev_curr_line = currLine
-        offset, recievedLine, out, centered = split_sentence_into_lines(split_sents[index], offset, pixelsPerChar, pixelsInLine, centered, lang, currLine, numLines, entry_id)
-        currLine += recievedLine
-        
-        if (out == "ȼ"):
-            offset = 0
-            currLine = 0
-            # This tests if the character before the new box is a space, newline, or scroll
-            if outStr and (outStr[-1] in (" ", "Ň", "Ş")):
-                outStr = outStr[:-1]
-            outStr += "ȼ"
-            index += 1
-        elif (currLine < (numLines + int(include_scrolling))):
-            #print(split_sents[index])
-            index += 1
-            # This tests if the character after the new box is a space, newline, or scroll
-            if outStr and out and outStr[-1] == 'ȼ' and out[0] in (" ", "Ň", "Ş"):
-                out = out[1:]
-            outStr += out
-        else:
-            if not include_box_breaks:
-                remaining_lines = max(0, (numLines + int(include_scrolling)) - prev_curr_line)
-                if remaining_lines > 0:
-                    remaining_pixels = max(0, pixelsInLine - prev_offset) + ((remaining_lines - 1) * pixelsInLine)
-                else:
-                    remaining_pixels = 0
-                required_pixels = get_text_pixel_length(out.replace('Ň', '').replace('Ş', ''), pixelsPerChar, language_char_array, lang, entry_id)
-                overflow_pixels = max(0, required_pixels - remaining_pixels)
-                if overflow_pixels > 0:
-                    log_warning_error(lang, "Error", f"Attempted to make a new text box when disabled, sentence \"{outStr}\" is too long by at least {overflow_pixels} pixels!", entry_id)
-                else:
-                    extra_lines = max(1, currLine - (numLines + int(include_scrolling)) + 1)
-                    log_warning_error(lang, "Error", f"Attempted to make a new text box when disabled, sentence \"{outStr}\" requires at least {extra_lines} additional line(s)!", entry_id)
-            # This tests if the character before the new box is a space, newline, or scroll(?)
-            elif outStr and (outStr[-1] in (" ", "Ň", "Ş")):
-                outStr = outStr[:-1]
-            outStr += "ȼ" # new textbox character
-            offset = 0
-            currLine = 0
-            escapeCount += 1
-                #print(index)
+    while index < len(split_sents) and state.escape_count < 100:
+        prev_offset = state.current_offset
+        prev_curr_line = state.current_line_count
+        state.current_offset, recievedLine, out, state.centered = split_sentence_into_lines(
+            split_sents[index], state.current_offset, pixelsPerChar, pixelsInLine,
+            state.centered, lang, state.current_line_count, numLines, entry_id, context
+        )
+        state.current_line_count += recievedLine
 
-            
-    if escapeCount == 100:
+        if append_formatted_sentence(state, out, include_scrolling, numLines):
+            index += 1
+        else:
+            handle_box_overflow(
+                state, out, numLines, include_scrolling, include_box_breaks, prev_offset,
+                prev_curr_line, pixelsInLine, pixelsPerChar, language_char_array, lang, entry_id, context
+            )
+
+    if state.escape_count == 100:
         total_capacity = (numLines + int(include_scrolling)) * pixelsInLine
-        required_pixels = get_text_pixel_length(out.replace('Ň', '').replace('Ş', ''), pixelsPerChar, language_char_array, lang, entry_id)
+        required_pixels = get_text_pixel_length(
+            out.replace(TOKEN_NEWLINE, '').replace(TOKEN_SCROLL_BREAK, ''),
+            pixelsPerChar,
+            language_char_array,
+            lang,
+            entry_id,
+            context,
+        )
         overflow_pixels = max(0, required_pixels - total_capacity)
         if overflow_pixels > 0:
-            log_warning_error(lang, "Error", f"Sentence \"{out}\" is too long by at least {overflow_pixels} pixels!", entry_id)
+            log_warning_error(lang, "Error", f"Sentence \"{out}\" is too long by at least {overflow_pixels} pixels!", entry_id, context)
         else:
-            log_warning_error(lang, "Error", f"Sentence \"{out}\" requires additional line(s) beyond the available box height!", entry_id)
+            log_warning_error(lang, "Error", f"Sentence \"{out}\" requires additional line(s) beyond the available box height!", entry_id, context)
 
-    # It's safe to swap the purposeful spaces back
-    outStr = outStr.replace(f"Ň{PURPOSEFUL_SPACE_CHAR}", "Ň")
-    outStr = outStr.replace(f"Ş{PURPOSEFUL_SPACE_CHAR}", "Ş")
-    outStr = outStr.replace(PURPOSEFUL_SPACE_CHAR, " ")
+    return normalize_formatted_text(state.out_text, numLines, include_scrolling, lang, entry_id, context)
 
-    # Some cases that should be fixed
-    exitLoop = False
-    while(not exitLoop):
-        newStr = ""
-
-        splitBoxes = outStr.split('ȼ')
-        outIndex = 0
-        for box in splitBoxes:
-            if box and ((box[0] == " ")):
-                box = box[1:]
-                outIndex += 1
-            # Make sure both kinds of newlines are being accounted for
-            box = box.replace('Ş', 'Ň')
-            leading_newlines = len(box) - len(box.lstrip('Ň'))
-            splitLines = box.split('Ň')
-            outBox = ""
-            i = 1
-            for split in splitLines:
-                outIndex += len(split)
-                if split == splitLines[-1]:
-                    breakChar = ""
-                elif ((i >= numLines) and include_scrolling):
-                    breakChar = 'Ş'
-                else:
-                    breakChar = outStr[outIndex]
-                outBox += split + breakChar
-                outIndex += 1
-                i += 1
-            if leading_newlines:
-                existing_leading_newlines = len(outBox) - len(outBox.lstrip('Ň'))
-                if existing_leading_newlines < leading_newlines:
-                    outBox = ('Ň' * (leading_newlines - existing_leading_newlines)) + outBox
-            if (outBox and (outBox[:-1] == 'ȼ') or (outBox[:-1] == 'Ň')):
-                newStr += f'{outBox[:-1]}ȼ'
-            elif (outBox):
-                newStr += f'{outBox}ȼ'
-        newStr = newStr[:-1] # remove the last ȼ
-
-        if len(newStr) > 1023:
-            newStr = newStr[:1023]
-            log_warning_error(lang, "Warning", f"String {newStr} exceeds character limit of 1023 and has been truncated.", entry_id)
-
-        exitLoop = (newStr == outStr)
-        outStr = newStr
-    
-    byteStr = ""
-    arr = language_char_array["array"]
-    i = 0
-    while i < len(outStr[:-1]):
-        char = outStr[i]
-        if (char == '['):
-            val = ''
-            i += 1
-            while outStr[i] != ']':
-                val = val + outStr[i]
-                i += 1
-            num = int(val)
-            byteStr += f"{num:02x} "
-        else:
-            byteStr += f"{convert_char_to_byte(ord(char), arr, lang, entry_id):02x} "
-        i += 1
-    if (len(outStr) > 0 and outStr[-1] != ' '): # Check if the last char is a space
-        byteStr += f"{convert_char_to_byte(ord(outStr[-1]), arr, lang, entry_id):02x} "
-        
-    byteStr += "ff"
-    
-    ogDict["bytes"] = byteStr
+def convert_item(ogDict, lang, context=None):
+    normalized_text = format_text_entry(ogDict, lang, context)
+    arr = get_language_config(lang).char_array["array"]
+    entry_id = ogDict.get("entryId")
+    ogDict["bytes"] = encode_formatted_text(normalized_text, arr, lang, entry_id, context)
     return ogDict
 
-def write_text_bin_file(filename, dictionary, lang, section):
+def write_text_bin_file(filename, dictionary, lang, section, context=None):
     MAX_BIN_SIZES = {
         "PTGB": 6144,
         "RSEFRLG": 3444,
@@ -658,7 +746,7 @@ def write_text_bin_file(filename, dictionary, lang, section):
         # Append every line's binary data to bindata
         # keep an index of the binary offset within bindata at which each line starts
         for key, line in dictionary.items():
-            dictionary[key] = convert_item(line, lang)
+            dictionary[key] = convert_item(line, lang, context)
             # store the offset of the line in the index as a 16 bit little endian value
             index[num * 2] = (current_offset & 0xFF)
             index[num * 2 + 1] = (current_offset >> 8) & 0xFF
@@ -674,7 +762,7 @@ def write_text_bin_file(filename, dictionary, lang, section):
         binFile.write(bindata)
         binFile.seek(0, os.SEEK_END)
         if binFile.tell() > MAX_BIN_SIZES[section]:
-            log_warning_error(lang, "Error", f'Section {section} exceeds the max binary file size by {binFile.tell() - MAX_BIN_SIZES[section]} bytes!')
+            log_warning_error(lang, "Error", f'Section {section} exceeds the max binary file size by {binFile.tell() - MAX_BIN_SIZES[section]} bytes!', context=context)
         binFile.close()
 
 def write_enum_to_header_file(hFile, prefix, dictionary):
@@ -751,11 +839,7 @@ def are_text_build_artifacts_newer():
     return True
 
 def initialize_translation_storage():
-    mainDict.clear()
-    for lang in Languages:
-        mainDict[lang.name] = {section: {} for section in textSections}
-        mainDict[lang.name]["Warnings"] = {}
-        mainDict[lang.name]["Errors"] = {}
+    build_context.initialize_storage(textSections)
 
 def transfer_xlsx_to_dict():
     global boxTypeDefinitions
@@ -939,7 +1023,7 @@ def generate_text_tables():
     for lang in Languages:
         for section in textSections:
             table_file = os.curdir + '/to_compress/' + section + '_' + lang.name.lower() + '.bin'
-            write_text_bin_file(table_file, mainDict[lang.name][section], lang, section)
+            write_text_bin_file(table_file, mainDict[lang.name][section], lang, section, build_context)
 
 def generate_cpp_file():
     print("\tGenerating cpp file")
@@ -1005,19 +1089,10 @@ def output_json_file():
     for lang in Languages:
         for section in textSections:
             for item in mainDict[lang.name][section]:
-                string = mainDict[lang.name][section][item]["bytes"].split(" ")
-                outText = ""
                 arr = get_language_config(lang).char_array["array"]
-                index = 0
-                while index < len(string):
-                    byte_value = int(string[index], 16)
-                    if byte_value == 0xFC and index + 1 < len(string):
-                        outText += f"_[{int(string[index + 1], 16)}]"
-                        index += 2
-                        continue
-                    outText += str(arr[byte_value])
-                    index += 1
-                mainDict[lang.name][section][item]["text"] = outText
+                mainDict[lang.name][section][item]["text"] = render_debug_text(
+                    mainDict[lang.name][section][item]["bytes"], arr
+                )
 
     with open(OUTPUT_JSON_PATH, 'w', encoding='utf-8') as jsonFile:
         jsonFile.write(json.dumps(mainDict, ensure_ascii=False, indent=2))
