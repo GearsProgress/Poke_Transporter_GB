@@ -6,7 +6,7 @@
 #define HALL_OF_FAME 0x01C000
 
 Gen3CartridgeSaveReader::Gen3CartridgeSaveReader(u8 *sector_buffer)
-    : sector_start_(0)
+    : sector_start_(0xFFFFFFFF)
     , sector_buffer_(sector_buffer)
     , cur_(sector_buffer)
     , dirty_(false)
@@ -117,7 +117,8 @@ void Gen3CartridgeSaveReader::flush()
         return;
     }
 
+    const uintptr_t sector_offset = sector_start_ * SECTOR_SIZE;
     update_memory_buffer_checksum(sector_buffer_, (sector_start_ == HALL_OF_FAME));
-    copy_ram_to_save(sector_buffer_, sector_start_, SECTOR_SIZE);
+    copy_ram_to_save(sector_buffer_, sector_offset, SECTOR_SIZE);
     dirty_ = false;
 }

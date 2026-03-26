@@ -217,6 +217,8 @@ void dbg_inject_pkmn(void *context, unsigned user_param)
     Gen3Pokemon celebi(&tables);
     celebi.loadData(RSEFL_10_ANIV_Celebi_0BF5_ENG_, false);
 
+    save_manager.setNationalDexUnlocked(true);
+
     do
     {
         ret = save_manager.addPokemonToBox(boxIndex, celebi);
