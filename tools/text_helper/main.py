@@ -328,7 +328,33 @@ def split_into_sentences(text: str) -> list[str]:
     sentences = text.split("<stop>")
     sentences = [s.strip() for s in sentences]
     if sentences and not sentences[-1]: sentences = sentences[:-1]
-    return sentences
+    return remove_redundant_terminal_breaks(sentences)
+
+def remove_redundant_terminal_breaks(sentences: list[str]) -> list[str]:
+    cleaned_sentences = []
+    for index, sentence in enumerate(sentences):
+        look_ahead_index = index + 1
+        while look_ahead_index < len(sentences) and sentences[look_ahead_index] == TOKEN_CENTER_OFF:
+            look_ahead_index += 1
+
+        if sentence == TOKEN_CENTER_OFF and (
+            look_ahead_index >= len(sentences) or sentences[look_ahead_index] in (TOKEN_BOX_BREAK, TOKEN_SCROLL_BREAK)
+        ):
+            continue
+
+        if sentence not in (TOKEN_NEWLINE, TOKEN_SCROLL_BREAK):
+            cleaned_sentences.append(sentence)
+            continue
+
+        if look_ahead_index >= len(sentences):
+            continue
+
+        if sentences[look_ahead_index] in (TOKEN_BOX_BREAK, TOKEN_SCROLL_BREAK):
+            continue
+
+        cleaned_sentences.append(sentence)
+
+    return cleaned_sentences
  
 def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, centered, lang, currLineCount, numLines, entry_id=None, context=None):
     outStr = ""

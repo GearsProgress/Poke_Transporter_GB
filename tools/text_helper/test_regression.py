@@ -1,6 +1,18 @@
 import importlib.util
+import sys
+import types
 import unittest
 from pathlib import Path
+
+
+sys.modules.setdefault("debugpy", types.SimpleNamespace())
+sys.modules.setdefault(
+    "pandas",
+    types.SimpleNamespace(
+        isna=lambda value: value is None,
+        util=types.SimpleNamespace(hash_pandas_object=lambda *args, **kwargs: types.SimpleNamespace(values=b""))
+    ),
+)
 
 
 MODULE_PATH = Path(__file__).resolve().parent / "main.py"
@@ -96,6 +108,11 @@ class TextHelperRegressionTests(unittest.TestCase):
 
     def test_terminal_center_close_does_not_append_newline(self):
         entry = self.convert_text("{CTR}PUSH THE START BUTTON!{nCTR}")
+        text = decode_text(entry["bytes"], text_helper.Languages.English)
+        self.assertRegex(text, r"^_\[\d+\]PUSH THE START BUTTON!$")
+
+    def test_terminal_newline_before_center_close_is_ignored(self):
+        entry = self.convert_text("{CTR}PUSH THE START BUTTON!{NEW}{nCTR}", numLines=1, includeBoxBreaks=0)
         text = decode_text(entry["bytes"], text_helper.Languages.English)
         self.assertRegex(text, r"^_\[\d+\]PUSH THE START BUTTON!$")
 
