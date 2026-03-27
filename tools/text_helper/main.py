@@ -77,6 +77,13 @@ def normalize_control_glyphs_to_tokens(text):
         text = text.replace(byte_char, token)
     return text
 
+def coerce_to_bool(value):
+    if pd.isna(value):
+        return False
+    if isinstance(value, str):
+        return value.strip().lower() in {"1", "true", "yes", "y"}
+    return bool(value)
+
 BASE_DIR = Path(__file__).resolve().parent
 BUILD_DIR = BASE_DIR / "build"
 GEN_DIR = BASE_DIR.parent.parent / "build" / "generated"
@@ -123,6 +130,9 @@ def find_required_box_type_column(columns_by_normalized, required_key):
                 matches.append(col)
         elif required_key == "boxStyle":
             if "style" in normalized:
+                matches.append(col)
+        elif required_key == "verticallyCenterText":
+            if "vertical" in normalized and "center" in normalized and "text" in normalized:
                 matches.append(col)
     if len(matches) == 1:
         return matches[0]
@@ -343,7 +353,14 @@ def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, cen
 
     # A centered block may get split into multiple sentences for wrapping, but each
     # centered sentence still needs to begin at a real line start.
-    if centered and offset != 0 and sentence not in [TOKEN_CENTER_ON, TOKEN_CENTER_OFF, TOKEN_BOX_BREAK, TOKEN_NEWLINE, TOKEN_SCROLL_BREAK, '']:
+    if centered and offset != 0 and sentence not in [
+        TOKEN_CENTER_ON,
+        TOKEN_CENTER_OFF,
+        TOKEN_BOX_BREAK,
+        TOKEN_NEWLINE,
+        TOKEN_SCROLL_BREAK,
+        '',
+    ]:
         outStr += TOKEN_NEWLINE
         lineCount += 1
         offset = 0
@@ -373,12 +390,12 @@ def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, cen
             if (sentence == TOKEN_CENTER_ON):
                 centered = True
                 # Only advance when centering starts in the middle of an occupied line.
-                if (currLineCount != 0 and offset != 0):
+                if offset != 0:
                     outStr += TOKEN_NEWLINE
             else:
                 centered = False
                 # Only advance when centered text actually occupied the current line.
-                if (currLineCount != numLines and offset != 0):
+                if offset != 0:
                     outStr += TOKEN_NEWLINE
             currLine = ""
             offset = 0
@@ -433,7 +450,12 @@ def split_sentence_into_lines(sentence, offset, pixelsPerChar, pixelsInLine, cen
                 lineCount += 1
                 lineLength = 0
                 offset = 0
-    if (centered and (len(words) > 0) and words[0] not in [TOKEN_CENTER_ON, TOKEN_BOX_BREAK, TOKEN_NEWLINE, TOKEN_SCROLL_BREAK]):
+    if (centered and (len(words) > 0) and words[0] not in [
+        TOKEN_CENTER_ON,
+        TOKEN_BOX_BREAK,
+        TOKEN_NEWLINE,
+        TOKEN_SCROLL_BREAK,
+    ]):
         currLine, lineLength = format_output_line(currLine, lineLength)
     outStr += currLine
     return lineLength + offset, lineCount, outStr, centered
@@ -534,6 +556,15 @@ def preserve_punctuation_spacing(line):
             line = line.replace(punct + space, punct + PURPOSEFUL_SPACE_CHAR)
     return line
 
+def force_newline_before_center_transition(state, sentence):
+    if sentence not in (TOKEN_CENTER_ON, TOKEN_CENTER_OFF):
+        return
+    if not state.out_text or state.out_text[-1] in (TOKEN_NEWLINE, TOKEN_SCROLL_BREAK, TOKEN_BOX_BREAK):
+        return
+    state.out_text += TOKEN_NEWLINE
+    state.current_line_count += 1
+    state.current_offset = 0
+
 def append_formatted_sentence(state, out, include_scrolling, numLines):
     if out == TOKEN_BOX_BREAK:
         state.current_offset = 0
@@ -562,10 +593,10 @@ def handle_box_overflow(state, out, numLines, include_scrolling, include_box_bre
         required_pixels = get_text_pixel_length(out.replace(TOKEN_NEWLINE, '').replace(TOKEN_SCROLL_BREAK, ''), pixelsPerChar, language_char_array, lang, entry_id, context)
         overflow_pixels = max(0, required_pixels - remaining_pixels)
         if overflow_pixels > 0:
-            log_warning_error(lang, "Error", f"Attempted to make a new text box when disabled, sentence \"{state.out_text}\" is too long by at least {overflow_pixels} pixels!", entry_id, context)
+            log_warning_error(lang, "Error", f"Attempted to make a new text box when disabled, sentence \"{format_internal_tokens(state.out_text)}\" is too long by at least {overflow_pixels} pixels!", entry_id, context)
         else:
             extra_lines = max(1, state.current_line_count - (numLines + int(include_scrolling)) + 1)
-            log_warning_error(lang, "Error", f"Attempted to make a new text box when disabled, sentence \"{state.out_text}\" requires at least {extra_lines} additional line(s)!", entry_id, context)
+            log_warning_error(lang, "Error", f"Attempted to make a new text box when disabled, sentence \"{format_internal_tokens(state.out_text)}\" requires at least {extra_lines} additional line(s)!", entry_id, context)
     elif state.out_text and (state.out_text[-1] in (" ", TOKEN_NEWLINE, TOKEN_SCROLL_BREAK)):
         state.out_text = state.out_text[:-1]
 
@@ -574,7 +605,45 @@ def handle_box_overflow(state, out, numLines, include_scrolling, include_box_bre
     state.current_line_count = 0
     state.escape_count += 1
 
-def normalize_formatted_text(out_text, numLines, include_scrolling, lang, entry_id, context=None):
+def apply_vertical_centering_to_page(page_text, capacity, line_count_override=None):
+    trailing_newlines = len(page_text) - len(page_text.rstrip(TOKEN_NEWLINE))
+    content_page = page_text.rstrip(TOKEN_NEWLINE)
+    if not content_page:
+        return page_text
+
+    line_count = line_count_override if line_count_override is not None else (content_page.count(TOKEN_NEWLINE) + 1)
+    if line_count >= capacity:
+        return page_text
+
+    top_padding = (capacity - line_count) // 2
+    return (TOKEN_NEWLINE * top_padding) + content_page + (TOKEN_NEWLINE * trailing_newlines)
+
+def count_centering_lines(page_text):
+    content_page = page_text.rstrip(TOKEN_NEWLINE)
+    if not content_page:
+        return 0
+    return content_page.count(TOKEN_NEWLINE) + 1
+
+def apply_vertical_centering(out_text, numLines, reference_text=None):
+    centered_boxes = []
+    reference_boxes = reference_text.split(TOKEN_BOX_BREAK) if reference_text is not None else None
+    for box_index, box in enumerate(out_text.split(TOKEN_BOX_BREAK)):
+        reference_box = None if reference_boxes is None or box_index >= len(reference_boxes) else reference_boxes[box_index]
+        reference_pages = reference_box.split(TOKEN_SCROLL_BREAK) if reference_box is not None else None
+        centered_pages = []
+        for page_index, page_text in enumerate(box.split(TOKEN_SCROLL_BREAK)):
+            reference_page = None if reference_pages is None or page_index >= len(reference_pages) else reference_pages[page_index]
+            line_count_override = None
+            if reference_page is not None:
+                reference_line_count = count_centering_lines(reference_page)
+                if reference_line_count > 0:
+                    line_count_override = reference_line_count
+            centered_pages.append(apply_vertical_centering_to_page(page_text, numLines, line_count_override))
+        centered_boxes.append(TOKEN_SCROLL_BREAK.join(centered_pages))
+    return TOKEN_BOX_BREAK.join(centered_boxes)
+
+def normalize_formatted_text(out_text, numLines, include_scrolling, lang, entry_id, context=None, vertically_center_text=False):
+    original_out_text = out_text
     out_text = out_text.replace(f"{TOKEN_NEWLINE}{PURPOSEFUL_SPACE_CHAR}", TOKEN_NEWLINE)
     out_text = out_text.replace(f"{TOKEN_SCROLL_BREAK}{PURPOSEFUL_SPACE_CHAR}", TOKEN_SCROLL_BREAK)
     out_text = out_text.replace(PURPOSEFUL_SPACE_CHAR, " ")
@@ -621,6 +690,8 @@ def normalize_formatted_text(out_text, numLines, include_scrolling, lang, entry_
 
         exitLoop = (newStr == out_text)
         out_text = newStr
+    if vertically_center_text:
+        out_text = apply_vertical_centering(out_text, numLines, original_out_text)
     return out_text
 
 def encode_formatted_text(out_text, arr, lang, entry_id, context=None):
@@ -666,6 +737,7 @@ def format_text_entry(ogDict, lang, context=None):
     pixelsInLine = ogDict["pixelsInLine"]
     include_box_breaks = ogDict["includeBoxBreaks"]
     include_scrolling = ogDict["includeScrolling"]
+    vertically_center_text = coerce_to_bool(ogDict["verticallyCenterText"])
 
     language_char_array = get_language_config(lang).char_array
     arr = language_char_array["array"]
@@ -679,6 +751,7 @@ def format_text_entry(ogDict, lang, context=None):
     state = FormatState()
     index = 0
     while index < len(split_sents) and state.escape_count < 100:
+        force_newline_before_center_transition(state, split_sents[index])
         prev_offset = state.current_offset
         prev_curr_line = state.current_line_count
         state.current_offset, recievedLine, out, state.centered = split_sentence_into_lines(
@@ -711,7 +784,15 @@ def format_text_entry(ogDict, lang, context=None):
         else:
             log_warning_error(lang, "Error", f"Sentence \"{out}\" requires additional line(s) beyond the available box height!", entry_id, context)
 
-    return normalize_formatted_text(state.out_text, numLines, include_scrolling, lang, entry_id, context)
+    return normalize_formatted_text(
+        state.out_text,
+        numLines,
+        include_scrolling,
+        lang,
+        entry_id,
+        context,
+        vertically_center_text,
+    )
 
 def convert_item(ogDict, lang, context=None):
     normalized_text = format_text_entry(ogDict, lang, context)
@@ -921,6 +1002,12 @@ def transfer_xlsx_to_dict():
             if col is None:
                 raise KeyError(f"Missing required Box Types column matching '{internal_key}'.")
             boxTypeDefinitions[box_type_name][internal_key] = boxTypeDefinitions[box_type_name][col]
+        vertical_center_col = find_required_box_type_column(box_type_columns_by_normalized, "verticallyCenterText")
+        if vertical_center_col is None:
+            raise KeyError("Missing required Box Types column matching 'verticallyCenterText'.")
+        boxTypeDefinitions[box_type_name]["verticallyCenterText"] = int(
+            coerce_to_bool(boxTypeDefinitions[box_type_name][vertical_center_col])
+        )
         boxTypeIdByName[box_type_name] = len(boxTypeNames)
         boxTypeNames.append(box_type_name)
 
