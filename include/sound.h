@@ -9,7 +9,7 @@
 extern "C" {
 #endif
 
-typedef void* PTGBSFXHandle;
+typedef unsigned short PTGBSFXHandle;
 
 /**
  * @brief The API's defined here are a thin abstraction layer over the sound engine functions.

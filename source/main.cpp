@@ -30,6 +30,9 @@
 #include "custom_malloc.h"
 #include "sound.h"
 
+#define MACRO_AS_STR_IMPL(x) #x
+#define MACRO_AS_STR(x) MACRO_AS_STR_IMPL(x)
+
 /*
 
 TODO:
@@ -350,8 +353,9 @@ static void __attribute__((noinline)) show_intro()
 #ifndef JPN_ID
 #error JPN_ID_NOT_DEFINED
 #endif
-#pragma message "PTGB_BUILD_LANGUAGE=" PTGB_BUILD_LANGUAGE
-#pragma message "JPN_ID=" JPN_ID
+
+#pragma message("PTGB_BUILD_LANGUAGE=" MACRO_AS_STR(PTGB_BUILD_LANGUAGE))
+#pragma message("JPN_ID=" MACRO_AS_STR(JPN_ID))
 
 	int char_width = (PTGB_BUILD_LANGUAGE == JPN_ID ? 8 : 6);
 	int x = ((240 - (press_start_text_length * char_width)) / 2);
