@@ -30,7 +30,6 @@ void Button_Menu::set_xy_min_max(int nX_min, int nX_max, int nY_min, int nY_max)
 
 int Button_Menu::button_main()
 {
-    tte_set_pos(0, 0);
     organize_buttons();
     show_buttons();
     button_vector.at(curr_position).set_highlight(true);

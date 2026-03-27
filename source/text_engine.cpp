@@ -86,9 +86,6 @@ void init_text_engine()
     );
     tte_init_con();
 
-    // tte_set_margins(LEFT, TOP, RIGHT, BOTTOM);
-    // tte_set_pos(LEFT, TOP);
-
     pal_bg_bank[15][INK_WHITE] = CLR_WHITE;              // White
     pal_bg_bank[15][INK_DARK_GREY] = 0b0000110001100010; // Dark Grey
     // 14 will be changed to game color
@@ -124,18 +121,15 @@ int text_loop(int script)
     // tte_set_margins(LEFT, TOP, RIGHT, BOTTOM);
     if (script != SCRIPT_DEBUG)
     {
-        REG_BG1CNT = (REG_BG1CNT && !BG_PRIO_MASK) | BG_PRIO(2); // Show Fennel
-        show_text_box();
         while (true) // This loops through all the connected script objects
         {
             if (curr_text != NULL && curr_text[char_index] != 0xFF && curr_text[char_index] != 0xFB)
             {
-                tte_set_pos(LEFT, TOP);
-                tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
-                ptgb_write(curr_text, false);
+                ptgb_write_textbox(curr_text, false, true,
+                                   PTGB_INDEX, curr_line.get_text_entry_index(), false);
             }
 
-            wait_for_user_to_continue(false);
+            // wait_for_user_to_continue();
 
             line_char_index = 0;
             switch (script)
@@ -153,8 +147,9 @@ int text_loop(int script)
 
             if (text_exit)
             {
-                hide_text_box();
-                tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
+                hide_textbox();
+                erase_textbox_tiles();
+                tte_erase_screen();
                 text_exit = false;
                 return 0;
             }
@@ -166,7 +161,7 @@ int text_loop(int script)
         load_localized_charset(debug_charset, 3, ENGLISH);
 
         int text_section = 0;
-        int text_identifier = 0;
+        int text_key = 0;
         while (true)
         {
             bool exit = false;
@@ -177,12 +172,12 @@ int text_loop(int script)
             {
                 if (key_hit(KEY_LEFT))
                 {
-                    text_identifier = (text_identifier + (text_section_lengths[text_section] - 1)) % text_section_lengths[text_section];
+                    text_key = (text_key + (text_section_lengths[text_section] - 1)) % text_section_lengths[text_section];
                     update_text = true;
                 }
                 else if (key_hit(KEY_RIGHT))
                 {
-                    text_identifier = (text_identifier + 1) % text_section_lengths[text_section];
+                    text_key = (text_key + 1) % text_section_lengths[text_section];
                     update_text = true;
                 }
                 else if (key_hit(KEY_UP))
@@ -199,23 +194,24 @@ int text_loop(int script)
                 {
                     instant_text = key_hit(KEY_START); // instant with start, not with select
                     exit = true;
+                    tte_erase_line();
                 }
                 if (update_text)
                 {
-                    if (text_identifier > text_section_lengths[text_section])
+                    if (text_key >= text_section_lengths[text_section])
                     {
-                        text_identifier = text_section_lengths[text_section];
+                        text_key = text_section_lengths[text_section] - 1;
                     }
-                    if (text_section > NUM_TEXT_SECTIONS)
+                    if (text_section >= NUM_TEXT_SECTIONS)
                     {
-                        text_section = NUM_TEXT_SECTIONS;
+                        text_section = NUM_TEXT_SECTIONS - 1;
                     }
                     tte_set_pos(0, 0);
                     tte_erase_rect(0, 0, 240, 160);
                     ptgb_write_debug(debug_charset, "(", true);
                     ptgb_write_debug(debug_charset, ptgb::to_string(text_section), true);
                     ptgb_write_debug(debug_charset, ", ", true);
-                    ptgb_write_debug(debug_charset, ptgb::to_string(text_identifier), true);
+                    ptgb_write_debug(debug_charset, ptgb::to_string(text_key), true);
                     ptgb_write_debug(debug_charset, ")", true);
                     update_text = false;
                 }
@@ -223,27 +219,18 @@ int text_loop(int script)
             }
 
             line_char_index = 0;
-            curr_text = read_dialogue_text_entry(text_identifier, text_section, diag_entry_text_buffer);
+            curr_text = read_dialogue_text_entry(text_key, text_section, diag_entry_text_buffer);
             char_index = 0;
 
             if (curr_text != NULL && curr_text[char_index] != 0xFF && curr_text[char_index] != 0xFB)
             {
-                if (text_section == PTGB_INDEX)
-                {
-                    reset_textbox();
-                }
-                else
-                {
-                    create_textbox(4, 1, 160, 80, true);
-                }
-                show_text_box();
-                tte_erase_rect(0, 0, 240, 160);
-                ptgb_write(curr_text, instant_text);
+                ptgb_write_textbox(curr_text, instant_text, true,
+                                   text_section, text_key, true);
             }
 
-            wait_for_user_to_continue(false);
             update_text = true;
-            hide_text_box();
+            hide_textbox();
+            tte_erase_rect(0, 0, H_MAX, V_MAX);
 
             if (text_exit)
             {
@@ -272,34 +259,67 @@ int text_next_obj_id(script_obj current_line)
     }
 }
 
-void show_text_box()
-{
-    REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(1);
-}
-
-void hide_text_box()
-{
-    REG_BG2CNT = (REG_BG2CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
-}
-
 void set_text_exit()
 {
     text_exit = true;
     key_poll(); // This removes the "A Hit" when exiting the text
 }
 
-// Implement a version that just writes the whole string
-int ptgb_write(const byte *text, bool instant)
+// Implement a version that creates the textbox as well
+int ptgb_write_textbox(const byte *text, bool instant, bool waitForUser,
+                       int text_section, int text_key, bool eraseMainBox)
 {
-    return ptgb_write(text, instant, 9999); // This is kinda silly but it'll work.
+    tte_erase_rect(0, 0, H_MAX, V_MAX);
+    erase_textbox_tiles();
+    create_textbox(text_section, text_key, eraseMainBox);
+    // Set up Fennel if we are in a PTGB dialogue box
+    if (get_curr_flex_background() == FLEXBG_FENNEL && text_section == PTGB_INDEX)
+    {
+        load_flex_background(FLEXBG_FENNEL, 2);
+    }
+    int out = ptgb_write(text, instant, 9999, text_box_type_tables[text_section][text_key]); // This is kinda silly but it'll work.
+    if (waitForUser)
+    {
+        wait_for_user_to_continue();
+    }
+    if (eraseMainBox)
+    {
+        tte_erase_rect(0, 0, H_MAX, V_MAX);
+        hide_textbox();
+        erase_textbox_tiles();
+    }
+    return out;
+}
+
+// Implement a version that just writes the whole string
+int ptgb_write_simple(const byte *text, bool instant)
+{
+    return ptgb_write(text, instant, 9999, -1); // This is kinda silly but it'll work.
 }
 
 // Re-implementing TTE's "tte_write" to use the gen 3 character encoding chart
-int ptgb_write(const byte *text, bool instant, int length)
+int ptgb_write(const byte *text, bool instant, int length, int box_type)
 {
+    int left, top, right, bottom;
+
     instant = instant || g_debug_options.instant_text_speed;
     if (text == NULL)
         return 0;
+
+    if (box_type == -1)
+    {
+        left = 0;
+        top = 0;
+        right = H_MAX;
+        bottom = V_MAX;
+    }
+    else
+    {
+        left = 8 * (box_type_info[box_type][BOX_TYPE_VAL_START_TILE_X] + 1);
+        top = 8 * (box_type_info[box_type][BOX_TYPE_VAL_START_TILE_Y] + 1);
+        right = left + box_type_info[box_type][BOX_TYPE_VAL_PIXELS_PER_LINE];
+        bottom = top + box_type_info[box_type][BOX_TYPE_VAL_NUM_OF_LINES] * 16;
+    }
 
     uint ch, gid;
     char *str = (char *)text;
@@ -307,15 +327,6 @@ int ptgb_write(const byte *text, bool instant, int length)
     TFont *font;
     int num = 0;
 
-    /*
-        if (curr_text[char_index] == 0xFB) // This will need to be moved
-        {
-            line_char_index += char_index;
-            line_char_index++;
-            // Low key kinda scuffed, but it works to split the string
-            curr_text = &curr_line.get_text()[line_char_index];
-        }
-    */
     while ((ch = *str) != 0xFF && num < length)
     {
         if (get_frame_count() % 2 == 0 || key_held(KEY_B) || key_held(KEY_A) || instant)
@@ -328,17 +339,17 @@ int ptgb_write(const byte *text, bool instant, int length)
                 {
                     tc->drawgProc(0x79);
                 }
-                wait_for_user_to_continue(false);
-                scroll_text(instant, tc);
-                tc->cursorY += tc->font->charH;
-                tc->cursorX = tc->marginLeft;
+                wait_for_user_to_continue();
+                scroll_text(instant, tc, left, top, right, bottom);
                 break;
             case 0xFB:
                 if (g_debug_options.display_control_char)
                 {
                     tc->drawgProc(0xB9);
                 }
-                wait_for_user_to_continue(true);
+                wait_for_user_to_continue();
+                tte_erase_rect(left, top, right, bottom);
+                tte_set_pos(left, top);
                 break;
             case 0xFC:
                 ch = *str;
@@ -346,7 +357,8 @@ int ptgb_write(const byte *text, bool instant, int length)
                 num += 1;
                 if (g_debug_options.display_control_char)
                 {
-                    for (uint i = 0; i < ch; i++){
+                    for (uint i = 0; i < ch; i++)
+                    {
                         tc->drawgProc(0xB9);
                     }
                 }
@@ -374,20 +386,13 @@ int ptgb_write(const byte *text, bool instant, int length)
                 // Character wrap
                 int charW = font->widths ? font->widths[gid] : font->charW;
 
-                // We don't want this tbh- all of the newlines should deal with moving to the next line
-                /* if (tc->cursorX + charW > tc->marginRight)
-                {
-                    tc->cursorY += 10; // font->charH;
-                    tc->cursorX = tc->marginLeft;
-                } */
-
                 // Draw and update position
                 tc->drawgProc(gid);
                 tc->cursorX += charW;
             }
             num += 1;
         }
-        if (get_curr_flex_background() == BG_FENNEL && !instant)
+        if (get_curr_flex_background() == FLEXBG_FENNEL && !instant)
         {
             fennel_speak(((num / 4) % 4) + 1);
         }
@@ -421,18 +426,12 @@ int ptgb_write_debug(const u16 *charset, const char *text, bool instant)
             temp_holding[i] = get_char_from_charset(charset, text[i]);
         }
     }
-    return ptgb_write(temp_holding, instant);
+    return ptgb_write_simple(temp_holding, instant);
 }
 
-// Adding this to avoid compiler issues temporarilly
-int ptgb_write(const char *text)
+void wait_for_user_to_continue()
 {
-    return 0;
-}
-
-void wait_for_user_to_continue(bool clear_text)
-{
-    if (get_curr_flex_background() == BG_FENNEL)
+    if (get_curr_flex_background() == FLEXBG_FENNEL)
     {
         if (get_missingno_enabled())
         {
@@ -445,23 +444,18 @@ void wait_for_user_to_continue(bool clear_text)
         }
     }
     key_poll();
-    while (!(key_hit(KEY_A) || key_hit(KEY_B) || curr_text == NULL))
+    while (!(key_hit(KEY_A) || key_hit(KEY_B)))
     {
         global_next_frame();
     }
-    if (clear_text)
-    {
-        tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
-        tte_set_pos(LEFT, TOP);
-    }
 }
 
-void scroll_text(bool instant, TTC *tc)
+void scroll_text(bool instant, TTC *tc, int left, int top, int right, int bottom)
 {
     for (int i = 1; i <= tc->font->charH; i++)
     {
         REG_BG3VOFS = i;
-        tte_erase_rect(LEFT, TOP - tc->font->charH, RIGHT, TOP + i);
+        tte_erase_rect(left, top - tc->font->charH, right, top + i);
         if (!instant)
         {
             global_next_frame();
@@ -472,10 +466,13 @@ void scroll_text(bool instant, TTC *tc)
     // The map starts at tile 0 in the top left, increases by 1 as you go down, and then loops back at the top.
     for (int i = 0; i < 30; i++)
     {
-        tonccpy(&tile_mem[TEXT_CBB][14 + (i * 20)], &tile_mem[TEXT_CBB][16 + (i * 20)], 2 * 2 * 32);
+        tonccpy(&tile_mem[TEXT_CBB][0 + (i * 20)], &tile_mem[TEXT_CBB][2 + (i * 20)], 20 * 32);
     }
 
     // Remove text that went outside of the box and set the position
-    tte_erase_rect(LEFT, TOP + tc->font->charH, RIGHT, BOTTOM);
-    tte_set_pos(LEFT, BOTTOM - (8 + (2 * tc->font->charH))); // The newline will trigger after this and move it down a line
+    tte_erase_rect(left, top - tc->font->charH, right, top);
+    tte_set_pos(left, bottom - (8 + (2 * tc->font->charH))); // The newline will trigger after this and move it down a line
+
+    tc->cursorY = bottom - tc->font->charH;
+    tc->cursorX = left;
 }

@@ -4,12 +4,13 @@
 #include "dbg/debug_mode.h"
 #include "gba_rom_values/base_gba_rom_struct.h"
 #include "global_frame_controller.h"
+#include "background_engine.h"
 
 #define SPRITE_CHAR_BLOCK 4
 
 OBJ_ATTR obj_buffer[128];
 OBJ_AFFINE *obj_aff_buffer = (OBJ_AFFINE *)obj_buffer;
-int curr_flex_background;
+int curr_flex_background = -1;
 int y_offset = 0;
 int y_offset_timer = 0;
 int y_offset_direction = 1;
@@ -27,7 +28,7 @@ void load_background()
     LZ77UnCompVram(backgroundTiles, &tile_mem[CBB][0]);
     // Load map into SBB 0
     LZ77UnCompVram(backgroundMap, &se_mem[SBB][0]);
-    REG_BG0CNT = BG_CBB(CBB) | BG_SBB(SBB) | BG_4BPP | BG_REG_32x32 | BG_PRIO(3);
+    BG_BACKDROP = BG_CBB(CBB) | BG_SBB(SBB) | BG_4BPP | BG_REG_32x32 | BG_PRIO(3);
 }
 
 void set_background_pal(int curr_rom_id, bool dark, bool fade)
@@ -125,72 +126,76 @@ void set_background_pal(int curr_rom_id, bool dark, bool fade)
 
 void load_flex_background(int background_id, int layer)
 {
-    // This prevents screen tearing on this frame
-    global_next_frame();
-    REG_BG1CNT = (REG_BG1CNT && !BG_PRIO_MASK) | BG_PRIO(3);
-
     int CBB = 3;  // CBB is the tiles that make up the sprite
     int SBB = 31; // SSB is the array of which tile goes where
-    switch (background_id)
+
+    if (curr_flex_background != background_id) // Only load the background if it isn't already loaded
     {
-    case (BG_OPENING):
-        // Load palette
-        tonccpy(pal_bg_mem + 32, openingBGPal, openingBGPalLen);
-        // Load tiles into CBB 0
-        LZ77UnCompVram(openingBGTiles, &tile_mem[CBB][0]);
-        // Give it a frame to uncompress the data
+        // This prevents screen tearing on this frame
         global_next_frame();
-        // Load map into SBB 0
-        LZ77UnCompVram(openingBGMap, &se_mem[SBB][0]);
-        REG_BG1VOFS = 96;
-        break;
-    case (BG_FENNEL):
-        // Load palette
-        tonccpy(pal_bg_mem + 32, fennelBGPal, fennelBGPalLen);
-        // Load tiles into CBB 0
-        LZ77UnCompVram(fennelBGTiles, &tile_mem[CBB][0]);
-        // Give it a frame to uncompress the data
-        global_next_frame();
-        // Load map into SBB 0
-        LZ77UnCompVram(fennelBGMap, &se_mem[SBB][0]);
-        REG_BG1VOFS = FENNEL_SHIFT;
-        break;
-    case (BG_DEX):
-        // Load palette
-        tonccpy(pal_bg_mem + 32, dexBGPal, dexBGPalLen);
-        // Load tiles into CBB 0
-        LZ77UnCompVram(dexBGTiles, &tile_mem[CBB][0]);
-        // Give it a frame to uncompress the data
-        global_next_frame();
-        // Load map into SBB 0
-        LZ77UnCompVram(dexBGMap, &se_mem[SBB][0]);
-        REG_BG1VOFS = 0;
-        break;
-    case (BG_MAIN_MENU):
-        // Load palette
-        tonccpy(pal_bg_mem + 32, pal_bg_mem, backgroundPalLen);
-        // Load tiles into CBB 0
-        LZ77UnCompVram(menu_barsTiles, &tile_mem[CBB][0]);
-        // Give it a frame to uncompress the data
-        global_next_frame();
-        // Load map into SBB 0
-        LZ77UnCompVram(menu_barsMap, &se_mem[SBB][0]);
-        REG_BG1VOFS = 0;
-        break;
-    case (BG_BOX):
-        // Load palette
-        tonccpy(pal_bg_mem + 32, boxBGPal, boxBGPalLen);
-        // Load tiles into CBB 0
-        LZ77UnCompVram(boxBGTiles, &tile_mem[CBB][0]);
-        // Give it a frame to uncompress the data
-        global_next_frame();
-        // Load map into SBB 0
-        LZ77UnCompVram(boxBGMap, &se_mem[SBB][0]);
-        REG_BG1VOFS = 0;
-        break;
+        BG_FLEX = (BG_FLEX && !BG_PRIO_MASK) | BG_PRIO(3);
+
+        switch (background_id)
+        {
+        case (FLEXBG_OPENING):
+            // Load palette
+            tonccpy(pal_bg_mem + 32, openingBGPal, openingBGPalLen);
+            // Load tiles into CBB 0
+            LZ77UnCompVram(openingBGTiles, &tile_mem[CBB][0]);
+            // Give it a frame to uncompress the data
+            global_next_frame();
+            // Load map into SBB 0
+            LZ77UnCompVram(openingBGMap, &se_mem[SBB][0]);
+            REG_BG1VOFS = 96;
+            break;
+        case (FLEXBG_FENNEL):
+            // Load palette
+            tonccpy(pal_bg_mem + 32, fennelBGPal, fennelBGPalLen);
+            // Load tiles into CBB 0
+            LZ77UnCompVram(fennelBGTiles, &tile_mem[CBB][0]);
+            // Give it a frame to uncompress the data
+            global_next_frame();
+            // Load map into SBB 0
+            LZ77UnCompVram(fennelBGMap, &se_mem[SBB][0]);
+            REG_BG1VOFS = FENNEL_SHIFT;
+            break;
+        case (FLEXBG_DEX):
+            // Load palette
+            tonccpy(pal_bg_mem + 32, dexBGPal, dexBGPalLen);
+            // Load tiles into CBB 0
+            LZ77UnCompVram(dexBGTiles, &tile_mem[CBB][0]);
+            // Give it a frame to uncompress the data
+            global_next_frame();
+            // Load map into SBB 0
+            LZ77UnCompVram(dexBGMap, &se_mem[SBB][0]);
+            REG_BG1VOFS = 0;
+            break;
+        case (FLEXBG_MAIN_MENU):
+            // Load palette
+            tonccpy(pal_bg_mem + 32, pal_bg_mem, backgroundPalLen);
+            // Load tiles into CBB 0
+            LZ77UnCompVram(menu_barsTiles, &tile_mem[CBB][0]);
+            // Give it a frame to uncompress the data
+            global_next_frame();
+            // Load map into SBB 0
+            LZ77UnCompVram(menu_barsMap, &se_mem[SBB][0]);
+            REG_BG1VOFS = 0;
+            break;
+        case (FLEXBG_BOX):
+            // Load palette
+            tonccpy(pal_bg_mem + 32, boxBGPal, boxBGPalLen);
+            // Load tiles into CBB 0
+            LZ77UnCompVram(boxBGTiles, &tile_mem[CBB][0]);
+            // Give it a frame to uncompress the data
+            global_next_frame();
+            // Load map into SBB 0
+            LZ77UnCompVram(boxBGMap, &se_mem[SBB][0]);
+            REG_BG1VOFS = 0;
+            break;
+        }
     }
 
-    REG_BG1CNT = BG_CBB(CBB) | BG_SBB(SBB) | BG_4BPP | BG_REG_32x32 | BG_PRIO(layer);
+    BG_FLEX = BG_CBB(CBB) | BG_SBB(SBB) | BG_4BPP | BG_REG_32x32 | BG_PRIO(layer);
     curr_flex_background = background_id;
 }
 #include "textBoxBG.h"
@@ -206,7 +211,7 @@ void load_textbox_background()
     reload_textbox_background();
 
     REG_BG2VOFS = 96;
-    REG_BG2CNT = BG_CBB(CBB) | BG_SBB(SBB) | BG_4BPP | BG_REG_32x32 | BG_PRIO(3);
+    BG_TEXTBOX = BG_CBB(CBB) | BG_SBB(SBB) | BG_4BPP | BG_REG_32x32 | BG_PRIO(3);
 }
 
 void reload_textbox_background()
@@ -274,37 +279,37 @@ void add_menu_box(int startTileX, int startTileY, int full_width, int full_heigh
     int SBB = 20;
 
     int start = (32 * startTileY) + startTileX;
-    int tiles = (full_height / 8) - 2; // For the extra 2 tiles
-    int rem = full_height % 8;
-    full_width /= 8;
+    int tiles = (full_height / 8) - 1; // For the flex edge
+    int vert_rem = full_height % 8;
+    full_width = (full_width / 8) - 1; // For the right edge
 
     // Corners
     se_mem[SBB][start] = TILE_NW;
     se_mem[SBB][start + full_width] = TILE_NE;
-    se_mem[SBB][start + (32 * (tiles + 1))] = TILE_SW_U_ARR[rem / 2];
-    se_mem[SBB][start + (32 * (tiles + 2))] = TILE_SW_L_ARR[rem / 2];
-    se_mem[SBB][start + (32 * (tiles + 1)) + full_width] = TILE_SE_U_ARR[rem / 2];
-    se_mem[SBB][start + (32 * (tiles + 2)) + full_width] = TILE_SE_L_ARR[rem / 2];
+    se_mem[SBB][start + (32 * (tiles))] = TILE_SW_U_ARR[vert_rem / 2];
+    se_mem[SBB][start + (32 * (tiles + 1))] = TILE_SW_L_ARR[vert_rem / 2];
+    se_mem[SBB][start + (32 * (tiles)) + full_width] = TILE_SE_U_ARR[vert_rem / 2];
+    se_mem[SBB][start + (32 * (tiles + 1)) + full_width] = TILE_SE_L_ARR[vert_rem / 2];
 
     // Top and bottom edge
     for (int i = 1; i < full_width; i++)
     {
         se_mem[SBB][start + i] = TILE_N;
-        se_mem[SBB][start + ((32 * (tiles + 1))) + i] = TILE_S_U_ARR[rem / 2];
-        se_mem[SBB][start + ((32 * (tiles + 2))) + i] = TILE_S_L_ARR[rem / 2];
+        se_mem[SBB][start + ((32 * (tiles))) + i] = TILE_S_U_ARR[vert_rem / 2];
+        se_mem[SBB][start + ((32 * (tiles + 1))) + i] = TILE_S_L_ARR[vert_rem / 2];
     }
 
     // Sides
-    for (int i = 0; i < tiles; i++)
+    for (int i = 1; i < tiles; i++)
     {
-        se_mem[SBB][start + (32 * (i + 1)) + full_width] = TILE_E;
-        se_mem[SBB][start + (32 * (i + 1))] = TILE_W;
+        se_mem[SBB][start + (32 * i) + full_width] = TILE_E;
+        se_mem[SBB][start + (32 * i)] = TILE_W;
     }
 
     // Middle
     for (int x = 1; x < full_width; x++)
     {
-        for (int y = 1; y < tiles + 1; y++)
+        for (int y = 1; y < tiles; y++)
         {
             se_mem[SBB][start + (32 * y) + x] = TILE_MID;
         }

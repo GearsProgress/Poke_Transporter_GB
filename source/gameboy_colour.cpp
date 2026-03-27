@@ -98,6 +98,7 @@ int link_cable_memory_section_index = 0;
 
 void print(const char *format, ...)
 {
+  // I don't think this function is called anymore...
   va_list args;
   va_start(args, format);
 
@@ -122,12 +123,14 @@ void print(const char *format, ...)
   npf_vsnprintf(spi_text_out_array[0], SPI_TEXT_OUT_ARRAY_ELEMENT_SIZE, format, args);
   va_end(args);
 
-  tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
-  tte_set_pos(LEFT, 0);
+  tte_erase_rect(0, 0, H_MAX, V_MAX);
+
   for (int j = 0; j < 10; j++)
   {
-    ptgb_write("#{cx:0xE000}");
-    ptgb_write(spi_text_out_array[j]);
+    tte_erase_rect(0, 0, H_MAX, V_MAX);
+    tte_set_pos(0, 0);
+    ptgb_write_simple(reinterpret_cast<const byte *>("#{cx:0xE000}"), true);
+    ptgb_write_simple((byte *)(spi_text_out_array[j]), true);
   }
 }
 
@@ -162,15 +165,13 @@ void setup(const u16 *debug_charset)
   failed_packet = false;
   init_packet = true;
   end_of_data = false;
-
-  create_textbox(5, 1, 128, 60, true);
-
   {
     u8 general_text_table_buffer[2048];
     text_data_table general_text(general_text_table_buffer);
 
     general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
-    ptgb_write(general_text.get_text_entry(GENERAL_connecting), true);
+    ptgb_write_textbox(general_text.get_text_entry(GENERAL_connecting), true, false,
+                       GENERAL_INDEX, GENERAL_connecting, false);
   }
 }
 
@@ -222,14 +223,13 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
   {
     if (in == 0x60 || in == 0x61)
     {
-      tte_erase_rect(0, 0, H_MAX, V_MAX);
-      tte_set_pos(40, 24);
       {
         u8 general_text_table_buffer[2048];
         text_data_table general_text(general_text_table_buffer);
 
         general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
-        ptgb_write(general_text.get_text_entry(curr_gb_rom->version != YELLOW_ID ? GENERAL_link_success : GENERAL_link_success_yellow), true);
+        ptgb_write_textbox(general_text.get_text_entry(GENERAL_link_success), true, false,
+                           GENERAL_INDEX, GENERAL_link_success, false);
       }
 
       link_animation_state(STATE_NO_ANIM);
@@ -274,14 +274,13 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
   {
     if (in == 0xfd)
     {
-      tte_erase_rect(0, 0, H_MAX, V_MAX);
-      tte_set_pos(40, 24);
       {
         u8 general_text_table_buffer[2048];
         text_data_table general_text(general_text_table_buffer);
 
         general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
-        ptgb_write(general_text.get_text_entry(GENERAL_transferring), true);
+        ptgb_write_textbox(general_text.get_text_entry(GENERAL_transferring), true, false,
+                           GENERAL_INDEX, GENERAL_transferring, false);
       }
 
       link_animation_state(STATE_TRANSFER);
@@ -369,7 +368,6 @@ int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, PokeBo
 #define NUM_LINES 8
   int counter = 0;
   char stuff[NUM_LINES][LINE_WIDTH];
-
   while (true)
   {
     if (g_debug_options.print_link_data && key_held(KEY_L))
@@ -385,11 +383,8 @@ int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, PokeBo
 
     if (g_debug_options.print_link_data && !key_held(KEY_DOWN))
     {
-      // tte_set_margins(0, 0, H_MAX, V_MAX);
-      // print("%d: [%d][%d][%" PRIu8 "][%" PRIu8 "]\n\n", counter, data_counter, state, in_data, out_data);
       for (int i = 0; i < NUM_LINES; i++)
       {
-        // ptgb_write_debug(debug_charset, "\n", true);
         for (int j = 0; j < LINE_WIDTH; j++)
         {
           stuff[i][j] = stuff[i + 1][j];
@@ -407,7 +402,7 @@ int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, PokeBo
       n2hexstr(&stuff[NUM_LINES - 1][18], out_data & 0xFF, 2);
       stuff[NUM_LINES - 1][20] = '\0';
 
-      create_textbox(0, 0, 125, 80, false);
+      create_textbox(0, 0, 125, 128, false);
       ptgb_write_debug(debug_charset, *stuff, true);
     }
     else if (g_debug_options.write_cable_data_to_save)
@@ -616,7 +611,7 @@ byte exchange_boxes(byte curr_in, byte *box_data_storage, GB_ROM *curr_gb_rom, c
       n2hexstr(&outArr[currRow][14], init_packet, 2);
       outArr[currRow][16] = ' ';
 
-      create_textbox(0, 0, 125, 110, false);
+      // create_textbox(0, 0, 125, 110, false);
       link_animation_state(0);
       ptgb_write_debug(debug_charset, *outArr, true);
 
