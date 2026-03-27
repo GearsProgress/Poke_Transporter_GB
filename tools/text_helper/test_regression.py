@@ -140,6 +140,17 @@ class TextHelperRegressionTests(unittest.TestCase):
         text = decode_text(entry["bytes"], text_helper.Languages.English)
         self.assertTrue(text.startswith("ŇŇ_["))
 
+    def test_explicit_blank_line_is_preserved_after_centering(self):
+        entry = self.convert_text(
+            "{CTR}Top{NEW}{NEW}Bottom{nCTR}",
+            numLines=8,
+            includeScrolling=0,
+            includeBoxBreaks=0,
+            verticallyCenterText=1,
+        )
+        text = decode_text(entry["bytes"], text_helper.Languages.English)
+        self.assertRegex(text, r"_\[\d+\]TopŇŇ_\[\d+\]Bottom")
+
 
 if __name__ == "__main__":
     unittest.main()

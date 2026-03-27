@@ -57,6 +57,7 @@ TOKEN_BOX_BREAK = "\uE001"
 TOKEN_SCROLL_BREAK = "\uE002"
 TOKEN_CENTER_ON = "\uE003"
 TOKEN_CENTER_OFF = "\uE004"
+TOKEN_PRESERVED_BLANK_LINE = "\uE005"
 
 FORMAT_TOKEN_TO_BYTE_CHAR = {
     TOKEN_NEWLINE: "Ň",
@@ -642,8 +643,20 @@ def apply_vertical_centering(out_text, numLines, reference_text=None):
         centered_boxes.append(TOKEN_SCROLL_BREAK.join(centered_pages))
     return TOKEN_BOX_BREAK.join(centered_boxes)
 
+def protect_explicit_blank_lines(text):
+    while TOKEN_NEWLINE + TOKEN_NEWLINE in text:
+        text = text.replace(
+            TOKEN_NEWLINE + TOKEN_NEWLINE,
+            TOKEN_NEWLINE + TOKEN_PRESERVED_BLANK_LINE + TOKEN_NEWLINE,
+        )
+    return text
+
+def restore_explicit_blank_lines(text):
+    return text.replace(TOKEN_PRESERVED_BLANK_LINE, "")
+
 def normalize_formatted_text(out_text, numLines, include_scrolling, lang, entry_id, context=None, vertically_center_text=False):
     original_out_text = out_text
+    out_text = protect_explicit_blank_lines(out_text)
     out_text = out_text.replace(f"{TOKEN_NEWLINE}{PURPOSEFUL_SPACE_CHAR}", TOKEN_NEWLINE)
     out_text = out_text.replace(f"{TOKEN_SCROLL_BREAK}{PURPOSEFUL_SPACE_CHAR}", TOKEN_SCROLL_BREAK)
     out_text = out_text.replace(PURPOSEFUL_SPACE_CHAR, " ")
@@ -692,7 +705,7 @@ def normalize_formatted_text(out_text, numLines, include_scrolling, lang, entry_
         out_text = newStr
     if vertically_center_text:
         out_text = apply_vertical_centering(out_text, numLines, original_out_text)
-    return out_text
+    return restore_explicit_blank_lines(out_text)
 
 def encode_formatted_text(out_text, arr, lang, entry_id, context=None):
     byteStr = ""
