@@ -30,9 +30,6 @@
 #include "custom_malloc.h"
 #include "sound.h"
 
-#define MACRO_AS_STR_IMPL(x) #x
-#define MACRO_AS_STR(x) MACRO_AS_STR_IMPL(x)
-
 /*
 
 TODO:
