@@ -94,6 +94,11 @@ class TextHelperRegressionTests(unittest.TestCase):
         text = decode_text(entry["bytes"], text_helper.Languages.English)
         self.assertRegex(text, r"AlphaŇ_\[\d+\]Beta\.")
 
+    def test_terminal_center_close_does_not_append_newline(self):
+        entry = self.convert_text("{CTR}PUSH THE START BUTTON!{nCTR}")
+        text = decode_text(entry["bytes"], text_helper.Languages.English)
+        self.assertRegex(text, r"^_\[\d+\]PUSH THE START BUTTON!$")
+
     def test_newline_removes_leading_space_on_following_line(self):
         entry = self.convert_text("Thanks.{NEW} Again.")
         text = decode_text(entry["bytes"], text_helper.Languages.English)
