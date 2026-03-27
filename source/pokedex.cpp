@@ -116,25 +116,26 @@ int pokedex_loop()
                               // TODO: For some reason there is screen tearing here. Probably not noticable on console,
                               // but it should be removed at some point
 
+	tte_set_ink(INK_DARK_GREY);
     tte_set_pos(8, 146);
-    ptgb_write(kanto_name, true);
+    ptgb_write_simple(kanto_name, true);
     convert_int_to_ptgb_str(kanto_dex_num, temp_string, 3);
-    ptgb_write(temp_string, true);
+    ptgb_write_simple(temp_string, true);
     temp_string[0] = 0xBA; // "/"
     temp_string[1] = 0xFF;
-    ptgb_write(temp_string, true);
+    ptgb_write_simple(temp_string, true);
     convert_int_to_ptgb_str(mew_caught ? 151 : 150, temp_string, 3);
-    ptgb_write(temp_string, true);
+    ptgb_write_simple(temp_string, true);
 
     tte_set_pos(128, 146);
-    ptgb_write(johto_name, true);
+    ptgb_write_simple(johto_name, true);
     convert_int_to_ptgb_str(johto_dex_num, temp_string, 3);
-    ptgb_write(temp_string, true);
+    ptgb_write_simple(temp_string, true);
     temp_string[0] = 0xBA; // "/"
     temp_string[1] = 0xFF;
-    ptgb_write(temp_string, true);
+    ptgb_write_simple(temp_string, true);
     convert_int_to_ptgb_str(celebi_caught ? 100 : 99, temp_string, 3);
-    ptgb_write(temp_string, true);
+    ptgb_write_simple(temp_string, true);
 
     while (true)
     {
@@ -205,6 +206,7 @@ int pokedex_loop()
         }
         if (update)
         {
+            tte_set_ink(INK_ROM_COLOR);
             tte_erase_rect(0, 0, 240, 140);
             int mythic_skip = 0;
             for (int i = 0; i < DEX_MAX; i++)
@@ -219,15 +221,15 @@ int pokedex_loop()
                     tte_set_pos(dex_x_cord + (3 * 8 / 2), (i * 8 * 2) + 28);
                     temp_string[0] = 0xF7;
                     temp_string[1] = 0xFF;
-                    ptgb_write(temp_string, true);
+                    ptgb_write_simple(temp_string, true);
                 }
 
                 tte_set_pos(dex_x_cord + (3 * 8), (i * 8 * 2) + 28);
                 convert_int_to_ptgb_str(dex_shift + i + 1 + mythic_skip, temp_string, 3);
-                ptgb_write(temp_string, true);
+                ptgb_write_simple(temp_string, true);
 
                 tte_set_pos(dex_x_cord + (7 * 8), (i * 8 * 2) + 28);
-                ptgb_write(is_caught(dex_shift + i + 1 + mythic_skip) ? PKMN_NAMES.get_text_entry(dex_shift + i + 1 + mythic_skip) : undiscovered_text, true);
+                ptgb_write_simple(is_caught(dex_shift + i + 1 + mythic_skip) ? PKMN_NAMES.get_text_entry(dex_shift + i + 1 + mythic_skip) : undiscovered_text, true);
 
             }
             global_next_frame(); // This is a bit silly, but it works. Makes the types one frame off from the text, but that's 'fine'

@@ -19,7 +19,7 @@ int Box_Menu::box_main(PokeBox* box)
     text_data_table PKMN_NAMES(names_decompression_buffer);
 
     tte_erase_screen();
-    load_flex_background(BG_BOX, 2);
+    load_flex_background(FLEXBG_BOX, 2);
     REG_BG1VOFS = 0;
     REG_BG1HOFS = 0;
     load_temp_box_sprites(box);
@@ -117,7 +117,7 @@ int Box_Menu::box_main(PokeBox* box)
                     obj_hide(party_sprites[i]);
                 }
                 tte_erase_screen();
-                load_flex_background(BG_FENNEL, 2);
+                load_flex_background(FLEXBG_FENNEL, 2);
                 REG_BG2VOFS = BG2VOF_SMALL_TEXTBOX;
                 global_next_frame();
                 return curr_button;
@@ -135,23 +135,23 @@ int Box_Menu::box_main(PokeBox* box)
                 byte val[11];
                 tte_set_pos(6, 88);
                 curr_pkmn->externalConvertNickname(val);
-                ptgb_write(val, true);
+                ptgb_write_simple(val, true);
                 if (curr_pkmn->getIsShiny())
                 {
                     tte_set_pos(64, 16);
                     val[0] = 0xF9;
                     val[1] = 0xFF;
-                    ptgb_write(val, true);
+                    ptgb_write_simple(val, true);
                 }
                 tte_set_pos(14, 98);
                 if (curr_pkmn->getSpeciesIndexNumber() == MISSINGNO)
                 {
-                    ptgb_write(PKMN_NAMES.get_text_entry(0), true);
+                    ptgb_write_simple(PKMN_NAMES.get_text_entry(0), true);
                 }
 
                 else
                 {
-                    ptgb_write(PKMN_NAMES.get_text_entry(curr_pkmn->getSpeciesIndexNumber()), true);
+                    ptgb_write_simple(PKMN_NAMES.get_text_entry(curr_pkmn->getSpeciesIndexNumber()), true);
                 }
                 tte_set_pos(6, 108);
                 val[0] = 0xC6; // L
@@ -159,9 +159,9 @@ int Box_Menu::box_main(PokeBox* box)
                 val[2] = 0xF0; // :
                 val[3] = 0x00; // " "
                 val[4] = 0xFF; // endline
-                ptgb_write(val, true);
+                ptgb_write_simple(val, true);
                 convert_int_to_ptgb_str(curr_pkmn->getLevel(), val); // Val should never go out of bounds
-                ptgb_write(val, true);
+                ptgb_write_simple(val, true);
 
                 update_front_box_sprite(curr_pkmn);
                 obj_unhide(grabbed_front_sprite, 0);
