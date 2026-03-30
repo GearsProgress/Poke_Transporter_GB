@@ -16,6 +16,7 @@
 #include "button_menu.h"
 #include "dbg/debug_mode.h"
 #include "dbg/debug_menu.h"
+#include "dbg/ptgb_mgba_print.h"
 #include "dex_handler.h"
 #include "pokedex.h"
 #include "global_frame_controller.h"
@@ -91,6 +92,7 @@ void initialization_script(void)
 
 	// Prepare text engine for dialogue
 	init_text_engine();
+	ptgb_mgba_init();
 
 	// Set the random seed
 	rand_set_seed(0x1216);
@@ -99,6 +101,8 @@ void initialization_script(void)
 
 	VBlankIntrWait();
 	REG_DISPCNT &= ~DCNT_BLANK;
+
+	PTGB_MGBA_INFO("Hello from PTGB!");
 };
 
 void game_load_error(void)
