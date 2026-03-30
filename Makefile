@@ -265,7 +265,7 @@ $(GENERATE_STAMP): $(TEXT_HELPER_INPUTS) $(PAYLOAD_GEN_INPUTS) compress_lz10.sh 
 	@touch $@
 
 #---------------------------------------------------------------------------------
-$(BUILD_STAMP): $(GENERATE_STAMP) $(TEXT_GENERATED_OUTPUTS) | $(BUILD)
+$(BUILD_STAMP): $(GENERATE_STAMP) | $(BUILD)
 	@$(MAKE) -C PCCS \
 		CC="$(CC)" \
 		CXX="$(CXX)" \
