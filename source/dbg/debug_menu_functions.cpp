@@ -252,21 +252,15 @@ void dbg_inject_pkmn(void *context, unsigned user_param)
     create_textbox(BOX_TYPE_DIALOUGEBOX, true);
     show_textbox();
 
-    convert_OT_to_utf8(encoded_OT, decoded_OT_utf8, tables.gen3_charset);
-
-    npf_snprintf(text_buffer, sizeof(text_buffer), "%s received a Celebi!\n Celebi was sent to box %d!", decoded_OT_utf8, boxIndex);
-
     tte_set_pos(LEFT, TOP);
     tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
+
+    convert_OT_to_utf8(encoded_OT, decoded_OT_utf8, tables.gen3_charset);
+    npf_snprintf(text_buffer, sizeof(text_buffer), "%s received a Celebi!\n Celebi was sent to box %d!", decoded_OT_utf8, boxIndex);
     ptgb_write_debug(tables.gen3_charset, text_buffer, false);
 
-    while(true)
-    {
-        if (key_hit(KEY_A))
-        {
-            hide_textbox();
-            break;
-        }
-        global_next_frame();
-    }
+    wait_for_user_to_continue();
+
+    hide_textbox();
+    tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
 }
