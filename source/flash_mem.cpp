@@ -106,8 +106,8 @@ void print_mem_section()
     out[0] = get_char_from_charset(charset, mem_name);
     out[1] = get_char_from_charset(charset, '-');
     out[2] = get_char_from_charset(charset, mem_id + 0xA1); // Kinda a dumb way to 
-    tte_set_pos(0, 0);
-    ptgb_write(out, true);
+    //tte_set_pos(0, 0);
+    ptgb_write_simple(out, true);
     */
 }
 
@@ -153,7 +153,7 @@ bool read_flag(u16 flag_id)
 {
     if (false)
     {
-        tte_set_pos(0, 0);
+        //tte_set_pos(0, 0);
         tte_write("#{cx:0xD000}Attempting to read byte ");
         tte_write(ptgb::to_string((curr_GBA_rom.offset_flags + (flag_id / 8)) % 0xF80));
         tte_write(" of memory section ");

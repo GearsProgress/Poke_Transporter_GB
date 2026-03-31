@@ -95,7 +95,7 @@ void show_text_debug_screen(void *context, unsigned user_param)
     (void)user_param;
 
     tte_set_ink(INK_DARK_GREY);
-    REG_BG1CNT = (REG_BG1CNT & ~BG_PRIO_MASK) | BG_PRIO(3);
+    BG_FLEX = (BG_FLEX & ~BG_PRIO_MASK) | BG_PRIO(3);
     text_loop(SCRIPT_DEBUG);
 }
 
@@ -150,8 +150,8 @@ void show_debug_info_screen(void *context, unsigned user_param)
     n2hexstr(flags_hex_str, pkmn_flags);
     n2hexstr(def_lang_hex_str, def_lang);
 
-    create_textbox(4, 1, 160, 80, true);
-    show_text_box();
+    //create_textbox(4, 1, 160, 80, true);
+    show_textbox();
 
     npf_snprintf(text_buffer, sizeof(text_buffer),
         "Debug info:\n\nG: %d%s%d\nF: %d%d%d-%s\nS:   %d-%s\n%s%s",
@@ -174,8 +174,8 @@ void show_debug_info_screen(void *context, unsigned user_param)
     {
         if (key_hit(KEY_B))
         {
-            hide_text_box();
-            reset_textbox();
+            hide_textbox();
+            reload_textbox_background();
             return;
         }
         global_next_frame();

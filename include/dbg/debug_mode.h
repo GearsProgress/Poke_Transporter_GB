@@ -120,4 +120,12 @@ extern debug_options g_debug_options;
 // needs to be a value divisible by 4
 #define CUSTOM_MALLOC_POOL_SIZE 8192
 
+// This option enables PTGB_MGBA_XYZ() log messages. These get printed to the mgba log window.
+// This option can only be enabled in debug builds because it relies on mgba_printf,
+// which will only get included in debug builds for licensing reasons.
+// Compiling with this option enabled in release builds will cause a static_assert failure.
+// But the && DEBUG_MODE check will already prevent this from being enabled in release builds accidentally,
+// so as long as no-one removes that, it should be fine.
+#define DEBUG_USE_MGBA_PRINT (true && DEBUG_MODE)
+
 #endif

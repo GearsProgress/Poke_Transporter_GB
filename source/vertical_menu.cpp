@@ -310,7 +310,7 @@ const simple_item_widget_data& simple_item_renderer::get_data() const
 void simple_item_renderer::render_item(text_data_table &text_table, unsigned x, unsigned y, bool is_focused)
 {
     tte_set_pos(x + data_.text.margin_left, y + data_.text.margin_top);
-    ptgb_write(text_table.get_text_entry(data_.text.text_table_index), true);
+    ptgb_write_simple(text_table.get_text_entry(data_.text.text_table_index), true);
 }
 
 MenuInputHandleState simple_item_renderer::handle_input()
