@@ -23,7 +23,7 @@ void ptgb_mgba_print(int level, const char *format_str, ...)
 {
     va_list args;
     va_start(args, format_str);
-    mgba_printf(level, format_str, args);
+    mgba_vprintf(level, format_str, args);
     va_end(args);
 }
 

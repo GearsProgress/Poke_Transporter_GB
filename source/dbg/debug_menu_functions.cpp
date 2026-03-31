@@ -14,6 +14,12 @@
 #include "Gen3SaveManager.h"
 #include "Gen3Pokemon.h"
 #include "pokemon_data.h"
+#include "translated_text.h"
+
+#define LEFT 8
+#define RIGHT (H_MAX - LEFT)
+#define TOP 120
+#define BOTTOM V_MAX
 
 extern rom_data curr_GBA_rom;
 
@@ -145,6 +151,9 @@ void show_debug_info_screen(void *context, unsigned user_param)
     case EMERALD_ID:
         game_code = "-E-";
         break;
+    default:
+        game_code = "-UNK-";
+        break;
     }
 
     n2hexstr(flags_hex_str, pkmn_flags);
@@ -222,9 +231,13 @@ void dbg_inject_pkmn(void *context, unsigned user_param)
     do
     {
         ret = save_manager.addPokemonToBox(boxIndex, celebi);
+        if(ret != UINT32_MAX)
+        {
+            break;
+        }
         ++boxIndex;
 
-    } while (ret == UINT32_MAX && boxIndex < 14);
+    } while (boxIndex < 14);
 
     if(ret == UINT32_MAX)
     {
@@ -236,8 +249,8 @@ void dbg_inject_pkmn(void *context, unsigned user_param)
     reader.flush();
     save_manager.readTrainerName(encoded_OT, ret);
 
-    reset_textbox();
-    show_text_box();
+    create_textbox(BOX_TYPE_DIALOUGEBOX, true);
+    show_textbox();
 
     convert_OT_to_utf8(encoded_OT, decoded_OT_utf8, tables.gen3_charset);
 
@@ -251,8 +264,7 @@ void dbg_inject_pkmn(void *context, unsigned user_param)
     {
         if (key_hit(KEY_A))
         {
-            hide_text_box();
-            reset_textbox();
+            hide_textbox();
             break;
         }
         global_next_frame();

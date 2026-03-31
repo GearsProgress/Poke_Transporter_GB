@@ -11,6 +11,7 @@ Gen3CartridgeSaveReader::Gen3CartridgeSaveReader(u8 *sector_buffer)
     , cur_(sector_buffer)
     , dirty_(false)
 {
+    seek(0);
 }
 
 Gen3CartridgeSaveReader::~Gen3CartridgeSaveReader()
@@ -32,14 +33,24 @@ void Gen3CartridgeSaveReader::readUint8(u8& outByte)
 void Gen3CartridgeSaveReader::readUint16(u16& outWord, Endianness fieldEndianness)
 {
     // Right now we only support little endian (no need for big endian thus far)
-    outWord = *((u16*)cur_);
+    (void)fieldEndianness;
+    // The read is implemented this way to avoid any issues with unaligned reads.
+    // see writeUint16 for more details.
+    outWord = static_cast<u16>(cur_[0]) |
+              (static_cast<u16>(cur_[1]) << 8);
     cur_ += sizeof(u16);
 }
 
 void Gen3CartridgeSaveReader::readUint32(u32& outDWord, Endianness fieldEndianness)
 {
     // Right now we only support little endian (no need for big endian thus far)
-    outDWord = *((u32*)cur_);
+    (void)fieldEndianness;
+    // The read is implemented this way to avoid any issues with unaligned reads.
+    // see writeUint16 for more details.
+    outDWord = static_cast<u32>(cur_[0]) |
+               (static_cast<u32>(cur_[1]) << 8) |
+               (static_cast<u32>(cur_[2]) << 16) |
+               (static_cast<u32>(cur_[3]) << 24);
     cur_ += sizeof(u32);
 }
 
@@ -61,7 +72,14 @@ void Gen3CartridgeSaveReader::writeUint8(u8 value)
 void Gen3CartridgeSaveReader::writeUint16(u16 value, Endianness fieldEndianness)
 {
     // Right now we only support little endian (no need for big endian thus far)
-    *((u16*)cur_) = value;
+    (void)fieldEndianness;
+    // The write is implemented this way to avoid any issues with unaligned writes.
+    // I tried
+    // *((u16*)cur_) = value;
+    // earlier, but when cur_ was set to 0x0019, this caused undefined behaviour.
+    // (specifically the word was written 1 byte earlier than it should've been)
+    cur_[0] = static_cast<u8>(value & 0xFF);
+    cur_[1] = static_cast<u8>(value >> 8);
     cur_ += sizeof(u16);
     dirty_ = true;
 }
@@ -69,14 +87,21 @@ void Gen3CartridgeSaveReader::writeUint16(u16 value, Endianness fieldEndianness)
 void Gen3CartridgeSaveReader::writeUint32(u32 value, Endianness fieldEndianness)
 {
     // Right now we only support little endian (no need for big endian thus far)
-    *((u32*)cur_) = value;
+    (void)fieldEndianness;
+    // The write is implemented this way to avoid any issues with unaligned writes.
+    // see writeUint16 for more details.
+    cur_[0] = static_cast<u8>(value & 0xFF);
+    cur_[1] = static_cast<u8>((value >> 8) & 0xFF);
+    cur_[2] = static_cast<u8>((value >> 16) & 0xFF);
+    cur_[3] = static_cast<u8>((value >> 24) & 0xFF);
     cur_ += sizeof(u32);
     dirty_ = true;
 }
 
 void Gen3CartridgeSaveReader::seek(u32 offset)
 {
-    const uintptr_t sector_start = offset / SECTOR_SIZE;
+    const u32 sector_offset = offset % SECTOR_SIZE;
+    const uintptr_t sector_start = offset - sector_offset;
     if(sector_start != sector_start_)
     {
         // write any pending changes.
@@ -85,7 +110,7 @@ void Gen3CartridgeSaveReader::seek(u32 offset)
         copy_save_to_ram(sector_start, sector_buffer_, SECTOR_SIZE);
     }
 
-    cur_ = sector_buffer_ + (offset - sector_start);
+    cur_ = sector_buffer_ + (offset % SECTOR_SIZE);
 }
 
 void Gen3CartridgeSaveReader::advance(u32 numBytes)
@@ -117,8 +142,7 @@ void Gen3CartridgeSaveReader::flush()
         return;
     }
 
-    const uintptr_t sector_offset = sector_start_ * SECTOR_SIZE;
     update_memory_buffer_checksum(sector_buffer_, (sector_start_ == HALL_OF_FAME));
-    copy_ram_to_save(sector_buffer_, sector_offset, SECTOR_SIZE);
+    copy_ram_to_save(sector_buffer_, sector_start_, SECTOR_SIZE);
     dirty_ = false;
 }
