@@ -51,13 +51,17 @@ ssize_t mgba_stderr_write(struct _reent* r __attribute__((unused)), void* fd __a
 	return len;
 }
 
-void mgba_printf(int level, const char* ptr, ...) {
+void mgba_vprintf(int level, const char* ptr, va_list args) {
 	level &= 0x7;
+	npf_vsnprintf(REG_DEBUG_STRING, 0x100, ptr, args);
+	*REG_DEBUG_FLAGS = level | 0x100;
+}
+
+void mgba_printf(int level, const char* ptr, ...) {
 	va_list args;
 	va_start(args, ptr);
-	npf_vsnprintf(REG_DEBUG_STRING, 0x100, ptr, args);
+	mgba_vprintf(level, ptr, args);
 	va_end(args);
-	*REG_DEBUG_FLAGS = level | 0x100;
 }
 
 static const devoptab_t dotab_mgba_stdout = {

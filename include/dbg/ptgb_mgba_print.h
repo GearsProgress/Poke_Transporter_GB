@@ -11,11 +11,11 @@ extern "C" {
 #define PTGB_MGBA_LOG_INFO 3
 #define PTGB_MGBA_LOG_DEBUG 4
 
-#define PTGB_MGBA_FATAL(X, ...) ptgb_mgba_print(PTGB_MGBA_LOG_FATAL, X, ##__VA_ARGS__)
-#define PTGB_MGBA_ERROR(X, ...) ptgb_mgba_print(PTGB_MGBA_LOG_ERROR, X, ##__VA_ARGS__)
-#define PTGB_MGBA_WARN(X, ...) ptgb_mgba_print(PTGB_MGBA_LOG_WARN, X, ##__VA_ARGS__)
-#define PTGB_MGBA_INFO(X, ...) ptgb_mgba_print(PTGB_MGBA_LOG_INFO, X, ##__VA_ARGS__)
-#define PTGB_MGBA_DEBUG(X, ...) ptgb_mgba_print(PTGB_MGBA_LOG_DEBUG, X, ##__VA_ARGS__)
+#define PTGB_MGBA_FATAL(...) ptgb_mgba_print(PTGB_MGBA_LOG_FATAL, __VA_ARGS__)
+#define PTGB_MGBA_ERROR(...) ptgb_mgba_print(PTGB_MGBA_LOG_ERROR, __VA_ARGS__)
+#define PTGB_MGBA_WARN(...) ptgb_mgba_print(PTGB_MGBA_LOG_WARN, __VA_ARGS__)
+#define PTGB_MGBA_INFO(...) ptgb_mgba_print(PTGB_MGBA_LOG_INFO, __VA_ARGS__)
+#define PTGB_MGBA_DEBUG(...) ptgb_mgba_print(PTGB_MGBA_LOG_DEBUG, __VA_ARGS__)
 
 void ptgb_mgba_init(void);
 void ptgb_mgba_deinit(void);
