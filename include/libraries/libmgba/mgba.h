@@ -23,6 +23,8 @@
 #ifndef MGBA_H
 #define MGBA_H
 
+#include <stdarg.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -37,6 +39,7 @@ bool mgba_open(void);
 void mgba_close(void);
 
 void mgba_printf(int level, const char* string, ...);
+void mgba_vprintf(int level, const char* string, va_list args);
 bool mgba_console_open(void);
 
 #ifdef __cplusplus
