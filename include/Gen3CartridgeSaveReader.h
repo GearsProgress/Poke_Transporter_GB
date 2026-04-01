@@ -1,11 +1,11 @@
 #ifndef _GEN3CARTRIDGE_SAVE_READER_H
 #define _GEN3CARTRIDGE_SAVE_READER_H
 
-#include "IGen3SaveFileReader.h"
+#include "typeDefs.h"
 #include <cstdint>
 
 /**
- * @brief This class is an adapter implementation of IGen3SaveFileReader, 
+ * @brief This class is an adapter implementation for Gen3SaveManager,
  * which is used by libPCCS' Gen3SaveManager class.
  * 
  * This specific implementation will allow read/write operations to the cartridge save.
@@ -20,28 +20,28 @@
  * Note: this class won't automatically load any sector when initialized.
  * Make sure to trigger seek() before doing anything with it.
  */
-class Gen3CartridgeSaveReader : public IGen3SaveFileReader
+class Gen3CartridgeSaveReader
 {
 public:
     Gen3CartridgeSaveReader(u8 *sector_buffer);
-    ~Gen3CartridgeSaveReader() override;
+    ~Gen3CartridgeSaveReader();
 
-    void read(u8 *buffer, u32 size) override;
-    void readUint8(u8& outByte) override;
-    void readUint16(u16& outWord, Endianness fieldEndianness) override;
-    void readUint32(u32& outDWord, Endianness fieldEndianness) override;
+    void read(u8 *buffer, u32 size);
+    void readUint8(u8& outByte);
+    void readUint16(u16& outWord, Endianness fieldEndianness);
+    void readUint32(u32& outDWord, Endianness fieldEndianness);
 
-    void write(const u8 *buffer, u32 size) override;
-    void writeUint8(u8 value) override;
-    void writeUint16(u16 value, Endianness fieldEndianness) override;
-    void writeUint32(u32 value, Endianness fieldEndianness) override;
+    void write(const u8 *buffer, u32 size);
+    void writeUint8(u8 value);
+    void writeUint16(u16 value, Endianness fieldEndianness);
+    void writeUint32(u32 value, Endianness fieldEndianness);
 
-    void seek(u32 offset) override;
+    void seek(u32 offset);
 
     // WARNING: advance and rewind won't cross sector boundaries, so make sure to trigger seek()
     // if you want to move to a different sector.
-    void advance(u32 numBytes) override;
-    void rewind(u32 numBytes) override;
+    void advance(u32 numBytes);
+    void rewind(u32 numBytes);
 
     /**
      * @brief Flush the current buffer to the cartridge save.
