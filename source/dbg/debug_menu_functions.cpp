@@ -232,7 +232,7 @@ void dbg_inject_pkmn(void *context, unsigned user_param)
     {
         u32 front_sprite_tile_id = global_tile_id_end + (30 * 16);
         load_sprite_compressed(grabbed_front_sprite, (const unsigned int *)*(u32 *)(curr_GBA_rom.loc_gMonFrontPicTable + (0 * 8)), front_sprite_tile_id, PULLED_SPRITE_PAL, ATTR0_SQUARE, ATTR1_SIZE_64x64, 1);
-        update_front_box_sprite(&celebi);
+        update_front_box_sprite(&celebi, false);
         obj_set_pos(grabbed_front_sprite, 88, 16);
         obj_unhide(grabbed_front_sprite, 0);
     }
