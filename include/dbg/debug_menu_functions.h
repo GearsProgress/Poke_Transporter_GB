@@ -27,4 +27,10 @@ void dbg_set_boolean_flag(void *context, unsigned user_param);
  */
 void dbg_play_song(void *context, unsigned user_param);
 
+/**
+ * @brief This function will inject a Pokémon into the game.
+ * (right now this is just Jirachi)
+ */
+void dbg_inject_pkmn(void *context, unsigned user_param);
+
 #endif

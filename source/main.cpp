@@ -436,6 +436,7 @@ int main(void)
 #if ENABLE_DEBUG_MENU
 		case (BTN_DEBUG_MENU):
 			obj_hide_multi(ptgb_logo_l, 2);
+			load_flex_background(FLEXBG_FENNEL, 3);
 			show_debug_menu();
 			break;
 #endif

@@ -872,13 +872,15 @@ void update_y_offset()
     obj_set_pos(flag, (8 * 11) + 4, (8 * 4) + 19 + y_offset);
 }
 
-void update_front_box_sprite(GBPokemon *curr_pkmn)
+void update_front_box_sprite(Pokemon *curr_pkmn, bool make_greyscale)
 {
     if (g_debug_options.ignore_game_pak || g_debug_options.ignore_game_pak_sprites)
     {
         return; // We don't want to look into garbage data, get out of here.
     }
 
+    // in load_temp_sprites(), we reserve 30 box sprite icons after global_tile_id_end. Each of them occupy 16 tiles.
+    // the grabbed_front_sprite comes right after it. And we load the pokémon front sprite directly into its tiles.
     u32 curr_tile_id = global_tile_id_end + (30 * 16);
 
     int dex_num = curr_pkmn->getSpeciesIndexNumber();
@@ -903,16 +905,21 @@ void update_front_box_sprite(GBPokemon *curr_pkmn)
     unsigned short buffer[16];
 
     LZ77UnCompWram((const unsigned short *)palette_location, buffer); // This is a little silly, but it's being weird with bytes vs shorts when we copy it directly
-    for (int i = 0; i < 16; i++)
-    {
-        unsigned red = (buffer[i] >> 0) & 0b11111;
-        unsigned green = (buffer[i] >> 5) & 0b11111;
-        unsigned blue = (buffer[i] >> 10) & 0b11111;
-        unsigned grey = ((QF(0.299f) * red) + (QF(0.587f) * green) + (QF(0.114f) * blue)) >> 16;
 
-        // buffer[i] = RGB15_SAFE(red, ((int)green >> 1), 0);
-        buffer[i] = RGB15_SAFE(grey, (grey >> 1), 0);
+    if(make_greyscale)
+    {
+        for (int i = 0; i < 16; i++)
+        {
+            unsigned red = (buffer[i] >> 0) & 0b11111;
+            unsigned green = (buffer[i] >> 5) & 0b11111;
+            unsigned blue = (buffer[i] >> 10) & 0b11111;
+            unsigned grey = ((QF(0.299f) * red) + (QF(0.587f) * green) + (QF(0.114f) * blue)) >> 16;
+
+            // buffer[i] = RGB15_SAFE(red, ((int)green >> 1), 0);
+            buffer[i] = RGB15_SAFE(grey, (grey >> 1), 0);
+        }
     }
+
     tonccpy((pal_obj_mem + (PULLED_SPRITE_PAL * 16)), buffer, 32);
     LZ77UnCompVram((const unsigned int *)sprite_location, &tile_mem[SPRITE_CHAR_BLOCK][curr_tile_id]);
 }

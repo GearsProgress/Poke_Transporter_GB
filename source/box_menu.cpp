@@ -163,7 +163,7 @@ int Box_Menu::box_main(PokeBox* box)
                 convert_int_to_ptgb_str(curr_pkmn->getLevel(), val); // Val should never go out of bounds
                 ptgb_write_simple(val, true);
 
-                update_front_box_sprite(curr_pkmn);
+                update_front_box_sprite(curr_pkmn, true);
                 obj_unhide(grabbed_front_sprite, 0);
                 update_pos = false;
             }

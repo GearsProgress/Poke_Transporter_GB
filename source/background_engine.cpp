@@ -22,11 +22,16 @@ void background_frame(int global_frame_count)
 // This could honestly be an object... might want to do that in the future, depending on how complex using this gets
 void create_textbox(int text_section, int text_key, bool eraseMainBox)
 {
-        int box_type = text_box_type_tables[text_section][text_key];
-        int startTileX = box_type_info[box_type][BOX_TYPE_VAL_START_TILE_X];
-        int startTileY = box_type_info[box_type][BOX_TYPE_VAL_START_TILE_Y];
-        int text_space_width = box_type_info[box_type][BOX_TYPE_VAL_PIXELS_PER_LINE];
-        int text_space_height = box_type_info[box_type][BOX_TYPE_VAL_NUM_OF_LINES] * 16;
+        const u8 box_type = text_box_type_tables[text_section][text_key];
+        create_textbox(box_type, eraseMainBox);
+}
+
+void create_textbox(u8 textbox_type, bool eraseMainBox)
+{
+        const int startTileX = box_type_info[textbox_type][BOX_TYPE_VAL_START_TILE_X];
+        const int startTileY = box_type_info[textbox_type][BOX_TYPE_VAL_START_TILE_Y];
+        const int text_space_width = box_type_info[textbox_type][BOX_TYPE_VAL_PIXELS_PER_LINE];
+        const int text_space_height = box_type_info[textbox_type][BOX_TYPE_VAL_NUM_OF_LINES] * 16;
 
         create_textbox(startTileX, startTileY, text_space_width, text_space_height, eraseMainBox);
 }

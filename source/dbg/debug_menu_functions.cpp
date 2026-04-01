@@ -9,6 +9,92 @@
 #include "background_engine.h"
 #include "libstd_replacements.h"
 #include "sound.h"
+#include "rom_data.h"
+#include "Gen3CartridgeSaveReader.h"
+#include "Gen3SaveManager.h"
+#include "Gen3Pokemon.h"
+#include "pokemon_data.h"
+#include "translated_text.h"
+
+#define LEFT 8
+#define RIGHT (H_MAX - LEFT)
+#define TOP 120
+#define BOTTOM V_MAX
+
+extern rom_data curr_GBA_rom;
+extern u32 global_tile_id_end;
+
+static const byte RSEFL_10_ANIV_Celebi_0BF5_ENG_[]  = {
+  0xbe, 0x2b, 0x28, 0x78, 0x0a, 0x00, 0x00, 0x00, 0xbd, 0xbf, 0xc6, 0xbf, 0xbc, 0xc3, 0xff, 0x34, 
+  0x01, 0x31, 0x02, 0x02, 0xa2, 0xa1, 0x00, 0xbb, 0xc8, 0xc3, 0xd0, 0x00, 0x17, 0x35, 0x00, 0x00, 
+  0xfb, 0x00, 0x00, 0x00, 0x80, 0x43, 0x05, 0x00, 0x00, 0x64, 0x00, 0x00, 0xf6, 0x00, 0xf8, 0x00, 
+  0xe2, 0x00, 0xc3, 0x00, 0x05, 0x0f, 0x28, 0x05, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 
+  0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0x46, 0x21, 0xe2, 0x31, 0xaf, 0x22, 0x00, 0x00, 0x00, 0x00
+};
+
+static Game convert_rom_game_id_to_ptgb_game(int game_id)
+{
+    switch (game_id)
+    {
+    case RUBY_ID:
+        return RUBY;
+    case SAPPHIRE_ID:
+        return SAPPHIRE;
+    case FIRERED_ID:
+        return FIRERED;
+    case LEAFGREEN_ID:
+        return LEAFGREEN;
+    case EMERALD_ID:
+        return EMERALD;
+    default:
+        return GAME_UNKNOWN; // Default to unknown if the game ID is unrecognized
+    }
+}
+
+static Language convert_rom_lang_to_ptgb_lang(int rom_lang)
+{
+    switch (rom_lang)
+    {
+    case LANG_JPN:
+        return JAPANESE;
+    case LANG_ENG:
+        return ENGLISH;
+    case LANG_FRE:
+        return FRENCH;
+    case LANG_ITA:
+        return ITALIAN;
+    case LANG_GER:
+        return GERMAN;
+    case LANG_SPA:
+        return SPANISH;
+    default:
+        return LANGUAGE_UNKNOWN; // Default to unknown if the language is unrecognized
+    }
+}
+
+/**
+ * The trainer OT is encoded in the gen3 proprietary charset.
+ * But if we want to print it with npf_snprintf, we need to convert it to UTF-8 first.
+ */
+static void convert_OT_to_utf8(const u8 *encoded_OT, u8 *output_buffer, const u16 *gen3_charset)
+{
+    u16 current_char;
+    u32 num_bytes;
+    u8 utf8_codepoint_buffer[4];
+    u8 *cur_out = output_buffer;
+
+    for (u32 i = 0; i < 7 && encoded_OT[i] != 0xFF; ++i)
+    {
+        // the charset maps each gen 3 character (represented as a byte) to a UTF-16 codepoint.
+        // So we first convert the encoded OT character to UTF-16, and then convert that UTF-16 codepoint to UTF-8.
+        current_char = convert_gen_3_char_to_utf16(gen3_charset, encoded_OT[i]);
+        num_bytes = convert_utf16_to_utf8_char(current_char, utf8_codepoint_buffer);
+
+        memcpy(cur_out, utf8_codepoint_buffer, num_bytes);
+        cur_out += num_bytes;
+    }
+    *cur_out = '\0';
+}
 
 void show_text_debug_screen(void *context, unsigned user_param)
 {
@@ -66,6 +152,9 @@ void show_debug_info_screen(void *context, unsigned user_param)
     case EMERALD_ID:
         game_code = "-E-";
         break;
+    default:
+        game_code = "-UNK-";
+        break;
     }
 
     n2hexstr(flags_hex_str, pkmn_flags);
@@ -117,4 +206,77 @@ void dbg_play_song(void *context, unsigned user_param)
         return;
     }
     play_song(user_param, true);
+}
+
+void dbg_inject_pkmn(void *context, unsigned user_param)
+{
+    const Game game_type = convert_rom_game_id_to_ptgb_game(curr_GBA_rom.gamecode);
+    const Language game_lang = convert_rom_lang_to_ptgb_lang(curr_GBA_rom.language);
+    u32 ret;
+    char text_buffer[256];
+    u8 encoded_OT[8];
+    u8 decoded_OT_utf8[32];
+    int boxIndex = 0;
+
+    Gen3CartridgeSaveReader reader(global_memory_buffer);
+    Gen3SaveManager save_manager(game_type, game_lang, reader);
+
+    PokemonTables tables;
+    tables.load_gen3_charset(game_lang);
+
+    Gen3Pokemon celebi(&tables);
+    celebi.loadData(RSEFL_10_ANIV_Celebi_0BF5_ENG_, false);
+
+    // front_sprite_tile_id is reserved behind the box sprites
+    if(!g_debug_options.ignore_game_pak && !g_debug_options.ignore_game_pak_sprites)
+    {
+        u32 front_sprite_tile_id = global_tile_id_end + (30 * 16);
+        load_sprite_compressed(grabbed_front_sprite, (const unsigned int *)*(u32 *)(curr_GBA_rom.loc_gMonFrontPicTable + (0 * 8)), front_sprite_tile_id, PULLED_SPRITE_PAL, ATTR0_SQUARE, ATTR1_SIZE_64x64, 1);
+        update_front_box_sprite(&celebi, false);
+        obj_set_pos(grabbed_front_sprite, 88, 16);
+        obj_unhide(grabbed_front_sprite, 0);
+    }
+
+    save_manager.setNationalDexUnlocked(true);
+
+    do
+    {
+        ret = save_manager.addPokemonToBox(boxIndex, celebi);
+        if(ret != UINT32_MAX)
+        {
+            break;
+        }
+        ++boxIndex;
+
+    } while (boxIndex < 14);
+
+    if(ret == UINT32_MAX)
+    {
+        // Failed to inject the Pokémon, all boxes are full. You can handle this case as needed (e.g., show an error message).
+        return;
+    }
+
+    save_manager.finishSave();
+    reader.flush();
+    save_manager.readTrainerName(encoded_OT, ret);
+
+    create_textbox(BOX_TYPE_DIALOUGEBOX, true);
+    show_textbox();
+
+    tte_set_pos(LEFT, TOP);
+    tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
+
+    convert_OT_to_utf8(encoded_OT, decoded_OT_utf8, tables.gen3_charset);
+    npf_snprintf(text_buffer, sizeof(text_buffer), "%s received a Celebi!\n Celebi was sent to box %d!", decoded_OT_utf8, boxIndex);
+    ptgb_write_debug(tables.gen3_charset, text_buffer, false);
+
+    wait_for_user_to_continue();
+
+    if(!g_debug_options.ignore_game_pak && !g_debug_options.ignore_game_pak_sprites)
+    {
+        obj_hide(grabbed_front_sprite);
+    }
+
+    hide_textbox();
+    tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
 }
