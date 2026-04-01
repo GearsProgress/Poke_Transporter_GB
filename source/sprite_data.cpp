@@ -872,7 +872,7 @@ void update_y_offset()
     obj_set_pos(flag, (8 * 11) + 4, (8 * 4) + 19 + y_offset);
 }
 
-void update_front_box_sprite(GBPokemon *curr_pkmn)
+void update_front_box_sprite(Pokemon *curr_pkmn)
 {
     if (g_debug_options.ignore_game_pak || g_debug_options.ignore_game_pak_sprites)
     {

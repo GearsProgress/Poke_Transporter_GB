@@ -135,6 +135,6 @@ void fennel_speak(int frame);
 int get_curr_flex_background();
 void update_y_offset();
 void erase_textbox_tiles();
-void update_front_box_sprite(GBPokemon *curr_pkmn);
+void update_front_box_sprite(Pokemon *curr_pkmn);
 void update_menu_sprite(PokeBox* box, int index, int frame);
 #endif

@@ -22,6 +22,7 @@
 #define BOTTOM V_MAX
 
 extern rom_data curr_GBA_rom;
+extern u32 global_tile_id_end;
 
 static const byte RSEFL_10_ANIV_Celebi_0BF5_ENG_[]  = {
   0xbe, 0x2b, 0x28, 0x78, 0x0a, 0x00, 0x00, 0x00, 0xbd, 0xbf, 0xc6, 0xbf, 0xbc, 0xc3, 0xff, 0x34, 
@@ -226,6 +227,16 @@ void dbg_inject_pkmn(void *context, unsigned user_param)
     Gen3Pokemon celebi(&tables);
     celebi.loadData(RSEFL_10_ANIV_Celebi_0BF5_ENG_, false);
 
+    // front_sprite_tile_id is reserved behind the box sprites
+    if(!g_debug_options.ignore_game_pak && !g_debug_options.ignore_game_pak_sprites)
+    {
+        u32 front_sprite_tile_id = global_tile_id_end + (30 * 16);
+        load_sprite_compressed(grabbed_front_sprite, (const unsigned int *)*(u32 *)(curr_GBA_rom.loc_gMonFrontPicTable + (0 * 8)), front_sprite_tile_id, PULLED_SPRITE_PAL, ATTR0_SQUARE, ATTR1_SIZE_64x64, 1);
+        update_front_box_sprite(&celebi);
+        obj_set_pos(grabbed_front_sprite, 88, 16);
+        obj_unhide(grabbed_front_sprite, 0);
+    }
+
     save_manager.setNationalDexUnlocked(true);
 
     do
@@ -260,6 +271,11 @@ void dbg_inject_pkmn(void *context, unsigned user_param)
     ptgb_write_debug(tables.gen3_charset, text_buffer, false);
 
     wait_for_user_to_continue();
+
+    if(!g_debug_options.ignore_game_pak && !g_debug_options.ignore_game_pak_sprites)
+    {
+        obj_hide(grabbed_front_sprite);
+    }
 
     hide_textbox();
     tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);

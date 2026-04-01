@@ -116,6 +116,7 @@ extern debug_options g_debug_options;
 // Compile time options
 #define ENABLE_DEBUG_MENU true
 #define ENABLE_TEXT_DEBUG_SCREEN true
+#define ENABLE_DEBUG_PKMN_INJECTION true
 #define USE_CUSTOM_MALLOC 1
 // needs to be a value divisible by 4
 #define CUSTOM_MALLOC_POOL_SIZE 8192
