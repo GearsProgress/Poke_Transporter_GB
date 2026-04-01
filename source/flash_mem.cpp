@@ -131,14 +131,15 @@ void update_memory_buffer_checksum(u8 *sector_buffer, bool hall_of_fame)
     // source: https://bulbapedia.bulbagarden.net/wiki/Save_data_structure_(Generation_III)#Section_ID
     const u32 num_of_bytes = (sector_buffer[SECTION_ID_OFFSET] != 13) ? 3968 : 2000;
 
-    // the cpu is little endian and the data is read as little endian too.
-    // therefore, we can do a straightforward sum of the data as u32's.
-    const u32 *cur = (const u32 *)sector_buffer;
-    const u32 * const end = (const u32 *)(sector_buffer + num_of_bytes);
-    while (cur < end)
+    // Assemble words manually to avoid alignment and aliasing issues when the
+    // sector buffer is only guaranteed to be byte-aligned. So not 32-bit aligned.
+    for (u32 offset = 0; offset < num_of_bytes; offset += sizeof(u32))
     {
-        checksum += *cur;
-        ++cur;
+        const u32 cur = static_cast<u32>(sector_buffer[offset]) |
+                        (static_cast<u32>(sector_buffer[offset + 1]) << 8) |
+                        (static_cast<u32>(sector_buffer[offset + 2]) << 16) |
+                        (static_cast<u32>(sector_buffer[offset + 3]) << 24);
+        checksum += cur;
     }
 
     const u16 small_checksum = ((checksum & 0xFFFF0000) >> 16) + (checksum & 0x0000FFFF);
