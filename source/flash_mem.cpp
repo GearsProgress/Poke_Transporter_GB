@@ -22,11 +22,19 @@ void initialize_memory_locations()
     u8 save_B_index[4];
     copy_save_to_ram(SAVE_A_OFFSET + SAVE_INDEX_OFFSET, &save_A_index[0], 0x04);
     copy_save_to_ram(SAVE_B_OFFSET + SAVE_INDEX_OFFSET, &save_B_index[0], 0x04);
-    reverse_endian(&save_A_index[0], 0x04);
-    reverse_endian(&save_B_index[0], 0x04);
+
+    // Save indices are little-endian in-sector; decode directly without byte swapping.
+    const u32 saveAIndex = static_cast<u32>(save_A_index[0]) |
+                           (static_cast<u32>(save_A_index[1]) << 8) |
+                           (static_cast<u32>(save_A_index[2]) << 16) |
+                           (static_cast<u32>(save_A_index[3]) << 24);
+    const u32 saveBIndex = static_cast<u32>(save_B_index[0]) |
+                           (static_cast<u32>(save_B_index[1]) << 8) |
+                           (static_cast<u32>(save_B_index[2]) << 16) |
+                           (static_cast<u32>(save_B_index[3]) << 24);
 
     // Determines if save A or B is more recent
-    if (*(vu32 *)save_B_index > *(vu32 *)save_A_index)
+    if (saveBIndex > saveAIndex)
     {
         newest_save_offset = SAVE_B_OFFSET;
     }
