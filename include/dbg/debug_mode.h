@@ -127,6 +127,6 @@ extern debug_options g_debug_options;
 // Compiling with this option enabled in release builds will cause a static_assert failure.
 // But the && DEBUG_MODE check will already prevent this from being enabled in release builds accidentally,
 // so as long as no-one removes that, it should be fine.
-#define DEBUG_USE_MGBA_PRINT (true && DEBUG_MODE)
+#define DEBUG_USE_MGBA_PRINT (false && DEBUG_MODE)
 
 #endif

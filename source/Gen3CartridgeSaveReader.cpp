@@ -143,6 +143,8 @@ void Gen3CartridgeSaveReader::flush()
     }
 
     update_memory_buffer_checksum(sector_buffer_, (sector_start_ == HALL_OF_FAME));
+    // Real flash requires erase before rewriting bytes that may need 0->1 transitions.
+    erase_sector(sector_start_);
     copy_ram_to_save(sector_buffer_, sector_start_, SECTOR_SIZE);
     dirty_ = false;
 }
