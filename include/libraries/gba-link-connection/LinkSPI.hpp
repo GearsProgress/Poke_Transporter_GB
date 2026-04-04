@@ -53,10 +53,10 @@
 #endif
 
 #ifdef LINK_SPI_8BIT_MODE
-#define LINK_SPI_DATA_REG REG_SIODATA8
+#define LINK_SPI_DATA_REG SIODATA8
 #endif
 #ifndef LINK_SPI_8BIT_MODE
-#define LINK_SPI_DATA_REG REG_SIODATA32
+#define LINK_SPI_DATA_REG SIODATA32
 #endif
 
 #ifdef LINK_SPI_8BIT_MODE
@@ -81,14 +81,22 @@ static volatile char LINK_SPI_VERSION[] = "LinkSPI/v6.2.1";
 const u32 LINK_SPI_MASK_CLEAR_SO_BIT = ~(1 << LINK_SPI_BIT_SO);
 const u32 LINK_SPI_MASK_SET_START_BIT = (1 << LINK_SPI_BIT_START);
 
+struct LinkSPI_Debug {
+  volatile u16 siocnt;
+  volatile u16 siodata8;
+};
+extern volatile LinkSPI_Debug* linkSPIDebug;
+
+
 class LinkSPI {
  public:
   enum Mode { SLAVE, MASTER_256KBPS, MASTER_2MBPS };
   enum AsyncState { IDLE, WAITING, READY };
+  
 
   bool isActive() { return isEnabled; }
 
-  void activate(Mode mode) {
+  void activate(Mode mode, bool debug = false) {
     this->mode = mode;
     this->waitMode = false;
     this->asyncState = IDLE;
@@ -209,21 +217,38 @@ class LinkSPI {
   void _setSOLow() { setBitLow(LINK_SPI_BIT_SO); }
   bool _isSIHigh() { return isBitHigh(LINK_SPI_BIT_SI); }
 
+  void setDebug(bool debug) {
+    // if (debug == isDebug) return;
+    isDebug = debug;
+    // Mode tmpMode = mode;
+    // bool enabled = isEnabled;
+    // if (enabled){
+    //   deactivate();
+    // }
+    if (debug) {
+      SIOCNT = &linkSPIDebug->siocnt;
+      SIODATA8 = &linkSPIDebug->siodata8;
+    } else {
+      SIOCNT = &REG_SIOCNT;
+      SIODATA8 = &REG_SIODATA8;
+    }
+    // if (enabled){
+    //   activate(tmpMode);
+    // }
+  }
  private:
   Mode mode = Mode::SLAVE;
   bool waitMode = false;
   AsyncState asyncState = IDLE;
   LINK_SPI_DATA_TYPE asyncData = 0;
   volatile bool isEnabled = false;
+  bool isDebug = false;
+  volatile u16 *SIOCNT = &REG_SIOCNT;
+  volatile u16 *SIODATA8 = &REG_SIODATA8;
 
   void setNormalMode32Bit() {
     REG_RCNT = REG_RCNT & ~(1 << LINK_SPI_BIT_GENERAL_PURPOSE_HIGH);
-#ifdef LINK_SPI_8BIT_MODE
-    REG_SIOCNT = 0;
-#endif
-#ifndef LINK_SPI_8BIT_MODE
-    REG_SIOCNT = 1 << LINK_SPI_BIT_LENGTH;
-#endif
+    *SIOCNT = 0;
   }
 
   void setGeneralPurposeMode() {
@@ -231,15 +256,15 @@ class LinkSPI {
                (1 << LINK_SPI_BIT_GENERAL_PURPOSE_HIGH);
   }
 
-  void setData(LINK_SPI_DATA_TYPE data) { LINK_SPI_DATA_REG = data; }
-  LINK_SPI_DATA_TYPE getData() { return LINK_SPI_DATA_REG; }
+  void setData(LINK_SPI_DATA_TYPE data) { *SIODATA8 = data; }
+  LINK_SPI_DATA_TYPE getData() { return *SIODATA8; }
 
   void enableTransfer() { _setSOLow(); }
   void disableTransfer() { _setSOHigh(); }
   void startTransfer() { setBitHigh(LINK_SPI_BIT_START); }
   void stopTransfer() { setBitLow(LINK_SPI_BIT_START); }
   bool isReady() { return !isBitHigh(LINK_SPI_BIT_START); }
-  bool isSlaveReady() { return !_isSIHigh(); }
+  bool isSlaveReady() { return isDebug || !_isSIHigh(); }
 
   void setMasterMode() { setBitHigh(LINK_SPI_BIT_CLOCK); }
   void setSlaveMode() { setBitLow(LINK_SPI_BIT_CLOCK); }
@@ -249,9 +274,9 @@ class LinkSPI {
   void setInterruptsOff() { setBitLow(LINK_SPI_BIT_IRQ); }
 
   bool isMaster() { return mode != SLAVE; }
-  bool isBitHigh(u8 bit) { return (REG_SIOCNT >> bit) & 1; }
-  void setBitHigh(u8 bit) { REG_SIOCNT |= 1 << bit; }
-  void setBitLow(u8 bit) { REG_SIOCNT &= ~(1 << bit); }
+  bool isBitHigh(u8 bit) { return (*SIOCNT >> bit) & 1; }
+  void setBitHigh(u8 bit) { *SIOCNT |= 1 << bit; }
+  void setBitLow(u8 bit) { *SIOCNT &= ~(1 << bit); }
 };
 
 extern LinkSPI* linkSPI;

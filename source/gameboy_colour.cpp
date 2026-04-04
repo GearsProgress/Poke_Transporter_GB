@@ -18,6 +18,7 @@
 #include "text_data_table.h"
 #include "libraries/Pokemon-Gen3-to-Gen-X/include/save.h"
 #include "flash_mem.h"
+#include "libraries/gba-link-connection/LinkSPI.hpp"
 
 #define DATA_PER_PACKET 8
 #define PACKET_DATA_START 2
@@ -96,6 +97,10 @@ static_assert(sizeof(struct ROM_DATA) == 160);
 int link_cable_array_index = 0;
 int link_cable_memory_section_index = 0;
 
+__attribute__((section(".link_debug")))
+volatile LinkSPI_Debug link_debug;
+volatile LinkSPI_Debug *linkSPIDebug = &link_debug;
+
 void print(const char *format, ...)
 {
   // I don't think this function is called anymore...
@@ -140,6 +145,8 @@ void setup(const u16 *debug_charset)
   interrupt_set_handler(INTR_SERIAL, LINK_SPI_ISR_SERIAL);
   interrupt_enable(INTR_SERIAL);
 
+  // This is for the emulation debug:
+  linkSPI->setDebug(true);
   linkSPI->activate(LinkSPI::Mode::MASTER_256KBPS);
   linkSPI->setWaitModeActive(false);
 

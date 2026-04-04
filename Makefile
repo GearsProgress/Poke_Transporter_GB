@@ -120,6 +120,10 @@ ASFLAGS += -g
 LDFLAGS += -g
 endif
 
+# For the link cable emulation
+LDFLAGS += -Wl,--section-start,.link_debug=0x0203FFFC
+
+
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
