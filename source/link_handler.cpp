@@ -201,7 +201,7 @@ byte handleIncomingByte()
       }
 
       link_animation_state(STATE_TRANSFER);
-      //currLinkState->mosi_delay = 1;
+      // currLinkState->mosi_delay = 1;
       REG_TM3D = -0x0040;
       currLinkState->conState = PARTY_PREAMBLE;
     }
@@ -401,7 +401,17 @@ ConnectionState prevConState;
 void handshake()
 {
   prevConState = currLinkState->conState; // The con state can change in handleIncomingByte - we want to display what it was before running that function
+
+  int timeout_frames = 10;
+  currLinkState->in_data = linkSPI->transfer(currLinkState->out_data, [&timeout_frames]()
+                                             {
+      // In the mGBA Lua bridge, replies arrive via emulator callbacks between frames.
+      // Waiting here prevents valid bytes from being reported as timeouts.
+      global_next_frame();
+      return --timeout_frames <= 0; });
+
   currLinkState->in_data = linkSPI->transfer(currLinkState->out_data);
+
   currLinkState->out_data = handleIncomingByte();
 
   if (g_debug_options.print_link_data && !key_held(KEY_DOWN))
