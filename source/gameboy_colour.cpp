@@ -386,7 +386,13 @@ int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, PokeBo
       global_next_frame();
     }
     // TODO: Restore Errors
-    in_data = linkSPI->transfer(out_data);
+    int timeout_frames = 10;
+    in_data = linkSPI->transfer(out_data, [&timeout_frames]() {
+      // In the mGBA Lua bridge, replies arrive via emulator callbacks between frames.
+      // Waiting here prevents valid bytes from being reported as timeouts.
+      global_next_frame();
+      return --timeout_frames <= 0;
+    });
 
     if (g_debug_options.print_link_data && !key_held(KEY_DOWN))
     {

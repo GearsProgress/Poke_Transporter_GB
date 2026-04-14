@@ -83,14 +83,14 @@ function EnableOutput(filename)
     if output_file then
         output_file:close()
     end
-    output_file, err = io:open(filename, "wb")
+    output_file, err = io.open(filename, "wb")
     if not output_file then
         console:error("Could not open " .. filename .. " for writing: " .. err)
     end
 end
 
 function SendByte(byte)
-    logf("SEND 0x%02x", byte)
+    logf("SEND [0x%04x] 0x%02x", emu:currentFrame(), byte)
 
     local bytes = string.char(byte)
     if output_file then
@@ -129,6 +129,13 @@ function PollSocket()
             console:error("Socket error " .. err)
             SocketError()
         end
+
+        -- SIOCNT START writes can happen while the watchpoint is temporarily
+        -- disabled during reply handling. Polling here lets us recover
+        -- transfers that the watchpoint missed.
+        if emu and emu:platform() == C.PLATFORM.GBA then
+            GBA_Watchpoint()
+        end
     end
 end
 
@@ -157,6 +164,8 @@ end
 
 
 frame_callback = -1
+gba_transfer_pending = false
+gba_last_start_state = false
 
 function SerialExchangeByte(input)
     if not sock then return false end
@@ -199,7 +208,7 @@ function SerialExchangeByte(input)
     local output = read_io(REG_SIODATA8)
 
     -- Log --
-    logf("RECV 0x%02x", input)
+    logf("RECV [0x%04x] 0x%02x", emu:currentFrame(), input)
 
     -- Write the new byte --
     write_io(REG_SIODATA8, input & 0xFF)
@@ -207,6 +216,12 @@ function SerialExchangeByte(input)
     -- Clear the start and ready flags. --
     rSC = (rSC & ~SIO_START)
     write_io(REG_SIOCNT, rSC)
+
+    if emu:platform() == C.PLATFORM.GBA then
+        -- Treat the next SIOCNT START write as a new transaction.
+        gba_transfer_pending = false
+        gba_last_start_state = false
+    end
 
     -- GB specific code --
     if emu:platform() == C.PLATFORM.GB then
@@ -255,15 +270,22 @@ function GBA_Watchpoint()
     -- if mode == MODE_RECV then return end
 
     local rSC = read_io(REG_SIOCNT)
+    local start_set = (rSC & SIO_START) ~= 0
 
     -- DisableWatchpoint()
     -- rSC = rSC | SIO_READY
     -- write_io(REG_SIOCNT, rSC)
     -- EnableWatchpoint()
 
-    if (rSC & SIO_START) == 0 then return end
+    if not start_set then
+        gba_last_start_state = false
+        return
+    end
 
     if not sock then return end
+    if gba_transfer_pending or gba_last_start_state then return end
+    gba_last_start_state = true
+    gba_transfer_pending = true
 
     -- Send it to the GB --
     is_sending = true
@@ -283,6 +305,8 @@ function GBA_Accept() -- ST_Accept
         sock:close()
         sock = nil
     end
+    gba_transfer_pending = false
+    gba_last_start_state = false
 
 
     -- Accept the connection --
