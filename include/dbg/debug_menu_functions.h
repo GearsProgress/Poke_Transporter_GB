@@ -33,4 +33,6 @@ void dbg_play_song(void *context, unsigned user_param);
  */
 void dbg_inject_pkmn(void *context, unsigned user_param);
 
+void dbg_unlock_mystery(void *context, unsigned user_param);
+
 #endif
