@@ -280,3 +280,34 @@ void dbg_inject_pkmn(void *context, unsigned user_param)
     hide_textbox();
     tte_erase_rect(LEFT, TOP, RIGHT, BOTTOM);
 }
+
+void dbg_unlock_mystery(void *context, unsigned user_param)
+{
+    const Game game_type = convert_rom_game_id_to_ptgb_game(curr_GBA_rom.gamecode);
+    const Language game_lang = convert_rom_lang_to_ptgb_lang(curr_GBA_rom.language);
+    Gen3CartridgeSaveReader reader(global_memory_buffer);
+    Gen3SaveManager save_manager(game_type, game_lang, reader);
+
+    if(user_param == 0)
+    {
+        // mystery event not supported by fire red or leaf green
+        if(game_type == FIRERED || game_type == LEAFGREEN)
+        {
+            return;
+        }
+    }
+    else
+    {
+        // mystery gift not supported by ruby or sapphire
+        if(game_type == RUBY || game_type == SAPPHIRE)
+        {
+            return;
+        }
+    }
+
+    save_manager.setMysteryEventUnlocked(user_param == 0);
+    save_manager.setMysteryGiftUnlocked(user_param != 0);
+
+    save_manager.finishSave();
+    reader.flush();
+}
