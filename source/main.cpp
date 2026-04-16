@@ -81,8 +81,8 @@ void initialization_script(void)
 	REG_IE = 0;
 
 	// Sound bank init
-	//irq_init(NULL);
-	//irq_enable(II_VBLANK);
+	// irq_init(NULL);
+	// irq_enable(II_VBLANK);
 	// This currently crashes when you try to transfer a Pokemon:
 	// sound_init();
 
@@ -121,10 +121,10 @@ void game_load_error(void)
 						   GENERAL_INDEX, GENERAL_cart_load_error, false);
 	}
 
-	//key_poll();
+	// key_poll();
 	do
 	{
-		//global_next_frame();
+		VBlankIntrWait();
 	} while (!key_hit(KEY_A) && !key_hit(KEY_SELECT));
 
 	tte_erase_rect(0, 0, H_MAX, V_MAX);
@@ -310,7 +310,7 @@ static void __attribute__((noinline)) show_intro()
 
 	BG_FLEX = BG_FLEX | BG_PRIO(3);
 
-	//key_poll(); // Reset the keys
+	// key_poll(); // Reset the keys
 	curr_GBA_rom.load_rom(false);
 
 	obj_set_pos(ptgb_logo_l, 56, 12);
@@ -351,7 +351,7 @@ int main(void)
 	}*/
 	show_intro();
 
-	//key_poll();
+	// key_poll();
 	tte_erase_rect(0, 0, H_MAX, V_MAX);
 	REG_BLDALPHA = BLDA_BUILD(0b10000, 0); // Reset fade
 
@@ -416,7 +416,7 @@ int main(void)
 			if (get_tutorial_flag())
 			{
 				obj_hide_multi(ptgb_logo_l, 2);
-				//global_next_frame();
+				// global_next_frame();
 				load_flex_background(FLEXBG_DEX, 2);
 				set_background_pal(curr_GBA_rom.gamecode, true, false);
 				pokedex_loop();
