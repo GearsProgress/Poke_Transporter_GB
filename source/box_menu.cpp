@@ -119,7 +119,7 @@ int Box_Menu::box_main(PokeBox* box)
                 tte_erase_screen();
                 load_flex_background(FLEXBG_FENNEL, 2);
                 REG_BG2VOFS = BG2VOF_SMALL_TEXTBOX;
-                global_next_frame();
+                VBlankIntrWait();
                 return curr_button;
             }
         }
@@ -168,6 +168,6 @@ int Box_Menu::box_main(PokeBox* box)
                 update_pos = false;
             }
         }
-        global_next_frame();
+        VBlankIntrWait();
     }
 }

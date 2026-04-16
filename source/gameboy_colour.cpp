@@ -136,9 +136,9 @@ void print(const char *format, ...)
 
 void setup(const u16 *debug_charset)
 {
-  interrupt_init();
-  interrupt_set_handler(INTR_SERIAL, LINK_SPI_ISR_SERIAL);
-  interrupt_enable(INTR_SERIAL);
+  //interrupt_init();
+  //interrupt_set_handler(INTR_SERIAL, LINK_SPI_ISR_SERIAL);
+  //interrupt_enable(INTR_SERIAL);
 
   linkSPI->activate(LinkSPI::Mode::MASTER_256KBPS);
   linkSPI->setWaitModeActive(false);
@@ -374,9 +374,9 @@ int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, PokeBo
     {
       while (!key_hit(KEY_R))
       {
-        global_next_frame();
+        VBlankIntrWait();
       }
-      global_next_frame();
+      VBlankIntrWait();
     }
     // TODO: Restore Errors
     in_data = linkSPI->transfer(out_data);
@@ -467,7 +467,7 @@ int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, PokeBo
     counter++;
     for (int i = 0; i < mosi_delay; i++)
     {
-      global_next_frame();
+      VBlankIntrWait();
     }
   }
 };
@@ -617,9 +617,9 @@ byte exchange_boxes(byte curr_in, byte *box_data_storage, GB_ROM *curr_gb_rom, c
 
       while (!key_held(KEY_A))
       {
-        global_next_frame();
+        VBlankIntrWait();
       }
-      global_next_frame();
+      VBlankIntrWait();
     }
     packet_index = 0;
     init_packet = false;

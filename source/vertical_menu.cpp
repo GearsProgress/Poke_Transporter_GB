@@ -247,7 +247,7 @@ unsigned vertical_menu::run()
 
     while(true)
     {
-        key_poll(); // Reset the buttons
+        //key_poll(); // Reset the buttons
 
         input_result = handle_input();
 
@@ -269,7 +269,7 @@ unsigned vertical_menu::run()
             run_cycle_handler_->on_run_cycle();
         }
 
-        global_next_frame();
+        VBlankIntrWait();
     }
     // should never happen
     return UINT32_MAX;

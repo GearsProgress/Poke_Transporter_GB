@@ -168,7 +168,7 @@ int text_loop(int script)
             bool exit = false;
             bool update_text = true;
             bool instant_text = false;
-            key_poll();
+            VBlankIntrWait();
             while (!exit)
             {
                 if (key_hit(KEY_LEFT))
@@ -216,7 +216,7 @@ int text_loop(int script)
                     ptgb_write_debug(debug_charset, ")", true);
                     update_text = false;
                 }
-                global_next_frame();
+                VBlankIntrWait();
             }
 
             line_char_index = 0;
@@ -263,7 +263,7 @@ int text_next_obj_id(script_obj current_line)
 void set_text_exit()
 {
     text_exit = true;
-    key_poll(); // This removes the "A Hit" when exiting the text
+    VBlankIntrWait(); // This removes the "A Hit" when exiting the text
 }
 
 // Implement a version that creates the textbox as well
@@ -399,7 +399,7 @@ int ptgb_write(const byte *text, bool instant, int length, int box_type)
         }
         if (!instant)
         {
-            global_next_frame();
+            VBlankIntrWait();
         }
     }
 
@@ -451,10 +451,10 @@ void wait_for_user_to_continue()
             fennel_speak(0);
         }
     }
-    key_poll();
+    VBlankIntrWait();
     while (!(key_hit(KEY_A) || key_hit(KEY_B)))
     {
-        global_next_frame();
+        VBlankIntrWait();
     }
 }
 
@@ -466,7 +466,7 @@ void scroll_text(bool instant, TTC *tc, int left, int top, int right, int bottom
         tte_erase_rect(left, top - tc->font->charH, right, top + i);
         if (!instant)
         {
-            global_next_frame();
+            VBlankIntrWait();
         }
     }
     REG_BG3VOFS = 0;

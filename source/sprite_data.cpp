@@ -103,7 +103,7 @@ void set_background_pal(int curr_rom_id, bool dark, bool fade)
                     ((((NUM_CYCLES - n) * INV_NUM_CYCLES) * old_pal[1]) + ((n * INV_NUM_CYCLES) * new_pal[1])) >> 16,
                     ((((NUM_CYCLES - n) * INV_NUM_CYCLES) * old_pal[2]) + ((n * INV_NUM_CYCLES) * new_pal[2])) >> 16);
             }
-            global_next_frame();
+            //global_next_frame();
         }
     }
     else
@@ -132,7 +132,7 @@ void load_flex_background(int background_id, int layer)
     if (curr_flex_background != background_id) // Only load the background if it isn't already loaded
     {
         // This prevents screen tearing on this frame
-        global_next_frame();
+        //global_next_frame();
         BG_FLEX = (BG_FLEX && !BG_PRIO_MASK) | BG_PRIO(3);
 
         switch (background_id)
@@ -143,7 +143,7 @@ void load_flex_background(int background_id, int layer)
             // Load tiles into CBB 0
             LZ77UnCompVram(openingBGTiles, &tile_mem[CBB][0]);
             // Give it a frame to uncompress the data
-            global_next_frame();
+            //global_next_frame();
             // Load map into SBB 0
             LZ77UnCompVram(openingBGMap, &se_mem[SBB][0]);
             REG_BG1VOFS = 96;
@@ -154,7 +154,7 @@ void load_flex_background(int background_id, int layer)
             // Load tiles into CBB 0
             LZ77UnCompVram(fennelBGTiles, &tile_mem[CBB][0]);
             // Give it a frame to uncompress the data
-            global_next_frame();
+            //global_next_frame();
             // Load map into SBB 0
             LZ77UnCompVram(fennelBGMap, &se_mem[SBB][0]);
             REG_BG1VOFS = FENNEL_SHIFT;
@@ -165,7 +165,7 @@ void load_flex_background(int background_id, int layer)
             // Load tiles into CBB 0
             LZ77UnCompVram(dexBGTiles, &tile_mem[CBB][0]);
             // Give it a frame to uncompress the data
-            global_next_frame();
+            //global_next_frame();
             // Load map into SBB 0
             LZ77UnCompVram(dexBGMap, &se_mem[SBB][0]);
             REG_BG1VOFS = 0;
@@ -176,7 +176,7 @@ void load_flex_background(int background_id, int layer)
             // Load tiles into CBB 0
             LZ77UnCompVram(menu_barsTiles, &tile_mem[CBB][0]);
             // Give it a frame to uncompress the data
-            global_next_frame();
+            //global_next_frame();
             // Load map into SBB 0
             LZ77UnCompVram(menu_barsMap, &se_mem[SBB][0]);
             REG_BG1VOFS = 0;
@@ -187,7 +187,7 @@ void load_flex_background(int background_id, int layer)
             // Load tiles into CBB 0
             LZ77UnCompVram(boxBGTiles, &tile_mem[CBB][0]);
             // Give it a frame to uncompress the data
-            global_next_frame();
+            //global_next_frame();
             // Load map into SBB 0
             LZ77UnCompVram(boxBGMap, &se_mem[SBB][0]);
             REG_BG1VOFS = 0;

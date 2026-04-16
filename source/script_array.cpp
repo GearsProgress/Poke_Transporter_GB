@@ -881,7 +881,7 @@ bool run_conditional(int index)
             REG_BG1HOFS = i + FENNEL_SHIFT;
             if (!g_debug_options.instant_text_speed)
             {
-                global_next_frame();
+                VBlankIntrWait();
             }
         }
         return true;
@@ -892,7 +892,7 @@ bool run_conditional(int index)
             REG_BG1HOFS = i + FENNEL_SHIFT;
             if (!g_debug_options.instant_text_speed)
             {
-                global_next_frame();
+                VBlankIntrWait();
             }
         }
         return true;

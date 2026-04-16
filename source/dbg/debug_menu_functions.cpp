@@ -188,7 +188,7 @@ void show_debug_info_screen(void *context, unsigned user_param)
             reload_textbox_background();
             return;
         }
-        global_next_frame();
+        VBlankIntrWait();
     }
 }
 

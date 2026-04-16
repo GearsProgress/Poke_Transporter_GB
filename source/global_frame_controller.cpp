@@ -76,7 +76,6 @@ void global_next_frame()
         }
     }
     global_frame_count++;
-    VBlankIntrWait();
 };
 
 int get_frame_count()

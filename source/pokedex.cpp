@@ -232,7 +232,7 @@ int pokedex_loop()
                 ptgb_write_simple(is_caught(dex_shift + i + 1 + mythic_skip) ? PKMN_NAMES.get_text_entry(dex_shift + i + 1 + mythic_skip) : undiscovered_text, true);
 
             }
-            global_next_frame(); // This is a bit silly, but it works. Makes the types one frame off from the text, but that's 'fine'
+            //global_next_frame(); // This is a bit silly, but it works. Makes the types one frame off from the text, but that's 'fine'
             // Eventually it could be optimized to move the labels around, but this honestly makes the most sense. Less code but one frame different
             for (int i = 0; i < DEX_MAX; i++)
             {
@@ -240,7 +240,7 @@ int pokedex_loop()
             }
             update = false;
         }
-        global_next_frame();
+        VBlankIntrWait();
     }
 }
 

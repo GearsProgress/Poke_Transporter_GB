@@ -22,7 +22,7 @@ void multiboot_upload_screen()
 	// wait for key press
 	do
 	{
-		global_next_frame();
+		VBlankIntrWait();
 	} while (!key_hit(KEY_A) && !key_hit(KEY_B));
 
 	if (key_hit(KEY_B))
@@ -35,7 +35,7 @@ void multiboot_upload_screen()
 	// multiboot_show_textbox();
 	ptgb_write_textbox(general_text.get_text_entry(GENERAL_send_multiboot_wait), true,
 					   false, GENERAL_INDEX, GENERAL_send_multiboot_wait, false);
-	global_next_frame();
+	VBlankIntrWait();
 
 	const u32 romSize = 256 * 1024; // EWRAM = 256 KB
 	LinkCableMultiboot::Result multibootResult = linkCableMultiboot.sendRom(
@@ -63,6 +63,6 @@ void multiboot_upload_screen()
 	// wait for keypress again.
 	do
 	{
-		global_next_frame();
+		VBlankIntrWait();
 	} while (!key_hit(KEY_A));
 }

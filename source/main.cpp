@@ -81,12 +81,15 @@ void initialization_script(void)
 	REG_IE = 0;
 
 	// Sound bank init
-	irq_init(NULL);
-	irq_enable(II_VBLANK);
+	//irq_init(NULL);
+	//irq_enable(II_VBLANK);
 	// This currently crashes when you try to transfer a Pokemon:
 	// sound_init();
 
 	// Graphics init
+	irq_init(NULL);
+	irq_add(II_VBLANK, global_next_frame);
+	irq_enable(II_VBLANK);
 	oam_init(obj_buffer, 128);
 	load_graphics();
 
@@ -118,10 +121,10 @@ void game_load_error(void)
 						   GENERAL_INDEX, GENERAL_cart_load_error, false);
 	}
 
-	key_poll();
+	//key_poll();
 	do
 	{
-		global_next_frame();
+		//global_next_frame();
 	} while (!key_hit(KEY_A) && !key_hit(KEY_SELECT));
 
 	tte_erase_rect(0, 0, H_MAX, V_MAX);
@@ -143,7 +146,7 @@ void game_load_error(void)
 	while (delay_counter < 60)
 	{
 		delay_counter++;
-		global_next_frame();
+		VBlankIntrWait();
 	}
 }
 
@@ -161,7 +164,7 @@ void first_load_message(void)
 
 	while (!key_hit(KEY_A))
 	{
-		global_next_frame();
+		VBlankIntrWait();
 	}
 }
 
@@ -174,7 +177,6 @@ int credits()
 	credits_text_table.decompress(get_compressed_text_table(CREDITS_INDEX));
 	bool update = true;
 
-	global_next_frame();
 	while (true)
 	{
 		if (update)
@@ -202,7 +204,7 @@ int credits()
 			update = true;
 		}
 
-		global_next_frame();
+		VBlankIntrWait();
 	}
 };
 
@@ -265,8 +267,7 @@ int main_menu_loop()
 		{
 			update = false;
 		}
-
-		global_next_frame();
+		VBlankIntrWait();
 	}
 }
 
@@ -277,7 +278,7 @@ static void show_gears_of_progress()
 	delay_counter = 0;
 	while (delay_counter < (15 * 60))
 	{
-		global_next_frame();
+		VBlankIntrWait();
 		delay_counter++;
 		if (key_hit(KEY_A))
 		{
@@ -309,7 +310,7 @@ static void __attribute__((noinline)) show_intro()
 
 	BG_FLEX = BG_FLEX | BG_PRIO(3);
 
-	key_poll(); // Reset the keys
+	//key_poll(); // Reset the keys
 	curr_GBA_rom.load_rom(false);
 
 	obj_set_pos(ptgb_logo_l, 56, 12);
@@ -329,7 +330,7 @@ static void __attribute__((noinline)) show_intro()
 	while (!start_pressed)
 	{
 		fade = abs(((get_frame_count() / 6) % 24) - 12);
-		global_next_frame();
+		VBlankIntrWait();
 		start_pressed = key_hit(KEY_START) | key_hit(KEY_A);
 		REG_BLDALPHA = BLDA_BUILD(0b10000, fade);
 	}
@@ -350,7 +351,7 @@ int main(void)
 	}*/
 	show_intro();
 
-	key_poll();
+	//key_poll();
 	tte_erase_rect(0, 0, H_MAX, V_MAX);
 	REG_BLDALPHA = BLDA_BUILD(0b10000, 0); // Reset fade
 
@@ -365,7 +366,7 @@ int main(void)
 		else
 		{
 			obj_hide_multi(ptgb_logo_l, 2);
-			global_next_frame();
+			VBlankIntrWait();
 			game_load_error();
 			// initialization_script();
 		}
@@ -415,7 +416,7 @@ int main(void)
 			if (get_tutorial_flag())
 			{
 				obj_hide_multi(ptgb_logo_l, 2);
-				global_next_frame();
+				//global_next_frame();
 				load_flex_background(FLEXBG_DEX, 2);
 				set_background_pal(curr_GBA_rom.gamecode, true, false);
 				pokedex_loop();
@@ -441,7 +442,7 @@ int main(void)
 			break;
 #endif
 		default:
-			global_next_frame();
+			VBlankIntrWait();
 		}
 	}
 }

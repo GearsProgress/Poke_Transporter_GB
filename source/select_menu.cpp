@@ -76,7 +76,7 @@ int Select_Menu::select_menu_main()
 
     menu_widget_.hide();
 
-    global_next_frame();
+    //global_next_frame();
     return item_value;
 }
 
