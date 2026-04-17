@@ -183,7 +183,10 @@ void Pokemon_Party::start_link()
 		// This used to clear out the box data, probably isn't needed anymore
 		// memset(box_data_array, 0, curr_gb_rom.box_data_size);
 
-		last_error = loop(&box_data_array[0], current_payload, &curr_gb_rom, &box, debug_charset, false);
+		//last_error = loop(&box_data_array[0], current_payload, &curr_gb_rom, &box, debug_charset, false);
+		while(true){
+			VBlankIntrWait();
+		};
 		box.loadData(curr_gb_rom.generation, (Language)curr_gb_rom.language, box_data_array);
 
 		if (g_debug_options.write_cable_data_to_save)

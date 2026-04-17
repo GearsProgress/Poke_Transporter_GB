@@ -89,7 +89,7 @@ void initialization_script(void)
 	// sound_init();
 
 	// Link Cable init
-	//irq_add(II_TIMER0, handleIncomingByte);
+	irq_add(II_TIMER3, handshake);
 
 	// Graphics init
 	irq_add(II_VBLANK, global_next_frame);

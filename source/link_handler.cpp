@@ -70,9 +70,9 @@ void print(const char *format, ...)
 
 void setup(const u16 *debug_charset)
 {
-  interrupt_init();
-  interrupt_set_handler(INTR_SERIAL, LINK_SPI_ISR_SERIAL);
-  interrupt_enable(INTR_SERIAL);
+  REG_TM3D = -0x4000;
+  REG_TM3CNT = TM_FREQ_1024 | TM_ENABLE;
+  irq_enable(II_TIMER3);
 
   linkSPI->activate(LinkSPI::Mode::MASTER_256KBPS);
   linkSPI->setWaitModeActive(false);
@@ -89,18 +89,18 @@ void setup(const u16 *debug_charset)
   }
 }
 
-byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, PokeBox *box, const u16 *debug_charset, bool cancel_connection)
+byte handleIncomingByte()
 {
   switch (currLinkState->conState)
   {
   case HS:
     currLinkState->mosi_delay = 4;
-    if (curr_gb_rom->generation == 2)
+    if (currLinkState->curr_gb_rom->generation == 2)
     {
       currLinkState->conState = ACK;
       return 0x00;
     }
-    if (in == 0x00)
+    if (currLinkState->in == 0x00)
     {
       currLinkState->conState = ACK;
       return 0x01;
@@ -108,9 +108,9 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
     break;
 
   case ACK:
-    if (curr_gb_rom->generation == 2)
+    if (currLinkState->curr_gb_rom->generation == 2)
     {
-      if (in == 0x61)
+      if (currLinkState->in == 0x61)
       {
         currLinkState->conState = MENU;
         return 0x61;
@@ -119,12 +119,12 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
     }
     else
     {
-      if (in == 0x00)
+      if (currLinkState->in == 0x00)
       {
         currLinkState->conState = MENU;
         return 0x00;
       }
-      else if (in == 0x02)
+      else if (currLinkState->in == 0x02)
       {
         currLinkState->conState = HS;
         return 0x02;
@@ -133,7 +133,7 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
     break;
 
   case MENU:
-    if (in == 0x60 || in == 0x61)
+    if (currLinkState->in == 0x60 || currLinkState->in == 0x61)
     {
       {
         u8 general_text_table_buffer[2048];
@@ -147,16 +147,16 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
       link_animation_state(STATE_NO_ANIM);
       currLinkState->conState = PRETRADE;
       currLinkState->data_counter = 0;
-      return in;
+      return currLinkState->in;
     }
-    else if (in == 0x02)
+    else if (currLinkState->in == 0x02)
     {
       currLinkState->conState = HS;
       return 0x02;
     }
     else
     {
-      return in;
+      return currLinkState->in;
     }
     break;
 
@@ -167,11 +167,11 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
       currLinkState->conState = TRADE;
     }
     currLinkState->data_counter++;
-    if (curr_gb_rom->generation == 2)
+    if (currLinkState->curr_gb_rom->generation == 2)
     {
       return 0x61;
     }
-    else if (curr_gb_rom->generation == 1 && curr_gb_rom->version == YELLOW_ID)
+    else if (currLinkState->curr_gb_rom->generation == 1 && currLinkState->curr_gb_rom->version == YELLOW_ID)
     {
       return 0xD5;
     }
@@ -181,7 +181,7 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
     }
     break;
   case TRADE:
-    if (in == 0xfd)
+    if (currLinkState->in == 0xfd)
     {
       {
         u8 general_text_table_buffer[2048];
@@ -196,20 +196,20 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
       currLinkState->mosi_delay = 1;
       currLinkState->conState = PARTY_PREAMBLE;
     }
-    return in;
+    return currLinkState->in;
     break;
   case PARTY_PREAMBLE:
-    if (in != 0xfd)
+    if (currLinkState->in != 0xfd)
     {
       currLinkState->conState = TRADE_DATA;
-      return exchange_parties(in, curr_payload);
+      return exchange_parties(currLinkState->in, currLinkState->curr_payload);
     }
-    return in;
+    return currLinkState->in;
     break;
   case TRADE_DATA:
-    if (currLinkState->data_counter >= curr_gb_rom->payload_size)
+    if (currLinkState->data_counter >= currLinkState->curr_gb_rom->payload_size)
     {
-      if (in == 0xFD)
+      if (currLinkState->in == 0xFD)
       {
         currLinkState->conState = BOX_PREAMBLE;
         currLinkState->init_packet = true;
@@ -219,18 +219,18 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
         return 0x00;
       }
     }
-    return exchange_parties(in, curr_payload);
+    return exchange_parties(currLinkState->in, currLinkState->curr_payload);
     break;
   case BOX_PREAMBLE:
-    if (in != 0xFD)
+    if (currLinkState->in != 0xFD)
     {
       currLinkState->conState = BOX_DATA;
-      return exchange_boxes(in, box_data_storage, curr_gb_rom, debug_charset);
+      return exchange_boxes(currLinkState->in, currLinkState->box_data_storage, currLinkState->curr_gb_rom, currLinkState->debug_charset);
     }
-    return in;
+    return currLinkState->in;
     break;
   case BOX_DATA:
-    return exchange_boxes(in, box_data_storage, curr_gb_rom, debug_charset);
+    return exchange_boxes(currLinkState->in, currLinkState->box_data_storage, currLinkState->curr_gb_rom, currLinkState->debug_charset);
     break;
   case REBOOT:
     currLinkState->data_counter = 0;
@@ -239,12 +239,12 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
     break;
 
   case REMOVE_ARRAY_PREAMBLE:
-    if (in != 0xFD)
+    if (currLinkState->in != 0xFD)
     {
       currLinkState->conState = SEND_REMOVE_ARRAY;
-      return exchange_remove_array(in, box, cancel_connection);
+      return exchange_remove_array(currLinkState->in, currLinkState->box, currLinkState->cancel_connection);
     }
-    return in;
+    return currLinkState->in;
     break;
 
   case SEND_REMOVE_ARRAY:
@@ -253,15 +253,15 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
       currLinkState->conState = END2;
     }
     currLinkState->data_counter++;
-    return exchange_remove_array(in, box, cancel_connection);
+    return exchange_remove_array(currLinkState->in, currLinkState->box, currLinkState->cancel_connection);
     break;
 
   default:
-    return in;
+    return currLinkState->in;
     break;
   }
 
-  return 0; // This should never hit
+  return 0; // This should never hit but the compiler likes this being here
 }
 
 int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, PokeBox *box, const u16 *debug_charset, bool cancel_connection)
@@ -270,6 +270,14 @@ int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, PokeBo
 #define NUM_LINES 8
   int counter = 0;
   char stuff[NUM_LINES][LINE_WIDTH];
+
+  currLinkState->box_data_storage = box_data_storage;
+  currLinkState->curr_payload = curr_payload;
+  currLinkState->curr_gb_rom = curr_gb_rom;
+  currLinkState->box = box;
+  currLinkState->debug_charset = debug_charset;
+  currLinkState->cancel_connection = cancel_connection;
+
   while (true)
   {
     if (g_debug_options.print_link_data && key_held(KEY_L))
@@ -321,7 +329,7 @@ int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, PokeBo
       }
     }
 
-    currLinkState->out_data = handleIncomingByte(currLinkState->in_data, box_data_storage, curr_payload, curr_gb_rom, box, debug_charset, cancel_connection);
+    currLinkState->out_data = handleIncomingByte();
 
     if (currLinkState->FF_count > (15 * 60))
     {
@@ -373,6 +381,11 @@ int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, PokeBo
     }
   }
 };
+
+void handshake()
+{
+  currLinkState->out_data = handleIncomingByte();
+}
 
 byte exchange_parties(byte curr_in, byte *curr_payload)
 {
