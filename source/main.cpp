@@ -4,7 +4,7 @@
 #include "flash_mem.h"
 #include "interrupt.h"
 #include "gb_link.h"
-#include "gameboy_colour.h"
+#include "link_handler.h"
 #include "random.h"
 #include "text_engine.h"
 #include "background_engine.h"
@@ -80,14 +80,18 @@ void initialization_script(void)
 	REG_IME = 0;
 	REG_IE = 0;
 
+	irq_init(NULL);
+
 	// Sound bank init
 	// irq_init(NULL);
 	// irq_enable(II_VBLANK);
 	// This currently crashes when you try to transfer a Pokemon:
 	// sound_init();
 
+	// Link Cable init
+	//irq_add(II_TIMER0, handleIncomingByte);
+
 	// Graphics init
-	irq_init(NULL);
 	irq_add(II_VBLANK, global_next_frame);
 	irq_enable(II_VBLANK);
 	oam_init(obj_buffer, 128);

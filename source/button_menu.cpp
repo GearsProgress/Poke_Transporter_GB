@@ -36,7 +36,7 @@ int Button_Menu::button_main()
     int curr_x = 0;
     int curr_y = 0;
 
-    //key_poll(); // Reset the buttons
+    VBlankIntrWait(); // Reset the buttons
 
     while (true)
     {

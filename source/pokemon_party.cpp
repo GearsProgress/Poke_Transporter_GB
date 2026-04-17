@@ -1,4 +1,4 @@
-#include "gameboy_colour.h"
+#include "link_handler.h"
 #include "pokemon_party.h"
 #include "flash_mem.h"
 #include "dbg/debug_mode.h"
