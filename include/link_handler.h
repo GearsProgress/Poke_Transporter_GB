@@ -52,7 +52,8 @@ struct LinkState
     uint8_t in_data;
     uint8_t out_data;
 
-    int data_counter = 0; // The counter for the number of bytes we have sent
+    int section_data_counter = 0; // The counter for the number of bytes we have sent in this section
+    int global_data_counter = 0; // the counter for the total number of bytes sent
     int gen = 0;          // The generation we are trading with
 
     int FF_count = 0;   // The number of 0xFF bytes that have been in a row
@@ -71,7 +72,6 @@ struct LinkState
     byte data_packet[PACKET_SIZE];
 
     // This is info that was passed in via handleIncomingByte
-    byte in;
     byte *box_data_storage;
     byte *curr_payload;
     GB_ROM *curr_gb_rom;
@@ -80,7 +80,7 @@ struct LinkState
     bool cancel_connection;
 };
 
-void setup(const u16 *debug_charset);
+void setup(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_rom, PokeBox *box, const u16 *debug_charset, bool cancel_connection);
 byte handleIncomingByte();
 int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_rom, PokeBox *box, const u16 *debug_charset, bool cancel_connection);
 byte exchange_parties(byte curr_in, byte *curr_payload);

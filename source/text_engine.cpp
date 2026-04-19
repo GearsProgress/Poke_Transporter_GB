@@ -341,7 +341,7 @@ int ptgb_write(const byte *text, bool instant, int length, int box_type)
                     tc->drawgProc(0x79);
                 }
                 wait_for_user_to_continue();
-                scroll_text(instant, tc, left, top, right, bottom);
+                scroll_text(instant, tc, true, left, top, right, bottom);
                 break;
             case 0xFB:
                 if (g_debug_options.display_control_char)
@@ -427,7 +427,7 @@ int ptgb_write_debug(const u16 *charset, const char *text, bool instant)
             u16 utf16_char;
             // we need to use this conversion function in order to convert char values >= 0x80
             // correctly to UTF-16 (which is used by the charset)
-            convert_utf8_to_utf16_char((const u8*)(text + i), utf16_char);
+            convert_utf8_to_utf16_char((const u8 *)(text + i), utf16_char);
             // WARNING: the conversion of the text characters from u8 to u16 done here, is incorrect
             // for every character value >= 0x80. The character set uses UTF-16 to represent characters.
             // But the input text is in UTF-8.
@@ -458,29 +458,42 @@ void wait_for_user_to_continue()
     }
 }
 
-void scroll_text(bool instant, TTC *tc, int left, int top, int right, int bottom)
+void scroll_text(bool instant, TTC *tc, bool scrollUp, int left, int top, int right, int bottom)
 {
+    int direction = scrollUp ? 1 : -1;
+
     for (int i = 1; i <= tc->font->charH; i++)
     {
-        REG_BG3VOFS = i;
-        tte_erase_rect(left, top - tc->font->charH, right, top + i);
-        if (!instant)
+        REG_BG3VOFS = i * direction;
+        tte_erase_rect(left, top - tc->font->charH, right, top + (i * direction));
+        if (!instant) // This is somewhat of a silly way to do this - can be optimized
         {
             VBlankIntrWait();
         }
     }
     REG_BG3VOFS = 0;
-
+    
     // The map starts at tile 0 in the top left, increases by 1 as you go down, and then loops back at the top.
-    for (int i = 0; i < 30; i++)
+    if (scrollUp)
     {
-        tonccpy(&tile_mem[TEXT_CBB][0 + (i * 20)], &tile_mem[TEXT_CBB][2 + (i * 20)], 20 * 32);
+        for (int i = 0; i < 30; i++)
+        {
+            tonccpy(&tile_mem[TEXT_CBB][0 + (i * 20)], &tile_mem[TEXT_CBB][2 + (i * 20)], 20 * 32);
+        }
     }
-
+    else
+    {
+        for (int i = 29; i >= 0; i--)
+        {
+            // Due to the order of tonccpy, we need to store the data in a temporary buffer
+            byte buffer[20 * 32];
+            tonccpy(&buffer, &tile_mem[TEXT_CBB][0 + (i * 20)], 20 * 32);
+            tonccpy(&tile_mem[TEXT_CBB][2 + (i * 20)], &buffer, 20 * 32);
+        }
+    }
     // Remove text that went outside of the box and set the position
-    tte_erase_rect(left, top - tc->font->charH, right, top);
-    tte_set_pos(left, bottom - (8 + (2 * tc->font->charH))); // The newline will trigger after this and move it down a line
+    tte_erase_rect(left, scrollUp ? (top - tc->font->charH) : bottom, right, scrollUp ? top : (bottom + tc->font->charH));
 
-    tc->cursorY = bottom - tc->font->charH;
+    tc->cursorY = (scrollUp ? bottom - tc->font->charH : top); // The newline will trigger after this and move it down a line
     tc->cursorX = left;
 }

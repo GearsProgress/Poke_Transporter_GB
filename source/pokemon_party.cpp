@@ -178,7 +178,7 @@ void Pokemon_Party::start_link()
 		load_localized_charset(debug_charset, 3, ENGLISH);
 		init_payload();
 
-		setup(debug_charset);
+		setup(&box_data_array[0], current_payload, &curr_gb_rom, &box, debug_charset, false);
 
 		// This used to clear out the box data, probably isn't needed anymore
 		// memset(box_data_array, 0, curr_gb_rom.box_data_size);
@@ -212,7 +212,7 @@ void Pokemon_Party::continue_link(bool cancel_connection)
 
 		load_localized_charset(debug_charset, 3, ENGLISH);
 
-		last_error = loop(&box_data_array[0], current_payload, &curr_gb_rom, &box, debug_charset, cancel_connection);
+		//last_error = loop(&box_data_array[0], current_payload, &curr_gb_rom, &box, debug_charset, cancel_connection);
 	}
 }
 
