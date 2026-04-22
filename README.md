@@ -29,13 +29,7 @@ EZ Flash Omega DE users, read [this](docs/EZ_Flash_Omega_DE.md)!
 
 Please note that transfering Pokémon will only work with a Game Boy Color Link Cable. Game Boy Advance Link Cables will not work.
 
-NOTE: If you're using the Loader ROM (Poke_Transporter_GB_standalone.gba) instead of the Multiboot ROM (Poke_Transporter_GB_mb.gba),
-you could run into trouble when swapping in the gen3 cartridge: Some cartridges cause the GBA to reset when inserted.
-
-If you have this problem, you could:
-- Use the Multiboot ROM (Poke_Transporter_GB_mb.gba) instead (as described above)
-
-- Use the 2 GBA method as described [here](docs/EZ_Flash_Omega_DE.md#method-2-2-gbas)
+*Due to Poké Transporter GB being built off of a niche intereaction between the GameBoy and Game Boy Advance, there is currently **no** emulator that supports it. The code is expected to run correctly, but there is no way to communicate between the GameBoy and Game Boy Advanced within an emulator context at this time. Please check back in the future for other options if you do not have the physcial hardware needed to run it!*
 
 ## Modifications to Transfered Pokémon
 
