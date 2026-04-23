@@ -400,6 +400,24 @@ ConnectionState prevConState;
 
 void handshake()
 {
+  if (g_debug_options.print_link_data && key_hit(KEY_SELECT))
+  {
+    currLinkState->irq_enabled = false;
+  }
+
+  else if (g_debug_options.print_link_data && key_hit(KEY_START))
+  {
+    currLinkState->irq_enabled = true;
+  }
+
+  if (!currLinkState->irq_enabled)
+  {
+    if (!(g_debug_options.print_link_data && key_hit(KEY_A)))
+    {
+      return;
+    }
+  }
+
   prevConState = currLinkState->conState; // The con state can change in handleIncomingByte - we want to display what it was before running that function
 
   int timeout_frames = 10;

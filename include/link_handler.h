@@ -71,6 +71,8 @@ struct LinkState
 
     byte data_packet[PACKET_SIZE];
 
+    bool irq_enabled = true; // Stores if the IRQ is currently enabled, used for pausing and sending one byte at a time
+
     // This is info that was passed in via handleIncomingByte
     byte *box_data_storage;
     byte *curr_payload;
