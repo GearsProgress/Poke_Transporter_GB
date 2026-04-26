@@ -27,10 +27,10 @@
 
 enum ConnectionState
 {
-    HS,
-    ACK,
+    CLOCK,
     MENU,
-    PRETRADE,
+    WAIT_FOR_TRADE,
+    TRADE_PREAMBLE,
     TRADE,
     PARTY_PREAMBLE,
     COLOSSEUM,
@@ -47,7 +47,7 @@ enum ConnectionState
 
 struct LinkState
 {
-    ConnectionState conState = HS;
+    ConnectionState conState = CLOCK;
 
     uint8_t in_data;
     uint8_t out_data;

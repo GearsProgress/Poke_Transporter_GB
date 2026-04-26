@@ -15,6 +15,10 @@
 #include "ptgb_save_data_manager.h"
 #include "libraries/Pokemon-Gen3-to-Gen-X/include/save.h"
 
+#include "payload_rb_experimental_lz10_bin.h"
+#include "payload_rb_lz10_bin.h"
+#include "payload_y_experimental_lz10_bin.h"
+
 static const byte gen1_rb_debug_box_data[0x462] = {
 	// Num of Pokemon
 	0x14,
@@ -183,8 +187,9 @@ void Pokemon_Party::start_link()
 		// This used to clear out the box data, probably isn't needed anymore
 		// memset(box_data_array, 0, curr_gb_rom.box_data_size);
 
-		//last_error = loop(&box_data_array[0], current_payload, &curr_gb_rom, &box, debug_charset, false);
-		while(true){
+		// last_error = loop(&box_data_array[0], current_payload, &curr_gb_rom, &box, debug_charset, false);
+		while (true)
+		{
 			VBlankIntrWait();
 		};
 		box.loadData(curr_gb_rom.generation, (Language)curr_gb_rom.language, box_data_array);
@@ -212,7 +217,7 @@ void Pokemon_Party::continue_link(bool cancel_connection)
 
 		load_localized_charset(debug_charset, 3, ENGLISH);
 
-		//last_error = loop(&box_data_array[0], current_payload, &curr_gb_rom, &box, debug_charset, cancel_connection);
+		// last_error = loop(&box_data_array[0], current_payload, &curr_gb_rom, &box, debug_charset, cancel_connection);
 	}
 }
 
@@ -354,6 +359,7 @@ void Pokemon_Party::init_payload()
 
 	// WARNING: Ensure sure decompression_buffer is large enough!
 
+	/*
 	if (curr_gb_rom.generation == 1)
 	{
 		if (curr_gb_rom.version == YELLOW_ID)
@@ -368,7 +374,10 @@ void Pokemon_Party::init_payload()
 	else // if(curr_gb_rom.generation == 2)
 	{
 		payload_src = gb_gen2_payloads_lz10_bin;
-	}
+	}*/
+
+	// For now this is going to be hardcoded, just as a test.
+	payload_src = payload_rb_experimental_lz10_bin;
 
 	// byte 2-4 of the compressed data store the decompressed size
 	payload_file_size = payload_src[1] | (payload_src[2] << 8) | (payload_src[3] << 16);

@@ -185,7 +185,7 @@ void generate_and_test_payloads_for(uint8_t generation, bool yellow_version, con
     if (std::filesystem::exists(full_output_path))
     {
 
-        std::filesystem::file_time_type inf_time = std::filesystem::last_write_time("tools/payload-generator/src/payloads/payload_builder.cpp");
+        std::filesystem::file_time_type inf_time = std::filesystem::last_write_time("tools/rom-vallue-generator/src/payloads/payload_builder.cpp");
         std::filesystem::file_time_type outf_time = std::filesystem::last_write_time(full_output_path);
 
         if (outf_time > inf_time)

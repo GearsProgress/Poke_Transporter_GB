@@ -22,6 +22,9 @@ LinkSPI linkSPIInstance;
 LinkSPI *linkSPI = &linkSPIInstance;
 LinkState *currLinkState;
 
+// TODO get rid of this because it should not exist and should be done with math
+byte tradePreambleBytes[] = {0x00, 0x00, 0xFD, 0xFD, 0xFD, 0xFD, 0xFD, 0xFD, 0xFD, 0xFD};
+
 // Here's a compilation check to ensure that the size of these structs match our expectations.
 // Just update it if you changed the struct members. The data-generator process prints their actual sizes.
 static_assert(sizeof(struct GB_ROM) == 136);
@@ -99,67 +102,51 @@ void setup(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_rom, PokeBox
 
 byte handleIncomingByte()
 {
+  // TODO this should be moved outside of this function.
+  currLinkState->section_data_counter += 1;
   switch (currLinkState->conState)
   {
-  case HS:
+  case CLOCK:
     currLinkState->mosi_delay = 4;
-    if (currLinkState->curr_gb_rom->generation == 2)
+    if (currLinkState->in_data == 0xFE)
     {
-      currLinkState->conState = ACK;
+      currLinkState->conState = MENU;
       return 0x00;
     }
-    if (currLinkState->in_data == 0x00)
-    {
-      currLinkState->conState = ACK;
-      return 0x01;
-    }
+    return 0x01;
     break;
-
-  case ACK:
-    if (currLinkState->curr_gb_rom->generation == 2)
+    /*
+        case ACK:
+        if (currLinkState->in_data == 0x61)
+        {
+          currLinkState->conState = MENU;
+          return 0x61;
+        }
+        else if (currLinkState->in_data == 0x00)
+        {
+          currLinkState->conState = MENU;
+          return 0x00;
+        }
+        break;
+    */
+  case MENU:
+    if (currLinkState->in_data == 0xD0 || currLinkState->in_data == 0x61)
     {
+      currLinkState->conState = WAIT_FOR_TRADE;
+      if (currLinkState->in_data == 0xD0)
+      {
+        currLinkState->gen = 1;
+        return 0xD4;
+      }
       if (currLinkState->in_data == 0x61)
       {
-        currLinkState->conState = MENU;
+        currLinkState->gen = 2;
         return 0x61;
       }
-      return 0x01;
-    }
-    else
-    {
-      if (currLinkState->in_data == 0x00)
-      {
-        currLinkState->conState = MENU;
-        return 0x00;
-      }
-      else if (currLinkState->in_data == 0x02)
-      {
-        currLinkState->conState = HS;
-        return 0x02;
-      }
-    }
-    break;
-
-  case MENU:
-    if (currLinkState->in_data == 0x60 || currLinkState->in_data == 0x61)
-    {
-      {
-        u8 general_text_table_buffer[2048];
-        text_data_table general_text(general_text_table_buffer);
-
-        general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
-        ptgb_write_textbox(general_text.get_text_entry(GENERAL_link_success), true, false,
-                           GENERAL_INDEX, GENERAL_link_success, false);
-      }
-
-      link_animation_state(STATE_NO_ANIM);
-      currLinkState->conState = PRETRADE;
-      currLinkState->section_data_counter = 0;
-      return currLinkState->in_data;
     }
     else if (currLinkState->in_data == 0x02)
     {
-      currLinkState->conState = HS;
+      currLinkState->conState = CLOCK;
       return 0x02;
     }
     else
@@ -168,110 +155,100 @@ byte handleIncomingByte()
     }
     break;
 
-  case PRETRADE:
-    if (currLinkState->section_data_counter == 16)
+  case WAIT_FOR_TRADE:
+    if (currLinkState->in_data == 0xFD)
+    {
+      REG_TM3D = -0x0040;
+      currLinkState->section_data_counter = 0;
+      currLinkState->conState = TRADE_PREAMBLE;
+      return 0x00;
+    }
+    return currLinkState->in_data;
+    break;
+  case TRADE_PREAMBLE:
+    if (currLinkState->section_data_counter == 10)
     {
       currLinkState->section_data_counter = 0;
       currLinkState->conState = TRADE;
-    }
-    currLinkState->section_data_counter++;
-    if (currLinkState->curr_gb_rom->generation == 2)
-    {
-      return 0x61;
-    }
-    else if (currLinkState->curr_gb_rom->generation == 1 && currLinkState->curr_gb_rom->version == YELLOW_ID)
-    {
-      return 0xD5;
-    }
-    else
-    {
-      return 0xD4;
-    }
-    break;
+      return 0xFD;
+    };
+    return tradePreambleBytes[currLinkState->section_data_counter];
   case TRADE:
-    if (currLinkState->in_data == 0xfd)
-    {
-      {
-        u8 general_text_table_buffer[2048];
-        text_data_table general_text(general_text_table_buffer);
-
-        general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
-        ptgb_write_textbox(general_text.get_text_entry(GENERAL_transferring), true, false,
-                           GENERAL_INDEX, GENERAL_transferring, false);
-      }
-
-      link_animation_state(STATE_TRANSFER);
-      // currLinkState->mosi_delay = 1;
-      REG_TM3D = -0x0040;
-      currLinkState->conState = PARTY_PREAMBLE;
-    }
-    return currLinkState->in_data;
-    break;
-  case PARTY_PREAMBLE:
-    if (currLinkState->in_data != 0xfd)
-    {
-      currLinkState->conState = TRADE_DATA;
-      return exchange_parties(currLinkState->in_data, currLinkState->curr_payload);
-    }
-    return currLinkState->in_data;
-    break;
-  case TRADE_DATA:
-    if (currLinkState->section_data_counter >= currLinkState->curr_gb_rom->payload_size)
-    {
-      if (currLinkState->in_data == 0xFD)
-      {
-        currLinkState->conState = BOX_PREAMBLE;
-        currLinkState->init_packet = true;
-      }
-      else
-      {
-        return 0x00;
-      }
-    }
-    return exchange_parties(currLinkState->in_data, currLinkState->curr_payload);
-    break;
-  case BOX_PREAMBLE:
-    if (currLinkState->in_data != 0xFD)
-    {
-      currLinkState->conState = BOX_DATA;
-      return exchange_boxes(currLinkState->in_data, currLinkState->box_data_storage, currLinkState->curr_gb_rom, currLinkState->debug_charset);
-    }
-    return currLinkState->in_data;
-    break;
-  case BOX_DATA:
-    return exchange_boxes(currLinkState->in_data, currLinkState->box_data_storage, currLinkState->curr_gb_rom, currLinkState->debug_charset);
-    break;
-  case REBOOT:
-    currLinkState->section_data_counter = 0;
-    currLinkState->conState = REMOVE_ARRAY_PREAMBLE;
-    return 0xFD;
-    break;
-
-  case REMOVE_ARRAY_PREAMBLE:
-    if (currLinkState->in_data != 0xFD)
-    {
-      currLinkState->conState = SEND_REMOVE_ARRAY;
-      return exchange_remove_array(currLinkState->in_data, currLinkState->box, currLinkState->cancel_connection);
-    }
-    return currLinkState->in_data;
-    break;
-
-  case SEND_REMOVE_ARRAY:
-    if (currLinkState->section_data_counter >= 29) // This assumes the preamble does not count towards the number of bytes sent over the cable
-    {
-      currLinkState->conState = END2;
-    }
-    currLinkState->section_data_counter++;
-    return exchange_remove_array(currLinkState->in_data, currLinkState->box, currLinkState->cancel_connection);
+    return currLinkState->curr_payload[currLinkState->section_data_counter];
     break;
 
   default:
     return currLinkState->in_data;
     break;
   }
-
-  return 0; // This should never hit but the compiler likes this being here
+  return 0;
 }
+/*
+case PARTY_PREAMBLE:
+  if (currLinkState->in_data != 0xfd)
+  {
+    currLinkState->conState = TRADE_DATA;
+    return exchange_parties(currLinkState->in_data, currLinkState->curr_payload);
+  }
+  return currLinkState->in_data;
+  break;
+case TRADE_DATA:
+  if (currLinkState->section_data_counter >= currLinkState->curr_gb_rom->payload_size)
+  {
+    if (currLinkState->in_data == 0xFD)
+    {
+      currLinkState->conState = BOX_PREAMBLE;
+      currLinkState->init_packet = true;
+    }
+    else
+    {
+      return 0x00;
+    }
+  }
+  return exchange_parties(currLinkState->in_data, currLinkState->curr_payload);
+  break;
+case BOX_PREAMBLE:
+  if (currLinkState->in_data != 0xFD)
+  {
+    currLinkState->conState = BOX_DATA;
+    return exchange_boxes(currLinkState->in_data, currLinkState->box_data_storage, currLinkState->curr_gb_rom, currLinkState->debug_charset);
+  }
+  return currLinkState->in_data;
+  break;
+case BOX_DATA:
+  return exchange_boxes(currLinkState->in_data, currLinkState->box_data_storage, currLinkState->curr_gb_rom, currLinkState->debug_charset);
+  break;
+case REBOOT:
+  currLinkState->section_data_counter = 0;
+  currLinkState->conState = REMOVE_ARRAY_PREAMBLE;
+  return 0xFD;
+  break;
+
+case REMOVE_ARRAY_PREAMBLE:
+  if (currLinkState->in_data != 0xFD)
+  {
+    currLinkState->conState = SEND_REMOVE_ARRAY;
+    return exchange_remove_array(currLinkState->in_data, currLinkState->box, currLinkState->cancel_connection);
+  }
+  return currLinkState->in_data;
+  break;
+
+case SEND_REMOVE_ARRAY:
+  if (currLinkState->section_data_counter >= 29) // This assumes the preamble does not count towards the number of bytes sent over the cable
+  {
+    currLinkState->conState = END2;
+  }
+  currLinkState->section_data_counter++;
+  return exchange_remove_array(currLinkState->in_data, currLinkState->box, currLinkState->cancel_connection);
+  break;
+
+default:
+  return currLinkState->in_data;
+  break;
+}
+
+return 0; // This should never hit but the compiler likes this being here
+}*/
 /*
 int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, PokeBox *box, const u16 *debug_charset, bool cancel_connection)
 {
@@ -400,12 +377,12 @@ ConnectionState prevConState;
 
 void handshake()
 {
-  if (g_debug_options.print_link_data && key_hit(KEY_SELECT))
+  if (g_debug_options.print_link_data && key_hit(KEY_LEFT))
   {
     currLinkState->irq_enabled = false;
   }
 
-  else if (g_debug_options.print_link_data && key_hit(KEY_START))
+  else if (g_debug_options.print_link_data && key_hit(KEY_RIGHT))
   {
     currLinkState->irq_enabled = true;
   }

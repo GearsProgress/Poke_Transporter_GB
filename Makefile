@@ -190,7 +190,7 @@ export INCLUDE	:=	$(foreach dir,$(INCLUDES),-iquote $(CURDIR)/$(dir)) \
 					$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
 					-I$(CURDIR)/$(GENERATED_DIR) \
 					-I$(CURDIR)/$(BUILD) \
-					-I$(CURDIR)/tools/payload-generator/include
+					-I$(CURDIR)/tools/rom-value-generator/include
 
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
@@ -199,7 +199,7 @@ export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 GENERATE_STAMP := $(BUILD)/.generate_data.$(BUILD_LANG).$(BUILD_TYPE).stamp
 BUILD_STAMP := $(BUILD)/.build.$(BUILD_LANG).$(BUILD_TYPE).stamp
 
-PAYLOAD_GEN_INPUTS := $(shell find tools/payload-generator/src tools/payload-generator/include -type f \( -name "*.cpp" -o -name "*.h" -o -name "*.hpp" \))
+PAYLOAD_GEN_INPUTS := $(shell find tools/rom-value-generator/src tools/rom-value-generator/include -type f \( -name "*.cpp" -o -name "*.h" -o -name "*.hpp" \))
 TEXT_HELPER_INPUTS := tools/text_helper/main.py $(wildcard tools/text_helper/fonts/*.png) $(wildcard tools/text_helper/text.xlsx)
 TEXT_GENERATED_OUTPUTS := \
 	$(GENERATED_DIR)/translated_text.h \
@@ -249,11 +249,13 @@ $(GENERATE_STAMP): $(TEXT_HELPER_INPUTS) $(PAYLOAD_GEN_INPUTS) compress_lz10.sh 
 		CXXFLAGS= \
 		LDFLAGS= \
 		AR=ar \
-		$(MAKE) -C tools/payload-generator BUILD_LANG=$(BUILD_LANG) BUILD_TYPE=$(BUILD_TYPE)
+		$(MAKE) -C tools/rom-value-generator BUILD_LANG=$(BUILD_LANG) BUILD_TYPE=$(BUILD_TYPE)
+		$(MAKE) -C tools/gb-payload-generator
 	@echo
 	@echo "----------------------------------------------------------------"
 	@echo
-	@tools/payload-generator/payload-generator to_compress
+	@tools/rom-value-generator/payload-generator to_compress
+	@cp -a tools/gb-payload-generator/build/. to_compress/
 	@echo "Compressing bin files!" 
 	@echo -n "["
 	@find to_compress -name "*.bin" -print0 | xargs -0 -n1 ./compress_lz10.sh
@@ -285,7 +287,8 @@ $(BUILD):
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@$(MAKE) -C tools/payload-generator clean
+	@$(MAKE) -C tools/rom-value-generator clean
+	@$(MAKE) -C tools/gb-payload-generator clean
 	@$(MAKE) -C loader clean
 	@$(MAKE) -C PCCS clean
 	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).gba $(LOADERNAME).gba data/ to_compress/

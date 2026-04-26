@@ -2,7 +2,7 @@
 
 debug_options g_debug_options = 
 {
-    .print_link_data = (false && DEBUG_MODE),
+    .print_link_data = (true && DEBUG_MODE),
     .instant_text_speed = (true && DEBUG_MODE),
     .ignore_game_pak = (true && DEBUG_MODE),
     .ignore_game_pak_sprites = (false && DEBUG_MODE),
