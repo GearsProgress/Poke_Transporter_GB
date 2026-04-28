@@ -4,6 +4,13 @@
 // Here we define debug menu callback functions, to be used as on_execute_callback or on_option_activate in the debug menu entries.
 
 /**
+ * @brief Shows a submenu
+ * 
+ * @param user_param the DebugMenuSection enum value corresponding to the submenu to show.
+ */
+void show_debug_menu_section(void *context, unsigned user_param);
+
+/**
  * @brief This function will open the text debug screen.
  */
 void show_text_debug_screen(void *context, unsigned user_param);

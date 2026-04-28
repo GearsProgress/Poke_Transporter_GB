@@ -1,4 +1,5 @@
 #include "dbg/debug_menu_functions.h"
+#include "dbg/debug_menu.h"
 #include "libraries/nanoprintf/nanoprintf.h"
 #include "text_engine.h"
 #include "pokemon_data.h"
@@ -94,6 +95,13 @@ static void convert_OT_to_utf8(const u8 *encoded_OT, u8 *output_buffer, const u1
         cur_out += num_bytes;
     }
     *cur_out = '\0';
+}
+
+void show_debug_menu_section(void *context, unsigned user_param)
+{
+    (void)context; // unused
+    const DebugMenuSection section_to_show = static_cast<DebugMenuSection>(user_param);
+    push_debug_menu_section(section_to_show);
 }
 
 void show_text_debug_screen(void *context, unsigned user_param)

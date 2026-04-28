@@ -47,6 +47,11 @@ public:
      * @brief Flush the current buffer to the cartridge save.
      */
     void flush();
+
+    /**
+     * @brief Indicates whether the Gen3SaveManager should recalculate checksums when finishSave is called.
+     */
+    bool shouldRecalculateChecksumsOnFinish() const;
 protected:
 private:
     uintptr_t sector_start_;

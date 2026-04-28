@@ -1,6 +1,5 @@
 #include "dbg/debug_menu.h"
 #include "dbg/debug_menu_functions.h"
-#include "dbg/debug_menu_entries.h"
 #include "sprite_data.h"
 #include "background_engine.h"
 #include "vertical_menu_cursor_handler.h"
@@ -13,11 +12,21 @@ static on_execute_callback delayed_execute_callback = nullptr;
 static void *delayed_execute_context = nullptr;
 static unsigned delayed_execute_user_param = 0;
 
-void show_debug_menu()
+// the menu can be 3 layers deep.
+static DebugMenuSection current_menu_section[MAX_MENU_LAYERS];
+static unsigned current_menu_section_stack_size;
+
+static void pop_submenu()
+{
+    --current_menu_section_stack_size;
+}
+
+static __attribute__((noinline)) void show_debug_menu_internal(DebugMenuSection sectionType)
 {
     u16 charset[256];
     const s16 cursor_offset_x = 3;
     const s16 cursor_offset_y = 6;
+    unsigned ret;
 
     load_localized_charset(charset, 3, ENGLISH);
     tte_erase_rect(0, 0, H_MAX, V_MAX);
@@ -46,10 +55,10 @@ void show_debug_menu()
     vertical_menu debug_menu(menu_settings);
 
     debug_menu.set_state_changed_handler(&cursor_handler);
-    fill_debug_menu_with_entries(debug_menu, charset);
+    fill_debug_menu_with_entries(debug_menu, charset, sectionType);
 
     debug_menu.show();
-    debug_menu.run();
+    ret = debug_menu.run();
     debug_menu.hide();
 
     obj_hide(toggle_arrow_left);
@@ -67,6 +76,25 @@ void show_debug_menu()
         delayed_execute_context = nullptr;
         delayed_execute_user_param = 0;
     }
+    else if(ret == UINT32_MAX)
+    {
+        // if the user cancelled out of the menu, we pop the submenu stack to go back to the previous menu.
+        pop_submenu();
+    }
+}
+
+void show_debug_menu()
+{
+    DebugMenuSection curr_section;
+    // setting it to 1 because we decrement it as soon as we enter the loop.
+    current_menu_section_stack_size = 0;
+    push_debug_menu_section(DebugMenuSection::MAIN);
+    while(current_menu_section_stack_size > 0)
+    {
+        curr_section = current_menu_section[current_menu_section_stack_size - 1];
+        show_debug_menu_internal(curr_section);
+    }
+    
 }
 
 debug_menu_row_widget::debug_menu_row_widget(const debug_menu_row_data &data)
@@ -173,4 +201,14 @@ MenuInputHandleState debug_menu_row_widget::handle_input()
     }
     
     return MenuInputHandleState::NOT_HANDLED;
+}
+
+void push_debug_menu_section(DebugMenuSection section)
+{
+    constexpr size_t num_levels = sizeof(current_menu_section) / sizeof(current_menu_section[0]);
+    if(current_menu_section_stack_size < num_levels)
+    {
+        current_menu_section[current_menu_section_stack_size] = section;
+        ++current_menu_section_stack_size;
+    }
 }
