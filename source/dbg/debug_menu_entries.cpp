@@ -7,6 +7,10 @@
 
 #include <cstdlib>
 
+#if ENABLE_MYSTERY_GIFT
+#include "dbg/old_sea_map.h"
+#endif
+
 static const option_data toggle_options[2] = {
     {
         .text = "Off",
@@ -144,6 +148,8 @@ static void fill_debug_menu_with_injection_entries(vertical_menu &menu, u16 *cha
 #if ENABLE_MYSTERY_GIFT
         define_executable_row(charset, "Unlock MystE", dbg_unlock_mystery, 0, nullptr),
         define_executable_row(charset, "Unlock MystG", dbg_unlock_mystery, 1, nullptr),
+        define_executable_row(charset, "Inj OldSeaMap", dbg_inject_wc3, sizeof(OldSeaMap_E_custom), const_cast<u8*>(OldSeaMap_E_custom)),
+        
 #endif
     };
     menu.add_item_widgets(item_widgets, sizeof(item_widgets) / sizeof(item_widgets[0]));

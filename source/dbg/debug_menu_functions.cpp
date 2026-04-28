@@ -319,3 +319,29 @@ void dbg_unlock_mystery(void *context, unsigned user_param)
     save_manager.finishSave();
     reader.flush();
 }
+
+void dbg_inject_wc3(void *context, unsigned user_param)
+{
+    const u8* wc3_data_ptr = reinterpret_cast<const u8*>(context);
+    size_t wc3_data_size = user_param;
+    if(wc3_data_ptr == nullptr)
+    {
+        return;
+    }
+
+    const Game game_type = convert_rom_game_id_to_ptgb_game(curr_GBA_rom.gamecode);
+    if(game_type != EMERALD)
+    {
+        return;
+    }
+
+    const Language game_lang = convert_rom_lang_to_ptgb_lang(curr_GBA_rom.language);
+    Gen3CartridgeSaveReader reader(global_memory_buffer);
+    Gen3SaveManager save_manager(game_type, game_lang, reader);
+
+    save_manager.setMysteryGiftUnlocked(user_param != 0);
+    save_manager.injectMysteryGift(wc3_data_ptr, wc3_data_size);
+
+    save_manager.finishSave();
+    reader.flush();
+}
