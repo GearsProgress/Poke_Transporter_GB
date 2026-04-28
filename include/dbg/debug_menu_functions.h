@@ -43,5 +43,6 @@ void dbg_inject_pkmn(void *context, unsigned user_param);
 void dbg_unlock_mystery(void *context, unsigned user_param);
 
 void dbg_inject_wc3(void *context, unsigned user_param);
+void dbg_inject_me3(void *context, unsigned user_param);
 
 #endif

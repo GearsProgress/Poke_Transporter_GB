@@ -9,6 +9,7 @@
 
 #if ENABLE_MYSTERY_GIFT
 #include "dbg/old_sea_map.h"
+#include "dbg/eon_ticket_rs.h"
 #endif
 
 static const option_data toggle_options[2] = {
@@ -148,7 +149,8 @@ static void fill_debug_menu_with_injection_entries(vertical_menu &menu, u16 *cha
 #if ENABLE_MYSTERY_GIFT
         define_executable_row(charset, "Unlock MystE", dbg_unlock_mystery, 0, nullptr),
         define_executable_row(charset, "Unlock MystG", dbg_unlock_mystery, 1, nullptr),
-        define_executable_row(charset, "Inj OldSeaMap", dbg_inject_wc3, sizeof(OldSeaMap_E_custom), const_cast<u8*>(OldSeaMap_E_custom)),
+        define_executable_row(charset, "Inj OldSeaMap(E)", dbg_inject_wc3, sizeof(OldSeaMap_E_custom), const_cast<u8*>(OldSeaMap_E_custom)),
+        define_executable_row(charset, "Inj Eon Ticket(RS)", dbg_inject_me3, sizeof(RS_Item_Eon_Ticket_e_Card_ENG_US_), const_cast<u8*>(RS_Item_Eon_Ticket_e_Card_ENG_US_)),
         
 #endif
     };
