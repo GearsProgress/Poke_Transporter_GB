@@ -12,7 +12,7 @@ static on_execute_callback delayed_execute_callback = nullptr;
 static void *delayed_execute_context = nullptr;
 static unsigned delayed_execute_user_param = 0;
 
-// the menu can be 3 layers deep.
+// the menu can be MAX_MENU_LAYERS layers deep.
 static DebugMenuSection current_menu_section[MAX_MENU_LAYERS];
 static unsigned current_menu_section_stack_size;
 
@@ -86,7 +86,7 @@ static __attribute__((noinline)) void show_debug_menu_internal(DebugMenuSection 
 void show_debug_menu()
 {
     DebugMenuSection curr_section;
-    // setting it to 1 because we decrement it as soon as we enter the loop.
+
     current_menu_section_stack_size = 0;
     push_debug_menu_section(DebugMenuSection::MAIN);
     while(current_menu_section_stack_size > 0)
