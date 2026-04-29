@@ -266,6 +266,28 @@ void set_text_exit()
     key_poll(); // This removes the "A Hit" when exiting the text
 }
 
+int* initialize_box_type(int box_type) 
+{
+    static int coords[4];
+
+    if (box_type == -1)
+    {
+        coords[0] = 0;      // left
+        coords[1] = 0;      // top
+        coords[2] = H_MAX;  // right
+        coords[3] = V_MAX;  // bottom
+    }
+    else
+    {
+        coords[0] = 8 * (box_type_info[box_type][BOX_TYPE_VAL_START_TILE_X] + 1);
+        coords[1] = 8 * (box_type_info[box_type][BOX_TYPE_VAL_START_TILE_Y] + 1);
+        coords[2] = coords[0] + box_type_info[box_type][BOX_TYPE_VAL_PIXELS_PER_LINE];
+        coords[3] = coords[1] + box_type_info[box_type][BOX_TYPE_VAL_NUM_OF_LINES] * 16;
+    }
+
+    return coords;
+}
+
 // Implement a version that creates the textbox as well
 int ptgb_write_textbox(const byte *text, bool instant, bool waitForUser,
                        int text_section, int text_key, bool eraseMainBox)
@@ -281,7 +303,9 @@ int ptgb_write_textbox(const byte *text, bool instant, bool waitForUser,
     int out = ptgb_write(text, instant, 9999, text_box_type_tables[text_section][text_key]); // This is kinda silly but it'll work.
     if (waitForUser)
     {
-        wait_for_user_to_continue();
+        int right = H_MAX - 5;
+        int bottom = V_MAX - 5;
+        wait_for_user_to_continue(right, bottom);
     }
     if (eraseMainBox)
     {
@@ -301,26 +325,16 @@ int ptgb_write_simple(const byte *text, bool instant)
 // Re-implementing TTE's "tte_write" to use the gen 3 character encoding chart
 int ptgb_write(const byte *text, bool instant, int length, int box_type)
 {
-    int left, top, right, bottom;
-
     instant = instant || g_debug_options.instant_text_speed;
     if (text == NULL)
         return 0;
 
-    if (box_type == -1)
-    {
-        left = 0;
-        top = 0;
-        right = H_MAX;
-        bottom = V_MAX;
-    }
-    else
-    {
-        left = 8 * (box_type_info[box_type][BOX_TYPE_VAL_START_TILE_X] + 1);
-        top = 8 * (box_type_info[box_type][BOX_TYPE_VAL_START_TILE_Y] + 1);
-        right = left + box_type_info[box_type][BOX_TYPE_VAL_PIXELS_PER_LINE];
-        bottom = top + box_type_info[box_type][BOX_TYPE_VAL_NUM_OF_LINES] * 16;
-    }
+    int* coords = initialize_box_type(box_type);
+
+    int left = coords[0];
+    int top =  coords[1];
+    int right = coords[2];
+    int bottom = coords[3];
 
     uint ch, gid;
     char *str = (char *)text;
@@ -340,7 +354,7 @@ int ptgb_write(const byte *text, bool instant, int length, int box_type)
                 {
                     tc->drawgProc(0x79);
                 }
-                wait_for_user_to_continue();
+                wait_for_user_to_continue(right, bottom);
                 scroll_text(instant, tc, left, top, right, bottom);
                 break;
             case 0xFB:
@@ -348,7 +362,7 @@ int ptgb_write(const byte *text, bool instant, int length, int box_type)
                 {
                     tc->drawgProc(0xB9);
                 }
-                wait_for_user_to_continue();
+                wait_for_user_to_continue(right, bottom);
                 tte_erase_rect(left, top, right, bottom);
                 tte_set_pos(left, top);
                 break;
@@ -437,7 +451,7 @@ int ptgb_write_debug(const u16 *charset, const char *text, bool instant)
     return ptgb_write_simple(temp_holding, instant);
 }
 
-void wait_for_user_to_continue()
+void wait_for_user_to_continue(int right, int bottom)
 {
     if (get_curr_flex_background() == FLEXBG_FENNEL)
     {
@@ -451,11 +465,23 @@ void wait_for_user_to_continue()
             fennel_speak(0);
         }
     }
+
+    obj_set_pos(point_arrow, right-7, bottom-12);
+    obj_unhide(point_arrow, 0);
+    
     key_poll();
     while (!(key_hit(KEY_A) || key_hit(KEY_B)))
     {
+        int frameCount = get_frame_count();
+        if (frameCount % 60 == 0) {
+            obj_unhide(point_arrow, 0);
+        }
+        else if (frameCount % 30 == 0) {
+                obj_hide(point_arrow);
+        }
         global_next_frame();
     }
+    obj_hide(point_arrow);
 }
 
 void scroll_text(bool instant, TTC *tc, int left, int top, int right, int bottom)
