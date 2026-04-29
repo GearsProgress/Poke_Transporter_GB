@@ -270,7 +270,7 @@ void dbg_inject_pkmn(void *context, unsigned user_param)
     npf_snprintf(text_buffer, sizeof(text_buffer), "%s received a Celebi!\n Celebi was sent to box %d!", decoded_OT_utf8, boxIndex);
     ptgb_write_debug(tables.gen3_charset, text_buffer, false);
 
-    wait_for_user_to_continue();
+    wait_for_user_to_continue(H_MAX, V_MAX);
 
     if(!g_debug_options.ignore_game_pak && !g_debug_options.ignore_game_pak_sprites)
     {
