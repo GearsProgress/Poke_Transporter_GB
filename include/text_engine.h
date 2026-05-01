@@ -19,7 +19,6 @@ void init_text_engine();
 int text_loop(int script);
 int text_next_obj_id(script_obj current_line);
 void set_text_exit();
-int* initialize_box_type(int box_type);
 int ptgb_write_textbox(const byte *text, bool instant, bool waitForUser, int text_section, int text_key, bool eraseMainBox);
 int ptgb_write_simple(const byte *text, bool instant);
 int ptgb_write(const byte *text, bool instant, int length, int box_type);

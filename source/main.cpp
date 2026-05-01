@@ -250,7 +250,12 @@ int main_menu_loop()
 		}
 		else if (key_hit(KEY_UP))
 		{
-			curr_selection = ((curr_selection + (NUM_MENU_OPTIONS - 1)) % NUM_MENU_OPTIONS);
+			if (curr_selection == 0) {
+				curr_selection = NUM_MENU_OPTIONS - 1;
+			}
+			else {
+				curr_selection = ((curr_selection + (NUM_MENU_OPTIONS - 1)) % NUM_MENU_OPTIONS);
+			}
 		}
 		else if (key_hit(KEY_A))
 		{

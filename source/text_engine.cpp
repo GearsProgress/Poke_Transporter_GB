@@ -183,7 +183,12 @@ int text_loop(int script)
                 }
                 else if (key_hit(KEY_UP))
                 {
-                    text_section = (text_section + 1) % NUM_TEXT_SECTIONS;
+                    if (text_section == 0) {
+                        text_section = NUM_TEXT_SECTIONS - 1;
+                    }
+                    else {
+                        text_section = ((text_section + (NUM_TEXT_SECTIONS - 1)) % NUM_TEXT_SECTIONS);
+                    }
                     update_text = true;
                 }
                 else if (key_hit(KEY_DOWN))
@@ -266,28 +271,6 @@ void set_text_exit()
     key_poll(); // This removes the "A Hit" when exiting the text
 }
 
-int* initialize_box_type(int box_type) 
-{
-    static int coords[4];
-
-    if (box_type == -1)
-    {
-        coords[0] = 0;      // left
-        coords[1] = 0;      // top
-        coords[2] = H_MAX;  // right
-        coords[3] = V_MAX;  // bottom
-    }
-    else
-    {
-        coords[0] = 8 * (box_type_info[box_type][BOX_TYPE_VAL_START_TILE_X] + 1);
-        coords[1] = 8 * (box_type_info[box_type][BOX_TYPE_VAL_START_TILE_Y] + 1);
-        coords[2] = coords[0] + box_type_info[box_type][BOX_TYPE_VAL_PIXELS_PER_LINE];
-        coords[3] = coords[1] + box_type_info[box_type][BOX_TYPE_VAL_NUM_OF_LINES] * 16;
-    }
-
-    return coords;
-}
-
 // Implement a version that creates the textbox as well
 int ptgb_write_textbox(const byte *text, bool instant, bool waitForUser,
                        int text_section, int text_key, bool eraseMainBox)
@@ -303,6 +286,7 @@ int ptgb_write_textbox(const byte *text, bool instant, bool waitForUser,
     int out = ptgb_write(text, instant, 9999, text_box_type_tables[text_section][text_key]); // This is kinda silly but it'll work.
     if (waitForUser)
     {
+        
         int right = H_MAX - 5;
         int bottom = V_MAX - 5;
         wait_for_user_to_continue(right, bottom);
@@ -329,12 +313,22 @@ int ptgb_write(const byte *text, bool instant, int length, int box_type)
     if (text == NULL)
         return 0;
 
-    int* coords = initialize_box_type(box_type);
+    int left, top, right, bottom;
 
-    int left = coords[0];
-    int top =  coords[1];
-    int right = coords[2];
-    int bottom = coords[3];
+    if (box_type == -1)
+    {
+        left = 0;
+        top = 0;
+        right = H_MAX;
+        bottom = V_MAX;
+    }
+    else
+    {
+        left = 8 * (box_type_info[box_type][BOX_TYPE_VAL_START_TILE_X] + 1);
+        top = 8 * (box_type_info[box_type][BOX_TYPE_VAL_START_TILE_Y] + 1);
+        right = left + box_type_info[box_type][BOX_TYPE_VAL_PIXELS_PER_LINE];
+        bottom = top + box_type_info[box_type][BOX_TYPE_VAL_NUM_OF_LINES] * 16;
+    }
 
     uint ch, gid;
     char *str = (char *)text;
@@ -466,22 +460,28 @@ void wait_for_user_to_continue(int right, int bottom)
         }
     }
 
-    obj_set_pos(point_arrow, right-7, bottom-12);
-    obj_unhide(point_arrow, 0);
+    //obj_set_pos(scroll_indicator_red, right-16, bottom-11);
+    //obj_set_pos(scroll_indicator_gray, right-16, bottom-10);
+    //obj_unhide(scroll_indicator_red, 0);
     
     key_poll();
     while (!(key_hit(KEY_A) || key_hit(KEY_B)))
     {
+        /*
         int frameCount = get_frame_count();
         if (frameCount % 60 == 0) {
-            obj_unhide(point_arrow, 0);
+            obj_unhide(scroll_indicator_red, 0);
+            obj_hide(scroll_indicator_gray);
         }
         else if (frameCount % 30 == 0) {
-                obj_hide(point_arrow);
+            obj_hide(scroll_indicator_red);
+            obj_unhide(scroll_indicator_gray, 0);
         }
+        */
         global_next_frame();
     }
-    obj_hide(point_arrow);
+    //obj_hide(scroll_indicator_red);
+    //obj_hide(scroll_indicator_gray);
 }
 
 void scroll_text(bool instant, TTC *tc, int left, int top, int right, int bottom)

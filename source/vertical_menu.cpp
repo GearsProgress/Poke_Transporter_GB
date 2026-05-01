@@ -175,23 +175,34 @@ MenuInputHandleState vertical_menu::handle_input()
         return MenuInputHandleState::CANCELLED;
     }
 
-    if(key_hit(KEY_DOWN) && focused_index_ < (items_.size() - 1u))
+    if(key_hit(KEY_DOWN))
     {
-        const unsigned current_viewport_end_index = get_viewport_end_index(viewport_start_index_, get_num_visible_items(settings_.height, settings_.margin_top, settings_.margin_bottom, settings_.item_height), items_.size());
+        const unsigned num_visible_items = get_num_visible_items(settings_.height, settings_.margin_top, settings_.margin_bottom, settings_.item_height);
+        const unsigned current_viewport_end_index = get_viewport_end_index(viewport_start_index_, num_visible_items, items_.size());
         ++focused_index_;
-        if(focused_index_ >= current_viewport_end_index)
+        if(focused_index_ == current_viewport_end_index)
         {
             ++viewport_start_index_;
             viewport_changed = true;
         }
+        if (focused_index_ > items_.size() - 1) {
+            viewport_start_index_ = 0;
+            focused_index_ = 0;
+            viewport_changed = true;
+        }
         did_navigate = true;
     }
-    else if(key_hit(KEY_UP) && focused_index_ > 0)
+    else if(key_hit(KEY_UP))
     {
         --focused_index_;
-        if(focused_index_ < viewport_start_index_)
+        if(focused_index_ < 0)
         {
-            --viewport_start_index_;
+            const unsigned num_visible_items = get_num_visible_items(settings_.height, settings_.margin_top, settings_.margin_bottom, settings_.item_height);
+            const unsigned current_viewport_end_index = get_viewport_end_index(viewport_start_index_, num_visible_items, items_.size());
+            const unsigned max_index = items_.size() - 1;
+            
+            viewport_start_index_ = (max_index - num_visible_items) + 1;
+            focused_index_ = max_index;
             viewport_changed = true;
         }
         did_navigate = true;
