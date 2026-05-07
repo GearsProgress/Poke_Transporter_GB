@@ -23,7 +23,7 @@ int ptgb_write_textbox(const byte *text, bool instant, bool waitForUser, int tex
 int ptgb_write_simple(const byte *text, bool instant);
 int ptgb_write(const byte *text, bool instant, int length, int box_type);
 int ptgb_write_debug(const u16* charset, const char *text, bool instant);
-void wait_for_user_to_continue();
+void wait_for_user_to_continue(int right, int bottom);
 void scroll_text(bool instant, TTC *tc, int left, int top, int right, int bottom);
 
 #endif
