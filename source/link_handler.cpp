@@ -18,6 +18,9 @@
 #include "libraries/Pokemon-Gen3-to-Gen-X/include/save.h"
 #include "flash_mem.h"
 
+#include "universalPayloadGen1_bin.h"
+#include "universalPayloadGen2_bin.h"
+
 LinkSPI linkSPIInstance;
 LinkSPI *linkSPI = &linkSPIInstance;
 LinkState *currLinkState;
@@ -71,7 +74,7 @@ void print(const char *format, ...)
   }
 }
 
-void setup(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_rom, PokeBox *box, const u16 *debug_charset, bool cancel_connection)
+void setup(byte *box_data_storage, GB_ROM *curr_rom, PokeBox *box, const u16 *debug_charset, bool cancel_connection)
 {
   REG_TM3D = -0x4000 / 60;
   REG_TM3CNT = TM_FREQ_1024 | TM_ENABLE;
@@ -82,7 +85,6 @@ void setup(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_rom, PokeBox
 
   currLinkState = new LinkState;
   currLinkState->box_data_storage = box_data_storage;
-  currLinkState->curr_payload = curr_payload;
   currLinkState->curr_gb_rom = curr_rom;
   currLinkState->box = box;
   currLinkState->debug_charset = debug_charset;
@@ -136,11 +138,13 @@ byte handleIncomingByte()
       if (currLinkState->in_data == 0xD0)
       {
         currLinkState->gen = 1;
+        load_universal_payload();
         return 0xD4;
       }
       if (currLinkState->in_data == 0x61)
       {
         currLinkState->gen = 2;
+        load_universal_payload();
         return 0x61;
       }
     }
@@ -174,7 +178,14 @@ byte handleIncomingByte()
     };
     return tradePreambleBytes[currLinkState->section_data_counter];
   case TRADE:
+    if (currLinkState->section_data_counter == currLinkState->curr_payload_size - 1)
+    {
+      currLinkState->conState = END;
+    }
     return currLinkState->curr_payload[currLinkState->section_data_counter];
+    break;
+  case END:
+    currLinkState->irq_enabled = false;
     break;
 
   default:
@@ -623,4 +634,18 @@ byte exchange_remove_array(byte curr_in, PokeBox *box, bool cancel_connection)
     }
   }
   return 0xFF;
+}
+
+void load_universal_payload()
+{
+  if (currLinkState->gen == 1)
+  {
+    memcpy(currLinkState->curr_payload, universalPayloadGen1_bin, universalPayloadGen1_bin_size);
+    currLinkState->curr_payload_size = universalPayloadGen1_bin_size;
+  }
+  else if (currLinkState->gen == 2)
+  {
+    memcpy(currLinkState->curr_payload, universalPayloadGen2_bin, universalPayloadGen2_bin_size);
+    currLinkState->curr_payload_size = universalPayloadGen2_bin_size;
+  }
 }

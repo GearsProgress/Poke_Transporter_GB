@@ -255,7 +255,6 @@ $(GENERATE_STAMP): $(TEXT_HELPER_INPUTS) $(PAYLOAD_GEN_INPUTS) compress_lz10.sh 
 	@echo "----------------------------------------------------------------"
 	@echo
 	@tools/rom-value-generator/payload-generator to_compress
-	@cp -a tools/gb-payload-generator/build/. to_compress/
 	@echo "Compressing bin files!" 
 	@echo -n "["
 	@find to_compress -name "*.bin" -print0 | xargs -0 -n1 ./compress_lz10.sh

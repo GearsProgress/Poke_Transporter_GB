@@ -13,3 +13,4 @@ to_compress/
 tools/rom-value-generator/payload-generator
 text_errors.txt
 terminal_output.txt
+tools/payload-generator/payload-generator

@@ -32,6 +32,8 @@ enum ConnectionState
     WAIT_FOR_TRADE,
     TRADE_PREAMBLE,
     TRADE,
+    END,
+
     PARTY_PREAMBLE,
     COLOSSEUM,
     CANCEL,
@@ -70,24 +72,26 @@ struct LinkState
     bool test_packet_fail = false; // ???
 
     byte data_packet[PACKET_SIZE];
+    byte curr_payload[0x2A0];
+    int curr_payload_size = 0;
 
     bool irq_enabled = true; // Stores if the IRQ is currently enabled, used for pausing and sending one byte at a time
 
     // This is info that was passed in via handleIncomingByte
     byte *box_data_storage;
-    byte *curr_payload;
     GB_ROM *curr_gb_rom;
     PokeBox *box;
     const u16 *debug_charset;
     bool cancel_connection;
 };
 
-void setup(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_rom, PokeBox *box, const u16 *debug_charset, bool cancel_connection);
+void setup(byte *box_data_storage, GB_ROM *curr_rom, PokeBox *box, const u16 *debug_charset, bool cancel_connection);
 byte handleIncomingByte();
 int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_rom, PokeBox *box, const u16 *debug_charset, bool cancel_connection);
 byte exchange_parties(byte curr_in, byte *curr_payload);
 byte exchange_boxes(byte curr_in, byte *party_data, GB_ROM *curr_gb_rom, const u16 *debug_charset);
 byte exchange_remove_array(byte curr_in, PokeBox *box, bool cancel_connection);
+void load_universal_payload();
 void handshake();
 
 #endif /* LINK_HANDLER_H_ */

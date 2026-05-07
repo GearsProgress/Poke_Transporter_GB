@@ -15,10 +15,6 @@
 #include "ptgb_save_data_manager.h"
 #include "libraries/Pokemon-Gen3-to-Gen-X/include/save.h"
 
-#include "payload_rb_experimental_lz10_bin.h"
-#include "payload_rb_lz10_bin.h"
-#include "payload_y_experimental_lz10_bin.h"
-
 static const byte gen1_rb_debug_box_data[0x462] = {
 	// Num of Pokemon
 	0x14,
@@ -180,9 +176,8 @@ void Pokemon_Party::start_link()
 		u16 debug_charset[256];
 
 		load_localized_charset(debug_charset, 3, ENGLISH);
-		init_payload();
 
-		setup(&box_data_array[0], current_payload, &curr_gb_rom, &box, debug_charset, false);
+		setup(&box_data_array[0], &curr_gb_rom, &box, debug_charset, false);
 
 		// This used to clear out the box data, probably isn't needed anymore
 		// memset(box_data_array, 0, curr_gb_rom.box_data_size);
@@ -349,40 +344,4 @@ bool Pokemon_Party::get_contains_missingno()
 		out |= box.getPokemon(i)->getSpeciesIndexNumber() == MISSINGNO;
 	}
 	return out;
-}
-
-void Pokemon_Party::init_payload()
-{
-	u8 decompression_buffer[1512];
-	const u8 *payload_src;
-	u32 payload_file_size;
-
-	// WARNING: Ensure sure decompression_buffer is large enough!
-
-	/*
-	if (curr_gb_rom.generation == 1)
-	{
-		if (curr_gb_rom.version == YELLOW_ID)
-		{
-			payload_src = gb_gen1_payloads_Y_lz10_bin;
-		}
-		else
-		{
-			payload_src = gb_gen1_payloads_RB_lz10_bin;
-		}
-	}
-	else // if(curr_gb_rom.generation == 2)
-	{
-		payload_src = gb_gen2_payloads_lz10_bin;
-	}*/
-
-	// For now this is going to be hardcoded, just as a test.
-	payload_src = payload_rb_experimental_lz10_bin;
-
-	// byte 2-4 of the compressed data store the decompressed size
-	payload_file_size = payload_src[1] | (payload_src[2] << 8) | (payload_src[3] << 16);
-	LZ77UnCompWram(payload_src, decompression_buffer);
-
-	payload_file_reader payload_reader(decompression_buffer, payload_file_size);
-	payload_reader.read_payload(current_payload, curr_gb_rom.language, curr_gb_rom.version);
 }

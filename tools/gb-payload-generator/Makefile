@@ -3,14 +3,15 @@ SHELL := /bin/bash
 ASM_DIR := src/payloads
 OUTPUT_DIR := build
 DEPENDENCIES_DIR := dependencies
-OBJECT_FILE := $(OUTPUT_DIR)/output.o
+OBJECT_FILE := $(OUTPUT_DIR)/$${file%%.*}.o
+DATA_DIR := ../../data/
 
 PAYLOADS := $(notdir $(wildcard $(ASM_DIR)/*.asm))
 DEPENDENCY_FILES := $(notdir $(wildcard $(DEPENDENCIES_DIR)/*.asm))
 
 .PHONY: all base language_specific clean
 
-all: base language_specific
+all: base language_specific link
 
 base: | $(OUTPUT_DIR)
 	@set -e; \
@@ -36,6 +37,10 @@ language_specific: | $(OUTPUT_DIR)
 			rgblink -x -o "../../$(OUTPUT_DIR)/$${file%%.*}_$${language_version}.bin" ../../$(OBJECT_FILE); \
 		done; \
 	done
+
+link:
+	@ls
+	@cp $(OUTPUT_DIR)/*.bin $(DATA_DIR)
 
 $(OUTPUT_DIR):
 	@mkdir -p $(OUTPUT_DIR)

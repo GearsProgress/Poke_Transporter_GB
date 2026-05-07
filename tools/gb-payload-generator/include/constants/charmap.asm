@@ -3,6 +3,7 @@
 ; Control characters (see home/text.asm)
 
 	charmap "<NULL>",    $00
+	charmap "<KOR_LF>",  $1e
 	charmap "<PAGE>",    $49
 	charmap "<PKMN>",    $4a ; "<PK><MN>"
 	charmap "<_CONT>",   $4b ; implements "<CONT>"
@@ -18,7 +19,9 @@
 	charmap "<……>",      $56 ; "……"
 	charmap "<DONE>",    $57
 	charmap "<PROMPT>",  $58
+	charmap "<KOR_NEXT>",$59
 	charmap "<TARGET>",  $59
+	charmap "<KOR_LINE>",$5a
 	charmap "<USER>",    $5a
 	charmap "<PC>",      $5b ; "PC"
 	charmap "<TM>",      $5c ; "TM"
