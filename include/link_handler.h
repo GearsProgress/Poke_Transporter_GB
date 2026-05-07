@@ -32,6 +32,7 @@ enum ConnectionState
     WAIT_FOR_TRADE,
     TRADE_PREAMBLE,
     TRADE,
+    MAIL,
     END,
 
     PARTY_PREAMBLE,

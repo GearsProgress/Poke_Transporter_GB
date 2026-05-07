@@ -170,7 +170,7 @@ byte handleIncomingByte()
     return currLinkState->in_data;
     break;
   case TRADE_PREAMBLE:
-    if (currLinkState->section_data_counter == 10)
+    if (currLinkState->section_data_counter >= 10)
     {
       currLinkState->section_data_counter = 0;
       currLinkState->conState = TRADE;
@@ -178,12 +178,25 @@ byte handleIncomingByte()
     };
     return tradePreambleBytes[currLinkState->section_data_counter];
   case TRADE:
-    if (currLinkState->section_data_counter == currLinkState->curr_payload_size - 1)
+    if (currLinkState->section_data_counter >= currLinkState->curr_payload_size - 1)
     {
-      currLinkState->conState = END;
+      if (currLinkState->gen == 2)
+      {
+        currLinkState->section_data_counter = 0;
+        currLinkState->conState = MAIL;
+      }
+      else
+      {
+        currLinkState->conState = END;
+      }
     }
     return currLinkState->curr_payload[currLinkState->section_data_counter];
     break;
+  case MAIL:
+    if (currLinkState->section_data_counter >= 0x186)
+    {
+      currLinkState->conState = END;
+    }
   case END:
     currLinkState->irq_enabled = false;
     break;
