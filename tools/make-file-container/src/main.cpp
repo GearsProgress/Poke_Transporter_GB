@@ -1,9 +1,11 @@
 #include "FileContainerChunkWriter.h"
+#include "CHeaderWriter.h"
 
 #include <cstdio>
 #include <vector>
 #include <cstring>
 #include <cstdlib>
+#include <getopt.h>
 
 #include <sys/stat.h>
 
@@ -30,9 +32,10 @@ typedef struct
 
 static void printUsage()
 {
-    printf("Usage: make-file-container [-n] <path/to/file.containerdef> <output folder>\n\n");
+    printf("Usage: make-file-container [-n] [-H <header output folder>] <path/to/file.containerdef> <output folder>\n\n");
     printf("Definition syntax:\n  <filename>[:<optional alternative name>]\n\n");
     printf("Flags:\n  -n    Store filenames in the container\n");
+    printf("  -H, --header-out <path>    Write generated header to this folder\n");
 }
 
 /**
@@ -262,27 +265,10 @@ static void writeFiles(FileContainerChunkWriter &writer, ContainerMetadata &meta
     }
 }
 
-static void determineContainerBaseName(const char *containerDefPath, char *outNameBuffer)
-{
-    char pathBuffer[PATH_BUFFER_SIZE];
-    strncpy(pathBuffer, containerDefPath, PATH_BUFFER_SIZE);
-    pathBuffer[PATH_BUFFER_SIZE - 1] = '\0';
-
-    char *basenameStr = basename(pathBuffer);
-    char *dot = strrchr(basenameStr, '.');
-    // We don't want the extension in the chunk file names, so we terminate the string at the last dot if it exists.
-    // If there is no dot, we just use the entire basename.
-    if(dot)
-    {
-        *dot = '\0';
-    }
-    strncpy(outNameBuffer, basenameStr, PATH_BUFFER_SIZE);
-}
-
 static bool writeContainer(ContainerMetadata &meta, const char *outPath, const char *containerDefPath)
 {
     char nameBuffer[PATH_BUFFER_SIZE];
-    determineContainerBaseName(containerDefPath, nameBuffer);
+    extractFilenameAndExtension(containerDefPath, nameBuffer, nullptr);
 
     FileContainerChunkWriter writer(outPath, nameBuffer, meta.chunkSize);
 
@@ -299,36 +285,76 @@ static bool writeContainer(ContainerMetadata &meta, const char *outPath, const c
     return true;
 }
 
-static bool parseArgs(int argc, char **argv, bool *storeNames, const char **defPath, const char **outPath)
+static bool writeHeaderFile(const ContainerMetadata &meta, const char *headerOutPath, const char *containerDefPath)
 {
-    if(argc == 3)
+    char nameBuffer[PATH_BUFFER_SIZE];
+    extractFilenameAndExtension(containerDefPath, nameBuffer, nullptr);
+
+    CHeaderWriter headerWriter(headerOutPath, nameBuffer);
+    if(!headerWriter.isValid())
     {
-        *storeNames = false;
-        *defPath = argv[1];
-        *outPath = argv[2];
-        return true;
+        return false;
     }
 
-    if(argc == 4 && std::strcmp(argv[1], "-n") == 0)
+    for(const auto &entry : meta.entries)
     {
-        *storeNames = true;
-        *defPath = argv[2];
-        *outPath = argv[3];
-        return true;
+        headerWriter.addFileEntry(entry.path, entry.altName);
     }
 
-    return false;
+    return true;
+}
+
+static bool parseArgs(int argc, char **argv, bool *storeNames, const char **headerOutPath, const char **defPath, const char **outPath)
+{
+    int opt;
+    int option_index = 0;
+    static const struct option long_options[] = {
+        {"header-out", required_argument, 0, 'H'},
+        {0, 0, 0, 0}
+    };
+
+    *storeNames = false;
+    *headerOutPath = NULL;
+
+    opterr = 0;
+    optind = 1;
+
+    while((opt = getopt_long(argc, argv, "nH:", long_options, &option_index)) != -1)
+    {
+        switch(opt)
+        {
+        case 'n':
+            *storeNames = true;
+            break;
+        case 'H':
+            *headerOutPath = optarg;
+            break;
+        default:
+            return false;
+        }
+    }
+
+    if(optind + 2 != argc)
+    {
+        return false;
+    }
+
+    *defPath = argv[optind];
+    *outPath = argv[optind + 1];
+
+    return true;
 }
 
 int main(int argc, char *argv[])
 {
     ContainerMetadata meta;
     bool storeNames = false;
+    const char *headerOutPath = NULL;
     const char *defPath = NULL;
     const char *outPath = NULL;
     int rc = 1;
 
-    if(!parseArgs(argc, argv, &storeNames, &defPath, &outPath))
+    if(!parseArgs(argc, argv, &storeNames, &headerOutPath, &defPath, &outPath))
     {
         printUsage();
         return rc;
@@ -342,6 +368,15 @@ int main(int argc, char *argv[])
         return rc;
     }
 
+    if(headerOutPath != NULL)
+    {
+        if(!writeHeaderFile(meta, headerOutPath, defPath))
+        {
+            fprintf(stderr, "Failed to write output header to: %s\n", headerOutPath);
+            return rc;
+        }
+    }
+
     if(!writeContainer(meta, outPath, defPath))
     {
         fprintf(stderr, "Failed to write output container: %s\n", outPath);
@@ -349,6 +384,10 @@ int main(int argc, char *argv[])
     else
     {
         printf("Built container: files=%zu, hasNames=%u\n", meta.entries.size(), storeNames ? 1u : 0u);
+        if(headerOutPath != NULL)
+        {
+            printf("Built header in: %s\n", headerOutPath);
+        }
         rc = 0;
     }
 

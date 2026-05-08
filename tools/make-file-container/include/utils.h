@@ -12,4 +12,6 @@ enum class Endianness
     BIG
 };
 
+void extractFilenameAndExtension(const char *path, char *outFilename, char *outExtension = nullptr, uint16_t extensionBufferSize = 0);
+
 #endif
