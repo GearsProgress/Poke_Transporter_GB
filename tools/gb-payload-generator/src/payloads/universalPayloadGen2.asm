@@ -57,12 +57,12 @@ SerialPatchPreamble:
 .end
 
 SerialPatchListKoreanPayload:
-	ds 3, 0
+	ds 5, 0
 	call ClearScreen_KOR ; KOR has some weirdness in how stuff is displayed. This function provides a full reset of the screen.
 .end
 
 SerialPatchListPayload: ; on GS: this gets loaded in 0xC5D0. On C: this gets loaded in 0xC6D0. Until we align, we can't rely on jp or call.
-	ds 3, 0
+	ds 5, 0
 	di
 	call Bankswitch_GSC + 5 ; jump straight to a ret instruction.
 .fetchPC
@@ -72,6 +72,7 @@ SerialPatchListPayload: ; on GS: this gets loaded in 0xC5D0. On C: this gets loa
 	ei
 	ld bc, wTileMap - .fetchPC
 	push hl ; store relative address for later
+	ld l, LOW(.fetchPC) ; we'll use this pointer to modify addresses relative to .fetchPC, but since the payload could be misaligned we need to properly set l.
 	add hl, bc ; if GS: hl = 0xC3A0. If C: hl = 0xC4A0.
 	ld bc, wSerialPartyMonsPatchList - wTileMap
 .clearScreenLoop ; replace all tiles on screen with blank tiles.
@@ -87,12 +88,12 @@ SerialPatchListPayload: ; on GS: this gets loaded in 0xC5D0. On C: this gets loa
 	ld [hld], a
 	ld [hld], a
 	inc a
-	ld [hl], a ; This disables music from playing
+	ld [hl], 6 ; This disables music from playing
 	ld hl, PlaceWaitingText
 	rst FarCall ; call 01:4000
 	pop hl
-	ld bc, .end - .fetchPC
-	add hl, bc ; hl now points to the first byte of SerialPatchListAligned
+	ld bc, .end - .fetchPC ; both .end and .fetchPC share the same misalignment, if any.
+	add hl, bc ; hl now points to the first byte of SerialPatchListAligned.
 	ld de, SerialPatchListAligned
 	ld bc, SerialPatchListAligned.end - SerialPatchListAligned
 	push de

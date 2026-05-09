@@ -39,6 +39,8 @@ DEF hCGB_C = 0xFFE6
 
 DEF PlaceWaitingText = 0x4000
 DEF PlaceWaitingTextBank = 0x01
+DEF _InitSound = 0x4000
+DEF _InitSoundBank = 0x3A
 
 DEF CHECKSUMPACKET_SIZE = 7
 DEF PATCHLIST_SIZE = 200
