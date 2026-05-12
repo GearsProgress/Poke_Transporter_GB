@@ -58,7 +58,6 @@ Button_Menu yes_no_menu(1, 2, 40, 24, false);
 
 void load_graphics()
 {
-
 	//  Load opening background first so it hides everything else
 	load_flex_background(FLEXBG_OPENING, 1);
 	load_background();
@@ -89,7 +88,7 @@ void initialization_script(void)
 	// sound_init();
 
 	// Link Cable init
-	irq_add(II_TIMER3, handshake);
+  	irq_add(II_TIMER3, linkCableIRQ);
 
 	// Graphics init
 	irq_add(II_VBLANK, global_next_frame);

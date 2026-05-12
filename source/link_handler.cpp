@@ -23,72 +23,43 @@
 
 LinkSPI linkSPIInstance;
 LinkSPI *linkSPI = &linkSPIInstance;
-LinkState *currLinkState;
-
-// TODO get rid of this because it should not exist and should be done with math
-byte tradePreambleBytes[] = {0x00, 0x00, 0xFD, 0xFD, 0xFD, 0xFD, 0xFD, 0xFD, 0xFD, 0xFD};
 
 // Here's a compilation check to ensure that the size of these structs match our expectations.
 // Just update it if you changed the struct members. The data-generator process prints their actual sizes.
 static_assert(sizeof(struct GB_ROM) == 136);
 static_assert(sizeof(struct ROM_DATA) == 160);
 
-int link_cable_array_index = 0;
-int link_cable_memory_section_index = 0;
+LinkConnection globalLinkCable;
 
-void print(const char *format, ...)
+void linkCableIRQ()
 {
-  // I don't think this function is called anymore...
-  va_list args;
-  va_start(args, format);
 
-  // 10 elements of 64 bytes, zero-initialized.
-  char spi_text_out_array[10][SPI_TEXT_OUT_ARRAY_ELEMENT_SIZE] = {
-      {0},
-      {0},
-      {0},
-      {0},
-      {0},
-      {0},
-      {0},
-      {0},
-      {0},
-      {0}};
-
-  for (int i = 10; i > 0; i--)
+  if (!globalLinkCable.earlyExit())
   {
-    strncpy(spi_text_out_array[i], spi_text_out_array[i - 1], SPI_TEXT_OUT_ARRAY_ELEMENT_SIZE);
-  }
 
-  npf_vsnprintf(spi_text_out_array[0], SPI_TEXT_OUT_ARRAY_ELEMENT_SIZE, format, args);
-  va_end(args);
+    globalLinkCable.exchangeBytes();
 
-  tte_erase_rect(0, 0, H_MAX, V_MAX);
+    if (g_debug_options.print_link_data)
+    {
+      globalLinkCable.printData();
+    }
 
-  for (int j = 0; j < 10; j++)
-  {
-    tte_erase_rect(0, 0, H_MAX, V_MAX);
-    tte_set_pos(0, 0);
-    ptgb_write_simple(reinterpret_cast<const byte *>("#{cx:0xE000}"), true);
-    ptgb_write_simple((byte *)(spi_text_out_array[j]), true);
+    if (g_debug_options.write_cable_data_to_save)
+    {
+      globalLinkCable.writeData();
+    }
+
+    globalLinkCable.handleStateLogic();
   }
 }
 
-void setup(byte *box_data_storage, GB_ROM *curr_rom, PokeBox *box, const u16 *debug_charset, bool cancel_connection)
+void LinkConnection::setup(const u16 *debug_charset)
 {
-  REG_TM3D = -0x4000 / 60;
-  REG_TM3CNT = TM_FREQ_1024 | TM_ENABLE;
-  irq_enable(II_TIMER3);
 
   linkSPI->activate(LinkSPI::Mode::MASTER_256KBPS);
   linkSPI->setWaitModeActive(false);
 
-  currLinkState = new LinkState;
-  currLinkState->box_data_storage = box_data_storage;
-  currLinkState->curr_gb_rom = curr_rom;
-  currLinkState->box = box;
-  currLinkState->debug_charset = debug_charset;
-  currLinkState->cancel_connection = cancel_connection;
+  this->debug_charset = debug_charset;
 
   {
     u8 general_text_table_buffer[2048];
@@ -99,566 +70,230 @@ void setup(byte *box_data_storage, GB_ROM *curr_rom, PokeBox *box, const u16 *de
                        GENERAL_INDEX, GENERAL_connecting, false);
   }
 
-  create_textbox(0, 0, 125, 128, false);
+  create_textbox(0, 0, 138, 128, false);
 }
 
-byte handleIncomingByte()
+void LinkConnection::startConnection(CompositeState startState)
 {
-  // TODO this should be moved outside of this function.
-  currLinkState->section_data_counter += 1;
-  switch (currLinkState->conState)
+  compState = startState;
+  switch (startState)
   {
-  case CLOCK:
-    currLinkState->mosi_delay = 4;
-    if (currLinkState->in_data == 0xFE)
-    {
-      currLinkState->conState = MENU;
-      return 0x00;
-    }
-    return 0x01;
+  case INITIAL_CONNECTION:
+    subState = CLOCK;
+    REG_TM3D = -0x4000 / 60;
+    REG_TM3CNT = TM_FREQ_1024 | TM_ENABLE;
+    irq_enable(II_TIMER3);
     break;
-    /*
-        case ACK:
-        if (currLinkState->in_data == 0x61)
-        {
-          currLinkState->conState = MENU;
-          return 0x61;
-        }
-        else if (currLinkState->in_data == 0x00)
-        {
-          currLinkState->conState = MENU;
-          return 0x00;
-        }
-        break;
-    */
-  case MENU:
-    if (currLinkState->in_data == 0xD0 || currLinkState->in_data == 0x61)
-    {
-      currLinkState->conState = WAIT_FOR_TRADE;
-      if (currLinkState->in_data == 0xD0)
-      {
-        currLinkState->gen = 1;
-        load_universal_payload();
-        return 0xD4;
-      }
-      if (currLinkState->in_data == 0x61)
-      {
-        currLinkState->gen = 2;
-        load_universal_payload();
-        return 0x61;
-      }
-    }
-    else if (currLinkState->in_data == 0x02)
-    {
-      currLinkState->conState = CLOCK;
-      return 0x02;
-    }
-    else
-    {
-      return currLinkState->in_data;
-    }
-    break;
-
-  case WAIT_FOR_TRADE:
-    if (currLinkState->in_data == 0xFD)
-    {
-      REG_TM3D = -0x0040;
-      currLinkState->section_data_counter = 0;
-      currLinkState->conState = TRADE_PREAMBLE;
-      return 0x00;
-    }
-    return currLinkState->in_data;
-    break;
-  case TRADE_PREAMBLE:
-    if (currLinkState->section_data_counter >= 10)
-    {
-      currLinkState->section_data_counter = 0;
-      currLinkState->conState = TRADE;
-      return 0xFD;
-    };
-    return tradePreambleBytes[currLinkState->section_data_counter];
-  case TRADE:
-    if (currLinkState->section_data_counter >= currLinkState->curr_payload_size - 1)
-    {
-      if (currLinkState->gen == 2)
-      {
-        currLinkState->section_data_counter = 0;
-        currLinkState->conState = MAIL;
-      }
-      else
-      {
-        currLinkState->conState = END;
-      }
-    }
-    return currLinkState->curr_payload[currLinkState->section_data_counter];
-    break;
-  case MAIL:
-    if (currLinkState->section_data_counter >= 0x186)
-    {
-      currLinkState->conState = END;
-    }
-  case END:
-    currLinkState->irq_enabled = false;
-    break;
-
   default:
-    return currLinkState->in_data;
     break;
   }
-  return 0;
-}
-/*
-case PARTY_PREAMBLE:
-  if (currLinkState->in_data != 0xfd)
-  {
-    currLinkState->conState = TRADE_DATA;
-    return exchange_parties(currLinkState->in_data, currLinkState->curr_payload);
-  }
-  return currLinkState->in_data;
-  break;
-case TRADE_DATA:
-  if (currLinkState->section_data_counter >= currLinkState->curr_gb_rom->payload_size)
-  {
-    if (currLinkState->in_data == 0xFD)
-    {
-      currLinkState->conState = BOX_PREAMBLE;
-      currLinkState->init_packet = true;
-    }
-    else
-    {
-      return 0x00;
-    }
-  }
-  return exchange_parties(currLinkState->in_data, currLinkState->curr_payload);
-  break;
-case BOX_PREAMBLE:
-  if (currLinkState->in_data != 0xFD)
-  {
-    currLinkState->conState = BOX_DATA;
-    return exchange_boxes(currLinkState->in_data, currLinkState->box_data_storage, currLinkState->curr_gb_rom, currLinkState->debug_charset);
-  }
-  return currLinkState->in_data;
-  break;
-case BOX_DATA:
-  return exchange_boxes(currLinkState->in_data, currLinkState->box_data_storage, currLinkState->curr_gb_rom, currLinkState->debug_charset);
-  break;
-case REBOOT:
-  currLinkState->section_data_counter = 0;
-  currLinkState->conState = REMOVE_ARRAY_PREAMBLE;
-  return 0xFD;
-  break;
-
-case REMOVE_ARRAY_PREAMBLE:
-  if (currLinkState->in_data != 0xFD)
-  {
-    currLinkState->conState = SEND_REMOVE_ARRAY;
-    return exchange_remove_array(currLinkState->in_data, currLinkState->box, currLinkState->cancel_connection);
-  }
-  return currLinkState->in_data;
-  break;
-
-case SEND_REMOVE_ARRAY:
-  if (currLinkState->section_data_counter >= 29) // This assumes the preamble does not count towards the number of bytes sent over the cable
-  {
-    currLinkState->conState = END2;
-  }
-  currLinkState->section_data_counter++;
-  return exchange_remove_array(currLinkState->in_data, currLinkState->box, currLinkState->cancel_connection);
-  break;
-
-default:
-  return currLinkState->in_data;
-  break;
 }
 
-return 0; // This should never hit but the compiler likes this being here
-}*/
-/*
-int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_gb_rom, PokeBox *box, const u16 *debug_charset, bool cancel_connection)
+void LinkConnection::exchangeBytes()
 {
-#define LINE_WIDTH 21
-#define NUM_LINES 2
-  int counter = 0;
-  char stuff[NUM_LINES][LINE_WIDTH];
-
-  currLinkState->box_data_storage = box_data_storage;
-  currLinkState->curr_payload = curr_payload;
-  currLinkState->curr_gb_rom = curr_gb_rom;
-  currLinkState->box = box;
-  currLinkState->debug_charset = debug_charset;
-  currLinkState->cancel_connection = cancel_connection;
-
-  while (true)
-  {
-    if (g_debug_options.print_link_data && key_held(KEY_L))
-    {
-      while (!key_hit(KEY_R))
-      {
-        VBlankIntrWait();
-      }
-      VBlankIntrWait();
-    }
-    // TODO: Restore Errors
-    currLinkState->in_data = linkSPI->transfer(currLinkState->out_data);
-
-    if (g_debug_options.print_link_data && !key_held(KEY_DOWN))
-    {
-      for (int i = 0; i < NUM_LINES; i++)
-      {
-        for (int j = 0; j < LINE_WIDTH; j++)
-        {
-          stuff[i][j] = stuff[i + 1][j];
-        }
-        stuff[i][20] = '\n';
-      }
-      n2hexstr(&stuff[NUM_LINES - 1][0], counter & 0xFFFFFF, 6);
-      stuff[NUM_LINES - 1][6] = ':';
-      n2hexstr(&stuff[NUM_LINES - 1][7], currLinkState->data_counter & 0xFFFF, 4);
-      stuff[NUM_LINES - 1][11] = '|';
-      n2hexstr(&stuff[NUM_LINES - 1][12], currLinkState->conState & 0xFF, 2);
-      stuff[NUM_LINES - 1][14] = '|';
-      n2hexstr(&stuff[NUM_LINES - 1][15], currLinkState->in_data & 0xFF, 2);
-      stuff[NUM_LINES - 1][17] = '|';
-      n2hexstr(&stuff[NUM_LINES - 1][18], currLinkState->out_data & 0xFF, 2);
-      stuff[NUM_LINES - 1][20] = '\0';
-
-      create_textbox(0, 0, 125, 128, false);
-      ptgb_write_debug(debug_charset, *stuff, true);
-    }
-    else if (g_debug_options.write_cable_data_to_save)
-    {
-      global_memory_buffer[link_cable_array_index] = currLinkState->in_data;
-      link_cable_array_index++;
-      global_memory_buffer[link_cable_array_index] = currLinkState->out_data;
-      link_cable_array_index++;
-      if (link_cable_array_index >= 0x1000)
-      {
-        copy_ram_to_save(&global_memory_buffer[0], 0x1000 * link_cable_memory_section_index, 0x1000);
-        link_cable_memory_section_index++;
-        link_cable_array_index = link_cable_array_index % 0x1000;
-      }
-    }
-
-    currLinkState->out_data = handleIncomingByte();
-
-    if (currLinkState->FF_count > (15 * 60))
-    {
-      return COND_ERROR_DISCONNECT;
-    }
-    if (currLinkState->zero_count > (5 * 60))
-    {
-      // return COND_ERROR_COM_ENDED;
-    }
-    if (currLinkState->conState == COLOSSEUM)
-    {
-      return COND_ERROR_COLOSSEUM;
-    }
-
-    if (currLinkState->conState == END1)
-    {
-      currLinkState->conState = REBOOT;
-      if (g_debug_options.write_cable_data_to_save)
-      {
-        for (int i = 0; i < 16; i++)
-        {
-          global_memory_buffer[(link_cable_array_index + i) % 0x1000] = 0xAA;
-        }
-        copy_ram_to_save(&global_memory_buffer[0], 0x1000 * link_cable_memory_section_index, 0x1000);
-      }
-      return 0;
-    }
-
-    if (currLinkState->conState == END2)
-    {
-      return 0;
-    }
-
-    if (key_held(KEY_SELECT)) // Forces a disconnect... not sure why it would need to be locked behind debug mode
-    {
-      return COND_ERROR_DISCONNECT;
-    }
-
-    if (currLinkState->conState != BOX_DATA)
-    {
-      currLinkState->FF_count = (currLinkState->in_data == 0xFF ? currLinkState->FF_count + currLinkState->mosi_delay : 0);
-      currLinkState->zero_count = (currLinkState->in_data == 0x00 ? currLinkState->zero_count + currLinkState->mosi_delay : 0);
-    }
-
-    counter++;
-    for (int i = 0; i < currLinkState->mosi_delay; i++)
-    {
-      VBlankIntrWait();
-    }
-  }
-};
-*/
-
-#define LINE_WIDTH 21
-#define NUM_LINES 8
-char stuff[NUM_LINES][LINE_WIDTH];
-char line[LINE_WIDTH] = "OUT";
-ConnectionState prevConState;
-
-void handshake()
-{
-  if (g_debug_options.print_link_data && key_hit(KEY_LEFT))
-  {
-    currLinkState->irq_enabled = false;
-  }
-
-  else if (g_debug_options.print_link_data && key_hit(KEY_RIGHT))
-  {
-    currLinkState->irq_enabled = true;
-  }
-
-  if (!currLinkState->irq_enabled)
-  {
-    if (!(g_debug_options.print_link_data && key_hit(KEY_A)))
-    {
-      return;
-    }
-  }
-
-  prevConState = currLinkState->conState; // The con state can change in handleIncomingByte - we want to display what it was before running that function
-
   int timeout_frames = 10;
-  currLinkState->in_data = linkSPI->transfer(currLinkState->out_data, [&timeout_frames]()
-                                             {
+  inData = linkSPI->transfer(outData, [&timeout_frames]()
+                             {
       // In the mGBA Lua bridge, replies arrive via emulator callbacks between frames.
       // Waiting here prevents valid bytes from being reported as timeouts.
       global_next_frame();
       return --timeout_frames <= 0; });
 
-  currLinkState->in_data = linkSPI->transfer(currLinkState->out_data);
-
-  currLinkState->out_data = handleIncomingByte();
-
-  if (g_debug_options.print_link_data && !key_held(KEY_DOWN))
-  {
-    n2hexstr(&line[0], currLinkState->global_data_counter & 0xFFFFFF, 6);
-    line[6] = ':';
-    n2hexstr(&line[7], currLinkState->section_data_counter & 0xFFFF, 4);
-    line[11] = '|';
-    n2hexstr(&line[12], prevConState & 0xFF, 2);
-    line[14] = '|';
-    n2hexstr(&line[15], currLinkState->in_data & 0xFF, 2);
-    line[17] = '|';
-    n2hexstr(&line[18], currLinkState->out_data & 0xFF, 2);
-    line[20] = '\0';
-    scroll_text(true, tte_get_context(), false, 8, 8, 127, 135);
-    ptgb_write_debug(currLinkState->debug_charset, line, true);
-  }
-  else if (g_debug_options.write_cable_data_to_save)
-  {
-    global_memory_buffer[link_cable_array_index] = currLinkState->in_data;
-    link_cable_array_index++;
-    global_memory_buffer[link_cable_array_index] = currLinkState->out_data;
-    link_cable_array_index++;
-    if (link_cable_array_index >= 0x1000)
-    {
-      copy_ram_to_save(&global_memory_buffer[0], 0x1000 * link_cable_memory_section_index, 0x1000);
-      link_cable_memory_section_index++;
-      link_cable_array_index = link_cable_array_index % 0x1000;
-    }
-  }
-
-  currLinkState->global_data_counter++;
+  inData = linkSPI->transfer(outData);
 }
 
-byte exchange_parties(byte curr_in, byte *curr_payload)
+void LinkConnection::printData()
 {
-  int ret = curr_payload[currLinkState->section_data_counter];
-  currLinkState->section_data_counter += 1;
-  return ret;
-};
+  n2hexstr(&line[0], compState & 0xFF, 2);
+  line[2] = ':';
+  n2hexstr(&line[3], compStateCounter & 0xFFFF, 4);
+  line[7] = '|';
+  n2hexstr(&line[8], subState & 0xFF, 2);
+  line[10] = ':';
+  n2hexstr(&line[11], subStateCounter & 0xFFFF, 4);
+  line[15] = '|';
+  line[16] = 'i';
+  n2hexstr(&line[17], inData & 0xFF, 2);
+  line[19] = '|';
+  line[20] = 'o';
+  n2hexstr(&line[21], outData & 0xFF, 2);
+  line[23] = '\0';
+  scroll_text(true, tte_get_context(), false, 8, 8, 138, 135);
+  ptgb_write_debug(this->debug_charset, line, true);
+}
 
-byte exchange_boxes(byte curr_in, byte *box_data_storage, GB_ROM *curr_gb_rom, const u16 *debug_charset)
+void LinkConnection::writeData()
 {
-  currLinkState->data_packet[currLinkState->packet_index] = curr_in;
-  if (currLinkState->packet_index == PACKET_SIZE - 1)
+  global_memory_buffer[link_cable_array_index] = inData;
+  link_cable_array_index++;
+  global_memory_buffer[link_cable_array_index] = outData;
+  link_cable_array_index++;
+  if (link_cable_array_index >= 0x1000)
   {
-    byte checksum = 0;
-    for (int i = 0; i < DATA_PER_PACKET; i++)
-    {
-      if (currLinkState->data_packet[PACKET_FLAG_AT(i)] == 1)
-      {
-        currLinkState->data_packet[PACKET_DATA_AT(i)] = 0xFE;
-      }
-      checksum += currLinkState->data_packet[PACKET_DATA_AT(i)];
-    }
-    checksum &= 0b01111111; // Reset the top bit so it matches the recieved range
-    if (!currLinkState->init_packet)
-    {
-      currLinkState->received_offset = (currLinkState->data_packet[PACKET_LOCATION_LOWER] | (currLinkState->data_packet[PACKET_LOCATION_UPPER] << 8)) - ((curr_gb_rom->wBoxDataStart & 0xFFFF) + DATA_PER_PACKET);
-    }
+    copy_ram_to_save(&global_memory_buffer[0], 0x1000 * link_cable_memory_section_index, 0x1000);
+    link_cable_memory_section_index++;
+    link_cable_array_index = link_cable_array_index % 0x1000;
+  }
+}
 
-    if (checksum == currLinkState->data_packet[PACKET_CHECKSUM] && !currLinkState->init_packet && !(currLinkState->test_packet_fail && currLinkState->received_offset == 128)) // Verify if the data matches the checksum
-    {
-      for (int i = 0; i < DATA_PER_PACKET; i++)
-      {
-        if (currLinkState->received_offset + i <= curr_gb_rom->box_data_size && currLinkState->received_offset + i >= 0)
-        {
-          box_data_storage[currLinkState->received_offset + i] = currLinkState->data_packet[PACKET_DATA_AT(i)];
-        }
-      }
-    }
-    else if (!currLinkState->init_packet)
-    {
-      currLinkState->failed_packet = true;
-      if (currLinkState->test_packet_fail)
-      {
-        currLinkState->test_packet_fail = false;
-      }
-    }
+void LinkConnection::handleStateLogic()
+{
+  prevCompState = compState;
+  prevSubState = subState;
+  switch (compState)
+  {
+  case INITIAL_CONNECTION:
+    logicState_initConnection();
+    break;
+  default:
+    break;
+  }
 
-    if (currLinkState->end_of_data)
+  if (prevSubState != subState)
+  {
+    subStateCounter = 0;
+  }
+  else
+  {
+    subStateCounter++;
+  }
+
+  if (prevCompState != compState)
+  {
+    compStateCounter = 0;
+  }
+  else
+  {
+    compStateCounter++;
+  }
+}
+
+bool LinkConnection::earlyExit()
+{
+  if (g_debug_options.print_link_data && key_hit(KEY_LEFT))
+  {
+    globalLinkCable.paused = true;
+  }
+  else if (g_debug_options.print_link_data && key_hit(KEY_RIGHT))
+  {
+    globalLinkCable.paused = false;
+  }
+
+  if (globalLinkCable.paused && g_debug_options.print_link_data)
+  {
+    if (key_hit(KEY_A))
     {
-      currLinkState->conState = END1;
+      return false; // Even if paused, run once
+    }
+  }
+  return globalLinkCable.paused;
+}
+
+void LinkConnection::logicState_initConnection()
+{
+  switch (subState)
+  {
+  case CLOCK:
+    if (inData == 0xFE)
+    {
+      subState = MENU;
+      outData = 0x00;
     }
     else
     {
-      currLinkState->conState = BOX_PREAMBLE;
+      outData = 0x01;
     }
+    break;
 
-    if (currLinkState->received_offset > curr_gb_rom->box_data_size + DATA_PER_PACKET)
+  case MENU:
+    if (inData == 0xD0 || inData == 0x61)
     {
-      currLinkState->end_of_data = true;
-    }
-
-    if (!currLinkState->init_packet)
-    {
-      if (currLinkState->failed_packet)
+      subState = WAIT_FOR_TRADE;
+      if (inData == 0xD0)
       {
-        currLinkState->next_offset -= DATA_PER_PACKET;
-        if (currLinkState->next_offset < 0)
-        {
-          currLinkState->next_offset = 0;
-        }
-        currLinkState->failed_packet = false;
+        this->gen = 1;
+        load_universal_payload();
+        outData = 0xD4;
+      }
+      else if (inData == 0x61)
+      {
+        this->gen = 2;
+        load_universal_payload();
+        outData = 0x61;
+      }
+    }
+    break;
+
+  case WAIT_FOR_TRADE:
+    if (inData == 0xFD)
+    {
+      REG_TM3D = -0x0040;
+      subState = TRADE_PREAMBLE;
+      outData = 0x00;
+    }
+    else
+    {
+      outData = inData;
+    }
+    break;
+
+  case TRADE_PREAMBLE:
+    if (subStateCounter < 2)
+    {
+      outData = 0x00;
+    }
+    else if (subStateCounter < 9)
+    {
+      outData = 0xFD;
+    }
+    else
+    {
+      subState = TRADE;
+      outData = 0xFD;
+    };
+
+  case TRADE:
+    if (subStateCounter >= this->curr_payload_size)
+    {
+      if (this->gen == 2)
+      {
+        subState = MAIL;
       }
       else
       {
-        currLinkState->next_offset += DATA_PER_PACKET;
+        subState = END;
       }
     }
-    if (((currLinkState->next_offset + curr_gb_rom->wBoxDataStart) & 0xFF) == 0xFE)
+    outData = this->curr_payload[subStateCounter];
+    break;
+
+  case MAIL:
+    if (subStateCounter >= 0x186)
     {
-      currLinkState->next_offset -= 1; // Set back the offset if the byte sent would be 0xFE, since that would break the system
+      subState = END;
     }
+    break;
 
-#define ROW_LENGTH 22
-#define COLUMN_LENGTH 3 + DATA_PER_PACKET
-    if (SHOW_DATA_PACKETS)
-    {
-      char outArr[COLUMN_LENGTH][ROW_LENGTH];
-      for (int col = 0; col < COLUMN_LENGTH; col++)
-      {
-        for (int row = 0; row < ROW_LENGTH; row++)
-        {
-          if (row == ROW_LENGTH - 1 && col == COLUMN_LENGTH - 1)
-          {
-            outArr[col][row] = '\0';
-          }
-          else if (row == ROW_LENGTH - 1)
-          {
-            outArr[col][row] = '\n';
-          }
-          else
-          {
-            outArr[col][row] = ' ';
-          }
-        }
-      }
-      int currRow = 0;
+  case END:
+    irq_delete(II_TIMER3);
+    break;
 
-      strcpy(&outArr[currRow][0], "Checksum: ");
-      outArr[currRow][10] = ' ';
-      n2hexstr(&outArr[currRow][11], checksum, 2);
-      strcpy(&outArr[currRow][13], " = ");
-      n2hexstr(&outArr[currRow][16], currLinkState->data_packet[PACKET_CHECKSUM], 2);
-      outArr[currRow][18] = ' ';
-      currRow += 1;
-
-      for (int i = 0; i < DATA_PER_PACKET; i++)
-      {
-        outArr[currRow][0] = 'P';
-        n2hexstr(&outArr[currRow][1], i, 1);
-        strcpy(&outArr[currRow][2], ": ");
-        n2hexstr(&outArr[currRow][4], currLinkState->data_packet[PACKET_DATA_AT(i)], 2);
-        strcpy(&outArr[currRow][6], " (");
-        n2hexstr(&outArr[currRow][8], currLinkState->data_packet[PACKET_FLAG_AT(i)], 2);
-        outArr[currRow][10] = ')';
-        currRow += 1;
-      }
-
-      strcpy(&outArr[currRow][0], "RO: ");
-      n2hexstr(&outArr[currRow][4], currLinkState->received_offset, 4);
-      strcpy(&outArr[currRow][8], "  FP: ");
-      n2hexstr(&outArr[currRow][14], currLinkState->failed_packet, 2);
-      outArr[currRow][16] = ' ';
-      currRow += 1;
-
-      strcpy(&outArr[currRow][0], "NO: ");
-      n2hexstr(&outArr[currRow][4], currLinkState->next_offset, 4);
-      strcpy(&outArr[currRow][8], "  IP: ");
-      n2hexstr(&outArr[currRow][14], currLinkState->init_packet, 2);
-      outArr[currRow][16] = ' ';
-
-      // create_textbox(0, 0, 125, 110, false);
-      link_animation_state(0);
-      ptgb_write_debug(debug_charset, *outArr, true);
-
-      while (!key_held(KEY_A))
-      {
-        VBlankIntrWait();
-      }
-      VBlankIntrWait();
-    }
-    currLinkState->packet_index = 0;
-    currLinkState->init_packet = false;
-  }
-  currLinkState->packet_index += 1;
-  switch (currLinkState->packet_index)
-  {
-  case 3:
-    if (currLinkState->end_of_data)
-    {
-      return 0xFF;
-    }
-    return (curr_gb_rom->wBoxDataStart + currLinkState->next_offset) >> 8;
-  case 2:
-    return (curr_gb_rom->wBoxDataStart + currLinkState->next_offset) >> 0;
   default:
-    return 0;
+    outData = inData;
+    break;
   }
-};
-
-byte exchange_remove_array(byte curr_in, PokeBox *box, bool cancel_connection)
-{
-  for (int i = 29; i >= 0; i--)
-  {
-    if (box->getGen3Pokemon(i)->isValid && !cancel_connection)
-    {
-      box->removePokemon(i);
-      if (!(DONT_TRANSFER_POKEMON_AT_INDEX_X && i == POKEMON_INDEX_TO_SKIP))
-      {
-        return i;
-      }
-    }
-  }
-  return 0xFF;
 }
 
-void load_universal_payload()
+void LinkConnection::load_universal_payload()
 {
-  if (currLinkState->gen == 1)
+  if (this->gen == 1)
   {
-    memcpy(currLinkState->curr_payload, universalPayloadGen1_bin, universalPayloadGen1_bin_size);
-    currLinkState->curr_payload_size = universalPayloadGen1_bin_size;
+    memcpy(this->curr_payload, universalPayloadGen1_bin, universalPayloadGen1_bin_size);
+    this->curr_payload_size = universalPayloadGen1_bin_size;
   }
-  else if (currLinkState->gen == 2)
+  else if (this->gen == 2)
   {
-    memcpy(currLinkState->curr_payload, universalPayloadGen2_bin, universalPayloadGen2_bin_size);
-    currLinkState->curr_payload_size = universalPayloadGen2_bin_size;
+    memcpy(this->curr_payload, universalPayloadGen2_bin, universalPayloadGen2_bin_size);
+    this->curr_payload_size = universalPayloadGen2_bin_size;
   }
 }

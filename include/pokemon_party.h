@@ -4,6 +4,7 @@
 #include <tonc.h>
 #include "PokeBox.h"
 #include "gb_rom_values/base_gb_rom_struct.h"
+
 class Pokemon_Party
 {
 public:

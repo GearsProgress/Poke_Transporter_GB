@@ -25,8 +25,16 @@
 
 #define SPI_TEXT_OUT_ARRAY_ELEMENT_SIZE 64
 
-enum ConnectionState
+enum CompositeState
 {
+    NO_COMPOSITE_STATE,
+    INITIAL_CONNECTION
+};
+
+enum SubstateState
+{
+    NO_SUBSTATE,
+    // INITIAL_CONNECTION
     CLOCK,
     MENU,
     WAIT_FOR_TRADE,
@@ -34,30 +42,25 @@ enum ConnectionState
     TRADE,
     MAIL,
     END,
-
-    PARTY_PREAMBLE,
-    COLOSSEUM,
-    CANCEL,
-    TRADE_DATA,
-    BOX_PREAMBLE,
-    BOX_DATA,
-    END1,
-    REBOOT,
-    REMOVE_ARRAY_PREAMBLE,
-    SEND_REMOVE_ARRAY,
-    END2,
 };
 
-struct LinkState
+class LinkConnection
 {
-    ConnectionState conState = CLOCK;
+public:
+    LinkConnection *globalPtr;
 
-    uint8_t in_data;
-    uint8_t out_data;
+    CompositeState compState = NO_COMPOSITE_STATE;
+    SubstateState subState = NO_SUBSTATE;
 
-    int section_data_counter = 0; // The counter for the number of bytes we have sent in this section
-    int global_data_counter = 0; // the counter for the total number of bytes sent
-    int gen = 0;          // The generation we are trading with
+    CompositeState prevCompState = NO_COMPOSITE_STATE;
+    SubstateState prevSubState = NO_SUBSTATE;
+
+    uint8_t inData;
+    uint8_t outData;
+
+    int compStateCounter = 0; // the counter for the total number of bytes sent compstate
+    int subStateCounter = 0;  // The counter for the total number of bytes sent in this substate
+    int gen = 0;              // The generation we are trading with
 
     int FF_count = 0;   // The number of 0xFF bytes that have been in a row
     int zero_count = 0; // The number of 0x00 bytes that have been in a row
@@ -67,32 +70,40 @@ struct LinkState
     int next_offset = 0;     // The offset we are sending in the next packet
     int packet_index = 0;    // The index of the current packet
 
-    bool failed_packet = false; // Flags if a packet failed
-    bool init_packet = true;    // Flags if a packet is the inital one
-    bool end_of_data = false;   // Flags if we are at the end of the data
+    bool failed_packet = false;    // Flags if a packet failed
+    bool init_packet = true;       // Flags if a packet is the inital one
+    bool end_of_data = false;      // Flags if we are at the end of the data
     bool test_packet_fail = false; // ???
 
     byte data_packet[PACKET_SIZE];
     byte curr_payload[0x2A0];
     int curr_payload_size = 0;
 
-    bool irq_enabled = true; // Stores if the IRQ is currently enabled, used for pausing and sending one byte at a time
+    bool paused = false; // Used for pausing and sending one byte at a time
 
-    // This is info that was passed in via handleIncomingByte
-    byte *box_data_storage;
-    GB_ROM *curr_gb_rom;
-    PokeBox *box;
+    void setup(const u16 *debug_charset);
+    void startConnection(CompositeState startState);
+    bool earlyExit();
+    void exchangeBytes();
+    void printData();
+    void writeData();
+    void handleStateLogic();
+
+private:
+    void load_universal_payload();
+    void logicState_initConnection();
+
+    // Used for debug features
+#define LINE_WIDTH 24
+#define NUM_LINES 8
+    char stuff[NUM_LINES][LINE_WIDTH];
+    char line[LINE_WIDTH] = "OUT";
+    int link_cable_array_index = 0;
+    int link_cable_memory_section_index = 0;
     const u16 *debug_charset;
-    bool cancel_connection;
 };
 
-void setup(byte *box_data_storage, GB_ROM *curr_rom, PokeBox *box, const u16 *debug_charset, bool cancel_connection);
-byte handleIncomingByte();
-int loop(byte *box_data_storage, byte *curr_payload, GB_ROM *curr_rom, PokeBox *box, const u16 *debug_charset, bool cancel_connection);
-byte exchange_parties(byte curr_in, byte *curr_payload);
-byte exchange_boxes(byte curr_in, byte *party_data, GB_ROM *curr_gb_rom, const u16 *debug_charset);
-byte exchange_remove_array(byte curr_in, PokeBox *box, bool cancel_connection);
-void load_universal_payload();
-void handshake();
+extern LinkConnection globalLinkCable;
+void linkCableIRQ();
 
 #endif /* LINK_HANDLER_H_ */

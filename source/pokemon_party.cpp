@@ -14,6 +14,7 @@
 #include "gb_gen2_payloads_lz10_bin.h"
 #include "ptgb_save_data_manager.h"
 #include "libraries/Pokemon-Gen3-to-Gen-X/include/save.h"
+#include "link_handler.h"
 
 static const byte gen1_rb_debug_box_data[0x462] = {
 	// Num of Pokemon
@@ -174,16 +175,10 @@ void Pokemon_Party::start_link()
 	else
 	{
 		u16 debug_charset[256];
-
 		load_localized_charset(debug_charset, 3, ENGLISH);
-
-		setup(&box_data_array[0], &curr_gb_rom, &box, debug_charset, false);
-
-		// This used to clear out the box data, probably isn't needed anymore
-		// memset(box_data_array, 0, curr_gb_rom.box_data_size);
-
-		// last_error = loop(&box_data_array[0], current_payload, &curr_gb_rom, &box, debug_charset, false);
-		while (true)
+		globalLinkCable.setup(debug_charset);
+		globalLinkCable.startConnection(INITIAL_CONNECTION);
+		while (globalLinkCable.compState == INITIAL_CONNECTION)
 		{
 			VBlankIntrWait();
 		};
