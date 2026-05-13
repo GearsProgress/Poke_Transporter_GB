@@ -36,10 +36,13 @@ enum SubstateState
     NO_SUBSTATE,
     // INITIAL_CONNECTION
     CLOCK,
-    MENU,
+    SAVE_SUCCESS,
+    MENU_OPEN,
+    MENU_SUCCESS,
     WAIT_FOR_TRADE,
     TRADE_PREAMBLE,
     TRADE,
+    EXTRA_BYTE,
     MAIL,
     END,
 };

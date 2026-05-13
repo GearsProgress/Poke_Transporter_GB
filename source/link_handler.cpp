@@ -196,7 +196,7 @@ void LinkConnection::logicState_initConnection()
   case CLOCK:
     if (inData == 0xFE)
     {
-      subState = MENU;
+      subState = SAVE_SUCCESS;
       outData = 0x00;
     }
     else
@@ -205,23 +205,42 @@ void LinkConnection::logicState_initConnection()
     }
     break;
 
-  case MENU:
+  case SAVE_SUCCESS:
+    if (inData == 0x60 || inData == 0x61)
+    {
+      subState = MENU_OPEN;
+      outData = inData;
+    }
+    else
+    {
+      outData = 0x00;
+    }
+    break;
+
+  case MENU_OPEN:
     if (inData == 0xD0 || inData == 0x61)
     {
-      subState = WAIT_FOR_TRADE;
       if (inData == 0xD0)
       {
-        this->gen = 1;
-        load_universal_payload();
+        gen = 1;
         outData = 0xD4;
       }
       else if (inData == 0x61)
       {
-        this->gen = 2;
-        load_universal_payload();
+        gen = 2;
         outData = 0x61;
       }
+      load_universal_payload();
+      subState = MENU_SUCCESS;
     }
+    break;
+
+  case MENU_SUCCESS:
+    if (inData == 0xFE)
+    {
+      subState = WAIT_FOR_TRADE;
+    }
+    outData = inData;
     break;
 
   case WAIT_FOR_TRADE:
@@ -251,9 +270,10 @@ void LinkConnection::logicState_initConnection()
       subState = TRADE;
       outData = 0xFD;
     };
+    break;
 
   case TRADE:
-    if (subStateCounter >= this->curr_payload_size)
+    if (subStateCounter > curr_payload_size)
     {
       if (this->gen == 2)
       {
@@ -261,10 +281,17 @@ void LinkConnection::logicState_initConnection()
       }
       else
       {
-        subState = END;
+        subState = EXTRA_BYTE;
       }
     }
-    outData = this->curr_payload[subStateCounter];
+    outData = curr_payload[subStateCounter];
+    break;
+  case EXTRA_BYTE:
+    if (subStateCounter > 1000) // This value just waits for the text to be printed. Should probably be dynamic.
+    {
+      subState = END;
+    }
+    outData = 0x00;
     break;
 
   case MAIL:
