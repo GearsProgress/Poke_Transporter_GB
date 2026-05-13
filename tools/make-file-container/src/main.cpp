@@ -17,7 +17,6 @@
 
 typedef struct
 {
-    uint16_t offset;
     uint16_t size;
     char altName[FILE_RECORD_NAME_LENGTH];
     char path[PATH_BUFFER_SIZE];
@@ -209,24 +208,19 @@ static void writeHeader(FileContainerChunkWriter &writer, const ContainerMetadat
     writer.writeUint16(meta.chunkSize);
 }
 
+/**
+ * @brief This function writes the file index.
+ * It just stores the file sizes for every entry, not the offsets.
+ * The reason is two-fold:
+ *
+ * - It makes it much better for compression, as file sizes will repeat more often than accumulating offsets
+ * - If you'd use offsets and base your file size calculation on them, you'd get into trouble with the last entry.
+ */
 static void writeIndex(FileContainerChunkWriter &writer, ContainerMetadata &meta)
 {
-    // first we need to determine where the actual file data starts.
-    // That is, after the header, index entries and optional names.
-    constexpr uint16_t headerSize = 4;
-    uint16_t current_offset = headerSize + sizeof(uint16_t) * meta.entries.size();
-
-    if(meta.hasNames)
-    {
-        current_offset += FILE_RECORD_NAME_LENGTH * meta.entries.size();
-    }
-
     for(auto &entry : meta.entries)
     {
-        entry.offset = current_offset;
-        current_offset += entry.size;
-
-        writer.writeUint16(entry.offset);
+        writer.writeUint16(entry.size);
     }
 }
 
