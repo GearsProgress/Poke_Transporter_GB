@@ -178,9 +178,9 @@ void Pokemon_Party::start_link()
 		load_localized_charset(debug_charset, 3, ENGLISH);
 		globalLinkCable.setup(debug_charset);
 		globalLinkCable.startConnection(INITIAL_CONNECTION);
-		while (globalLinkCable.compState == INITIAL_CONNECTION)
+		while (/*globalLinkCable.compState == INITIAL_CONNECTION*/ true)
 		{
-			VBlankIntrWait();
+			//VBlankIntrWait();
 		};
 		box.loadData(curr_gb_rom.generation, (Language)curr_gb_rom.language, box_data_array);
 

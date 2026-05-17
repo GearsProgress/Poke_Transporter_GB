@@ -34,6 +34,7 @@ enum CompositeState
 enum SubstateState
 {
     NO_SUBSTATE,
+
     // INITIAL_CONNECTION
     CLOCK,
     SAVE_SUCCESS,
@@ -42,8 +43,9 @@ enum SubstateState
     WAIT_FOR_TRADE,
     TRADE_PREAMBLE,
     TRADE,
-    EXTRA_BYTE,
     MAIL,
+    WAIT_FOR_PAYLOAD,
+    GET_CHECKSUM,
     END,
 };
 

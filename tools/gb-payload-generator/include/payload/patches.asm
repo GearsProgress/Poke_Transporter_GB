@@ -11,22 +11,22 @@ DEF PRINTWAITINGTEXT_SEARCH = 0x216B
 
 ; Serial_ExchangeBytes has different offsets based on language:
 ; RB
-; EN: 0x216F
-; FR: 0x216B
-; DE: 0x216F
-; IT: 0x216F
-; SP: 0x216E
+; EN: 0x216F 2125 - 2271
+; FR: 0x216B 2121
+; DE: 0x216F 2125
+; IT: 0x216F 2125
+; SP: 0x216E 2124
 ; Y
-; EN: 00:1FCB
-; FR: 00:1FC7
-; DE: 00:1FD0
-; IT: 00:1FCB
-; SP: 00:1FCA
+; EN: 00:1FCB 1F79
+; FR: 00:1FC7 1f75
+; DE: 00:1FD0 1F7e
+; IT: 00:1FCB 1F79
+; SP: 00:1FCA 1F78
 ; JP
-; RG&RGA: 00:0BF1
-; B : 00:214F
-; Y0: 00:1FF4
-; Y1-3: 00:1FFD
+; RG&RGA: 00:0BF1 0BA7
+; B : 00:214F 2105
+; Y0: 00:1FF4 1fa2
+; Y1-3: 00:1FFD 1fab
 
 ; start at 01:5883, look for 0xE5 0x3E
 

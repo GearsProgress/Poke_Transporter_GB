@@ -91,6 +91,7 @@ void LinkConnection::startConnection(CompositeState startState)
 
 void LinkConnection::exchangeBytes()
 {
+  /*
   int timeout_frames = 10;
   inData = linkSPI->transfer(outData, [&timeout_frames]()
                              {
@@ -98,7 +99,7 @@ void LinkConnection::exchangeBytes()
       // Waiting here prevents valid bytes from being reported as timeouts.
       global_next_frame();
       return --timeout_frames <= 0; });
-
+  */
   inData = linkSPI->transfer(outData);
 }
 
@@ -281,23 +282,41 @@ void LinkConnection::logicState_initConnection()
       }
       else
       {
-        subState = EXTRA_BYTE;
+        subState = WAIT_FOR_PAYLOAD;
       }
     }
     outData = curr_payload[subStateCounter];
-    break;
-  case EXTRA_BYTE:
-    if (subStateCounter > 1000) // This value just waits for the text to be printed. Should probably be dynamic.
-    {
-      subState = END;
-    }
-    outData = 0x00;
     break;
 
   case MAIL:
     if (subStateCounter >= 0x186)
     {
+      subState = WAIT_FOR_PAYLOAD;
+    }
+    break;
+
+  case WAIT_FOR_PAYLOAD:
+    if (inData == 0xFD)
+    {
+      subState = GET_CHECKSUM;
+    }
+    outData = 0x00;
+    break;
+
+  case GET_CHECKSUM:
+
+    if (inData != 0xFD)
+    {
+      outData = 0xFD;
+    }
+
+    else if (subStateCounter >= 10)
+    {
       subState = END;
+    }
+    else
+    {
+      outData = 0x01;
     }
     break;
 
