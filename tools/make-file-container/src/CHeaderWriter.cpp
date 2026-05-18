@@ -16,6 +16,7 @@ enum class %sFiles
 
 static const char headerTemplateSuffix[] = R"delim(
 };
+#endif
 )delim";
 
 static const char fileEntryTemplate[] = "\t%s,\n";
@@ -59,7 +60,6 @@ CHeaderWriter::CHeaderWriter(const char *outPath, const char *filenameBase)
         return;
     }
 
-    char prefixStringBuffer[8096];
     char nameBuffer[4096];
     char nameBufferUppercase[4096];
     strncpy(nameBuffer, filenameBase, sizeof(nameBuffer));
@@ -73,9 +73,7 @@ CHeaderWriter::CHeaderWriter(const char *outPath, const char *filenameBase)
     nameBufferUppercase[sizeof(nameBufferUppercase) - 1] = '\0';
     convertToUpperCase(nameBufferUppercase, strlen(nameBufferUppercase));
 
-
-    snprintf(prefixStringBuffer, sizeof(prefixStringBuffer), headerTemplatePrefix, nameBufferUppercase, nameBufferUppercase, nameBuffer);
-    fputs(prefixStringBuffer, outFile_);
+    fprintf(outFile_, headerTemplatePrefix, nameBufferUppercase, nameBufferUppercase, nameBuffer);
 }
 
 CHeaderWriter::~CHeaderWriter()
@@ -105,9 +103,7 @@ void CHeaderWriter::addFileEntry(const char *path, const char *altName)
     replaceWhiteSpaceWithUnderscore(nameBuffer, nameBuffer);
     convertToUpperCase(nameBuffer, strlen(nameBuffer));
 
-    char entryStringBuffer[PATH_BUFFER_SIZE];
-    snprintf(entryStringBuffer, sizeof(entryStringBuffer), fileEntryTemplate, nameBuffer);
-    fputs(entryStringBuffer, outFile_);
+    fprintf(outFile_, fileEntryTemplate, nameBuffer);
 }
 
 bool CHeaderWriter::isValid() const

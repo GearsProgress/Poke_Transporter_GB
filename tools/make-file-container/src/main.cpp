@@ -5,6 +5,7 @@
 #include <vector>
 #include <cstring>
 #include <cstdlib>
+#include <libgen.h>
 #include <getopt.h>
 
 #include <sys/stat.h>
@@ -31,7 +32,7 @@ typedef struct
 
 static void printUsage()
 {
-    printf("Usage: make-file-container [-n] [-H <header output folder>] <path/to/file.containerdef> <output folder>\n\n");
+    printf("Usage: make-file-container [-n] [-H <header output folder>] <output folder> <path/to/file.containerdef>\n\n");
     printf("Definition syntax:\n  <filename>[:<optional alternative name>]\n\n");
     printf("Flags:\n  -n    Store filenames in the container\n");
     printf("  -H, --header-out <path>    Write generated header to this folder\n");
@@ -333,8 +334,8 @@ static bool parseArgs(int argc, char **argv, bool *storeNames, const char **head
         return false;
     }
 
-    *defPath = argv[optind];
-    *outPath = argv[optind + 1];
+    *outPath = argv[optind];
+    *defPath = argv[optind + 1];
 
     return true;
 }

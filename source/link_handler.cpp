@@ -17,9 +17,10 @@
 #include "text_data_table.h"
 #include "libraries/Pokemon-Gen3-to-Gen-X/include/save.h"
 #include "flash_mem.h"
+#include "FileContainerReader.h"
 
-#include "universalPayloadGen1_bin.h"
-#include "universalPayloadGen2_bin.h"
+#include "GB_Payloads_chunk0_lz10_bin.h"
+#include "GB_Payloads.h"
 
 LinkSPI linkSPIInstance;
 LinkSPI *linkSPI = &linkSPIInstance;
@@ -332,14 +333,16 @@ void LinkConnection::logicState_initConnection()
 
 void LinkConnection::load_universal_payload()
 {
-  if (this->gen == 1)
-  {
-    memcpy(this->curr_payload, universalPayloadGen1_bin, universalPayloadGen1_bin_size);
-    this->curr_payload_size = universalPayloadGen1_bin_size;
-  }
-  else if (this->gen == 2)
-  {
-    memcpy(this->curr_payload, universalPayloadGen2_bin, universalPayloadGen2_bin_size);
-    this->curr_payload_size = universalPayloadGen2_bin_size;
-  }
+  u32 fileSize;
+  u8 decompressionBuffer[0x1000];
+  const u8 *chunkList[] = { (const u8*)GB_Payloads_chunk0_lz10_bin };
+  FileContainerReader reader(chunkList, 1);
+  const u32 fileIndex = (this->gen == 1) ? (u32)GB_PayloadsFiles::UNIVERSALPAYLOADGEN1 : (u32)GB_PayloadsFiles::UNIVERSALPAYLOADGEN2;
+
+  reader.init(decompressionBuffer, sizeof(decompressionBuffer));
+  fileSize = reader.getFileSize(fileIndex);
+  reader.seekToFile(fileIndex);
+  reader.read(this->curr_payload, fileSize);
+
+  this->curr_payload_size = fileSize;
 }

@@ -1,5 +1,6 @@
 #include "utils.h"
 
+#include <libgen.h>
 #include <cstring>
 
 #define PATH_BUFFER_SIZE 4096

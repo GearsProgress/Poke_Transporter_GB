@@ -12,7 +12,7 @@
  * This format consists of multiple compressed chunks.
  *
  * It is done this way to keep the decompression buffer small (because we can't afford to consume too much IWRAM)
- * but still allow for large file containers and bundle files together.
+ * but still allow for large file containers and bundling files together. (which you might want to do to improve compression ratios)
  * The chunk size can be configured when creating the file container, and the
  * FileContainerReader will read and decompress chunks on demand when seeking or reading data.
  */
