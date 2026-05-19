@@ -4,7 +4,6 @@ ASM_DIR := src/payloads
 OUTPUT_DIR := build
 DEPENDENCIES_DIR := dependencies
 OBJECT_FILE := $(OUTPUT_DIR)/$${file%%.*}.o
-DATA_DIR := ../../data/
 
 PAYLOADS := $(notdir $(wildcard $(ASM_DIR)/*.asm))
 DEPENDENCY_FILES := $(notdir $(wildcard $(DEPENDENCIES_DIR)/*.asm))
@@ -40,7 +39,6 @@ language_specific: | $(OUTPUT_DIR)
 
 link: base language_specific
 	@ls
-	@cp $(OUTPUT_DIR)/*.bin $(DATA_DIR)
 
 $(OUTPUT_DIR):
 	@mkdir -p $(OUTPUT_DIR)

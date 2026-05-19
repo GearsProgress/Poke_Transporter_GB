@@ -103,6 +103,10 @@ void fill_debug_menu_with_entries(vertical_menu &menu, u16 *charset)
 #if ENABLE_DEBUG_PKMN_INJECTION
         define_executable_row(charset, "Inject Celebi", dbg_inject_pkmn, 0, nullptr),
 #endif
+#if ENABLE_MYSTERY_GIFT
+        define_executable_row(charset, "Unlock MystE", dbg_unlock_mystery, 0, nullptr),
+        define_executable_row(charset, "Unlock MystG", dbg_unlock_mystery, 1, nullptr),
+#endif
         define_song_row(charset, "Song"),
         define_toggle_row(charset, "Print Link", dbg_set_boolean_flag, g_debug_options.print_link_data, &g_debug_options.print_link_data),
         define_toggle_row(charset, "Instant Text", dbg_set_boolean_flag, g_debug_options.instant_text_speed, &g_debug_options.instant_text_speed),

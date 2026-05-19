@@ -65,6 +65,21 @@ LIBTONC := $(DEVKITPRO)/libtonc
 LIBPCCS := $(CURDIR)/PCCS
 
 #---------------------------------------------------------------------------------
+# Environment for building tool binaries using the host's compiler, not the devkitARM toolchain
+# These tools need to run on the build machine, not the GBA.
+#---------------------------------------------------------------------------------
+HOST_ENV := env - \
+	PATH="$(PATH)" \
+	TMPDIR=/tmp TMP=/tmp TEMP=/tmp \
+	SYSTEMROOT="$(SYSTEMROOT)" \
+	CC=cc \
+	CXX=c++ \
+	CFLAGS= \
+	CXXFLAGS= \
+	LDFLAGS= \
+	AR=ar
+
+#---------------------------------------------------------------------------------
 # TARGET is the name of the output
 # BUILD is the directory where object files & intermediate files will be placed
 # SOURCES is a list of directories containing source code
@@ -85,6 +100,7 @@ INCLUDES    := include PCCS/lib/include
 DATA		:= data
 MUSIC		:= audio
 GRAPHICS	:= graphics graphics/languages/$(BUILD_LANG)
+FILE_CONTAINERS := container
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -238,20 +254,14 @@ $(GENERATE_STAMP): $(TEXT_HELPER_INPUTS) compress_lz10.sh | data to_compress gen
 	@echo "----------------------------------------------------------------"
 	@echo "Building v$(GIT_VERSION) with parameters: $(BUILD_LANG), $(BUILD_TYPE), $(BUILD_XLSX)"
 	@echo "----------------------------------------------------------------"
-	@env - \
-		PATH="$(PATH)" \
-		TMPDIR=/tmp TMP=/tmp TEMP=/tmp \
-		SYSTEMROOT="$(SYSTEMROOT)" \
-		CC=cc \
-		CXX=c++ \
-		CFLAGS= \
-		CXXFLAGS= \
-		LDFLAGS= \
-		AR=ar \
-		$(MAKE) -C tools/gb-payload-generator
+	@$(HOST_ENV) $(MAKE) -C tools/rom-value-generator BUILD_LANG=$(BUILD_LANG) BUILD_TYPE=$(BUILD_TYPE)
+	@$(HOST_ENV) $(MAKE) -C tools/make-file-container
+	@$(HOST_ENV) $(MAKE) -C tools/gb-payload-generator
 	@echo
 	@echo "----------------------------------------------------------------"
 	@echo
+	@tools/rom-value-generator/payload-generator to_compress
+	@find $(FILE_CONTAINERS) -name "*.containerdef" -print0 | xargs -0 -n1 tools/make-file-container/make-file-container -H $(BUILD) to_compress 
 	@echo "Compressing bin files!" 
 	@echo -n "["
 	@find to_compress -name "*.bin" -print0 | xargs -0 -n1 ./compress_lz10.sh
@@ -283,6 +293,8 @@ $(BUILD):
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
+	@$(MAKE) -C tools/rom-value-generator clean
+	@$(MAKE) -C tools/make-file-container clean
 	@$(MAKE) -C tools/gb-payload-generator clean
 	@$(MAKE) -C loader clean
 	@$(MAKE) -C PCCS clean
