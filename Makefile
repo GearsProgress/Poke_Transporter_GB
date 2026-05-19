@@ -205,8 +205,8 @@ export HFILES := $(addsuffix .h,$(subst .,_,$(BINFILES))) $(PNGFILES:.png=.h)
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-iquote $(CURDIR)/$(dir)) \
 					$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
 					-I$(CURDIR)/$(GENERATED_DIR) \
-					-I$(CURDIR)/$(BUILD) \
-					-I$(CURDIR)/tools/rom-value-generator/include
+					-I$(CURDIR)/PCCS/tools/table-generator/include \
+					-I$(CURDIR)/$(BUILD)
 
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
@@ -215,7 +215,6 @@ export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 GENERATE_STAMP := $(BUILD)/.generate_data.$(BUILD_LANG).$(BUILD_TYPE).stamp
 BUILD_STAMP := $(BUILD)/.build.$(BUILD_LANG).$(BUILD_TYPE).stamp
 
-PAYLOAD_GEN_INPUTS := $(shell find tools/rom-value-generator/src tools/rom-value-generator/include -type f \( -name "*.cpp" -o -name "*.h" -o -name "*.hpp" \))
 TEXT_HELPER_INPUTS := tools/text_helper/main.py $(wildcard tools/text_helper/fonts/*.png) $(wildcard tools/text_helper/text.xlsx)
 TEXT_GENERATED_OUTPUTS := \
 	$(GENERATED_DIR)/translated_text.h \
@@ -248,7 +247,7 @@ generated_dir:
 
 generate_data: $(GENERATE_STAMP)
 
-$(GENERATE_STAMP): $(TEXT_HELPER_INPUTS) $(PAYLOAD_GEN_INPUTS) compress_lz10.sh | data to_compress generated_dir
+$(GENERATE_STAMP): $(TEXT_HELPER_INPUTS) compress_lz10.sh | data to_compress generated_dir
 	@if [ "$(BUILD_XLSX)" != "remote" ]; then \
 		$(MAKE) --no-print-directory text_generated BUILD_LANG=$(BUILD_LANG) BUILD_TYPE=$(BUILD_TYPE) BUILD_XLSX=$(BUILD_XLSX); \
 	fi
