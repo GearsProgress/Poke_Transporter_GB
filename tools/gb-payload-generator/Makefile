@@ -11,7 +11,7 @@ DEPENDENCY_FILES := $(notdir $(wildcard $(DEPENDENCIES_DIR)/*.asm))
 
 .PHONY: all base language_specific clean
 
-all: base language_specific link
+all: link
 
 base: | $(OUTPUT_DIR)
 	@set -e; \
@@ -38,7 +38,7 @@ language_specific: | $(OUTPUT_DIR)
 		done; \
 	done
 
-link:
+link: base language_specific
 	@ls
 	@cp $(OUTPUT_DIR)/*.bin $(DATA_DIR)
 
