@@ -254,7 +254,6 @@ $(GENERATE_STAMP): $(TEXT_HELPER_INPUTS) compress_lz10.sh | data to_compress gen
 	@echo "----------------------------------------------------------------"
 	@echo "Building v$(GIT_VERSION) with parameters: $(BUILD_LANG), $(BUILD_TYPE), $(BUILD_XLSX)"
 	@echo "----------------------------------------------------------------"
-	@$(HOST_ENV) $(MAKE) -C tools/rom-value-generator BUILD_LANG=$(BUILD_LANG) BUILD_TYPE=$(BUILD_TYPE)
 	@$(HOST_ENV) $(MAKE) -C tools/make-file-container
 	@$(HOST_ENV) $(MAKE) -C tools/gb-payload-generator
 	@echo
@@ -293,7 +292,6 @@ $(BUILD):
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@$(MAKE) -C tools/rom-value-generator clean
 	@$(MAKE) -C tools/make-file-container clean
 	@$(MAKE) -C tools/gb-payload-generator clean
 	@$(MAKE) -C loader clean
