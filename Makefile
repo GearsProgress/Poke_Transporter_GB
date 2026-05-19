@@ -259,7 +259,6 @@ $(GENERATE_STAMP): $(TEXT_HELPER_INPUTS) compress_lz10.sh | data to_compress gen
 	@echo
 	@echo "----------------------------------------------------------------"
 	@echo
-	@tools/rom-value-generator/payload-generator to_compress
 	@find $(FILE_CONTAINERS) -name "*.containerdef" -print0 | xargs -0 -n1 tools/make-file-container/make-file-container -H $(BUILD) to_compress 
 	@echo "Compressing bin files!" 
 	@echo -n "["
