@@ -24,6 +24,20 @@ class Languages(Enum):
     ChineseTR = 9
     PortugueseBR = 10
 
+LanguageStringMap = {
+    "japanese": Languages.Japanese,
+    "english": Languages.English,
+    "french": Languages.French,
+    "german": Languages.German,
+    "italian": Languages.Italian,
+    "spanishEU": Languages.SpanishEU,
+    "spanishLA": Languages.SpanishLA,
+    "korean": Languages.Korean,
+    "chineseSI": Languages.ChineseSI,
+    "chineseTR": Languages.ChineseTR,
+    "portugueseBR": Languages.PortugueseBR,
+}
+
 class Font:
     def __init__(self, fileName, numColors, numChars, numCharsX, numCharsY, cellWidth, cellHeight, charWidth, charHeight):
         self.fileName = fileName
@@ -840,50 +854,35 @@ def convert_item(ogDict, lang, context=None):
     ogDict["bytes"] = encode_formatted_text(normalized_text, arr, lang, entry_id, context)
     return ogDict
 
-def write_text_bin_file(filename, dictionary, lang, section, context=None):
-    MAX_BIN_SIZES = {
-        "PTGB": 6144,
-        "RSEFRLG": 3444,
-        "GB": 9999,
-        "GENERAL": 2048,
-        "CREDITS": 2048,
-        "PKMN_NAMES": 3072,
-    }
+# in order to safely use getPointerToFileInDecompressionBuffer() in FileContainerReader
+# we must ensure that a table that is used this way fits inside a single chunk
+def get_file_container_chunk_size(section):
+    if section in ("RSEFRLG"):
+        return 4096
+    else:
+        return 2048
 
-    Path(filename).parent.mkdir(parents=True, exist_ok=True)
-    with open(filename, 'wb') as binFile:
-        # Let the first byte indicate the number of entries
-        dict_size = len(dictionary)
-        # We need to store 2 bytes instead of one, because not aligning the data to 16 bits will cause corruption on the gba.
-        binFile.write(bytes([dict_size & 0xFF, (dict_size >> 8) & 0xFF]))
-        # After this initial byte, we will read the offset (16 bit) of each line (relative to the last index byte)
-        index = bytearray(len(dictionary) * 2)
-        # bindata will contain the binary data of each entry
-        bindata = bytearray()
-        current_offset = 0
 
-        num = 0
-        # Append every line's binary data to bindata
-        # keep an index of the binary offset within bindata at which each line starts
+def write_text_file_container(filename, dictionary, lang, section, context=None):
+    buildpath = str(BUILD_DIR) + "/"
+    Path(buildpath).mkdir(parents=True, exist_ok=True)
+    defPath = buildpath + filename + ".containerdef"
+    with open(defPath, 'wb') as defFile:
+        defLine = "@chunkSize=" + str(get_file_container_chunk_size(section)) + "\n"
+        defFile.write(defLine.encode("utf-8"))
+        
         for key, line in dictionary.items():
-            dictionary[key] = convert_item(line, lang, context)
-            # store the offset of the line in the index as a 16 bit little endian value
-            index[num * 2] = (current_offset & 0xFF)
-            index[num * 2 + 1] = (current_offset >> 8) & 0xFF
-            linedata = bytes.fromhex(dictionary[key]['bytes'])
-
-            bindata.extend(linedata)
-            current_offset += len(linedata)
-
-            num += 1
-
-        # Write the index and bindata to the file
-        binFile.write(index)
-        binFile.write(bindata)
-        binFile.seek(0, os.SEEK_END)
-        if binFile.tell() > MAX_BIN_SIZES[section]:
-            log_warning_error(lang, "Error", f'Section {section} exceeds the max binary file size by {binFile.tell() - MAX_BIN_SIZES[section]} bytes!', context=context)
-        binFile.close()
+            print(f"Processing {section} entry '{key}' for language {lang.name}...")
+            with open(buildpath + str(key), 'wb') as lineFile:
+                dictionary[key] = convert_item(line, lang, context)
+                linedata = bytes.fromhex(dictionary[key]['bytes'])
+                lineFile.write(linedata)
+                lineFile.close()
+            
+            defLine = buildpath + str(key) + "\n"
+            defFile.write(defLine.encode("utf-8"))
+        defFile.close()
+    
 
 def write_enum_to_header_file(hFile, prefix, dictionary):
     num = 0
@@ -1098,7 +1097,8 @@ def generate_header_file():
 
         sectionEnds = []
         index = 0
-        lang = Languages.English # This doesn't matter, it just needs to be there. They're all the same
+        # The lang doesn't matter. They're all the same in this context.
+        lang = Languages.English
         for section in textSections:
             num = write_enum_to_header_file(hFile, section + "_", mainDict[lang.name][section])
             hFile.write("#define " + section + "_INDEX " + str(index))
@@ -1136,7 +1136,6 @@ def generate_header_file():
             hFile.write(f"\t{{{', '.join(values)}}},\n")
         hFile.write("};\n\n")
 
-        hFile.write("const u8* get_compressed_text_table(int table_index);\n")
         hFile.write("u8 get_text_box_type(int table_index, int text_index);\n")
         hFile.write("extern const u8* const text_box_type_tables[NUM_TEXT_SECTIONS];\n")
 
@@ -1144,21 +1143,16 @@ def generate_header_file():
         hFile.write("\n#endif")
         hFile.close()
 
-def generate_text_tables():
+def generate_text_tables(lang):
     print("\tGenerating text tables")
-    for lang in Languages:
-        for section in textSections:
-            table_file = os.curdir + '/to_compress/' + section + '_' + lang.name.lower() + '.bin'
-            write_text_bin_file(table_file, mainDict[lang.name][section], lang, section, build_context)
+    for section in textSections:
+        table_name = section
+        write_text_file_container(table_name, mainDict[lang.name][section], lang, section, build_context)
 
 def generate_cpp_file():
     print("\tGenerating cpp file")
     with open(TRANSLATED_CPP_PATH, 'w') as cppFile:
         cppFile.write("// THIS FILE HAS BEEN GENERATED BY text_helper/main.py !\n#include \"translated_text.h\"\n#include \"dbg/debug_mode.h\"\n")
-        # generate includes for each language
-        for lang in Languages:
-            for section in textSections:
-                cppFile.write("#include \"" + section.upper() + "_" + lang.name.lower() + "_lz10_bin.h\"\n")
 
         cppFile.write("\n")
         for section in textSections:
@@ -1177,22 +1171,6 @@ def generate_cpp_file():
             cppFile.write(f"\n\t{section_var}_box_types,")
         cppFile.write("\n};\n")
 
-        cppFile.write("\nconst u8* get_compressed_text_table(int table_index)\n")
-
-        for i, lang in enumerate(Languages):
-            cppFile.write(f"\n#{'el' if i > 0 else ''}if PTGB_BUILD_LANGUAGE == {lang.value + 1}\n")
-            cppFile.write("{\n")
-            cppFile.write("\tswitch (table_index)\n\t{\n")
-            for section in textSections:
-                cppFile.write("\tcase (" + section + "_INDEX):\n")
-                if(section == "PTGB"):
-                    cppFile.write("\tdefault:\n")
-                cppFile.write("\t\treturn " + section + "_" + lang.name.lower() + "_lz10_bin;\n")
-                cppFile.write("\t\tbreak;\n")
-            cppFile.write("\t}\n")
-            cppFile.write("}\n")
-        cppFile.write(f"#else\n#error \"Unsupported PTGB_BUILD_LANGUAGE\"\n#endif")
-
         cppFile.write("\n\nu8 get_text_box_type(int table_index, int text_index)\n")
         cppFile.write("{\n")
         cppFile.write("\tif (text_index < 0)\n")
@@ -1210,18 +1188,17 @@ def generate_cpp_file():
         cppFile.write("\t}\n")
         cppFile.write("}\n")
 
-def output_json_file():
+def output_json_file(lang):
     print("\tOutputting json file")
-    for lang in Languages:
-        for section in textSections:
-            for item in mainDict[lang.name][section]:
-                arr = get_language_config(lang).char_array["array"]
-                mainDict[lang.name][section][item]["text"] = render_debug_text(
-                    mainDict[lang.name][section][item]["bytes"], arr
-                )
+    for section in textSections:
+        for item in mainDict[lang.name][section]:
+            arr = get_language_config(lang).char_array["array"]
+            mainDict[lang.name][section][item]["text"] = render_debug_text(
+                mainDict[lang.name][section][item]["bytes"], arr
+            )
 
     with open(OUTPUT_JSON_PATH, 'w', encoding='utf-8') as jsonFile:
-        jsonFile.write(json.dumps(mainDict, ensure_ascii=False, indent=2))
+        jsonFile.write(json.dumps(mainDict[lang.name], ensure_ascii=False, indent=2))
 
 def are_generated_files_stale(source_files, generated_files):
     source_paths = [Path(path) for path in source_files]
@@ -1238,15 +1215,15 @@ def are_generated_files_stale(source_files, generated_files):
     oldest_generated_mtime = min(path.stat().st_mtime for path in generated_paths)
     return newest_source_mtime > oldest_generated_mtime
 
-def update_generated_files(target_name, source_files, generated_files, generate_function):
+def update_generated_files(target_name, source_files, generated_files, generate_function, lang, force_generate):
     if debugpy.is_client_connected():
         print(f"\tDebugger connected, rebuilding {target_name}!")
-        generate_function()
+        generate_function(lang)
         return
 
-    if are_generated_files_stale(source_files, generated_files):
+    if force_generate or are_generated_files_stale(source_files, generated_files):
         print(f"\t{target_name} outputs are outdated or missing. Rebuilding...")
-        generate_function()
+        generate_function(lang)
         return
 
     print(f"\t{target_name} outputs are up to date. Skipping rebuild.")
@@ -1373,7 +1350,7 @@ def get_font_source_files():
 def get_font_generated_files():
     return [FONTS_H_PATH]
 
-def generate_font_files():
+def generate_font_files(lang):
     print("\tGenerating font tables:")
     generate_tables()
     build_h()
@@ -1384,6 +1361,8 @@ def update_font_files():
         source_files=get_font_source_files(),
         generated_files=get_font_generated_files(),
         generate_function=generate_font_files,
+        lang = Languages.English,
+        force_generate=False
     )
 
 def get_text_source_files():
@@ -1396,22 +1375,27 @@ def get_text_generated_files():
             generated_files.append(Path(os.curdir) / "to_compress" / f"{section}_{lang.name.lower()}.bin")
     return generated_files
 
-def generate_text_files():
+def generate_text_files(lang):
     generate_header_file()
-    generate_text_tables()
+    generate_text_tables(lang)
     generate_cpp_file()
-    output_json_file()
+    output_json_file(lang)
 
-def update_text_files():
+def update_text_files(lang):
+    # force_generate is set to true because we're only generating the BUILD_LANG.
+    # therefore if we generate another lang, we need to update it again too.
+    # So we might as well always update it.
     update_generated_files(
         target_name="Text",
         source_files=get_text_source_files(),
         generated_files=get_text_generated_files(),
         generate_function=generate_text_files,
+        lang=lang,
+        force_generate=True
     )
 
 def main():
-    _, _, build_xlsx_mode = parse_build_args(sys.argv)
+    lang_name, _, build_xlsx_mode = parse_build_args(sys.argv)
     print("Running text_helper:")
     update_font_files()
     update_xlsx_file(build_xlsx_mode)
@@ -1419,7 +1403,7 @@ def main():
         print("text_helper finished!\n")
         return
     transfer_xlsx_to_dict()
-    update_text_files()
+    update_text_files(LanguageStringMap[lang_name])
     print("text_helper finished!\n")
 
 if __name__ == "__main__":

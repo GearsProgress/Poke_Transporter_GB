@@ -215,7 +215,6 @@ export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 GENERATE_STAMP := $(BUILD)/.generate_data.$(BUILD_LANG).$(BUILD_TYPE).stamp
 BUILD_STAMP := $(BUILD)/.build.$(BUILD_LANG).$(BUILD_TYPE).stamp
 
-TEXT_HELPER_INPUTS := tools/text_helper/main.py $(wildcard tools/text_helper/fonts/*.png) $(wildcard tools/text_helper/text.xlsx)
 TEXT_GENERATED_OUTPUTS := \
 	$(GENERATED_DIR)/translated_text.h \
 	$(GENERATED_DIR)/translated_text.cpp \
@@ -247,7 +246,7 @@ generated_dir:
 
 generate_data: $(GENERATE_STAMP)
 
-$(GENERATE_STAMP): $(TEXT_HELPER_INPUTS) compress_lz10.sh | data to_compress generated_dir
+$(GENERATE_STAMP): compress_lz10.sh | data to_compress generated_dir
 	@if [ "$(BUILD_XLSX)" != "remote" ]; then \
 		$(MAKE) --no-print-directory text_generated BUILD_LANG=$(BUILD_LANG) BUILD_TYPE=$(BUILD_TYPE) BUILD_XLSX=$(BUILD_XLSX); \
 	fi
@@ -259,7 +258,8 @@ $(GENERATE_STAMP): $(TEXT_HELPER_INPUTS) compress_lz10.sh | data to_compress gen
 	@echo
 	@echo "----------------------------------------------------------------"
 	@echo
-	@find $(FILE_CONTAINERS) -name "*.containerdef" -print0 | xargs -0 -n1 tools/make-file-container/make-file-container -H $(BUILD) to_compress 
+	@find $(FILE_CONTAINERS) -name "*.containerdef" -print0 | xargs -0 -n1 tools/make-file-container/make-file-container -H $(BUILD) to_compress
+	@find tools/text_helper/build -name "*.containerdef" -print0 | xargs -0 -n1 tools/make-file-container/make-file-container to_compress
 	@echo "Compressing bin files!" 
 	@echo -n "["
 	@find to_compress -name "*.bin" -print0 | xargs -0 -n1 ./compress_lz10.sh

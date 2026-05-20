@@ -4,6 +4,7 @@
 #include "typeDefs.h"
 
 #define FILE_NAME_LENGTH 16
+#define DEFAULT_CHUNK_SIZE 2048
 
 /**
  * @brief This class provides functionality to read files from the file container format
@@ -19,7 +20,7 @@
 class FileContainerReader
 {
 public:
-    FileContainerReader(const u8 **chunkList, u32 chunkCount, u32 chunkSize = 4096);
+    FileContainerReader(const u8 **chunkList, u32 chunkCount, u32 chunkSize = DEFAULT_CHUNK_SIZE);
     ~FileContainerReader();
 
     /**
@@ -35,6 +36,11 @@ public:
      * it gets destroyed.
      */
     bool init(u8 *decompressionBuffer, u32 decompressionBufferSize);
+
+    /**
+     * @brief Returns the number of files stored in the file container.
+     */
+    u32 getNumberOfFiles() const;
 
     /**
      * @brief IF the file container stores the file names,
@@ -57,6 +63,34 @@ public:
      * @brief Read data from the current position in the file container into the provided buffer.
      */
     void read(u8 *buffer, u32 size);
+
+    /**
+     * @brief Gives you a direct pointer to the specified file in the decompression buffer. (unsafe!)
+     *
+     * This is useful to use data directly from the decompression buffer without having to allocate and
+     * copy another buffer. This is essential in high memory pressure scenarios, such as mystery_gift_builder.
+     * We can't afford to keep multiple linebuffers in memory in addition to the decompression buffer and all the other variables there.
+     *
+     * WARNING: this is only safe if you know the file is stored fully in the current chunk, because files may span multiple chunks.
+     * Or if the container only consists of a single chunk.
+     * Pointers acquired this way will become stale whenever a seek is done to a position in a different chunk, 
+     * as that will cause the decompression buffer to be overwritten with the new chunk's data.
+     */
+    u8 *getPointerToFileInDecompressionBuffer(u32 fileIndex);
+
+    /**
+     * @brief Combines seekToFile and read().
+     * Just a convenience function to make our code shorter :-)
+     */
+    void seekAndRead(u32 fileIndex, u8 *buffer, u32 size);
+
+    /**
+     * @brief Even shorter variant of seekAndRead that reads the entire file at once.
+     * But it assumes you have provided a large enough buffer to hold the entire file.
+     *
+     * (useful for text table reading)
+     */
+    void readFile(u32 fileIndex, u8 *buffer);
 protected:
 private:
     /**

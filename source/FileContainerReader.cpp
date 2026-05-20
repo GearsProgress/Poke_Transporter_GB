@@ -56,6 +56,11 @@ bool FileContainerReader::init(u8 *decompressionBuffer, u32 decompressionBufferS
     return true;
 }
 
+u32 FileContainerReader::getNumberOfFiles() const
+{
+    return fileCount_;
+}
+
 const char* FileContainerReader::getFileName(u32 fileIndex)
 {
     if(!hasNames_)
@@ -109,6 +114,24 @@ void FileContainerReader::read(u8 *buffer, u32 size)
         buffer += bytesToRead;
         curPos_ += bytesToRead;
     }
+}
+
+u8 *FileContainerReader::getPointerToFileInDecompressionBuffer(u32 fileIndex)
+{
+    seekToFile(fileIndex);
+    return decompressionBuffer_ + curPos_;
+}
+
+void FileContainerReader::seekAndRead(u32 fileIndex, u8 *buffer, u32 size)
+{
+    seekToFile(fileIndex);
+    read(buffer, size);
+}
+
+void FileContainerReader::readFile(u32 fileIndex, u8 *buffer)
+{
+    const u32 fileSize = getFileSize(fileIndex);
+    seekAndRead(fileIndex, buffer, fileSize);
 }
 
 u32 FileContainerReader::getFileOffset(u32 entryIndex) const
