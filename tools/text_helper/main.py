@@ -872,7 +872,6 @@ def write_text_file_container(filename, dictionary, lang, section, context=None)
         defFile.write(defLine.encode("utf-8"))
         
         for key, line in dictionary.items():
-            print(f"Processing {section} entry '{key}' for language {lang.name}...")
             with open(buildpath + str(key), 'wb') as lineFile:
                 dictionary[key] = convert_item(line, lang, context)
                 linedata = bytes.fromhex(dictionary[key]['bytes'])

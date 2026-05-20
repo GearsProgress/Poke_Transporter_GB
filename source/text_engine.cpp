@@ -104,7 +104,7 @@ int text_loop(int script)
         break;
     }
 
-    curr_text = (curr_line.has_text()) ? read_dialogue_text_entry(PTGB_INDEX, curr_line.get_text_entry_index(), diag_entry_text_buffer) : NULL;
+    curr_text = (curr_line.has_text()) ? read_dialogue_text_entry(curr_line.get_text_entry_index(), PTGB_INDEX, diag_entry_text_buffer) : NULL;
 
     // tte_set_margins(LEFT, TOP, RIGHT, BOTTOM);
     if (script != SCRIPT_DEBUG)
@@ -130,7 +130,7 @@ int text_loop(int script)
                 break;
             }
 
-            curr_text = (curr_line.has_text()) ? read_dialogue_text_entry(PTGB_INDEX, curr_line.get_text_entry_index(), diag_entry_text_buffer) : NULL;
+            curr_text = (curr_line.has_text()) ? read_dialogue_text_entry(curr_line.get_text_entry_index(), PTGB_INDEX, diag_entry_text_buffer) : NULL;
             char_index = 0;
 
             if (text_exit)
