@@ -1,7 +1,6 @@
 #include "select_menu.h"
 #include "sprite_data.h"
 #include "translated_text.h"
-#include "text_data_table.h"
 #include "global_frame_controller.h"
 
 #define TEXT_HEIGHT 10
