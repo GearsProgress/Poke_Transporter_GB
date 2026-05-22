@@ -14,10 +14,11 @@
 #include "global_frame_controller.h"
 #include "background_engine.h"
 #include "sprite_data.h"
-#include "text_data_table.h"
 #include "libraries/Pokemon-Gen3-to-Gen-X/include/save.h"
 #include "flash_mem.h"
 #include "FileContainerReader.h"
+#include "text_tables.h"
+#include "translated_text.h"
 
 #include "GB_Payloads_chunk0_lz10_bin.h"
 #include "GB_Payloads.h"
@@ -64,11 +65,17 @@ void LinkConnection::setup(const u16 *debug_charset)
 
   {
     u8 general_text_table_buffer[2048];
-    text_data_table general_text(general_text_table_buffer);
+    u8 lineBuffer[1024]; // text_helper/main.py restricts the lines to 1024 bytes.
+    const u8 **chunkList;
+    u32 numChunks;
+    u32 chunkSize;
 
-    general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
-    ptgb_write_textbox(general_text.get_text_entry(GENERAL_connecting), true, false,
-                       GENERAL_INDEX, GENERAL_connecting, false);
+    get_text_table_chunks(GENERAL_INDEX, &chunkList, &numChunks, &chunkSize);
+
+    FileContainerReader general_text_reader(chunkList, numChunks, chunkSize);
+    general_text_reader.init(general_text_table_buffer, sizeof(general_text_table_buffer));
+    general_text_reader.readFile(GENERAL_connecting, lineBuffer);
+    ptgb_write_textbox(lineBuffer, true, false, GENERAL_INDEX, GENERAL_connecting, false);
   }
 
   create_textbox(0, 0, 138, 128, false);

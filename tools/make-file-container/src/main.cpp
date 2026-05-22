@@ -13,7 +13,7 @@
 #define FILE_RECORD_NAME_LENGTH 16
 #define LINE_BUFFER_SIZE 2048
 #define PATH_BUFFER_SIZE 4096
-#define DEFAULT_CHUNK_SIZE 4096
+#define DEFAULT_CHUNK_SIZE 2048
 
 
 typedef struct
@@ -36,6 +36,37 @@ static void printUsage()
     printf("Definition syntax:\n  <filename>[:<optional alternative name>]\n\n");
     printf("Flags:\n  -n    Store filenames in the container\n");
     printf("  -H, --header-out <path>    Write generated header to this folder\n");
+}
+
+/**
+ * @brief This function parses a directive.
+ * A directive starts with '@' and is used to set certain parameters for the container generation.
+ * Right now, we only support @chunkSize
+ */
+static void parseDirective(ContainerMetadata &meta, char *line)
+{
+    char * equals = strchr(line, '=');
+    if(equals == NULL)
+    {
+        fprintf(stderr, "Invalid directive (missing '='): %s\n", line);
+        return;
+    }
+    if(strncmp(line + 1, "chunkSize", 9) == 0)
+    {
+        char *endptr;
+        const long value = strtol(equals + 1, &endptr, 10);
+        if(*endptr != '\0' || value <= 0 || value > 0xFFFF)
+        {
+            fprintf(stderr, "Invalid chunk size value: %s\n", equals + 1);
+
+            return;
+        }
+        meta.chunkSize = static_cast<uint16_t>(value);
+    }
+    else
+    {
+        fprintf(stderr, "Unknown directive: %s\n", line);
+    }
 }
 
 /**
@@ -117,6 +148,12 @@ static bool parseDefinition(const char *defPath, ContainerMetadata &meta)
         ++line_no;
         if(line[0] == '\0' || line[0] == '#')
         {
+            continue;
+        }
+
+        if(line[0] == '@')
+        {
+            parseDirective(meta, line);
             continue;
         }
 

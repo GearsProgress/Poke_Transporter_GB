@@ -5,7 +5,8 @@
 #include "pokemon_data.h"
 #include "rom_data.h"
 #include "translated_text.h"
-#include "text_data_table.h"
+#include "FileContainerReader.h"
+#include "text_tables.h"
 
 #define MG_SCRIPT false
 #define S30_SCRIPT true
@@ -101,7 +102,15 @@ mystery_gift_script::mystery_gift_script(u8 *save_section_30_buffer)
 void mystery_gift_script::build_script(PokeBox *box)
 {
     decompressed_data_storage_union decompressed_store;
-    text_data_table decompressed_text_table(decompressed_store.text.buffer);
+    const u8 **rsefrlgTableChunkList;
+    u32 rsefrlgNumChunks;
+    u32 rsefrlgChunkSize;
+
+    // in order to safely use getPointerToFileInDecompressionBuffer() in FileContainerReader
+    // we must ensure that the table fits inside a single chunk
+    get_text_table_chunks(RSEFRLG_INDEX, &rsefrlgTableChunkList, &rsefrlgNumChunks, &rsefrlgChunkSize);
+    FileContainerReader rsefrlgTableReader(rsefrlgTableChunkList, rsefrlgNumChunks, rsefrlgChunkSize);
+
     ptgb::vector<script_var *> mg_variable_list;
     ptgb::vector<script_var *> sec30_variable_list;
 
@@ -379,39 +388,35 @@ void mystery_gift_script::build_script(PokeBox *box)
 
     // this decompresses the ZX0 compressed text table into the buffer inside of the decompressed_store union
     // thereby reusing the stack (=IWRAM) memory used earlier for the PokemonTables instance we used above
-    decompressed_text_table.decompress(get_compressed_text_table(RSEFRLG_INDEX));
+    rsefrlgTableReader.init(decompressed_store.text.buffer, sizeof(decompressed_store.text.buffer));
     switch (curr_GBA_rom.gamecode)
     {
     case RUBY_ID:
-        textGreet.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textGreet_rse));
-        textMoveBox.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textMoveBox_rs));
-        textWeHere.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textWeHere_r));
-        break;
     case SAPPHIRE_ID:
-        textGreet.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textGreet_rse));
-        textMoveBox.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textMoveBox_rs));
-        textWeHere.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textWeHere_s));
+        textGreet.set_text(rsefrlgTableReader.getPointerToFileInDecompressionBuffer(RSEFRLG_dia_textGreet_rse));
+        textMoveBox.set_text(rsefrlgTableReader.getPointerToFileInDecompressionBuffer(RSEFRLG_dia_textMoveBox_rs));
+        textWeHere.set_text(rsefrlgTableReader.getPointerToFileInDecompressionBuffer(RSEFRLG_dia_textWeHere_r));
         break;
     case FIRERED_ID:
     case LEAFGREEN_ID:
-        textGreet.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textGreet_frlg));
-        textMoveBox.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textMoveBox_frlg));
-        textWeHere.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textWeHere_frlg));
+        textGreet.set_text(rsefrlgTableReader.getPointerToFileInDecompressionBuffer(RSEFRLG_dia_textGreet_frlg));
+        textMoveBox.set_text(rsefrlgTableReader.getPointerToFileInDecompressionBuffer(RSEFRLG_dia_textMoveBox_frlg));
+        textWeHere.set_text(rsefrlgTableReader.getPointerToFileInDecompressionBuffer(RSEFRLG_dia_textWeHere_frlg));
         break;
     case EMERALD_ID:
-        textGreet.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textGreet_rse));
-        textMoveBox.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textMoveBox_e));
-        textWeHere.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textWeHere_e));
+        textGreet.set_text(rsefrlgTableReader.getPointerToFileInDecompressionBuffer(RSEFRLG_dia_textGreet_rse));
+        textMoveBox.set_text(rsefrlgTableReader.getPointerToFileInDecompressionBuffer(RSEFRLG_dia_textMoveBox_e));
+        textWeHere.set_text(rsefrlgTableReader.getPointerToFileInDecompressionBuffer(RSEFRLG_dia_textWeHere_e));
         break;
     }
-    textReceived.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textRecieved));
-    textYouMustBe.set_text(decompressed_text_table.get_text_entry(first_time ? RSEFRLG_dia_textYouMustBe_first : RSEFRLG_dia_textYouMustBe_second));
-    textIAm.set_text(decompressed_text_table.get_text_entry(first_time ? RSEFRLG_dia_textIAm_first : RSEFRLG_dia_textIAm_second));
-    textPCConvo.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textPCConvo)); // ȼDon’t worry ƲÀ,Ňyou won’t have to do a thing!");
-    textPCThanks.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textPCThanks));
-    textThank.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textThank));
-    textPCFull.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textPCFull));
-    textLookerFull.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textLookerFull));
+    textReceived.set_text(rsefrlgTableReader.getPointerToFileInDecompressionBuffer(RSEFRLG_dia_textRecieved));
+    textYouMustBe.set_text(rsefrlgTableReader.getPointerToFileInDecompressionBuffer(first_time ? RSEFRLG_dia_textYouMustBe_first : RSEFRLG_dia_textYouMustBe_second));
+    textIAm.set_text(rsefrlgTableReader.getPointerToFileInDecompressionBuffer(first_time ? RSEFRLG_dia_textIAm_first : RSEFRLG_dia_textIAm_second));
+    textPCConvo.set_text(rsefrlgTableReader.getPointerToFileInDecompressionBuffer(RSEFRLG_dia_textPCConvo)); // ȼDon’t worry ƲÀ,Ňyou won’t have to do a thing!");
+    textPCThanks.set_text(rsefrlgTableReader.getPointerToFileInDecompressionBuffer(RSEFRLG_dia_textPCThanks));
+    textThank.set_text(rsefrlgTableReader.getPointerToFileInDecompressionBuffer(RSEFRLG_dia_textThank));
+    textPCFull.set_text(rsefrlgTableReader.getPointerToFileInDecompressionBuffer(RSEFRLG_dia_textPCFull));
+    textLookerFull.set_text(rsefrlgTableReader.getPointerToFileInDecompressionBuffer(RSEFRLG_dia_textLookerFull));
 
     textThank.insert_text(decompressed_store.text.gen3_charset, save_section_30);
     textPCFull.insert_text(decompressed_store.text.gen3_charset, save_section_30);

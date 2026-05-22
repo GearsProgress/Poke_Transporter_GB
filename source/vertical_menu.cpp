@@ -3,6 +3,7 @@
 #include "global_frame_controller.h"
 #include "text_engine.h"
 #include "translated_text.h"
+#include "text_tables.h"
 
 #define TILE_HEIGHT 8
 #define TILE_WIDTH 8
@@ -209,13 +210,18 @@ MenuInputHandleState vertical_menu::handle_input()
 void vertical_menu::update_viewport()
 {
     uint8_t decompression_buffer[2048];
-    text_data_table text_table(decompression_buffer);
+    const u8 **textTableChunkList;
+    u32 textTableNumChunks;
+    u32 textTableChunkSize;
+
+    get_text_table_chunks(settings_.text_table_index, &textTableChunkList, &textTableNumChunks, &textTableChunkSize);
+    FileContainerReader text_table(textTableChunkList, textTableNumChunks, textTableChunkSize);
 
     clear_viewport();
 
     if (settings_.text_table_index != INT32_MAX)
     {
-        text_table.decompress(get_compressed_text_table(settings_.text_table_index));
+        text_table.init(decompression_buffer, sizeof(decompression_buffer));
     }
 
     const unsigned num_visible_items = get_num_visible_items(settings_.height, settings_.margin_top, settings_.margin_bottom, settings_.item_height);
@@ -301,10 +307,14 @@ const simple_item_widget_data &simple_item_renderer::get_data() const
     return data_;
 }
 
-void simple_item_renderer::render_item(text_data_table &text_table, unsigned x, unsigned y, bool is_focused)
+void simple_item_renderer::render_item(FileContainerReader &text_table, unsigned x, unsigned y, bool is_focused)
 {
+    // text_helper/main.py restricts each line to 1024 bytes.
+    u8 lineBuffer[1024];
+
+    text_table.readFile(data_.text.text_table_index, lineBuffer);
     tte_set_pos(x + data_.text.margin_left, y + data_.text.margin_top);
-    ptgb_write_simple(text_table.get_text_entry(data_.text.text_table_index), true);
+    ptgb_write_simple(lineBuffer, true);
 }
 
 MenuInputHandleState simple_item_renderer::handle_input()

@@ -7,9 +7,10 @@
 #include "text_engine.h"
 #include "sprite_data.h"
 #include "string.h"
-#include "text_data_table.h"
 #include "translated_text.h"
 #include "dbg/debug_mode.h"
+#include "FileContainerReader.h"
+#include "text_tables.h"
 
 int global_frame_count = 0;
 bool rand_enabled = true;
@@ -25,11 +26,17 @@ bool treecko_enabled = false;
 // the noinline attribute prevents the compiler from inlining this function back into the global_next_frame function
 static void __attribute__((noinline)) show_pulled_cart_error()
 {
-    u8 general_text_table_buffer[2048];
-    text_data_table general_text(general_text_table_buffer);
+    u8 decompression_buffer[2048];
+    const u8 **chunkList;
+    u32 numChunks;
+    u32 chunkSize;
 
-    general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
-    ptgb_write_textbox(general_text.get_text_entry(GENERAL_pulled_cart_error), true, true,
+    get_text_table_chunks(GENERAL_INDEX, &chunkList, &numChunks, &chunkSize);
+
+    FileContainerReader general_text_reader(chunkList, numChunks, chunkSize);
+    general_text_reader.init(decompression_buffer, sizeof(decompression_buffer));
+
+    ptgb_write_textbox(general_text_reader.getPointerToFileInDecompressionBuffer(GENERAL_pulled_cart_error), true, true,
                        GENERAL_INDEX, GENERAL_pulled_cart_error, true);
 }
 

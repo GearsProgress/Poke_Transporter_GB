@@ -9,9 +9,10 @@
 #include "button_menu.h"
 #include "sprite_data.h"
 #include "fonts.h"
-#include "text_data_table.h"
 #include "background_engine.h"
 #include "pokemon_data.h"
+#include "FileContainerReader.h"
+#include "text_tables.h"
 
 #define TEXT_CBB 0
 #define TEXT_SBB 10
@@ -29,32 +30,18 @@ bool text_exit;
 // Doing it this way does mean that we need to completely restart decompression whenever we switch from dialog entry.
 // but given that it requires user input to do so, I believe it's worth it and not time-critical.
 // attribute noinline was used to make sure the compiler doesn't inline this code back into text_loop()
-static __attribute__((noinline)) const u8 *read_dialogue_text_entry(uint8_t index, u8 *output_buffer)
+static __attribute__((noinline)) const u8 *read_dialogue_text_entry(u32 index, u32 text_section, u8 *output_buffer)
 {
-    u8 text_decompression_buffer[6144];
-    const u8 *text_entry;
+    u8 text_decompression_buffer[4096];
+    const u8 **chunkList;
+    u32 numChunks;
+    u32 chunkSize;
 
-    text_data_table dialogue_table(text_decompression_buffer);
+    get_text_table_chunks(text_section, &chunkList, &numChunks, &chunkSize);
+    FileContainerReader dialogueTable(chunkList, numChunks, chunkSize);
 
-    dialogue_table.decompress(get_compressed_text_table(PTGB_INDEX));
-
-    text_entry = dialogue_table.get_text_entry(index);
-    memcpy(output_buffer, text_entry, dialogue_table.get_text_entry_size(index));
-
-    return output_buffer;
-}
-
-static __attribute__((noinline)) const u8 *read_dialogue_text_entry(uint8_t index, uint8_t text_section, u8 *output_buffer)
-{
-    u8 text_decompression_buffer[6144];
-    const u8 *text_entry;
-
-    text_data_table dialogue_table(text_decompression_buffer);
-
-    dialogue_table.decompress(get_compressed_text_table(text_section));
-
-    text_entry = dialogue_table.get_text_entry(index);
-    memcpy(output_buffer, text_entry, dialogue_table.get_text_entry_size(index));
+    dialogueTable.init(text_decompression_buffer, sizeof(text_decompression_buffer));
+    dialogueTable.readFile(index, output_buffer);
 
     return output_buffer;
 }
@@ -117,7 +104,7 @@ int text_loop(int script)
         break;
     }
 
-    curr_text = (curr_line.has_text()) ? read_dialogue_text_entry(curr_line.get_text_entry_index(), diag_entry_text_buffer) : NULL;
+    curr_text = (curr_line.has_text()) ? read_dialogue_text_entry(curr_line.get_text_entry_index(), PTGB_INDEX, diag_entry_text_buffer) : NULL;
 
     // tte_set_margins(LEFT, TOP, RIGHT, BOTTOM);
     if (script != SCRIPT_DEBUG)
@@ -143,7 +130,7 @@ int text_loop(int script)
                 break;
             }
 
-            curr_text = (curr_line.has_text()) ? read_dialogue_text_entry(curr_line.get_text_entry_index(), diag_entry_text_buffer) : NULL;
+            curr_text = (curr_line.has_text()) ? read_dialogue_text_entry(curr_line.get_text_entry_index(), PTGB_INDEX, diag_entry_text_buffer) : NULL;
             char_index = 0;
 
             if (text_exit)
