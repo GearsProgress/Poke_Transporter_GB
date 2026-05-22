@@ -79,7 +79,7 @@ void initialization_script(void)
 	REG_IME = 0;
 	REG_IE = 0;
 
-	irq_init(NULL);
+	irq_init(&isr_master_nest);
 
 	// Sound bank init
 	// irq_init(NULL);

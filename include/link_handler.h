@@ -83,6 +83,8 @@ public:
     byte data_packet[PACKET_SIZE];
     byte curr_payload[0x2A0];
     int curr_payload_size = 0;
+    byte dataOutBuffer[0xFF];
+    int dataOutBufferCurrIndex = 0;
 
     bool paused = false; // Used for pausing and sending one byte at a time
 

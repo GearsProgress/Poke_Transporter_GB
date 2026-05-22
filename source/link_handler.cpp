@@ -300,6 +300,8 @@ void LinkConnection::logicState_initConnection()
     if (inData == 0xFD)
     {
       subState = GET_CHECKSUM;
+      g_debug_options.print_link_data = true;
+      paused = true;
     }
     outData = 0x00;
     break;
@@ -308,16 +310,17 @@ void LinkConnection::logicState_initConnection()
 
     if (inData != 0xFD)
     {
-      outData = 0xFD;
+      dataOutBuffer[dataOutBufferCurrIndex] = inData;
+      dataOutBufferCurrIndex++;
+      outData = 0x01;
     }
-
-    else if (subStateCounter >= 10)
+    else if (inData == 0xFD && dataOutBufferCurrIndex > 0)
     {
       subState = END;
     }
     else
     {
-      outData = 0x01;
+      outData = 0xFD;
     }
     break;
 
