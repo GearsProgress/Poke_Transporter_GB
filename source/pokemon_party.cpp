@@ -3,11 +3,8 @@
 #include "flash_mem.h"
 #include "dbg/debug_mode.h"
 #include "mystery_gift_injector.h"
-#include "gb_rom_values/gb_rom_values.h"
 #include "sprite_data.h"
 #include "box_menu.h"
-#include "gb_rom_values_eng_lz10_bin.h"
-#include "gb_rom_values_fre_lz10_bin.h"
 #include "ptgb_save_data_manager.h"
 #include "libraries/Pokemon-Gen3-to-Gen-X/include/save.h"
 #include "link_handler.h"
@@ -155,63 +152,6 @@ Pokemon_Party::Pokemon_Party()
 	box.setTable(&table);
 };
 
-void Pokemon_Party::start_link()
-{
-	if (g_debug_options.ignore_link_cable)
-	{
-		if (curr_gb_rom.generation == 1 && curr_gb_rom.version)
-		{
-			box.loadData(1, ENGLISH, gen1_rb_debug_box_data);
-		}
-		else
-		{
-			box.loadData(2, ENGLISH, gen2_debug_box_data);
-		}
-	}
-	else
-	{
-		u16 debug_charset[256];
-		load_localized_charset(debug_charset, 3, ENGLISH);
-		globalLinkCable.setup(debug_charset);
-		globalLinkCable.startConnection(INITIAL_CONNECTION);
-		while (/*globalLinkCable.compState == INITIAL_CONNECTION*/ true)
-		{
-			//VBlankIntrWait();
-		};
-		box.loadData(curr_gb_rom.generation, (Language)curr_gb_rom.language, box_data_array);
-
-		if (g_debug_options.write_cable_data_to_save)
-		{
-			for (int i = 0; i < 1122; i++)
-			{
-				global_memory_buffer[i] = box_data_array[i];
-			}
-			for (int i = 0; i < 0x1000 - 1122; i++)
-			{
-				global_memory_buffer[i + 1122] = 0xAA;
-			}
-			copy_ram_to_save(&global_memory_buffer[0], 0x0000, 0x1000);
-		}
-	}
-}
-
-void Pokemon_Party::continue_link(bool cancel_connection)
-{
-	if (!g_debug_options.ignore_link_cable)
-	{
-		u16 debug_charset[256];
-
-		load_localized_charset(debug_charset, 3, ENGLISH);
-
-		// last_error = loop(&box_data_array[0], current_payload, &curr_gb_rom, &box, debug_charset, cancel_connection);
-	}
-}
-
-int Pokemon_Party::get_last_error()
-{
-	return last_error;
-}
-
 bool Pokemon_Party::get_has_new_pkmn() // If Pokemon is not in the dex
 {
 	bool out = false;
@@ -238,29 +178,6 @@ void Pokemon_Party::set_mythic_stabilization(bool stabilize)
 	box.stabilize_mythical = stabilize;
 }
 
-void Pokemon_Party::set_game(int nGame)
-{
-	game = nGame;
-}
-
-int Pokemon_Party::get_game_gen()
-{
-	switch (game)
-	{
-	case GREEN_ID:
-	case RED_ID:
-	case BLUE_ID:
-	case YELLOW_ID:
-		return 1;
-
-	case GOLD_ID:
-	case SILVER_ID:
-	case CRYSTAL_ID:
-	default:
-		return 2;
-	}
-}
-
 void Pokemon_Party::set_lang(int nLang)
 {
 	lang = nLang;
@@ -271,46 +188,6 @@ int Pokemon_Party::get_lang()
 	return lang;
 }
 
-bool Pokemon_Party::load_gb_rom()
-{
-	u8 gb_rom_table_buffer[1024];
-	const u8 *compressed_rom_table;
-	u32 rom_table_size;
-	const u8 *cur;
-
-	switch (lang)
-	{
-	case ENG_ID:
-		compressed_rom_table = gb_rom_values_eng_lz10_bin;
-		break;
-	case FRE_ID:
-		compressed_rom_table = gb_rom_values_fre_lz10_bin;
-		break;
-	default:
-		// no rom table for this language
-		return false;
-	}
-
-	// byte 2-4 of the compressed data store the decompressed size
-	rom_table_size = compressed_rom_table[1] | (compressed_rom_table[2] << 8) | (compressed_rom_table[3] << 16);
-	LZ77UnCompWram(compressed_rom_table, gb_rom_table_buffer);
-
-	cur = gb_rom_table_buffer;
-	while (cur < gb_rom_table_buffer + rom_table_size)
-	{
-		const GB_ROM *rom_values = reinterpret_cast<const GB_ROM *>(cur);
-		if (lang == rom_values->language &&
-			game == rom_values->version)
-		{
-			curr_gb_rom = *rom_values;
-			return true;
-		}
-
-		cur += sizeof(struct GB_ROM);
-	}
-
-	return false;
-}
 int Pokemon_Party::get_num_pkmn()
 {
 	return box.getNumInBox();

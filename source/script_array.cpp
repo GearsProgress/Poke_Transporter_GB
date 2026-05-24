@@ -12,6 +12,7 @@
 #include "background_engine.h"
 #include "select_menu.h"
 #include "translated_text.h"
+#include "link_handler.h"
 
 int last_error;
 Pokemon_Party party_data;
@@ -107,400 +108,324 @@ const script_obj_params transfer_script_params[SCRIPT_SIZE] = {
     // PTGB_DIA_OPEN
     {
         .text_entry_index = PTGB_DIA_OPEN,
-        .next_if_true = CMD_SET_TUTOR_TRUE
-    },
+        .next_if_true = CMD_SET_TUTOR_TRUE},
     // PTGB_DIA_E4
     {
         .text_entry_index = PTGB_DIA_E4,
-        .next_if_true = CMD_END_SCRIPT
-    },
+        .next_if_true = CMD_END_SCRIPT},
     // PTGB_DIA_MG_FRLGE
     {
         .text_entry_index = PTGB_DIA_MG_FRLGE,
-        .next_if_true = CMD_END_SCRIPT
-    },
+        .next_if_true = CMD_END_SCRIPT},
     // PTGB_DIA_MG_RS
     {
         .text_entry_index = PTGB_DIA_MG_RS,
-        .next_if_true = CMD_END_SCRIPT
-    },
+        .next_if_true = CMD_END_SCRIPT},
     // PTGB_DIA_LETS_START
     {
         .text_entry_index = PTGB_DIA_LETS_START,
-        .next_if_true = PTGB_DIA_START
-    },
+        .next_if_true = PTGB_DIA_START},
     // PTGB_DIA_START
     {
         .text_entry_index = PTGB_DIA_START,
-        .next_if_true = CMD_START_LINK
-    },
+        .next_if_true = CMD_START_LINK},
     // PTGB_DIA_TRANS_GOOD
     {
         .text_entry_index = PTGB_DIA_TRANS_GOOD,
-        .next_if_true = COND_NEW_POKEMON
-    },
+        .next_if_true = COND_NEW_POKEMON},
     // PTGB_DIA_NEW_DEX
     {
         .text_entry_index = PTGB_DIA_NEW_DEX,
-        .next_if_true = COND_IS_HOENN_RS
-    },
+        .next_if_true = COND_IS_HOENN_RS},
     // PTGB_DIA_NO_NEW_DEX
     {
         .text_entry_index = PTGB_DIA_NO_NEW_DEX,
-        .next_if_true = COND_IS_HOENN_RS
-    },
+        .next_if_true = COND_IS_HOENN_RS},
     // PTGB_DIA_SEND_FRIEND_KANTO
     {
         .text_entry_index = PTGB_DIA_SEND_FRIEND_KANTO,
-        .next_if_true = PTGB_DIA_THANK
-    },
+        .next_if_true = PTGB_DIA_THANK},
     // PTGB_DIA_SEND_FRIEND_HOENN_RS
     {
         .text_entry_index = PTGB_DIA_SEND_FRIEND_HOENN_RS,
-        .next_if_true = PTGB_DIA_THANK
-    },
+        .next_if_true = PTGB_DIA_THANK},
     // PTGB_DIA_SEND_FRIEND_HOENN_E
     {
         .text_entry_index = PTGB_DIA_SEND_FRIEND_HOENN_E,
-        .next_if_true = PTGB_DIA_THANK
-    },
+        .next_if_true = PTGB_DIA_THANK},
     // PTGB_DIA_THANK
     {
         .text_entry_index = PTGB_DIA_THANK,
-        .next_if_true = CMD_END_SCRIPT
-    },
+        .next_if_true = CMD_END_SCRIPT},
     // PTGB_DIA_GET_MON (unused)
     {
         .text_entry_index = PTGB_DIA_GET_MON,
-        .next_if_true = CMD_END_SCRIPT
-    },
+        .next_if_true = CMD_END_SCRIPT},
     // PTGB_DIA_MG_OTHER_EVENT
     {
         .text_entry_index = PTGB_DIA_MG_OTHER_EVENT,
-        .next_if_true = PTGB_DIA_ASK_QUEST
-    },
+        .next_if_true = PTGB_DIA_ASK_QUEST},
     // PTGB_DIA_PKMN_TO_COLLECT
     {
         .text_entry_index = PTGB_DIA_PKMN_TO_COLLECT,
-        .next_if_true = CMD_END_SCRIPT
-    },
+        .next_if_true = CMD_END_SCRIPT},
     // PTGB_DIA_NO_VALID_PKMN
     {
         .text_entry_index = PTGB_DIA_NO_VALID_PKMN,
-        .next_if_true = CMD_CANCEL_LINK
-    },
+        .next_if_true = CMD_CANCEL_LINK},
     // PTGB_DIA_ASK_QUEST
     {
         .text_entry_index = PTGB_DIA_ASK_QUEST,
-        .next_if_true = CMD_SLIDE_PROF_LEFT
-    },
+        .next_if_true = CMD_SLIDE_PROF_LEFT},
     // PTGB_DIA_WHAT_GAME_TRANS
     {
         .text_entry_index = PTGB_DIA_WHAT_GAME_TRANS,
-        .next_if_true = CMD_GAME_MENU
-    },
+        .next_if_true = CMD_GAME_MENU},
     // PTGB_DIA_WHAT_LANG_TRANS
     {
         .text_entry_index = PTGB_DIA_WHAT_LANG_TRANS,
-        .next_if_true = CMD_LANG_MENU
-    },
+        .next_if_true = CMD_LANG_MENU},
     // PTGB_DIA_NO_GB_ROM
     {
         .text_entry_index = PTGB_DIA_NO_GB_ROM,
-        .next_if_true = PTGB_DIA_WHAT_LANG_TRANS
-    },
+        .next_if_true = PTGB_DIA_WHAT_LANG_TRANS},
     // PTGB_DIA_IN_BOX
     {
         .text_entry_index = PTGB_DIA_IN_BOX,
-        .next_if_true = CMD_BOX_MENU
-    },
+        .next_if_true = CMD_BOX_MENU},
     // PTGB_DIA_MYTHIC_CONVERT
     {
         .text_entry_index = PTGB_DIA_MYTHIC_CONVERT,
-        .next_if_true = CMD_MYTHIC_MENU
-    },
+        .next_if_true = CMD_MYTHIC_MENU},
     // PTGB_DIA_CANCEL
     {
         .text_entry_index = PTGB_DIA_CANCEL,
-        .next_if_true = CMD_CANCEL_LINK
-    },
+        .next_if_true = CMD_CANCEL_LINK},
     // PTGB_DIA_SOME_INVALID_PKMN
     {
         .text_entry_index = PTGB_DIA_SOME_INVALID_PKMN,
-        .next_if_true = COND_CHECK_MYTHIC
-    },
+        .next_if_true = COND_CHECK_MYTHIC},
     // PTGB_DIA_MENU_BACK
     {
         .text_entry_index = PTGB_DIA_MENU_BACK,
-        .next_if_true = CMD_END_SCRIPT
-    },
+        .next_if_true = CMD_END_SCRIPT},
     // PTGB_DIA_IS_MISSINGNO
     {
         .text_entry_index = PTGB_DIA_IS_MISSINGNO,
-        .next_if_true = PTGB_DIA_IN_BOX
-    },
+        .next_if_true = PTGB_DIA_IN_BOX},
     // PTGB_DIA_ERROR_COLOSSEUM
     {
         .text_entry_index = PTGB_DIA_ERROR_COLOSSEUM,
-        .next_if_true = PTGB_DIA_START
-    },
+        .next_if_true = PTGB_DIA_START},
     // PTGB_DIA_ERROR_COM_ENDED
     {
         .text_entry_index = PTGB_DIA_ERROR_COM_ENDED,
-        .next_if_true = PTGB_DIA_START
-    },
+        .next_if_true = PTGB_DIA_START},
     // PTGB_DIA_ERROR_DISCONNECT
     {
         .text_entry_index = PTGB_DIA_ERROR_DISCONNECT,
-        .next_if_true = PTGB_DIA_START
-    },
+        .next_if_true = PTGB_DIA_START},
     // PTGB_DIA_ERROR_TIME_ONE
     {
         .text_entry_index = PTGB_DIA_ERROR_TIME_ONE,
-        .next_if_true = PTGB_DIA_START
-    },
+        .next_if_true = PTGB_DIA_START},
     // PTGB_DIA_ERROR_TIME_TWO
     {
         .text_entry_index = PTGB_DIA_ERROR_TIME_TWO,
-        .next_if_true = PTGB_DIA_START
-    },
+        .next_if_true = PTGB_DIA_START},
     // PTGB_DIA_WHAT_LANG_EVENT
     {
         .text_entry_index = PTGB_DIA_WHAT_LANG_EVENT,
-        .next_if_true = CMD_LANG_MENU
-    },
+        .next_if_true = CMD_LANG_MENU},
     // PTGB_DIA_WHAT_GAME_EVENT
     {
         .text_entry_index = PTGB_DIA_WHAT_GAME_EVENT,
-        .next_if_true = CMD_GAME_MENU
-    },
+        .next_if_true = CMD_GAME_MENU},
     // PTGB_DIA_K_DEX_NOT_FULL
     {
         .text_entry_index = PTGB_DIA_K_DEX_NOT_FULL,
-        .next_if_true = CMD_END_SCRIPT
-    },
+        .next_if_true = CMD_END_SCRIPT},
     // PTGB_DIA_J_DEX_NOT_FULL
     {
         .text_entry_index = PTGB_DIA_J_DEX_NOT_FULL,
-        .next_if_true = CMD_END_SCRIPT
-    },
+        .next_if_true = CMD_END_SCRIPT},
     // T_SCRIPT_START
     {
         .conditional_index = CMD_SHOW_PROF,
-        .next_if_true = COND_TUTORIAL_COMPLETE
-    },
+        .next_if_true = COND_TUTORIAL_COMPLETE},
     // E_SCRIPT_START
     {
         .conditional_index = CMD_SHOW_PROF,
-        .next_if_true = PTGB_DIA_ASK_QUEST
-    },
+        .next_if_true = PTGB_DIA_ASK_QUEST},
     // CMD_START_LINK
     {
         .conditional_index = CMD_START_LINK,
-        .next_if_true = COND_ERROR_TIMEOUT_ONE
-    },
+        .next_if_true = COND_ERROR_TIMEOUT_ONE},
     // CMD_IMPORT_POKEMON
     {
         .conditional_index = CMD_IMPORT_POKEMON,
-        .next_if_true = CMD_CONTINUE_LINK
-    },
+        .next_if_true = CMD_CONTINUE_LINK},
     // CMD_BACK_TO_MENU
     {
         .conditional_index = CMD_BACK_TO_MENU,
-        .next_if_true = T_SCRIPT_START
-    },
+        .next_if_true = T_SCRIPT_START},
     // CMD_SHOW_PROF (unused in this manner (not used in a next_if_true). Therefore this is a dummy entry)
     // we even need to define such unused values to keep the array element positions in order
-    {
-    },
+    {},
     // CMD_HIDE_PROF (unused in this manner (not used in a next_if_true). Therefore this is a dummy entry)
-    {
-    },
+    {},
     // CMD_SET_TUTOR_TRUE
     {
         .conditional_index = CMD_SET_TUTOR_TRUE,
-        .next_if_true = CMD_END_SCRIPT
-    },
+        .next_if_true = CMD_END_SCRIPT},
     // CMD_END_SCRIPT
     {
         .conditional_index = CMD_END_SCRIPT,
-        .next_if_true = CMD_BACK_TO_MENU
-    },
+        .next_if_true = CMD_BACK_TO_MENU},
     // CMD_GAME_MENU
     {
         .conditional_index = CMD_GAME_MENU,
         .next_if_true = COND_GB_ROM_EXISTS,
-        .next_if_false = PTGB_DIA_WHAT_LANG_TRANS
-    },
+        .next_if_false = PTGB_DIA_WHAT_LANG_TRANS},
     // CMD_LANG_MENU
     {
         .conditional_index = CMD_LANG_MENU,
         .next_if_true = PTGB_DIA_WHAT_GAME_TRANS,
-        .next_if_false = PTGB_DIA_CANCEL
-    },
+        .next_if_false = PTGB_DIA_CANCEL},
     // CMD_SLIDE_PROF_LEFT
     {
         .conditional_index = CMD_SLIDE_PROF_LEFT,
-        .next_if_true = PTGB_DIA_WHAT_LANG_TRANS
-    },
+        .next_if_true = PTGB_DIA_WHAT_LANG_TRANS},
     // CMD_SLIDE_PROF_RIGHT
     {
         .conditional_index = CMD_SLIDE_PROF_RIGHT,
-        .next_if_true = PTGB_DIA_LETS_START
-    },
+        .next_if_true = PTGB_DIA_LETS_START},
     // CMD_CONTINUE_LINK
     {
         .conditional_index = CMD_CONTINUE_LINK,
-        .next_if_true = CMD_END_MISSINGNO
-    },
+        .next_if_true = CMD_END_MISSINGNO},
     // CMD_BOX_MENU
     {
         .conditional_index = CMD_BOX_MENU,
         .next_if_true = CMD_IMPORT_POKEMON,
-        .next_if_false = PTGB_DIA_CANCEL
-    },
+        .next_if_false = PTGB_DIA_CANCEL},
     // CMD_MYTHIC_MENU
     {
         .conditional_index = CMD_MYTHIC_MENU,
-        .next_if_true = COND_CHECK_MISSINGNO
-    },
+        .next_if_true = COND_CHECK_MISSINGNO},
     // CMD_IS_A_VALID_PKMN
     {
         .conditional_index = CMD_IS_A_VALID_PKMN,
         .next_if_true = COND_SOME_INVALID_PKMN,
-        .next_if_false = PTGB_DIA_NO_VALID_PKMN
-    },
+        .next_if_false = PTGB_DIA_NO_VALID_PKMN},
     // CMD_CANCEL_LINK
     {
         .conditional_index = CMD_CANCEL_LINK,
-        .next_if_true = CMD_END_SCRIPT
-    },
+        .next_if_true = CMD_END_SCRIPT},
     // CMD_END_MISSINGNO
     {
         .conditional_index = CMD_END_MISSINGNO,
-        .next_if_true = PTGB_DIA_TRANS_GOOD
-    },
+        .next_if_true = PTGB_DIA_TRANS_GOOD},
     // COND_ERROR_TIMEOUT_ONE
     {
         .conditional_index = COND_ERROR_TIMEOUT_ONE,
         .next_if_true = COND_ERROR_TIMEOUT_TWO,
-        .next_if_false = PTGB_DIA_ERROR_TIME_ONE
-    },
+        .next_if_false = PTGB_DIA_ERROR_TIME_ONE},
     // COND_ERROR_DISCONNECT
     {
         .conditional_index = COND_ERROR_DISCONNECT,
         .next_if_true = CMD_IS_A_VALID_PKMN,
-        .next_if_false = PTGB_DIA_ERROR_DISCONNECT
-    },
+        .next_if_false = PTGB_DIA_ERROR_DISCONNECT},
     // COND_ERROR_COM_ENDED
     {
         .conditional_index = COND_ERROR_COM_ENDED,
         .next_if_true = COND_ERROR_COLOSSEUM,
-        .next_if_false = PTGB_DIA_ERROR_COM_ENDED
-    },
+        .next_if_false = PTGB_DIA_ERROR_COM_ENDED},
     // COND_ERROR_TIMEOUT_TWO
     {
         .conditional_index = COND_ERROR_TIMEOUT_TWO,
         .next_if_true = COND_ERROR_COM_ENDED,
-        .next_if_false = PTGB_DIA_ERROR_TIME_TWO
-    },
+        .next_if_false = PTGB_DIA_ERROR_TIME_TWO},
     // COND_ERROR_COLOSSEUM
     {
         .conditional_index = COND_ERROR_COLOSSEUM,
         .next_if_true = COND_ERROR_DISCONNECT,
-        .next_if_false = PTGB_DIA_ERROR_COLOSSEUM
-    },
+        .next_if_false = PTGB_DIA_ERROR_COLOSSEUM},
     // COND_BEAT_E4
     {
         .conditional_index = COND_BEAT_E4,
         .next_if_true = COND_MG_ENABLED,
-        .next_if_false = PTGB_DIA_E4
-    },
+        .next_if_false = PTGB_DIA_E4},
     // COND_MG_ENABLED
     {
         .conditional_index = COND_MG_ENABLED,
         .next_if_true = COND_MG_OTHER_EVENT,
-        .next_if_false = COND_IS_FRLGE
-    },
+        .next_if_false = COND_IS_FRLGE},
     // COND_TUTORIAL_COMPLETE
     {
         .conditional_index = COND_TUTORIAL_COMPLETE,
         .next_if_true = COND_BEAT_E4,
-        .next_if_false = PTGB_DIA_OPEN
-    },
+        .next_if_false = PTGB_DIA_OPEN},
     // COND_NEW_POKEMON
     {
         .conditional_index = COND_NEW_POKEMON,
         .next_if_true = PTGB_DIA_NEW_DEX,
-        .next_if_false = PTGB_DIA_NO_NEW_DEX
-    },
+        .next_if_false = PTGB_DIA_NO_NEW_DEX},
     // COND_IS_HOENN_RS
     {
         .conditional_index = COND_IS_HOENN_RS,
         .next_if_true = PTGB_DIA_SEND_FRIEND_HOENN_RS,
-        .next_if_false = COND_IS_HOENN_E
-    },
+        .next_if_false = COND_IS_HOENN_E},
     // COND_IS_FRLGE
     {
         .conditional_index = COND_IS_FRLGE,
         .next_if_true = PTGB_DIA_MG_FRLGE,
-        .next_if_false = PTGB_DIA_MG_RS
-    },
+        .next_if_false = PTGB_DIA_MG_RS},
     // COND_MG_OTHER_EVENT
     {
         .conditional_index = COND_MG_OTHER_EVENT,
         .next_if_true = PTGB_DIA_MG_OTHER_EVENT,
-        .next_if_false = COND_PKMN_TO_COLLECT
-    },
+        .next_if_false = COND_PKMN_TO_COLLECT},
     // COND_PKMN_TO_COLLECT
     {
         .conditional_index = COND_PKMN_TO_COLLECT,
         .next_if_true = PTGB_DIA_PKMN_TO_COLLECT,
-        .next_if_false = PTGB_DIA_ASK_QUEST
-    },
+        .next_if_false = PTGB_DIA_ASK_QUEST},
     // COND_GB_ROM_EXISTS
     {
         .conditional_index = COND_GB_ROM_EXISTS,
         .next_if_true = CMD_SLIDE_PROF_RIGHT,
-        .next_if_false = PTGB_DIA_NO_GB_ROM
-    },
+        .next_if_false = PTGB_DIA_NO_GB_ROM},
     // COND_CHECK_MYTHIC
     {
         .conditional_index = COND_CHECK_MYTHIC,
         .next_if_true = PTGB_DIA_MYTHIC_CONVERT,
-        .next_if_false = COND_CHECK_MISSINGNO
-    },
+        .next_if_false = COND_CHECK_MISSINGNO},
     // COND_CHECK_DEX
     {
         .conditional_index = COND_CHECK_DEX,
         .next_if_true = 0,
-        .next_if_false = COND_CHECK_KANTO
-    },
+        .next_if_false = COND_CHECK_KANTO},
     // COND_CHECK_KANTO
     {
         .conditional_index = COND_CHECK_KANTO,
         .next_if_true = PTGB_DIA_K_DEX_NOT_FULL,
-        .next_if_false = PTGB_DIA_J_DEX_NOT_FULL
-    },
+        .next_if_false = PTGB_DIA_J_DEX_NOT_FULL},
     // COND_SOME_INVALID_PKMN
     {
         .conditional_index = COND_SOME_INVALID_PKMN,
         .next_if_true = PTGB_DIA_SOME_INVALID_PKMN,
-        .next_if_false = COND_CHECK_MYTHIC
-    },
+        .next_if_false = COND_CHECK_MYTHIC},
     // COND_IS_HOENN_E
     {
         .conditional_index = COND_IS_HOENN_E,
         .next_if_true = PTGB_DIA_SEND_FRIEND_HOENN_E,
-        .next_if_false = PTGB_DIA_SEND_FRIEND_KANTO
-    },
+        .next_if_false = PTGB_DIA_SEND_FRIEND_KANTO},
     // COND_CHECK_MISSINGNO
     {
         .conditional_index = COND_CHECK_MISSINGNO,
         .next_if_true = PTGB_DIA_IS_MISSINGNO,
-        .next_if_false = PTGB_DIA_IN_BOX
-    }
-};
+        .next_if_false = PTGB_DIA_IN_BOX}};
 
 // For documentation purposes, here's an overview of the categories of the events script:
 // -------- EVENTS SCRIPT --------
@@ -555,15 +480,13 @@ const script_obj_params event_script_params[SCRIPT_SIZE] = {
     // PTGB_DIA_ASK_QUEST
     {
         .text_entry_index = PTGB_DIA_ASK_QUEST,
-        .next_if_true = CMD_SLIDE_PROF_LEFT
-    },
+        .next_if_true = CMD_SLIDE_PROF_LEFT},
     {}, // PTGB_DIA_WHAT_GAME_TRANS
     {}, // PTGB_DIA_WHAT_LANG_TRANS
     // PTGB_DIA_NO_GB_ROM
     {
         .text_entry_index = PTGB_DIA_NO_GB_ROM,
-        .next_if_true = PTGB_DIA_WHAT_LANG_EVENT
-    },
+        .next_if_true = PTGB_DIA_WHAT_LANG_EVENT},
     {}, // PTGB_DIA_IN_BOX
     {}, // PTGB_DIA_MYTHIC_CONVERT
     {}, // PTGB_DIA_CANCEL
@@ -578,65 +501,54 @@ const script_obj_params event_script_params[SCRIPT_SIZE] = {
     // PTGB_DIA_WHAT_LANG_EVENT
     {
         .text_entry_index = PTGB_DIA_WHAT_LANG_EVENT,
-        .next_if_true = CMD_LANG_MENU
-    },
+        .next_if_true = CMD_LANG_MENU},
     // PTGB_DIA_WHAT_GAME_EVENT
     {
         .text_entry_index = PTGB_DIA_WHAT_GAME_EVENT,
-        .next_if_true = CMD_GAME_MENU
-    },
+        .next_if_true = CMD_GAME_MENU},
     // PTGB_DIA_K_DEX_NOT_FULL
     {
         .text_entry_index = PTGB_DIA_K_DEX_NOT_FULL,
-        .next_if_true = CMD_END_SCRIPT
-    },
+        .next_if_true = CMD_END_SCRIPT},
     // PTGB_DIA_J_DEX_NOT_FULL
     {
         .text_entry_index = PTGB_DIA_J_DEX_NOT_FULL,
-        .next_if_true = CMD_END_SCRIPT
-    },
+        .next_if_true = CMD_END_SCRIPT},
     {}, // T_SCRIPT_START
     // E_SCRIPT_START
     {
         .conditional_index = CMD_SHOW_PROF,
-        .next_if_true = PTGB_DIA_ASK_QUEST
-    },
+        .next_if_true = PTGB_DIA_ASK_QUEST},
     {}, // CMD_START_LINK
     {}, // CMD_IMPORT_POKEMON
     // CMD_BACK_TO_MENU
     {
         .conditional_index = CMD_BACK_TO_MENU,
-        .next_if_true = T_SCRIPT_START
-    },
+        .next_if_true = T_SCRIPT_START},
     {}, // CMD_SHOW_PROF
     {}, // CMD_HIDE_PROF
     {}, // CMD_SET_TUTOR_TRUE
     // CMD_END_SCRIPT
     {
         .conditional_index = CMD_END_SCRIPT,
-        .next_if_true = CMD_BACK_TO_MENU
-    },
+        .next_if_true = CMD_BACK_TO_MENU},
     // CMD_GAME_MENU
     {
         .conditional_index = CMD_GAME_MENU,
         .next_if_true = COND_GB_ROM_EXISTS,
-        .next_if_false = PTGB_DIA_WHAT_LANG_EVENT
-    },
+        .next_if_false = PTGB_DIA_WHAT_LANG_EVENT},
     // CMD_LANG_MENU
     {
         .conditional_index = CMD_LANG_MENU,
-        .next_if_true = PTGB_DIA_WHAT_GAME_EVENT
-    },
+        .next_if_true = PTGB_DIA_WHAT_GAME_EVENT},
     // CMD_SLIDE_PROF_LEFT
     {
         .conditional_index = CMD_SLIDE_PROF_LEFT,
-        .next_if_true = PTGB_DIA_WHAT_LANG_EVENT
-    },
+        .next_if_true = PTGB_DIA_WHAT_LANG_EVENT},
     // CMD_SLIDE_PROF_RIGHT
     {
         .conditional_index = CMD_SLIDE_PROF_RIGHT,
-        .next_if_true = COND_CHECK_DEX
-    },
+        .next_if_true = COND_CHECK_DEX},
     {}, // CMD_CONTINUE_LINK
     {}, // CMD_BOX_MENU
     {}, // CMD_MYTHIC_MENU
@@ -660,21 +572,18 @@ const script_obj_params event_script_params[SCRIPT_SIZE] = {
     {
         .conditional_index = COND_GB_ROM_EXISTS,
         .next_if_true = CMD_SLIDE_PROF_RIGHT,
-        .next_if_false = PTGB_DIA_NO_GB_ROM
-    },
+        .next_if_false = PTGB_DIA_NO_GB_ROM},
     {}, // COND_CHECK_MYTHIC
     // COND_CHECK_DEX
     {
         .conditional_index = COND_CHECK_DEX,
         .next_if_true = 0,
-        .next_if_false = COND_CHECK_KANTO
-    },
+        .next_if_false = COND_CHECK_KANTO},
     // COND_CHECK_KANTO
     {
         .conditional_index = COND_CHECK_KANTO,
         .next_if_true = PTGB_DIA_K_DEX_NOT_FULL,
-        .next_if_false = PTGB_DIA_J_DEX_NOT_FULL
-    },
+        .next_if_false = PTGB_DIA_J_DEX_NOT_FULL},
     {}, // COND_SOME_INVALID_PKMN
     {}, // COND_IS_HOENN_E
     {}, // COND_CHECK_MISSINGNO
@@ -691,9 +600,9 @@ void populate_lang_menu()
     langs.add_option(GENERAL_option_german, GER_ID);
     langs.add_option(GENERAL_option_italian, ITA_ID);
     langs.add_option(GENERAL_option_korean, KOR_ID);
-    // TODO: Removing the cancel option for the time being, since canceling the 
+    // TODO: Removing the cancel option for the time being, since canceling the
     // link trade when there is no link connection crashes the game
-    // langs.add_option(GENERAL_option_cancel, UINT8_MAX); 
+    // langs.add_option(GENERAL_option_cancel, UINT8_MAX);
 }
 
 void populate_game_menu(int lang)
@@ -741,19 +650,19 @@ bool run_conditional(int index)
     {
 
     case COND_ERROR_COM_ENDED:
-        return party_data.get_last_error() != COND_ERROR_COM_ENDED;
+        return globalLinkCable.lastError != COND_ERROR_COM_ENDED;
 
     case COND_ERROR_DISCONNECT:
-        return party_data.get_last_error() != COND_ERROR_DISCONNECT;
+        return globalLinkCable.lastError != COND_ERROR_DISCONNECT;
 
     case COND_ERROR_TIMEOUT_ONE:
-        return party_data.get_last_error() != COND_ERROR_TIMEOUT_ONE;
+        return globalLinkCable.lastError != COND_ERROR_TIMEOUT_ONE;
 
     case COND_ERROR_TIMEOUT_TWO:
-        return party_data.get_last_error() != COND_ERROR_TIMEOUT_TWO;
+        return globalLinkCable.lastError != COND_ERROR_TIMEOUT_TWO;
 
     case COND_ERROR_COLOSSEUM:
-        return party_data.get_last_error() != COND_ERROR_COLOSSEUM;
+        return globalLinkCable.lastError != COND_ERROR_COLOSSEUM;
 
     case COND_BEAT_E4:
         return read_flag(curr_GBA_rom.e4_flag) || g_debug_options.ignore_mg_e4_flags;
@@ -780,13 +689,13 @@ bool run_conditional(int index)
         return compare_map_and_npc_data(curr_GBA_rom.map_bank, curr_GBA_rom.map_id, curr_GBA_rom.npc_id) && !read_flag(curr_GBA_rom.all_collected_flag) && !g_debug_options.ignore_unreceived_pkmn;
 
     case COND_GB_ROM_EXISTS:
-        return party_data.load_gb_rom();
+        return true;
 
     case COND_CHECK_MYTHIC:
         return party_data.get_contains_mythical();
 
     case COND_CHECK_DEX:
-        if (party_data.get_game_gen() == 1)
+        if (globalLinkCable.gen == 1)
         {
             return (get_dex_completion(1, false) == 150) || g_debug_options.ignore_dex_completion;
         }
@@ -796,7 +705,7 @@ bool run_conditional(int index)
         }
 
     case COND_CHECK_KANTO:
-        return party_data.get_game_gen() == 1;
+        return globalLinkCable.gen == 1;
 
     case COND_SOME_INVALID_PKMN:
         return party_data.get_contains_invalid();
@@ -815,7 +724,21 @@ bool run_conditional(int index)
     case CMD_START_LINK:
         load_flex_background(FLEXBG_FENNEL, 3);
         link_animation_state(STATE_CONNECTION);
-        party_data.start_link();
+        if (g_debug_options.ignore_link_cable)
+        {
+            // TODO - Fix debug data being added here
+        }
+        else
+        {
+            u16 debug_charset[256];
+            load_localized_charset(debug_charset, 3, ENGLISH);
+            globalLinkCable.setup(debug_charset);
+            globalLinkCable.startConnection(INITIAL_CONNECTION);
+            while (globalLinkCable.subState != END)
+            {
+                VBlankIntrWait();
+            }
+        }
         reload_textbox_background();
         load_flex_background(FLEXBG_FENNEL, 2);
         link_animation_state(0);
@@ -832,11 +755,11 @@ bool run_conditional(int index)
         return true;
 
     case CMD_SHOW_PROF:
-        //load_flex_background(FLEXBG_FENNEL, 3);
+        // load_flex_background(FLEXBG_FENNEL, 3);
         return true;
 
     case CMD_HIDE_PROF:
-        //load_flex_background(FLEXBG_FENNEL, 3);
+        // load_flex_background(FLEXBG_FENNEL, 3);
         return true;
 
     case CMD_SET_TUTOR_TRUE:
@@ -873,7 +796,6 @@ bool run_conditional(int index)
         {
             return false;
         }
-        party_data.set_game(game);
         return true;
     case CMD_SLIDE_PROF_LEFT:
         for (int i = 0; i <= (8 * 7); i += 2)
@@ -898,7 +820,6 @@ bool run_conditional(int index)
         return true;
 
     case CMD_CONTINUE_LINK:
-        party_data.continue_link(false);
         return true;
 
     case CMD_BOX_MENU:
@@ -915,7 +836,6 @@ bool run_conditional(int index)
         return party_data.box.getNumValid() > 0 || g_debug_options.dont_hide_invalid_pkmn;
 
     case CMD_CANCEL_LINK:
-        party_data.continue_link(true);
         return true;
 
     case CMD_END_MISSINGNO:

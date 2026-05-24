@@ -152,6 +152,11 @@ enum SubstateState
     END,
 };
 
+enum LinkConnectionError
+{
+    NO_ERROR,
+};
+
 class LinkConnection
 {
 public:
@@ -162,6 +167,8 @@ public:
 
     CompositeState prevCompState = NO_COMPOSITE_STATE;
     SubstateState prevSubState = NO_SUBSTATE;
+
+    LinkConnectionError lastError = NO_ERROR;
 
     uint8_t inData;
     uint8_t outData;

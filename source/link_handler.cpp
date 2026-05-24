@@ -1,6 +1,3 @@
-// Loosely based on code created by StevenChaulk
-// Source: https://github.com/stevenchaulk/arduino-poke-gen2
-
 #include <tonc.h>
 #include <stdarg.h>
 #include <inttypes.h>
@@ -77,8 +74,11 @@ void LinkConnection::setup(const u16 *debug_charset)
     general_text_reader.readFile(GENERAL_connecting, lineBuffer);
     ptgb_write_textbox(lineBuffer, true, false, GENERAL_INDEX, GENERAL_connecting, false);
   }
-
-  create_textbox(0, 0, 138, 128, false);
+  
+  if (g_debug_options.print_link_data == true)
+  {
+    create_textbox(0, 0, 138, 128, false);
+  }
 }
 
 void LinkConnection::startConnection(CompositeState startState)
