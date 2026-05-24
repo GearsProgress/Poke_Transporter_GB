@@ -25,6 +25,109 @@
 
 #define SPI_TEXT_OUT_ARRAY_ELEMENT_SIZE 64
 
+enum GameBoyROM
+{
+    RED_JP_v0,
+    RED_JP_v1,
+    RED_EN,
+    RED_FR,
+    RED_IT,
+    RED_DE,
+    RED_SP,
+    GREEN_JP_v0,
+    GREEN_JP_v1,
+    BLUE_JP,
+    BLUE_EN,
+    BLUE_FR,
+    BLUE_IT,
+    BLUE_DE,
+    BLUE_SP,
+    YELLOW_JP_v0,
+    YELLOW_JP_v1,
+    YELLOW_JP_v2,
+    YELLOW_JP_v3,
+    YELLOW_EN,
+    YELLOW_FR,
+    YELLOW_IT,
+    YELLOW_DE,
+    YELLOW_SP,
+    GOLD_JP_v0,
+    GOLD_JP_v1,
+    GOLD_EN,
+    GOLD_FR,
+    GOLD_IT,
+    GOLD_DE,
+    GOLD_SP,
+    GOLD_KOR,
+    SILVER_JP_v0,
+    SILVER_JP_v1,
+    SILVER_EN,
+    SILVER_FR,
+    SILVER_IT,
+    SILVER_DE,
+    SILVER_SP,
+    SILVER_KOR,
+    CRYSTAL_JP,
+    CRYSTAL_EN,
+    CRYSTAL_FR,
+    CRYSTAL_IT,
+    CRYSTAL_DE,
+    CRYSTAL_SP,
+
+    NO_GB_ROM,
+    GB_ROM_ERROR,
+};
+
+// This table has the 3 checksums, followed by the enum value
+const u16 GameBoyROMChecksumTable[][4]{
+    {0x32, 0xA2, 0xC1, RED_JP_v0},
+    {0x31, 0xB8, 0x66, RED_JP_v1},
+    {0x20, 0x91, 0xE6, RED_EN},
+    {0x18, 0x7A, 0xFC, RED_FR},
+    {0x18, 0x89, 0xD2, RED_IT},
+    {0x18, 0x5C, 0xDC, RED_DE},
+    {0x18, 0x38, 0x4A, RED_SP},
+    {0x9C, 0xDD, 0xD5, GREEN_JP_v0},
+    {0x9B, 0xF5, 0x47, GREEN_JP_v1},
+    {0xE5, 0xDC, 0x36, BLUE_JP},
+    {0xD3, 0x9D, 0x0A, BLUE_EN},
+    {0xCB, 0x56, 0xA4, BLUE_FR},
+    {0xCB, 0x5E, 0x9C, BLUE_IT},
+    {0xCB, 0x2E, 0xBC, BLUE_DE},
+    {0xCB, 0x14, 0xD7, BLUE_SP},
+    {0x20, 0x9C, 0x29, YELLOW_JP_v0},
+    {0x1F, 0x88, 0x58, YELLOW_JP_v1},
+    {0x1E, 0xED, 0xD9, YELLOW_JP_v2},
+    {0x1D, 0xD9, 0x84, YELLOW_JP_v3},
+    {0x97, 0x04, 0x7C, YELLOW_EN},
+    {0x61, 0x66, 0xFB, YELLOW_FR},
+    {0x5C, 0x4E, 0x8F, YELLOW_IT},
+    {0x5F, 0xB7, 0xC1, YELLOW_DE},
+    {0x52, 0x56, 0x37, YELLOW_SP},
+    {0x48, 0x8A, 0x70, GOLD_JP_v0},
+    {0x47, 0x84, 0x60, GOLD_JP_v1},
+    {0x4B, 0x68, 0x2D, GOLD_EN},
+    {0x4A, 0x6F, 0xC6, GOLD_FR},
+    {0x47, 0xCE, 0x0C, GOLD_IT},
+    {0x4C, 0xDC, 0x97, GOLD_DE},
+    {0x3D, 0x93, 0x53, GOLD_SP},
+    {0x08, 0x77, 0x8A, GOLD_KOR},
+    {0x27, 0x76, 0x91, SILVER_JP_v0},
+    {0x26, 0x1D, 0x34, SILVER_JP_v1},
+    {0x2A, 0x0D, 0xAE, SILVER_EN},
+    {0x29, 0xFB, 0x8C, SILVER_FR},
+    {0x26, 0x73, 0x50, SILVER_IT},
+    {0x2B, 0xCD, 0x6E, SILVER_DE},
+    {0x1C, 0x06, 0x4B, SILVER_SP},
+    {0xE7, 0x98, 0x5B, SILVER_KOR},
+    {0x22, 0x9A, 0x40, CRYSTAL_JP},
+    {0x26, 0x18, 0xD2, CRYSTAL_EN},
+    {0x26, 0xF2, 0xE2, CRYSTAL_FR},
+    {0x23, 0xDB, 0xBA, CRYSTAL_IT},
+    {0x28, 0x49, 0x82, CRYSTAL_DE},
+    {0x19, 0x42, 0xF4, CRYSTAL_SP},
+};
+
 enum CompositeState
 {
     NO_COMPOSITE_STATE,
@@ -65,7 +168,9 @@ public:
 
     int compStateCounter = 0; // the counter for the total number of bytes sent compstate
     int subStateCounter = 0;  // The counter for the total number of bytes sent in this substate
-    int gen = 0;              // The generation we are trading with
+
+    int gen = 0;       // The generation we are trading with
+    GameBoyROM currROM = NO_GB_ROM; // The GameBoy ROM we're communicating with
 
     int FF_count = 0;   // The number of 0xFF bytes that have been in a row
     int zero_count = 0; // The number of 0x00 bytes that have been in a row
@@ -98,6 +203,7 @@ public:
 
 private:
     void load_universal_payload();
+    void LoadCurrGameFromChecksum();
     void logicState_initConnection();
 
     // Used for debug features

@@ -323,6 +323,7 @@ void LinkConnection::logicState_initConnection()
     }
     else if (inData == 0xFD && dataOutBufferCurrIndex > 0)
     {
+      LoadCurrGameFromChecksum();
       subState = END;
     }
     else
@@ -345,7 +346,7 @@ void LinkConnection::load_universal_payload()
 {
   u32 fileSize;
   u8 decompressionBuffer[0x1000];
-  const u8 *chunkList[] = { (const u8*)GB_Payloads_chunk0_lz10_bin };
+  const u8 *chunkList[] = {(const u8 *)GB_Payloads_chunk0_lz10_bin};
   FileContainerReader reader(chunkList, 1);
   const u32 fileIndex = (this->gen == 1) ? (u32)GB_PayloadsFiles::UNIVERSALPAYLOADGEN1 : (u32)GB_PayloadsFiles::UNIVERSALPAYLOADGEN2;
 
@@ -355,4 +356,37 @@ void LinkConnection::load_universal_payload()
   reader.read(this->curr_payload, fileSize);
 
   this->curr_payload_size = fileSize;
+}
+
+void LinkConnection::LoadCurrGameFromChecksum()
+{
+  if (((dataOutBuffer[0] + dataOutBuffer[1]) & 0x7F) != dataOutBuffer[3])
+  {
+    currROM = GB_ROM_ERROR;
+  };
+
+  int start = 0;
+  int end = 0;
+
+  if (gen == 1)
+  {
+    start = RED_JP_v0;
+    end = GOLD_JP_v0;
+  }
+  else if (gen == 2)
+  {
+    start = GOLD_JP_v0;
+    end = NO_GB_ROM;
+  }
+
+  for (int i = start; i < end; i++)
+  {
+    if (dataOutBuffer[0] == GameBoyROMChecksumTable[i][1] && dataOutBuffer[1] == GameBoyROMChecksumTable[i][2])
+    {
+      currROM = (GameBoyROM)GameBoyROMChecksumTable[i][3];
+      return;
+    }
+  }
+  currROM = GB_ROM_ERROR;
+  return;
 }
