@@ -119,12 +119,12 @@ void Select_Menu::on_selection_changed(unsigned new_index, unsigned x, unsigned 
         switch (menu_type)
         {
         case CART_MENU:
-            load_select_sprites(item_value, lang);
+            //load_select_sprites(item_value, lang);
             obj_unhide(cart_shell, 0);
             obj_unhide(cart_label, 0);
             break;
         case LANG_MENU:
-            load_select_sprites(0, item_value);
+            //load_select_sprites(0, item_value);
             obj_unhide(flag, 0);
             break;
         }

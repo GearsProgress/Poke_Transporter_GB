@@ -13,6 +13,7 @@
 #include "select_menu.h"
 #include "translated_text.h"
 #include "link_handler.h"
+#include "text_tables.h"
 
 int last_error;
 Pokemon_Party party_data;
@@ -164,7 +165,7 @@ const script_obj_params transfer_script_params[SCRIPT_SIZE] = {
     // PTGB_DIA_MG_OTHER_EVENT
     {
         .text_entry_index = PTGB_DIA_MG_OTHER_EVENT,
-        .next_if_true = PTGB_DIA_ASK_QUEST},
+        .next_if_true = PTGB_DIA_LETS_START},
     // PTGB_DIA_PKMN_TO_COLLECT
     {
         .text_entry_index = PTGB_DIA_PKMN_TO_COLLECT,
@@ -256,7 +257,7 @@ const script_obj_params transfer_script_params[SCRIPT_SIZE] = {
     // E_SCRIPT_START
     {
         .conditional_index = CMD_SHOW_PROF,
-        .next_if_true = PTGB_DIA_ASK_QUEST},
+        .next_if_true = PTGB_DIA_LETS_START},
     // CMD_START_LINK
     {
         .conditional_index = CMD_START_LINK,
@@ -390,7 +391,7 @@ const script_obj_params transfer_script_params[SCRIPT_SIZE] = {
     {
         .conditional_index = COND_PKMN_TO_COLLECT,
         .next_if_true = PTGB_DIA_PKMN_TO_COLLECT,
-        .next_if_false = PTGB_DIA_ASK_QUEST},
+        .next_if_false = PTGB_DIA_LETS_START},
     // COND_GB_ROM_EXISTS
     {
         .conditional_index = COND_GB_ROM_EXISTS,
@@ -730,11 +731,72 @@ bool run_conditional(int index)
         }
         else
         {
+
+            u8 general_text_table_buffer[2048];
+            u8 lineBuffer[1024]; // text_helper/main.py restricts the lines to 1024 bytes.
+            const u8 **chunkList;
+            u32 numChunks;
+            u32 chunkSize;
+
+            get_text_table_chunks(GENERAL_INDEX, &chunkList, &numChunks, &chunkSize);
+
+            FileContainerReader general_text_reader(chunkList, numChunks, chunkSize);
+            general_text_reader.init(general_text_table_buffer, sizeof(general_text_table_buffer));
+
+            general_text_reader.readFile(GENERAL_connecting, lineBuffer);
+            ptgb_write_textbox(lineBuffer, true, false, GENERAL_INDEX, GENERAL_connecting, false);
+
+            load_select_sprites(NO_GB_ROM);
+            obj_unhide(gba_cart, 0);
+            obj_set_pos(gba_cart, 17 * 8, 14 * 8);
+
+            obj_unhide(cart_shell, 0);
+            obj_set_pos(cart_shell, (8 * 8), (11 * 8) + 11);
+
+            obj_unhide(cart_label, 0);
+            obj_set_pos(cart_label, (8 * 8) + 8, (11 * 8) + 11 + 13);
+
             u16 debug_charset[256];
             load_localized_charset(debug_charset, 3, ENGLISH);
             globalLinkCable.setup(debug_charset);
             globalLinkCable.startConnection(INITIAL_CONNECTION);
             while (globalLinkCable.subState != END)
+            {
+                if (globalLinkCable.subStateChanged)
+                {
+                    switch (globalLinkCable.subState)
+                    {
+                    case SAVE_SUCCESS:
+                        general_text_reader.readFile(GENERAL_link_success, lineBuffer);
+                        ptgb_write_textbox(lineBuffer, true, false, GENERAL_INDEX, GENERAL_link_success, false);
+                        break;
+                    case TRADE_PREAMBLE:
+                        general_text_reader.readFile(GENERAL_transferring, lineBuffer);
+                        ptgb_write_textbox(lineBuffer, true, false, GENERAL_INDEX, GENERAL_transferring, false);
+                        break;
+                    default:
+                        break;
+                    }
+                }
+                VBlankIntrWait();
+            }
+            load_select_sprites(globalLinkCable.currROM);
+
+            obj_unhide(gba_cart, 0);
+            obj_set_pos(gba_cart, 17 * 8, 14 * 8);
+
+            obj_unhide(cart_shell, 0);
+            obj_set_pos(cart_shell, (8 * 8), (11 * 8) + 11);
+
+            obj_unhide(cart_label, 0);
+            obj_set_pos(cart_label, (8 * 8) + 8, (11 * 8) + 11 + 13);
+
+            obj_unhide(flag, 0);
+            obj_set_pos(flag, 1.5 * 8, 14 * 8);
+            
+            globalLinkCable.startConnection(INITIAL_CONNECTION);
+
+            while (true)
             {
                 VBlankIntrWait();
             }

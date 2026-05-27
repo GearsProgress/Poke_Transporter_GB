@@ -60,21 +60,6 @@ void LinkConnection::setup(const u16 *debug_charset)
 
   this->debug_charset = debug_charset;
 
-  {
-    u8 general_text_table_buffer[2048];
-    u8 lineBuffer[1024]; // text_helper/main.py restricts the lines to 1024 bytes.
-    const u8 **chunkList;
-    u32 numChunks;
-    u32 chunkSize;
-
-    get_text_table_chunks(GENERAL_INDEX, &chunkList, &numChunks, &chunkSize);
-
-    FileContainerReader general_text_reader(chunkList, numChunks, chunkSize);
-    general_text_reader.init(general_text_table_buffer, sizeof(general_text_table_buffer));
-    general_text_reader.readFile(GENERAL_connecting, lineBuffer);
-    ptgb_write_textbox(lineBuffer, true, false, GENERAL_INDEX, GENERAL_connecting, false);
-  }
-  
   if (g_debug_options.print_link_data == true)
   {
     create_textbox(0, 0, 138, 128, false);
@@ -161,19 +146,23 @@ void LinkConnection::handleStateLogic()
   if (prevSubState != subState)
   {
     subStateCounter = 0;
+    subStateChanged = true;
   }
   else
   {
     subStateCounter++;
+    subStateChanged = false;
   }
 
   if (prevCompState != compState)
   {
     compStateCounter = 0;
+    compStateChanged = true;
   }
   else
   {
     compStateCounter++;
+    compStateChanged = false;
   }
 }
 
@@ -307,8 +296,6 @@ void LinkConnection::logicState_initConnection()
     if (inData == 0xFD)
     {
       subState = GET_CHECKSUM;
-      g_debug_options.print_link_data = true;
-      paused = true;
     }
     outData = 0x00;
     break;

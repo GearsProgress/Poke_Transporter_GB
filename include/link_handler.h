@@ -1,6 +1,3 @@
-// Loosely based on code created by StevenChaulk
-// Source: https://github.com/stevenchaulk/arduino-poke-gen2
-
 #ifndef LINK_HANDLER_H_
 #define LINK_HANDLER_H_
 
@@ -131,7 +128,8 @@ const u16 GameBoyROMChecksumTable[][4]{
 enum CompositeState
 {
     NO_COMPOSITE_STATE,
-    INITIAL_CONNECTION
+    INITIAL_CONNECTION,
+    SEND_PAYLOAD,
 };
 
 enum SubstateState
@@ -149,7 +147,10 @@ enum SubstateState
     MAIL,
     WAIT_FOR_PAYLOAD,
     GET_CHECKSUM,
+
+    // SEND_PAYLOAD
     END,
+
 };
 
 enum LinkConnectionError
@@ -163,10 +164,12 @@ public:
     LinkConnection *globalPtr;
 
     CompositeState compState = NO_COMPOSITE_STATE;
-    SubstateState subState = NO_SUBSTATE;
-
     CompositeState prevCompState = NO_COMPOSITE_STATE;
+    bool compStateChanged = false;
+
+    SubstateState subState = NO_SUBSTATE;
     SubstateState prevSubState = NO_SUBSTATE;
+    bool subStateChanged = false;
 
     LinkConnectionError lastError = NO_ERROR;
 
@@ -176,7 +179,7 @@ public:
     int compStateCounter = 0; // the counter for the total number of bytes sent compstate
     int subStateCounter = 0;  // The counter for the total number of bytes sent in this substate
 
-    int gen = 0;       // The generation we are trading with
+    int gen = 0;                    // The generation we are trading with
     GameBoyROM currROM = NO_GB_ROM; // The GameBoy ROM we're communicating with
 
     int FF_count = 0;   // The number of 0xFF bytes that have been in a row

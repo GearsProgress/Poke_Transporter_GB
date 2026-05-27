@@ -103,7 +103,7 @@ void set_background_pal(int curr_rom_id, bool dark, bool fade)
                     ((((NUM_CYCLES - n) * INV_NUM_CYCLES) * old_pal[1]) + ((n * INV_NUM_CYCLES) * new_pal[1])) >> 16,
                     ((((NUM_CYCLES - n) * INV_NUM_CYCLES) * old_pal[2]) + ((n * INV_NUM_CYCLES) * new_pal[2])) >> 16);
             }
-            //global_next_frame();
+            // global_next_frame();
         }
     }
     else
@@ -132,7 +132,7 @@ void load_flex_background(int background_id, int layer)
     if (curr_flex_background != background_id) // Only load the background if it isn't already loaded
     {
         // This prevents screen tearing on this frame
-        //global_next_frame();
+        // global_next_frame();
         BG_FLEX = (BG_FLEX && !BG_PRIO_MASK) | BG_PRIO(3);
 
         switch (background_id)
@@ -143,7 +143,7 @@ void load_flex_background(int background_id, int layer)
             // Load tiles into CBB 0
             LZ77UnCompVram(openingBGTiles, &tile_mem[CBB][0]);
             // Give it a frame to uncompress the data
-            //global_next_frame();
+            // global_next_frame();
             // Load map into SBB 0
             LZ77UnCompVram(openingBGMap, &se_mem[SBB][0]);
             REG_BG1VOFS = 96;
@@ -154,7 +154,7 @@ void load_flex_background(int background_id, int layer)
             // Load tiles into CBB 0
             LZ77UnCompVram(fennelBGTiles, &tile_mem[CBB][0]);
             // Give it a frame to uncompress the data
-            //global_next_frame();
+            // global_next_frame();
             // Load map into SBB 0
             LZ77UnCompVram(fennelBGMap, &se_mem[SBB][0]);
             REG_BG1VOFS = FENNEL_SHIFT;
@@ -165,7 +165,7 @@ void load_flex_background(int background_id, int layer)
             // Load tiles into CBB 0
             LZ77UnCompVram(dexBGTiles, &tile_mem[CBB][0]);
             // Give it a frame to uncompress the data
-            //global_next_frame();
+            // global_next_frame();
             // Load map into SBB 0
             LZ77UnCompVram(dexBGMap, &se_mem[SBB][0]);
             REG_BG1VOFS = 0;
@@ -176,7 +176,7 @@ void load_flex_background(int background_id, int layer)
             // Load tiles into CBB 0
             LZ77UnCompVram(menu_barsTiles, &tile_mem[CBB][0]);
             // Give it a frame to uncompress the data
-            //global_next_frame();
+            // global_next_frame();
             // Load map into SBB 0
             LZ77UnCompVram(menu_barsMap, &se_mem[SBB][0]);
             REG_BG1VOFS = 0;
@@ -187,7 +187,7 @@ void load_flex_background(int background_id, int layer)
             // Load tiles into CBB 0
             LZ77UnCompVram(boxBGTiles, &tile_mem[CBB][0]);
             // Give it a frame to uncompress the data
-            //global_next_frame();
+            // global_next_frame();
             // Load map into SBB 0
             LZ77UnCompVram(boxBGMap, &se_mem[SBB][0]);
             REG_BG1VOFS = 0;
@@ -580,7 +580,7 @@ void load_sprite_compressed(OBJ_ATTR *sprite, const unsigned int objTiles[],
     obj_hide(sprite);
 };
 
-void load_select_sprites(u8 game_id, u8 lang)
+void load_select_sprites(GameBoyROM currROM)
 {
     u32 curr_tile_id = global_tile_id_end;
     //                                    Alpha         Shadow          Main Color       Grey             Black         Mid
@@ -598,102 +598,143 @@ void load_select_sprites(u8 game_id, u8 lang)
     const unsigned short *label_palette = 0;
     const unsigned int *cart_tiles = 0;
     const unsigned short *cart_palette = 0;
-    switch (game_id)
+
+    switch (currROM)
     {
-    case (GREEN_ID):
+    case GREEN_JP_v0:
+    case GREEN_JP_v1:
         label_tiles = Label_GreenTiles;
         label_palette = Label_GreenPal;
         cart_tiles = GB_ShellTiles;
         cart_palette = jpn_gb_pal;
         break;
 
-    case (RED_ID):
+    case RED_JP_v0:
+    case RED_JP_v1:
         label_tiles = Label_RedTiles;
         label_palette = Label_RedPal;
         cart_tiles = GB_ShellTiles;
-        if (lang == JPN_ID)
-        {
-            cart_palette = jpn_gb_pal;
-        }
-        else
-        {
-            cart_palette = eng_red_pal;
-        }
+        cart_palette = jpn_gb_pal;
+        break;
+    case RED_EN:
+    case RED_FR:
+    case RED_IT:
+    case RED_DE:
+    case RED_SP:
+        label_tiles = Label_RedTiles;
+        label_palette = Label_RedPal;
+        cart_tiles = GB_ShellTiles;
+        cart_palette = eng_red_pal;
         break;
 
-    case (BLUE_ID):
+    case BLUE_JP:
         label_tiles = Label_BlueTiles;
         label_palette = Label_BluePal;
         cart_tiles = GB_ShellTiles;
-        if (lang == JPN_ID)
-        {
-            cart_palette = jpn_gb_pal;
-        }
-        else
-        {
-            cart_palette = eng_blue_pal;
-        }
+        cart_palette = jpn_gb_pal;
         break;
 
-    case (YELLOW_ID):
+    case BLUE_EN:
+    case BLUE_FR:
+    case BLUE_IT:
+    case BLUE_DE:
+    case BLUE_SP:
+        label_tiles = Label_BlueTiles;
+        label_palette = Label_BluePal;
+        cart_tiles = GB_ShellTiles;
+        cart_palette = eng_blue_pal;
+        break;
+
+    case YELLOW_JP_v0:
+    case YELLOW_JP_v1:
+    case YELLOW_JP_v2:
+    case YELLOW_JP_v3:
         label_tiles = Label_YellowTiles;
         label_palette = Label_YellowPal;
         cart_tiles = GB_ShellTiles;
-        if (lang == JPN_ID)
-        {
-            cart_palette = jpn_gb_pal;
-        }
-        else
-        {
-            cart_palette = eng_yellow_pal;
-        }
+        cart_palette = jpn_gb_pal;
         break;
 
-    case (GOLD_ID):
+    case YELLOW_EN:
+    case YELLOW_FR:
+    case YELLOW_IT:
+    case YELLOW_DE:
+    case YELLOW_SP:
+        label_tiles = Label_YellowTiles;
+        label_palette = Label_YellowPal;
+        cart_tiles = GB_ShellTiles;
+        cart_palette = eng_yellow_pal;
+        break;
+
+    case GOLD_JP_v0:
+    case GOLD_JP_v1:
         label_tiles = Label_GoldTiles;
         label_palette = Label_GoldPal;
-        if (lang == JPN_ID)
-        {
-            cart_tiles = GB_ShellTiles;
-            cart_palette = jpn_gold_pal;
-        }
-        else if (lang == KOR_ID)
-        {
-            cart_tiles = GBC_ShellTiles;
-            cart_palette = jpn_gold_pal;
-        }
-        else
-        {
-            cart_tiles = GBS_ShellTiles;
-            cart_palette = eng_gold_pal;
-        }
+        cart_tiles = GB_ShellTiles;
+        cart_palette = jpn_gold_pal;
         break;
 
-    case (SILVER_ID):
+    case GOLD_EN:
+    case GOLD_FR:
+    case GOLD_IT:
+    case GOLD_DE:
+    case GOLD_SP:
+        label_tiles = Label_GoldTiles;
+        label_palette = Label_GoldPal;
+        cart_tiles = GBS_ShellTiles;
+        cart_palette = eng_gold_pal;
+        break;
+
+    case GOLD_KOR:
+        label_tiles = Label_GoldTiles;
+        label_palette = Label_GoldPal;
+        cart_tiles = GBC_ShellTiles;
+        cart_palette = jpn_gold_pal;
+        break;
+
+    case SILVER_JP_v0:
+    case SILVER_JP_v1:
         label_tiles = Label_SilverTiles;
         label_palette = Label_SilverPal;
-        if (lang == JPN_ID)
-        {
-            cart_tiles = GB_ShellTiles;
-            cart_palette = jpn_silver_pal;
-        }
-        else if (lang == KOR_ID)
-        {
-            cart_tiles = GBC_ShellTiles;
-            cart_palette = jpn_silver_pal;
-        }
-        else
-        {
-            cart_tiles = GBS_ShellTiles;
-            cart_palette = eng_silver_pal;
-        }
+        cart_tiles = GB_ShellTiles;
+        cart_palette = jpn_silver_pal;
         break;
 
-    case (CRYSTAL_ID):
+    case SILVER_EN:
+    case SILVER_FR:
+    case SILVER_IT:
+    case SILVER_DE:
+    case SILVER_SP:
+        label_tiles = Label_SilverTiles;
+        label_palette = Label_SilverPal;
+        cart_tiles = GBS_ShellTiles;
+        cart_palette = eng_silver_pal;
+        break;
+
+    case SILVER_KOR:
+        label_tiles = Label_SilverTiles;
+        label_palette = Label_SilverPal;
+        cart_tiles = GBC_ShellTiles;
+        cart_palette = jpn_silver_pal;
+        break;
+
+    case CRYSTAL_JP:
+    case CRYSTAL_EN:
+    case CRYSTAL_FR:
+    case CRYSTAL_IT:
+    case CRYSTAL_DE:
+    case CRYSTAL_SP:
         label_tiles = Label_CrystalTiles;
         label_palette = Label_CrystalPal;
         cart_tiles = GBCS_ShellTiles;
         cart_palette = crystal_pal;
+        break;
+
+    default:
+        label_tiles = Label_UnknownTiles;
+        label_palette = Label_UnknownPal;
+        cart_tiles = GB_ShellTiles;
+        cart_palette = jpn_gb_pal;
         break;
     }
 
@@ -704,35 +745,85 @@ void load_select_sprites(u8 game_id, u8 lang)
 
     const unsigned int *flag_tiles = 0;
     const unsigned short *flag_palette = 0;
-    switch (lang)
+    switch (currROM)
     {
-    case JPN_ID:
+    case RED_JP_v0:
+    case RED_JP_v1:
+    case GREEN_JP_v0:
+    case GREEN_JP_v1:
+    case BLUE_JP:
+    case YELLOW_JP_v0:
+    case YELLOW_JP_v1:
+    case YELLOW_JP_v2:
+    case YELLOW_JP_v3:
+    case GOLD_JP_v0:
+    case GOLD_JP_v1:
+    case SILVER_JP_v0:
+    case SILVER_JP_v1:
+    case CRYSTAL_JP:
         flag_tiles = flag_jpnTiles;
         flag_palette = flag_jpnPal;
         break;
-    case ENG_ID:
+
+    case RED_EN:
+    case BLUE_EN:
+    case YELLOW_EN:
+    case GOLD_EN:
+    case SILVER_EN:
+    case CRYSTAL_EN:
         flag_tiles = flag_engTiles;
         flag_palette = flag_engPal;
         break;
-    case FRE_ID:
+
+    case RED_FR:
+    case BLUE_FR:
+    case YELLOW_FR:
+    case GOLD_FR:
+    case SILVER_FR:
+    case CRYSTAL_FR:
         flag_tiles = flag_freTiles;
         flag_palette = flag_frePal;
         break;
-    case ITA_ID:
+
+    case RED_IT:
+    case BLUE_IT:
+    case YELLOW_IT:
+    case GOLD_IT:
+    case SILVER_IT:
+    case CRYSTAL_IT:
         flag_tiles = flag_itaTiles;
         flag_palette = flag_itaPal;
         break;
-    case GER_ID:
+
+    case RED_DE:
+    case BLUE_DE:
+    case YELLOW_DE:
+    case GOLD_DE:
+    case SILVER_DE:
+    case CRYSTAL_DE:
         flag_tiles = flag_gerTiles;
         flag_palette = flag_gerPal;
         break;
-    case SPA_ID:
+
+    case RED_SP:
+    case BLUE_SP:
+    case YELLOW_SP:
+    case GOLD_SP:
+    case SILVER_SP:
+    case CRYSTAL_SP:
         flag_tiles = flag_spaTiles;
         flag_palette = flag_spaPal;
         break;
-    case KOR_ID:
+
+    case GOLD_KOR:
+    case SILVER_KOR:
         flag_tiles = flag_korTiles;
         flag_palette = flag_korPal;
+        break;
+
+    default:
+        flag_tiles = flag_korTiles;
+        flag_palette = flag_jpnPal;
         break;
     }
 
@@ -906,7 +997,7 @@ void update_front_box_sprite(Pokemon *curr_pkmn, bool make_greyscale)
 
     LZ77UnCompWram((const unsigned short *)palette_location, buffer); // This is a little silly, but it's being weird with bytes vs shorts when we copy it directly
 
-    if(make_greyscale)
+    if (make_greyscale)
     {
         for (int i = 0; i < 16; i++)
         {
