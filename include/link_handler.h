@@ -4,6 +4,7 @@
 #include <tonc.h>
 #include "libraries/gba-link-connection/LinkSPI.hpp"
 #include "pokemon_party.h"
+#include "GB_Payloads.h"
 
 #define DATA_PER_PACKET 8
 #define PACKET_DATA_START 2
@@ -129,7 +130,7 @@ enum CompositeState
 {
     NO_COMPOSITE_STATE,
     INITIAL_CONNECTION,
-    SEND_PAYLOAD,
+    GET_BOX_LIST,
 };
 
 enum SubstateState
@@ -145,10 +146,13 @@ enum SubstateState
     TRADE_PREAMBLE,
     TRADE,
     MAIL,
-    WAIT_FOR_PAYLOAD,
+    WAIT_FOR_CHECKSUM_PAYLOAD,
     GET_CHECKSUM,
+    WAIT_FOR_SECOND_PAYLOAD,
+    SEND_SPECIFIC_PAYLOAD,
+    SOFT_RESET,
 
-    // SEND_PAYLOAD
+    // GET_BOX_LIST
     END,
 
 };
@@ -164,11 +168,11 @@ public:
     LinkConnection *globalPtr;
 
     CompositeState compState = NO_COMPOSITE_STATE;
-    CompositeState prevCompState = NO_COMPOSITE_STATE;
+    CompositeState nextCompState = NO_COMPOSITE_STATE;
     bool compStateChanged = false;
 
     SubstateState subState = NO_SUBSTATE;
-    SubstateState prevSubState = NO_SUBSTATE;
+    SubstateState nextSubState = NO_SUBSTATE;
     bool subStateChanged = false;
 
     LinkConnectionError lastError = NO_ERROR;
@@ -212,7 +216,7 @@ public:
     void handleStateLogic();
 
 private:
-    void load_universal_payload();
+    void load_payload(GB_PayloadsFiles payload);
     void LoadCurrGameFromChecksum();
     void logicState_initConnection();
 

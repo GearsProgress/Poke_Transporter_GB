@@ -762,7 +762,7 @@ bool run_conditional(int index)
             globalLinkCable.startConnection(INITIAL_CONNECTION);
             while (globalLinkCable.subState != END)
             {
-                if (globalLinkCable.subStateChanged)
+                if (globalLinkCable.subStateChanged && !g_debug_options.print_link_data)
                 {
                     switch (globalLinkCable.subState)
                     {
@@ -794,7 +794,7 @@ bool run_conditional(int index)
             obj_unhide(flag, 0);
             obj_set_pos(flag, 1.5 * 8, 14 * 8);
             
-            globalLinkCable.startConnection(INITIAL_CONNECTION);
+            //globalLinkCable.startConnection(INITIAL_CONNECTION);
 
             while (true)
             {

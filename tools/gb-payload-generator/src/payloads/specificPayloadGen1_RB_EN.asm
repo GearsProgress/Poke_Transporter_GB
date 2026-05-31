@@ -26,11 +26,11 @@ DEF wCurrentMenuItem = 0xCC26
 
 SECTION "Main", ROM0
 Main:
+	db 0xFD
 LOAD "Payload", WRAM0[0xC508]
 Payload:
-	db 0xFD
 .loopTransfer
-	ld hl, 0xC6DC ; perfect place to store incoming packets. TODO: on first pass, this will interpret the generic payload as part of an incoming packet. Check if this interferes with anything.
+	ld hl, 0xC5DC ; perfect place to store incoming packets. TODO: on first pass, this will interpret the generic payload as part of an incoming packet. Check if this interferes with anything.
 .skipPreamble
 	res 7, [hl] ; if current pointer == 0xFD, change so that rra with carry flag doesn't create 0xFE. If command byte, this functionally does nothing.
 	ld a, [hli]
@@ -48,11 +48,9 @@ Payload:
 	ld a, [hli]
 	ld h, [hl]
 	ld l, a
-	ld de, 0xC6D2 
+	ld de, 0xC5D2 
 	push de
 	ld bc, 1
-	ld a, c
-	ldh [hSerialConnectionStatus], a ; is this needed?
 .loop
 	ld a, [hli]
 	rra ; c flag is always 0 here, except if a failure state was detected in a command we ran this cycle. Failure state means 1st data byte > 0x80
@@ -71,16 +69,17 @@ Payload:
 	add a, h
 	add a, l
 	res 7, a ; ensure that the checksum is never equal to 0xFE
+	inc de
 	ld [de], a ; load in the checksum
-	inc de ; de now points to 0xC6DC, where the next packet will arrive.
-	
+	inc de ; de now points to 0xC5DC, where the next packet will arrive.
 	pop hl
 	ld a, c
 	and 0x0F ; extract the lower nybble.
 	ld [hld], a ; 4 LSB get stored here.
 	xor c ; I love xor magic, this stores the higher nybble in a.
 	swap a
-	ld [hld], a ; 4 MSB get stored here, hl now points to 0xC6D0, where the next packet will be sent from.
+	ld [hld], a ; 4 MSB get stored here, hl now points to 0xC5D0, where the next packet will be sent from.
+	ld [hl], SERIAL_PREAMBLE_BYTE
 	
 	ld bc, PACKET_SIZE
 	call Serial_ExchangeBytes

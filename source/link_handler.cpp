@@ -68,11 +68,11 @@ void LinkConnection::setup(const u16 *debug_charset)
 
 void LinkConnection::startConnection(CompositeState startState)
 {
-  compState = startState;
+  nextCompState = startState;
   switch (startState)
   {
   case INITIAL_CONNECTION:
-    subState = CLOCK;
+    nextSubState = CLOCK;
     REG_TM3D = -0x4000 / 60;
     REG_TM3CNT = TM_FREQ_1024 | TM_ENABLE;
     irq_enable(II_TIMER3);
@@ -118,11 +118,17 @@ void LinkConnection::printData()
 
 void LinkConnection::writeData()
 {
-  global_memory_buffer[link_cable_array_index] = inData;
-  link_cable_array_index++;
-  global_memory_buffer[link_cable_array_index] = outData;
-  link_cable_array_index++;
-  if (link_cable_array_index >= 0x1000)
+  global_memory_buffer[link_cable_array_index + 0] = compState;
+  global_memory_buffer[link_cable_array_index + 1] = (compStateCounter >> 8) & 0xFF;
+  global_memory_buffer[link_cable_array_index + 2] = (compStateCounter >> 0) & 0xFF;
+  global_memory_buffer[link_cable_array_index + 3] = subState;
+  global_memory_buffer[link_cable_array_index + 4] = (subStateCounter >> 8) & 0xFF;
+  global_memory_buffer[link_cable_array_index + 5] = (subStateCounter >> 0) & 0xFF;
+  global_memory_buffer[link_cable_array_index + 6] = inData;
+  global_memory_buffer[link_cable_array_index + 7] = outData;
+  link_cable_array_index += 8;
+
+  if (link_cable_array_index >= 0x1000 || nextSubState == END)
   {
     copy_ram_to_save(&global_memory_buffer[0], 0x1000 * link_cable_memory_section_index, 0x1000);
     link_cable_memory_section_index++;
@@ -132,8 +138,6 @@ void LinkConnection::writeData()
 
 void LinkConnection::handleStateLogic()
 {
-  prevCompState = compState;
-  prevSubState = subState;
   switch (compState)
   {
   case INITIAL_CONNECTION:
@@ -143,7 +147,7 @@ void LinkConnection::handleStateLogic()
     break;
   }
 
-  if (prevSubState != subState)
+  if (nextSubState != subState)
   {
     subStateCounter = 0;
     subStateChanged = true;
@@ -154,7 +158,7 @@ void LinkConnection::handleStateLogic()
     subStateChanged = false;
   }
 
-  if (prevCompState != compState)
+  if (nextCompState != compState)
   {
     compStateCounter = 0;
     compStateChanged = true;
@@ -164,7 +168,17 @@ void LinkConnection::handleStateLogic()
     compStateCounter++;
     compStateChanged = false;
   }
+
+  subState = nextSubState;
+  compState = nextCompState;
 }
+
+int test_packet[] = {
+    /* 1 preamble byte  */ 0xFD,
+    /* 1 command byte   */ 0x02,
+    /* 2 argument bytes */ 0x00, 0x00,
+    /* 1 16-bit pointer */ 0x00, 0x00,
+    /* 6 filler bytes   */ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 bool LinkConnection::earlyExit()
 {
@@ -194,7 +208,7 @@ void LinkConnection::logicState_initConnection()
   case CLOCK:
     if (inData == 0xFE)
     {
-      subState = SAVE_SUCCESS;
+      nextSubState = SAVE_SUCCESS;
       outData = 0x00;
     }
     else
@@ -206,7 +220,7 @@ void LinkConnection::logicState_initConnection()
   case SAVE_SUCCESS:
     if (inData == 0x60 || inData == 0x61)
     {
-      subState = MENU_OPEN;
+      nextSubState = MENU_OPEN;
       outData = inData;
     }
     else
@@ -221,22 +235,23 @@ void LinkConnection::logicState_initConnection()
       if (inData == 0xD0)
       {
         gen = 1;
+        load_payload(GB_PayloadsFiles::UNIVERSALPAYLOADGEN1);
         outData = 0xD4;
       }
       else if (inData == 0x61)
       {
         gen = 2;
+        load_payload(GB_PayloadsFiles::UNIVERSALPAYLOADGEN2);
         outData = 0x61;
       }
-      load_universal_payload();
-      subState = MENU_SUCCESS;
+      nextSubState = MENU_SUCCESS;
     }
     break;
 
   case MENU_SUCCESS:
     if (inData == 0xFE)
     {
-      subState = WAIT_FOR_TRADE;
+      nextSubState = WAIT_FOR_TRADE;
     }
     outData = inData;
     break;
@@ -245,7 +260,7 @@ void LinkConnection::logicState_initConnection()
     if (inData == 0xFD)
     {
       REG_TM3D = -0x0040;
-      subState = TRADE_PREAMBLE;
+      nextSubState = TRADE_PREAMBLE;
       outData = 0x00;
     }
     else
@@ -265,7 +280,7 @@ void LinkConnection::logicState_initConnection()
     }
     else
     {
-      subState = TRADE;
+      nextSubState = TRADE;
       outData = 0xFD;
     };
     break;
@@ -275,11 +290,11 @@ void LinkConnection::logicState_initConnection()
     {
       if (this->gen == 2)
       {
-        subState = MAIL;
+        nextSubState = MAIL;
       }
       else
       {
-        subState = WAIT_FOR_PAYLOAD;
+        nextSubState = WAIT_FOR_CHECKSUM_PAYLOAD;
       }
     }
     outData = curr_payload[subStateCounter];
@@ -288,14 +303,14 @@ void LinkConnection::logicState_initConnection()
   case MAIL:
     if (subStateCounter >= 0x186)
     {
-      subState = WAIT_FOR_PAYLOAD;
+      nextSubState = WAIT_FOR_CHECKSUM_PAYLOAD;
     }
     break;
 
-  case WAIT_FOR_PAYLOAD:
+  case WAIT_FOR_CHECKSUM_PAYLOAD:
     if (inData == 0xFD)
     {
-      subState = GET_CHECKSUM;
+      nextSubState = GET_CHECKSUM;
     }
     outData = 0x00;
     break;
@@ -311,11 +326,35 @@ void LinkConnection::logicState_initConnection()
     else if (inData == 0xFD && dataOutBufferCurrIndex > 0)
     {
       LoadCurrGameFromChecksum();
-      subState = END;
+      load_payload(GB_PayloadsFiles::SPECIFICPAYLOADGEN1_RB_EN);
+      nextSubState = SEND_SPECIFIC_PAYLOAD;
     }
     else
     {
       outData = 0xFD;
+    }
+    break;
+
+  case WAIT_FOR_SECOND_PAYLOAD:
+    if (inData == 0xFD)
+    {
+      nextSubState = SEND_SPECIFIC_PAYLOAD;
+    }
+    outData = 0x00;
+    break;
+
+  case SEND_SPECIFIC_PAYLOAD:
+    if (subStateCounter > 200) // The 200 comes from the Universal Payload
+    {
+      nextSubState = END;
+    }
+    if (subStateCounter < curr_payload_size)
+    {
+      outData = curr_payload[subStateCounter];
+    }
+    else
+    {
+      outData = 0x01;
     }
     break;
 
@@ -329,13 +368,13 @@ void LinkConnection::logicState_initConnection()
   }
 }
 
-void LinkConnection::load_universal_payload()
+void LinkConnection::load_payload(GB_PayloadsFiles payload)
 {
   u32 fileSize;
   u8 decompressionBuffer[0x1000];
   const u8 *chunkList[] = {(const u8 *)GB_Payloads_chunk0_lz10_bin};
   FileContainerReader reader(chunkList, 1);
-  const u32 fileIndex = (this->gen == 1) ? (u32)GB_PayloadsFiles::UNIVERSALPAYLOADGEN1 : (u32)GB_PayloadsFiles::UNIVERSALPAYLOADGEN2;
+  const u32 fileIndex = (u32)payload;
 
   reader.init(decompressionBuffer, sizeof(decompressionBuffer));
   fileSize = reader.getFileSize(fileIndex);
