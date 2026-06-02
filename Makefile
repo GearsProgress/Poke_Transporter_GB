@@ -115,9 +115,10 @@ CFLAGS	+=	$(INCLUDE) -ffunction-sections -fdata-sections -Os -Wall -mthumb -mcpu
 CXXFLAGS	+=	$(CFLAGS) -g0 -fno-rtti -fno-exceptions -fdata-sections -ffunction-sections -std=c++20 -Wno-volatile -D_GLIBCXX_USE_CXX20_ABI=0 -fstack-usage
 
 ifeq ($(BUILD_TYPE), debug)
-	CFLAGS += -g -DDEBUG
-	CXXFLAGS += -g -DDEBUG
+	CFLAGS += -O0 -g3 -DDEBUG
+	CXXFLAGS += -O0 -g3 -DDEBUG
 else ifeq ($(BUILD_TYPE), release)
+	CFLAGS += -flto
 
 
 endif
@@ -128,12 +129,13 @@ LDFLAGS	=	-Os $(ARCH) -Wl,-Map,$(notdir $*.map) -Wl,--gc-sections -mthumb -mcpu=
 # eliminate libsysbase_libsysbase_a-handle_manager.o and its 4KB IWRAM buffer
 LDFLAGS += -Wl,--wrap=__get_handle -Wl,--wrap=_close_r
 
-CFLAGS += -flto
+ifeq ($(BUILD_TYPE), release)
 LDFLAGS += -flto
+endif
 
 ifeq ($(BUILD_TYPE), debug)
 ASFLAGS += -g
-LDFLAGS += -g
+LDFLAGS += -O0 -g
 endif
 
 #---------------------------------------------------------------------------------
