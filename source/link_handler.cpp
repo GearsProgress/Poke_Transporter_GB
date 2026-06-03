@@ -68,18 +68,27 @@ void LinkConnection::setup(const u16 *debug_charset)
 
 void LinkConnection::startConnection(CompositeState startState)
 {
-  nextCompState = startState;
   switch (startState)
   {
   case INITIAL_CONNECTION:
-    nextSubState = CLOCK;
+    subState = CLOCK;
     REG_TM3D = -0x4000 / 60;
     REG_TM3CNT = TM_FREQ_1024 | TM_ENABLE;
-    irq_enable(II_TIMER3);
+    break;
+  case PACKET_EXCHANGE:
+    subState = BYTE_EXCHANGE;
+    //REG_TM3D = -0x0040;
+    REG_TM3D = -0x4000 / 2;
+    REG_TM3CNT = TM_FREQ_1024 | TM_ENABLE;
     break;
   default:
     break;
   }
+
+  nextSubState = subState;
+  nextCompState = startState;
+  lastError = NO_ERROR;
+  irq_enable(II_TIMER3);
 }
 
 void LinkConnection::exchangeBytes()
@@ -138,10 +147,16 @@ void LinkConnection::writeData()
 
 void LinkConnection::handleStateLogic()
 {
+  subState = nextSubState;
+  compState = nextCompState;
+
   switch (compState)
   {
   case INITIAL_CONNECTION:
     logicState_initConnection();
+    break;
+  case PACKET_EXCHANGE:
+    logicState_packetExchange();
     break;
   default:
     break;
@@ -168,17 +183,7 @@ void LinkConnection::handleStateLogic()
     compStateCounter++;
     compStateChanged = false;
   }
-
-  subState = nextSubState;
-  compState = nextCompState;
 }
-
-int test_packet[] = {
-    /* 1 preamble byte  */ 0xFD,
-    /* 1 command byte   */ 0x02,
-    /* 2 argument bytes */ 0x00, 0x00,
-    /* 1 16-bit pointer */ 0x00, 0x00,
-    /* 6 filler bytes   */ 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 bool LinkConnection::earlyExit()
 {
@@ -297,14 +302,15 @@ void LinkConnection::logicState_initConnection()
         nextSubState = WAIT_FOR_CHECKSUM_PAYLOAD;
       }
     }
-    outData = curr_payload[subStateCounter];
+    outData = payloadBuffer[subStateCounter];
     break;
 
   case MAIL:
-    if (subStateCounter >= 0x186)
+    if (subStateCounter > 0x186)
     {
       nextSubState = WAIT_FOR_CHECKSUM_PAYLOAD;
     }
+    outData = 0x00;
     break;
 
   case WAIT_FOR_CHECKSUM_PAYLOAD:
@@ -350,7 +356,7 @@ void LinkConnection::logicState_initConnection()
     }
     if (subStateCounter < curr_payload_size)
     {
-      outData = curr_payload[subStateCounter];
+      outData = payloadBuffer[subStateCounter];
     }
     else
     {
@@ -359,7 +365,116 @@ void LinkConnection::logicState_initConnection()
     break;
 
   case END:
-    irq_delete(II_TIMER3);
+    irq_disable(II_TIMER3);
+    break;
+
+  default:
+    outData = inData;
+    break;
+  }
+}
+
+void LinkConnection::logicState_packetExchange()
+{
+  switch (subState)
+  {
+
+    /*
+  case SEND_PACKET:
+
+    // Output the payload followed by 0xFF while waiting
+    if (subStateCounter > 12)
+    {
+      nextSubState = RECIEVE_PACKET;
+    }
+    outData = payloadBuffer[subStateCounter];
+    break;
+
+  case WAIT_FOR_RESPONSE:
+    if (inData != 0xFD)
+    {
+      nextSubState = RECIEVE_PACKET;
+    }
+    else if (subStateCounter >= 256)
+    {
+      lastError = PACKET_TIMED_OUT;
+      nextSubState = END;
+    }
+    outData = 0xFF;
+    break;
+
+  case RECIEVE_PACKET:
+    // See if we've already begun recieving the response
+    if (dataOutBufferCurrIndex > 0)
+    {
+      // Are we at the end of the response?
+      if (dataOutBufferCurrIndex >= 13)
+      {
+        nextSubState = END;
+      }
+      else
+      {
+        dataOutBuffer[dataOutBufferCurrIndex] = inData;
+        dataOutBufferCurrIndex++;
+      }
+    }
+    // We haven't... see if this is the first byte in the response
+
+    // Let's also make sure that we haven't been sitting here for a long time
+
+    break;
+*/
+
+  case BYTE_EXCHANGE:
+
+    if (subStateCounter < OUT_PACKET_LENGTH)
+    {
+      // Start with OUT_PACKET_LENGTH of bytes of prep to make sure things are set to go
+      outData = 0xFF;
+    }
+    else
+    {
+      switch (subStateCounter % OUT_PACKET_LENGTH)
+      {
+      case 0:
+        outData = 0xFD;
+        break;
+      case 1:
+        outData = currLinkPacketArr[currLinkPacketArrIndex].command;
+        break;
+      case 2:
+        outData = currLinkPacketArr[currLinkPacketArrIndex].argument[0];
+        break;
+      case 3:
+        outData = currLinkPacketArr[currLinkPacketArrIndex].argument[1];
+        break;
+      case 4:
+        outData = currLinkPacketArr[currLinkPacketArrIndex].pointer >> 8;
+        break;
+      case 5:
+        outData = currLinkPacketArr[currLinkPacketArrIndex].pointer >> 0;
+        break;
+      case OUT_PACKET_LENGTH - 1:
+        currLinkPacketArrIndex++;
+      default:
+        outData = 0xFF;
+        break;
+      }
+      if (currLinkPacketArrIndex >= currLinkPacketArrNum)
+      {
+        nextSubState = END;
+      }
+
+      if (subStateCounter % OUT_PACKET_LENGTH + 2 == 0)
+      {
+        // Process packet
+      }
+      dataOutBuffer[subStateCounter % OUT_PACKET_LENGTH + 2] = inData;
+    }
+    break;
+
+  case END:
+    irq_disable(II_TIMER3);
     break;
 
   default:
@@ -379,7 +494,7 @@ void LinkConnection::load_payload(GB_PayloadsFiles payload)
   reader.init(decompressionBuffer, sizeof(decompressionBuffer));
   fileSize = reader.getFileSize(fileIndex);
   reader.seekToFile(fileIndex);
-  reader.read(this->curr_payload, fileSize);
+  reader.read(this->payloadBuffer, fileSize);
 
   this->curr_payload_size = fileSize;
 }
