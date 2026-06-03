@@ -1,12 +1,12 @@
-INCLUDE "../../include/constants/charmap.asm"
-INCLUDE "../../include/macros/const.asm"
-INCLUDE "../../include/constants/serial_constants.asm"
-INCLUDE "../../include/constants/pokemon_constants.asm"
-INCLUDE "../../include/constants/symbols.asm"
-INCLUDE "../../include/constants/hardware.inc"
-INCLUDE "../../include/payload/payload.asm"
-INCLUDE "../../include/payload/patches.asm"
-INCLUDE "../../include/payload/settings.asm"
+INCLUDE "include/constants/charmap.asm"
+INCLUDE "include/macros/const.asm"
+INCLUDE "include/constants/serial_constants.asm"
+INCLUDE "include/constants/pokemon_constants.asm"
+INCLUDE "include/constants/symbols.asm"
+INCLUDE "include/constants/hardware.inc"
+INCLUDE "include/payload/payload.asm"
+INCLUDE "include/payload/patches.asm"
+INCLUDE "include/payload/settings.asm"
 
 SECTION "Payload", ROM0
 Payload:
@@ -144,7 +144,7 @@ SerialPatchListAligned:
 	ld [hl], a	; place checksum
 	ds 5, 0 ; expected result is FD FD [16 bit cartridge checksum] [8 bit safety checksum]. There are no valid cartridge checksums containing 0xFD or 0xFE.
 	ld l, LOW(SerialPatchPreamble) ; send checksum data from this address
-	ld de, wSerialPartyMonsPatchList ; receive payload at this address
+	ld de, 0xC700 ; receive payload at this address
 	push hl
 	ld bc, 7
 	push de
@@ -153,7 +153,7 @@ SerialPatchListAligned:
 	pop hl
 	push de
 	ds 4, 0
-	ld c, 200 ; serial patch list size
+	ld c, 255 ; serial patch list size
 	call .callSerial_ExchangeBytes ; receive specific payload from PTGB
 	pop hl
 	push hl
@@ -166,7 +166,7 @@ SerialPatchListAligned:
 .alignPayload ; now that we have found the first non-preamble value, let's align it properly.
 	ld [de], a
 	ds 5, 0
-	inc e ; we're only aligning stuff within the 0xC500 space
+	inc e ; we're only aligning stuff within the 0xC700 space
 	ld a, [hli]
 	jr nz, .alignPayload
 	pop hl
