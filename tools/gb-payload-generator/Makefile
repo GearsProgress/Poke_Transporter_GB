@@ -1,47 +1,61 @@
 SHELL := /bin/bash
+.ONESHELL:
 
-ASM_DIR := src/payloads
-OUTPUT_DIR := build
-DEPENDENCIES_DIR := dependencies
-OBJECT_FILE := $(OUTPUT_DIR)/$${file%%.*}.o
+.PHONY: all clean
 
-PAYLOADS := $(notdir $(wildcard $(ASM_DIR)/*.asm))
-DEPENDENCY_FILES := $(notdir $(wildcard $(DEPENDENCIES_DIR)/*.asm))
-
-.PHONY: all base language_specific clean
-
-all: link
-
-base: | $(OUTPUT_DIR)
-	@set -e; \
-	cd $(ASM_DIR); \
-	for file in $(PAYLOADS); do \
-		echo "Building base payload $$file"; \
-		rgbasm -o ../../$(OBJECT_FILE) "./$$file"; \
-		rgblink -x -o "../../$(OUTPUT_DIR)/$${file%%.*}.bin" ../../$(OBJECT_FILE); \
+all:
+	@mkdir -p ./output
+	shopt -s nullglob
+	for filepath in ./src/gen1specific/*.asm ./src/gen2specific/*.asm
+	do
+		file="$${filepath##*/}"
+		echo -e "\nStarting assembly of $$file\n" >&2
+		outputfolder="./output/$${file%%.*}"
+		if [ ! -d "$$outputfolder" ]
+		then
+			mkdir "$$outputfolder"
+			echo -e "Creating new output folder at $$outputfolder\n"
+		fi
+		languages="en fr de it sp jp"
+		for language in $${languages}
+		do
+			versions="r b y"
+			if [ $$language == "jp" ]
+			then
+				versions="r r11 g g11 b y y11 y12 y13"
+			fi
+			for version in $${versions}
+			do
+				echo "building $${file%%.*}_$${language}_$${version}.bin"
+				rgbasm -P ./include/dependencies/$${language}_$${version}.asm -o ./output/output.o $$filepath \
+				&& rgblink -x -o $${outputfolder}/$${file%%.*}_$${language}_$${version}.bin ./output/output.o
+				[ -f ./output/output.o ] && rm ./output/output.o
+	#			if [ $$version = "b" -a -f "$${outputfolder}/$${file%%.*}_$${language}_r.bin" ]
+	#			then
+	#				cmp -s $${outputfolder}/$${file%%.*}_$${language}_$${version}.bin $${outputfolder}/$${file%%.*}_$${language}_r.bin \
+	#				&& rm $${outputfolder}/$${file%%.*}_$${language}_$${version}.bin \
+	#				&& echo "$${file%%.*}_$${language}_$${version}.bin is identical to $${file%%.*}_$${language}_r.bin." \
+	#				&& echo "Removed $${file%%.*}_$${language}_$${version}.bin"
+	#			fi
+			done
+		done
 	done
-
-language_specific: | $(OUTPUT_DIR)
-	@set -e; \
-	if [ -z "$(strip $(DEPENDENCY_FILES))" ]; then \
-		echo "No dependency asm files found in $(DEPENDENCIES_DIR); skipping language-specific payloads."; \
-		exit 0; \
-	fi; \
-	cd $(ASM_DIR); \
-	for file in $(PAYLOADS); do \
-		for dependency in $(DEPENDENCY_FILES); do \
-			language_version="$${dependency%%.asm}"; \
-			echo "Building $$file with $$language_version"; \
-			rgbasm -P "../../$(DEPENDENCIES_DIR)/$$dependency" -o ../../$(OBJECT_FILE) "./$$file"; \
-			rgblink -x -o "../../$(OUTPUT_DIR)/$${file%%.*}_$${language_version}.bin" ../../$(OBJECT_FILE); \
-		done; \
+	
+	for filepath in ./src/gen1universal/*.asm ./src/gen2universal/*.asm
+	do
+		file="$${filepath##*/}"
+		echo -e "\nStarting assembly of $$file\n" >&2
+		outputfolder="./output/$${file%%.*}"
+		if [ ! -d "$$outputfolder" ]
+		then
+			mkdir "$$outputfolder"
+			echo -e "Creating new output folder at $$outputfolder\n"
+		fi
+		echo "building $${file%%.*}.bin"
+		rgbasm -o ./output/output.o $$filepath \
+		&& rgblink -x -o $${outputfolder}/$${file%%.*}.bin ./output/output.o
+		[ -f ./output/output.o ] && rm ./output/output.o
 	done
-
-link: base language_specific
-	@ls
-
-$(OUTPUT_DIR):
-	@mkdir -p $(OUTPUT_DIR)
 
 clean:
-	@rm -rf $(OUTPUT_DIR)
+	@rm -rf ./output
