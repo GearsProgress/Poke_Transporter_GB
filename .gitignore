@@ -15,4 +15,3 @@ text_errors.txt
 terminal_output.txt
 tools/payload-generator/payload-generator
 tools/make-file-container/make-file-container
-tools/gb-payload-generator/output

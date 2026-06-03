@@ -1,16 +1,18 @@
 SHELL := /bin/bash
 .ONESHELL:
 
+OUTPUT_DIR := build
+
 .PHONY: all clean
 
 all:
-	@mkdir -p ./output
+	@mkdir -p ./$(OUTPUT_DIR)
 	shopt -s nullglob
 	for filepath in ./src/gen1specific/*.asm ./src/gen2specific/*.asm
 	do
 		file="$${filepath##*/}"
 		echo -e "\nStarting assembly of $$file\n" >&2
-		outputfolder="./output/$${file%%.*}"
+		outputfolder="./$(OUTPUT_DIR)/$${file%%.*}"
 		if [ ! -d "$$outputfolder" ]
 		then
 			mkdir "$$outputfolder"
@@ -27,9 +29,9 @@ all:
 			for version in $${versions}
 			do
 				echo "building $${file%%.*}_$${language}_$${version}.bin"
-				rgbasm -P ./include/dependencies/$${language}_$${version}.asm -o ./output/output.o $$filepath \
-				&& rgblink -x -o $${outputfolder}/$${file%%.*}_$${language}_$${version}.bin ./output/output.o
-				[ -f ./output/output.o ] && rm ./output/output.o
+				rgbasm -P ./include/dependencies/$${language}_$${version}.asm -o ./$(OUTPUT_DIR)/output.o $$filepath \
+				&& rgblink -x -o $${outputfolder}/$${file%%.*}_$${language}_$${version}.bin ./$(OUTPUT_DIR)/output.o
+				[ -f ./$(OUTPUT_DIR)/output.o ] && rm ./$(OUTPUT_DIR)/output.o
 	#			if [ $$version = "b" -a -f "$${outputfolder}/$${file%%.*}_$${language}_r.bin" ]
 	#			then
 	#				cmp -s $${outputfolder}/$${file%%.*}_$${language}_$${version}.bin $${outputfolder}/$${file%%.*}_$${language}_r.bin \
@@ -45,17 +47,17 @@ all:
 	do
 		file="$${filepath##*/}"
 		echo -e "\nStarting assembly of $$file\n" >&2
-		outputfolder="./output/$${file%%.*}"
+		outputfolder="./$(OUTPUT_DIR)/$${file%%.*}"
 		if [ ! -d "$$outputfolder" ]
 		then
 			mkdir "$$outputfolder"
 			echo -e "Creating new output folder at $$outputfolder\n"
 		fi
 		echo "building $${file%%.*}.bin"
-		rgbasm -o ./output/output.o $$filepath \
-		&& rgblink -x -o $${outputfolder}/$${file%%.*}.bin ./output/output.o
-		[ -f ./output/output.o ] && rm ./output/output.o
+		rgbasm -o ./$(OUTPUT_DIR)/output.o $$filepath \
+		&& rgblink -x -o $${outputfolder}/$${file%%.*}.bin ./$(OUTPUT_DIR)/output.o
+		[ -f ./$(OUTPUT_DIR)/output.o ] && rm ./$(OUTPUT_DIR)/output.o
 	done
 
 clean:
-	@rm -rf ./output
+	@rm -rf ./$(OUTPUT_DIR)
