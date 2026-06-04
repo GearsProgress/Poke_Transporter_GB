@@ -77,7 +77,7 @@ enum GameBoyROM
 };
 
 // This table has the 3 checksums, followed by the enum value
-const u16 GameBoyROMChecksumTable[][4]{
+const u8 GameBoyROMChecksumTable[][4]{
     {0x32, 0xA2, 0xC1, RED_JP_v0},
     {0x31, 0xB8, 0x66, RED_JP_v1},
     {0x20, 0x91, 0xE6, RED_EN},
@@ -165,8 +165,6 @@ enum LinkConnectionError
 class LinkConnection
 {
 public:
-    LinkConnection *globalPtr;
-
     CompositeState compState = NO_COMPOSITE_STATE;
     CompositeState nextCompState = NO_COMPOSITE_STATE;
     bool compStateChanged = false;
@@ -225,8 +223,8 @@ private:
 #define NUM_LINES 8
     char stuff[NUM_LINES][LINE_WIDTH];
     char line[LINE_WIDTH] = "OUT";
-    int link_cable_array_index = 0;
-    int link_cable_memory_section_index = 0;
+    int link_cable_memory_section_index;
+    int link_cable_array_index;
     const u16 *debug_charset;
 };
 

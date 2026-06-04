@@ -54,6 +54,8 @@ void linkCableIRQ()
 
 void LinkConnection::setup(const u16 *debug_charset)
 {
+  link_cable_memory_section_index = 0;
+  link_cable_array_index = 0;
 
   linkSPI->activate(LinkSPI::Mode::MASTER_256KBPS);
   linkSPI->setWaitModeActive(false);
@@ -63,6 +65,12 @@ void LinkConnection::setup(const u16 *debug_charset)
   if (g_debug_options.print_link_data == true)
   {
     create_textbox(0, 0, 138, 128, false);
+  }
+
+  if(g_debug_options.load_cable_data_from_save == WRITE_CABLE_DATA_MODE_CART)
+  {
+    // if we're loading the cable data from the cart save, we should make sure to load our first section here.
+    copy_save_to_ram(0x1000 * link_cable_memory_section_index, &global_memory_buffer[0], 0x1000);
   }
 }
 
@@ -93,7 +101,40 @@ void LinkConnection::exchangeBytes()
       global_next_frame();
       return --timeout_frames <= 0; });
   */
-  inData = linkSPI->transfer(outData);
+  switch(g_debug_options.load_cable_data_from_save)
+  {
+    case WRITE_CABLE_DATA_MODE_OFF:
+      // Normal transfer :-)
+      inData = linkSPI->transfer(outData);
+      break;
+    case WRITE_CABLE_DATA_MODE_SRAM:
+      // Pretend transfer, by loading the bytes from SRAM (where we stored them with writeData() in a previous transfer)
+      inData = (*(SRAM_PTR + link_cable_array_index));
+      ++link_cable_array_index;
+      outData = (*(SRAM_PTR + link_cable_array_index));
+      ++link_cable_array_index;
+      break;
+    case WRITE_CABLE_DATA_MODE_CART:
+    {
+      // Pretend transfer, by loading the bytes from the cartridge save. (where we stored them with writeData() in a previous transfer)
+      // skip the first 6 bytes, which are for human consumption
+      link_cable_array_index += 6;
+
+      inData = global_memory_buffer[link_cable_array_index];
+      ++link_cable_array_index;
+      outData = global_memory_buffer[link_cable_array_index];
+      ++link_cable_array_index;
+
+      // we reached the end of our global_memory_buffer, we need to load the next data section from the cart save
+      if(link_cable_array_index >= 0x1000)
+      {
+        ++link_cable_memory_section_index;
+        link_cable_array_index = 0;
+        copy_save_to_ram(0x1000 * link_cable_memory_section_index, &global_memory_buffer[0], 0x1000);
+      }
+      break;
+    }
+  }
 }
 
 void LinkConnection::printData()
@@ -118,21 +159,50 @@ void LinkConnection::printData()
 
 void LinkConnection::writeData()
 {
-  global_memory_buffer[link_cable_array_index + 0] = compState;
-  global_memory_buffer[link_cable_array_index + 1] = (compStateCounter >> 8) & 0xFF;
-  global_memory_buffer[link_cable_array_index + 2] = (compStateCounter >> 0) & 0xFF;
-  global_memory_buffer[link_cable_array_index + 3] = subState;
-  global_memory_buffer[link_cable_array_index + 4] = (subStateCounter >> 8) & 0xFF;
-  global_memory_buffer[link_cable_array_index + 5] = (subStateCounter >> 0) & 0xFF;
-  global_memory_buffer[link_cable_array_index + 6] = inData;
-  global_memory_buffer[link_cable_array_index + 7] = outData;
-  link_cable_array_index += 8;
-
-  if (link_cable_array_index >= 0x1000 || nextSubState == END)
+  switch(g_debug_options.write_cable_data_to_save)
   {
-    copy_ram_to_save(&global_memory_buffer[0], 0x1000 * link_cable_memory_section_index, 0x1000);
-    link_cable_memory_section_index++;
-    link_cable_array_index = link_cable_array_index % 0x1000;
+    case WRITE_CABLE_DATA_MODE_OFF:
+      break;
+    case WRITE_CABLE_DATA_MODE_SRAM:
+    {
+      (*(SRAM_PTR + link_cable_array_index)) = inData;
+      ++link_cable_array_index;
+
+      (*(SRAM_PTR + link_cable_array_index)) = outData;
+      ++link_cable_array_index;
+      break;
+    }
+    case WRITE_CABLE_DATA_MODE_CART:
+    {
+      // save the data to the cartridge in chunks of 4 KB
+      // WARNING: If you want to add or remove fields here,
+      // make sure to keep the number of bytes a clean divider of 4096 (global_memory_buffer_size)
+
+      // the next 6 bytes are for human consumption when viewed in a hex editor.
+      // they can be useful to correlate the current LinkConnection state with the data that was sent over the cable.
+      // but they're not needed for reconstructing the conversation with load_cable_data_from_save
+      global_memory_buffer[link_cable_array_index + 0] = compState;
+      global_memory_buffer[link_cable_array_index + 1] = (compStateCounter >> 8) & 0xFF;
+      global_memory_buffer[link_cable_array_index + 2] = (compStateCounter >> 0) & 0xFF;
+      global_memory_buffer[link_cable_array_index + 3] = subState;
+      global_memory_buffer[link_cable_array_index + 4] = (subStateCounter >> 8) & 0xFF;
+      global_memory_buffer[link_cable_array_index + 5] = (subStateCounter >> 0) & 0xFF;
+
+      // actual data bytes start here.
+      global_memory_buffer[link_cable_array_index + 6] = inData;
+      global_memory_buffer[link_cable_array_index + 7] = outData;
+
+      link_cable_array_index += 8;
+
+      // If the buffer is full or we reached nextSubState == END, we save the buffer to the cartridge save
+      if (link_cable_array_index >= 0x1000 || nextSubState == END)
+      {
+        copy_ram_to_save(&global_memory_buffer[0], 0x1000 * link_cable_memory_section_index, 0x1000);
+        ++link_cable_memory_section_index;
+        link_cable_array_index = 0;
+      }
+      break;
+    }
   }
 }
 
@@ -173,7 +243,7 @@ void LinkConnection::handleStateLogic()
   compState = nextCompState;
 }
 
-int test_packet[] = {
+static const int test_packet[] = {
     /* 1 preamble byte  */ 0xFD,
     /* 1 command byte   */ 0x02,
     /* 2 argument bytes */ 0x00, 0x00,
@@ -182,13 +252,16 @@ int test_packet[] = {
 
 bool LinkConnection::earlyExit()
 {
-  if (g_debug_options.print_link_data && key_hit(KEY_LEFT))
+  if (g_debug_options.print_link_data)
   {
-    globalLinkCable.paused = true;
-  }
-  else if (g_debug_options.print_link_data && key_hit(KEY_RIGHT))
-  {
-    globalLinkCable.paused = false;
+    if(key_hit(KEY_LEFT))
+    {
+      globalLinkCable.paused = true;
+    }
+    else if(key_hit(KEY_RIGHT))
+    {
+      globalLinkCable.paused = false;
+    }
   }
 
   if (globalLinkCable.paused && g_debug_options.print_link_data)
@@ -203,13 +276,14 @@ bool LinkConnection::earlyExit()
 
 void LinkConnection::logicState_initConnection()
 {
+  outData = 0x00;
   switch (subState)
   {
   case CLOCK:
     if (inData == 0xFE)
     {
       nextSubState = SAVE_SUCCESS;
-      outData = 0x00;
+      // outData defaults to 0x00
     }
     else
     {
@@ -223,10 +297,7 @@ void LinkConnection::logicState_initConnection()
       nextSubState = MENU_OPEN;
       outData = inData;
     }
-    else
-    {
-      outData = 0x00;
-    }
+    // outData defaults to 0x00
     break;
 
   case MENU_OPEN:
@@ -261,7 +332,7 @@ void LinkConnection::logicState_initConnection()
     {
       REG_TM3D = -0x0040;
       nextSubState = TRADE_PREAMBLE;
-      outData = 0x00;
+      // outData defaults to 0x00
     }
     else
     {
@@ -272,7 +343,7 @@ void LinkConnection::logicState_initConnection()
   case TRADE_PREAMBLE:
     if (subStateCounter < 2)
     {
-      outData = 0x00;
+      // outData defaults to 0x00
     }
     else if (subStateCounter < 9)
     {
@@ -312,7 +383,7 @@ void LinkConnection::logicState_initConnection()
     {
       nextSubState = GET_CHECKSUM;
     }
-    outData = 0x00;
+    // outData defaults to 0x00
     break;
 
   case GET_CHECKSUM:
@@ -340,7 +411,7 @@ void LinkConnection::logicState_initConnection()
     {
       nextSubState = SEND_SPECIFIC_PAYLOAD;
     }
-    outData = 0x00;
+    // outData defaults to 0x00
     break;
 
   case SEND_SPECIFIC_PAYLOAD:
@@ -391,17 +462,12 @@ void LinkConnection::LoadCurrGameFromChecksum()
     currROM = GB_ROM_ERROR;
   };
 
-  int start = 0;
-  int end = 0;
+  int start = RED_JP_v0;
+  int end = GOLD_JP_v0;
 
-  if (gen == 1)
+  if (gen == 2)
   {
-    start = RED_JP_v0;
-    end = GOLD_JP_v0;
-  }
-  else if (gen == 2)
-  {
-    start = GOLD_JP_v0;
+    start = end;
     end = NO_GB_ROM;
   }
 
