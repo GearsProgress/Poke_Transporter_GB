@@ -195,7 +195,7 @@ void show_debug_info_screen(void *context, unsigned user_param)
 void dbg_set_byte_val(void *context, unsigned user_param)
 {
     u8 *flag_ptr = (u8*)context;
-    *flag_ptr = (user_param != 0);
+    *flag_ptr = (u8)user_param;
 }
 
 void dbg_play_song(void *context, unsigned user_param)

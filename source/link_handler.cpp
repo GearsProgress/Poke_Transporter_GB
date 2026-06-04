@@ -209,6 +209,7 @@ void LinkConnection::writeData()
       // If the buffer is full or we reached nextSubState == END, we save the buffer to the cartridge save
       if (link_cable_array_index >= 0x1000 || nextSubState == END)
       {
+        erase_sector(0x1000 * link_cable_memory_section_index);
         copy_ram_to_save(&global_memory_buffer[0], 0x1000 * link_cable_memory_section_index, 0x1000);
         ++link_cable_memory_section_index;
         link_cable_array_index = 0;
