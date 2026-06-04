@@ -67,6 +67,18 @@ void LinkConnection::setup(const u16 *debug_charset)
     create_textbox(0, 0, 138, 128, false);
   }
 
+  if(g_debug_options.write_cable_data_to_save == WRITE_CABLE_DATA_MODE_SRAM)
+  {
+    // if we're writing the cable data to SRAM, we should clear the SRAM first to make sure there's no leftover data from previous transfers
+    volatile u8 *cur = SRAM_PTR;
+    volatile u8 *end = SRAM_PTR + 0x10000;
+    while(cur < end)
+    {
+      (*cur) = 0;
+      ++cur;
+    }
+  }
+
   if(g_debug_options.load_cable_data_from_save == WRITE_CABLE_DATA_MODE_CART)
   {
     // if we're loading the cable data from the cart save, we should make sure to load our first section here.
