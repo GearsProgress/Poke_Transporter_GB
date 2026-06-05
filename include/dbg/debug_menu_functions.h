@@ -14,12 +14,12 @@ void show_text_debug_screen(void *context, unsigned user_param);
 void show_debug_info_screen(void *context, unsigned user_param);
 
 /**
- * @brief This generic boolean callback function can be used to set/unset any boolean flag.
+ * @brief This is a generic u8/bool value set callback
  *
- * @param context a (bool *) pointer to the flag you want to set/unset.
+ * @param context a (u8* or bool*) pointer to the flag you want to set/unset.
  * @param user_param the value to set the flag to. 0 -> false, anything else -> true.
  */
-void dbg_set_boolean_flag(void *context, unsigned user_param);
+void dbg_set_byte_val(void *context, unsigned user_param);
 
 /**
  * @brief This function will take a song index and play the corresponding song.

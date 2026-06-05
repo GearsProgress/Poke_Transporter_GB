@@ -7,7 +7,7 @@
 
 #include <cstdlib>
 
-static const option_data toggle_options[2] = {
+static const option_data toggle_options[] = {
     {
         .text = "Off",
         .value = 0
@@ -17,6 +17,23 @@ static const option_data toggle_options[2] = {
         .value = 1
     }
 };
+
+static const option_data cbl_data_options[] = {
+    {
+        .text = "Off",
+        .value = WRITE_CABLE_DATA_MODE_OFF
+    },
+    {
+        .text = "SRAM",
+        .value = WRITE_CABLE_DATA_MODE_SRAM
+    },
+    {
+        .text = "CART",
+        .value = WRITE_CABLE_DATA_MODE_CART
+    }
+};
+
+#define CBL_DATA_OPTIONS_COUNT (sizeof(cbl_data_options) / sizeof(option_data))
 
 /**
  * @brief This helper function makes it easy to define a multiple choice debug row.
@@ -108,20 +125,21 @@ void fill_debug_menu_with_entries(vertical_menu &menu, u16 *charset)
         define_executable_row(charset, "Unlock MystG", dbg_unlock_mystery, 1, nullptr),
 #endif
         define_song_row(charset, "Song"),
-        define_toggle_row(charset, "Print Link", dbg_set_boolean_flag, g_debug_options.print_link_data, &g_debug_options.print_link_data),
-        define_toggle_row(charset, "Print Packets", dbg_set_boolean_flag, g_debug_options.print_link_packets, &g_debug_options.print_link_packets),
-        define_toggle_row(charset, "Instant Text", dbg_set_boolean_flag, g_debug_options.instant_text_speed, &g_debug_options.instant_text_speed),
-        define_toggle_row(charset, "Ign Cart", dbg_set_boolean_flag, g_debug_options.ignore_game_pak, &g_debug_options.ignore_game_pak),
-        define_toggle_row(charset, "Ign Sprites", dbg_set_boolean_flag, g_debug_options.ignore_game_pak_sprites, &g_debug_options.ignore_game_pak_sprites),
-        define_toggle_row(charset, "Ign Link", dbg_set_boolean_flag, g_debug_options.ignore_link_cable, &g_debug_options.ignore_link_cable),
-        define_toggle_row(charset, "Ign MG/E4", dbg_set_boolean_flag, g_debug_options.ignore_mg_e4_flags, &g_debug_options.ignore_mg_e4_flags),
-        define_toggle_row(charset, "Ign Unrec PKMN", dbg_set_boolean_flag, g_debug_options.ignore_unreceived_pkmn, &g_debug_options.ignore_unreceived_pkmn),
-        define_toggle_row(charset, "Force Tut", dbg_set_boolean_flag, g_debug_options.force_tutorial, &g_debug_options.force_tutorial),
-        define_toggle_row(charset, "Show Invalid", dbg_set_boolean_flag, g_debug_options.dont_hide_invalid_pkmn, &g_debug_options.dont_hide_invalid_pkmn),
-        define_toggle_row(charset, "Ign Dex Compl", dbg_set_boolean_flag, g_debug_options.ignore_dex_completion, &g_debug_options.ignore_dex_completion),
-        define_toggle_row(charset, "Force Caught", dbg_set_boolean_flag, g_debug_options.force_all_caught, &g_debug_options.force_all_caught),
-        define_toggle_row(charset, "Write Cbl Data", dbg_set_boolean_flag, g_debug_options.write_cable_data_to_save, &g_debug_options.write_cable_data_to_save),
-        define_toggle_row(charset, "Disp CtrlChr", dbg_set_boolean_flag, g_debug_options.display_control_char, &g_debug_options.display_control_char)
+        define_toggle_row(charset, "Print Link", dbg_set_byte_val, g_debug_options.print_link_data, &g_debug_options.print_link_data),
+        define_toggle_row(charset, "Print Packets", dbg_set_byte_val, g_debug_options.print_link_packets, &g_debug_options.print_link_packets),
+        define_toggle_row(charset, "Instant Text", dbg_set_byte_val, g_debug_options.instant_text_speed, &g_debug_options.instant_text_speed),
+        define_toggle_row(charset, "Ign Cart", dbg_set_byte_val, g_debug_options.ignore_game_pak, &g_debug_options.ignore_game_pak),
+        define_toggle_row(charset, "Ign Sprites", dbg_set_byte_val, g_debug_options.ignore_game_pak_sprites, &g_debug_options.ignore_game_pak_sprites),
+        define_toggle_row(charset, "Ign Link", dbg_set_byte_val, g_debug_options.ignore_link_cable, &g_debug_options.ignore_link_cable),
+        define_toggle_row(charset, "Ign MG/E4", dbg_set_byte_val, g_debug_options.ignore_mg_e4_flags, &g_debug_options.ignore_mg_e4_flags),
+        define_toggle_row(charset, "Ign Unrec PKMN", dbg_set_byte_val, g_debug_options.ignore_unreceived_pkmn, &g_debug_options.ignore_unreceived_pkmn),
+        define_toggle_row(charset, "Force Tut", dbg_set_byte_val, g_debug_options.force_tutorial, &g_debug_options.force_tutorial),
+        define_toggle_row(charset, "Show Invalid", dbg_set_byte_val, g_debug_options.dont_hide_invalid_pkmn, &g_debug_options.dont_hide_invalid_pkmn),
+        define_toggle_row(charset, "Ign Dex Compl", dbg_set_byte_val, g_debug_options.ignore_dex_completion, &g_debug_options.ignore_dex_completion),
+        define_toggle_row(charset, "Force Caught", dbg_set_byte_val, g_debug_options.force_all_caught, &g_debug_options.force_all_caught),
+        define_debug_choice_row(charset, "Write Cbl Data", dbg_set_byte_val, cbl_data_options, CBL_DATA_OPTIONS_COUNT, false, g_debug_options.write_cable_data_to_save, &g_debug_options.write_cable_data_to_save),
+        define_debug_choice_row(charset, "Load Cbl Data", dbg_set_byte_val, cbl_data_options, CBL_DATA_OPTIONS_COUNT, false, g_debug_options.load_cable_data_from_save, &g_debug_options.load_cable_data_from_save),
+        define_toggle_row(charset, "Disp CtrlChr", dbg_set_byte_val, g_debug_options.display_control_char, &g_debug_options.display_control_char)
     };
 
     menu.add_item_widgets(item_widgets, sizeof(item_widgets) / sizeof(item_widgets[0]));
