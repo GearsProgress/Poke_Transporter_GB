@@ -1,41 +1,25 @@
-INCLUDE "../../include/constants/charmap.asm"
-INCLUDE "../../include/macros/const.asm"
-INCLUDE "../../include/constants/serial_constants.asm"
-INCLUDE "../../include/constants/pokemon_constants.asm"
-INCLUDE "../../include/constants/symbols.asm"
-INCLUDE "../../include/constants/hardware.inc"
-INCLUDE "../../include/payload/payload.asm"
-INCLUDE "../../include/payload/patches.asm"
-INCLUDE "../../include/payload/settings.asm"
-
-DEF hSerialConnectionStatus EQU 0xFF02
-
-DEF LoadCurrentBoxDataBank EQU 0x1C
-DEF LoadCurrentBoxData EQU 0x7690
-
-DEF BankSwitch EQU 0x35D6
-DEF CallFunctionInTable EQU 0x3D97
-
-DEF PACKET_SIZE = 0xC
-
-DEF StopAllSounds = 0x200E
-DEF TextCommandProcessor = 0x1B40
-
-DEF wCurrentMenuItem = 0xCC26
-
+INCLUDE "include/macros/const.asm"
+INCLUDE "include/macros/coords.asm"
+INCLUDE "include/constants/serial_constants.asm"
+INCLUDE "include/constants/charmap.asm"
+INCLUDE "include/payload/payload.asm"
+INCLUDE "include/payload/patches.asm"
+INCLUDE "include/payload/settings.asm"
 
 SECTION "Main", ROM0
 Main:
 	db 0xFD
-LOAD "Payload", WRAM0[0xC508]
+LOAD "Payload", WRAM0[0xC700]
 Payload:
 .loopTransfer
 	ld hl, 0xC5DC ; perfect place to store incoming packets. TODO: on first pass, this will interpret the generic payload as part of an incoming packet. Check if this interferes with anything.
 .skipPreamble
-	res 7, [hl] ; if current pointer == 0xFD, change so that rra with carry flag doesn't create 0xFE. If command byte, this functionally does nothing.
 	ld a, [hli]
-	cp SERIAL_PREAMBLE_BYTE - 0x80
-	jr z, .skipPreamble ; standard sanity check. If current byte does not match preamble, then we've loaded command byte 1 in register a.
+	cp SERIAL_PREAMBLE_BYTE
+	jr z, .skipPreamble ; standard sanity check. If current byte does not match preamble, then we've loaded the counter in register a.
+	ld [0xC5DC], a
+	push af
+	ld a, [hli] ; load command byte
 	ld b, [hl] ; load argument byte 1
 	inc hl
 	ld c, [hl] ; load argument byte 2
@@ -48,9 +32,10 @@ Payload:
 	ld a, [hli]
 	ld h, [hl]
 	ld l, a
-	ld de, 0xC5D2 
+	ld de, 0xC5D3
+	pop bc
 	push de
-	ld bc, 1
+	ld c, 1
 .loop
 	ld a, [hli]
 	rra ; c flag is always 0 here, except if a failure state was detected in a command we ran this cycle. Failure state means 1st data byte > 0x80
@@ -65,79 +50,81 @@ Payload:
 	ld c, a
 	jr nc, .loop
 	
-	add a, c
+	add a, b
 	add a, h
 	add a, l
 	res 7, a ; ensure that the checksum is never equal to 0xFE
 	inc de
-	ld [de], a ; load in the checksum
-	inc de ; de now points to 0xC5DC, where the next packet will arrive.
 	pop hl
+	ld [hld], a
 	ld a, c
 	and 0x0F ; extract the lower nybble.
 	ld [hld], a ; 4 LSB get stored here.
 	xor c ; I love xor magic, this stores the higher nybble in a.
-	swap a
 	ld [hld], a ; 4 MSB get stored here, hl now points to 0xC5D0, where the next packet will be sent from.
-	ld [hl], SERIAL_PREAMBLE_BYTE
-	
-	ld bc, PACKET_SIZE
-	call Serial_ExchangeBytes
+	ld a, [de] 
+	ld [hl], a ; write counter
+	ld c, PACKET_SIZE
+	call .changeInterruptsAndCommunicate
 	jr .loopTransfer
+.changeInterruptsAndCommunicate
+	ld b, 0
+	call 0xC690 ; leftover from the universal payload, only allow serial interrupt and call Serial_ExchangeBytes
+	ld a, IE_SERIAL | IE_TIMER | IE_VBLANK ; enable vblank interrupt so that a sound effect can play
+	ldh [rIE], a
+	ret
 .commandTable
 	dw ReloadCurrentBox
 	dw TransferPokemon
-	dw Start ; R/B don't have CGB specific logic, so reset without caring for register states.
-	dw OpenSRAM
-	dw CloseSRAM
+	dw SoftReset
+	dw ModifySRAMAccess
 	dw RunSecondaryPayload
 .end
 VerifySecondaryPayload: ; checks if payload matches expected size and passes verification.
 	ld c, b
-	ld b, 0
-	ld de, 0xC610
+	ld de, 0xC800
 	ld hl, 0xC5D0
 	push de
-	call Serial_ExchangeBytes
+	call Payload.changeInterruptsAndCommunicate
 	pop hl
 	push hl
 .skipPreambleAndFF
 	ld a, [hli]
 	inc a
-	jr z, .skipPreambleAndFF
+	jr nz, .skipPreambleAndFF
 	ld c, [hl] ; c now equals the size of the payload's data
 	inc hl
 	pop de
 	push de
-.checksumLoop
+.checksumLoop	
 	ld a, [hli]
 	ld [de], a
 	inc de
 	add a, b
 	ld b, a
 	dec c
-	jr z, .checksumLoop
+	jr nz, .checksumLoop ; calculates checksum and aligns payload at the same time
 	pop hl
 	and a
 	ret z
-	scf
 	pop hl
+	call ReplaceTextBox.writeCommunicating
+	scf
 	ret
 ReloadCurrentBox:
+	call ReplaceTextBox
 	ld hl, LoadCurrentBoxData ; always resets carry flag at the end
-.bankSwitch
+.bankswitch
 	ld b, LoadCurrentBoxDataBank
-	jp BankSwitch ; preserves carry flag on return
+	jp Bankswitch ; preserves carry flag on return
 TransferPokemon: ; possible usecase: use second argument byte to change box?
 	ld a, c
 	ld [wCurrentMenuItem], a
 	push bc
-	ld a, 0xb ; enable vblank interrupt so that a sound effect can play
-	ldh [rIE], a
-	ld hl, 0x78CD
-	call ReloadCurrentBox.bankSwitch
-	ld a, 0x8
-	ldh [rIE], a
+	ld de, ReplaceTextBox.transferringText
+	call ReplaceTextBox.writeOwnString
+	ld hl, ChangeCurrentBox
+	call ReloadCurrentBox.bankswitch
 	pop bc
 	call VerifySecondaryPayload
 	inc a
@@ -155,20 +142,32 @@ TransferPokemon: ; possible usecase: use second argument byte to change box?
 	jr .removalLoop	
 .saveBox
 	ld hl, SaveCurrentBoxData ; resets carry flag
-	jr ReloadCurrentBox.bankSwitch
-OpenSRAM: ; opens SRAM bank to the bank described in argument byte 1.
-	ld h, 0xA
+	call ReloadCurrentBox.bankswitch
+	jr ReplaceTextBox.writeCommunicating
+ModifySRAMAccess: ; opens SRAM bank to the bank described in argument byte 1.
+	ld h, b
 	ld [hl], h
 	ld h, 0x40
-	ld [hl], b
-	and a ; reset carry flag
+	ld [hl], c
+;	and a ; reset carry flag, should not be needed due to how CallFunctionInTable works
 	ret
-CloseSRAM:
-	xor a ; reset carry flag
-	ld h, a
-	ld [hl], a
-	ret
-RunSecondaryPayload: ; loads new payload of size bc, aligns it, verifies it, then executes it.
+RunSecondaryPayload: ; loads new payload of size b, aligns it, verifies it, then executes it.
 	call VerifySecondaryPayload
 	jp hl
+ReplaceTextBox:
+	call ClearScreen
+	hlcoord 2, 10
+	ld bc, 1 << 8 | 14
+	call CableClub_TextBoxBorder
+.writeCommunicating
+	ld de, .communicatingText
+.writeOwnString
+	hlcoord 3, 11
+	jp PlaceString
+.communicatingText:
+	db "COMMUNICATING!@"
+.transferringText:
+	db "TRANSFERRING! @"
+.end
+ds 255 - (ReplaceTextBox.end - Payload), 0
 ENDL

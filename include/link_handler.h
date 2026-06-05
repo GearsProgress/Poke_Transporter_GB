@@ -130,7 +130,7 @@ enum CompositeState
 {
     NO_COMPOSITE_STATE,
     INITIAL_CONNECTION,
-    GET_BOX_LIST,
+    PACKET_EXCHANGE,
 };
 
 enum SubstateState
@@ -152,7 +152,9 @@ enum SubstateState
     SEND_SPECIFIC_PAYLOAD,
     SOFT_RESET,
 
-    // GET_BOX_LIST
+    // PACKET_EXCHANGE
+    BYTE_EXCHANGE,
+
     END,
 
 };
@@ -160,6 +162,48 @@ enum SubstateState
 enum LinkConnectionError
 {
     NO_ERROR,
+    PACKET_TIMED_OUT,
+    CHECKSUM_MISMATCH,
+};
+
+enum PayloadCommand
+{
+    CMD_ReloadCurrentBox,    // no arguments used. Reloads the current box from SRAM. Use this as the first command byte before performing other commands.
+    CMD_TransferPokemon,     // 1st argument = secondary payload size, 2nd argument = box that should be transferred from. This command uses a secondary payload. The size of this secondary payload needs to be declared beforehand. Prior to requesting a secondary payload, the program will use the second argument to load a specific box from SRAM. Box numbers are 0-indexed and range from 0x00 (box 1) to 0x0B(box 12). This load procedure currently cannot be skipped. Once the secondary payload arrives, the program will verify its integrity and align the payload. Afterwards, it will use the information within this payload to remove pokémon from the current box. Once all transferred pokémon have been removed, the program will save the current box.
+    CMD_SoftReset,           // no arguments used. Instantly soft resets the game.
+    CMD_OpenSRAM,            // 1st argument = SRAM bank to be opened. Opens access to SRAM and switches to the SRAM bank determined by the 1st argument. SRAM will remain open afterwards.
+    CMD_CloseSRAM,           // no arguments used. Instantly closes access to SRAM.
+    CMD_RunSecondaryPayload, // 1st argument = secondary payload size. This command uses a secondary payload. The size of this secondary payload needs to be declared beforehand. Once the secondary payload arrives, the program will verify its integrity and align the payload. Afterwards, it will jump to the secondary payload and execute it. IMPORTANT: if you want to report an error when executing this secondary payload, return with carry flag set. IMPORTANT: if you want to report that the payload was executed safely, return with carry flag reset.*/
+    CMD_ReadDataRequest,     // a request to read data starting from the address defined by the 16-bit pointer.
+};
+
+#define OUTP_PREAMBLE_INDEX 0
+#define OUTP_COUNTER_INDEX 1
+#define OUTP_COMMAND_INDEX 2
+#define OUTP_ARGS_INDEX 3
+#define OUTP_POINTER_INDEX 5
+#define OUTP_FILLER_INDEX 7
+#define OUTP_LENGTH 13
+
+#define INP_COUNTER_INDEX (0 + INP_DELAY_FROM_OUTP)
+#define INP_LSB_INDEX (1 + INP_DELAY_FROM_OUTP)
+#define INP_CHECKSUM_INDEX (3 + INP_DELAY_FROM_OUTP)
+#define INP_DATA_INDEX (4 + INP_DELAY_FROM_OUTP)
+#define INP_LENGTH (12 + INP_DELAY_FROM_OUTP)
+
+#define INP_DELAY_FROM_OUTP 3
+#define TOTAL_PACKET_LENGTH (OUTP_LENGTH + INP_DELAY_FROM_OUTP)
+
+struct LinkPacket
+{
+    // Out packet parameters
+    PayloadCommand command;
+    byte argument[2] = {0x00, 0x00};
+    u16 pointer;
+
+    // Incoming data
+    LinkConnectionError latestError = NO_ERROR;
+    byte recievedData[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 };
 
 class LinkConnection
@@ -198,12 +242,19 @@ public:
     bool test_packet_fail = false; // ???
 
     byte data_packet[PACKET_SIZE];
-    byte curr_payload[0x2A0];
+    byte payloadBuffer[0x2A0];
     int curr_payload_size = 0;
-    byte dataOutBuffer[0xFF];
+    byte dataOutBuffer[16];
     int dataOutBufferCurrIndex = 0;
 
-    bool paused = false; // Used for pausing and sending one byte at a time
+    LinkPacket *currLinkPacketArr;
+    int currLinkPacketArrNum = 0;
+    int currLinkPacketArrIndex = 0;
+
+    bool pauseOnByte = false;   // Used for pausing and sending one byte at a time
+    bool pauseOnPacket = false; // Used for pausing and sending one packet at a time
+    bool skipPrint = false;     // Skips printing to the screen
+    bool newPacket = false;
 
     void setup(const u16 *debug_charset);
     void startConnection(CompositeState startState);
@@ -215,8 +266,10 @@ public:
 
 private:
     void load_payload(GB_PayloadsFiles payload);
-    void LoadCurrGameFromChecksum();
+    void loadCurrGameFromChecksum();
+    bool processPacket();
     void logicState_initConnection();
+    void logicState_packetExchange();
 
     // Used for debug features
 #define LINE_WIDTH 24
