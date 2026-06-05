@@ -163,6 +163,7 @@ enum LinkConnectionError
 {
     NO_ERROR,
     PACKET_TIMED_OUT,
+    CHECKSUM_MISMATCH,
 };
 
 enum PayloadCommand
@@ -176,8 +177,22 @@ enum PayloadCommand
     CMD_ReadDataRequest,     // a request to read data starting from the address defined by the 16-bit pointer.
 };
 
-#define OUT_PACKET_LENGTH 16
-#define IN_PACKET_LENGTH 16
+#define OUTP_PREAMBLE_INDEX 0
+#define OUTP_COUNTER_INDEX 1
+#define OUTP_COMMAND_INDEX 2
+#define OUTP_ARGS_INDEX 3
+#define OUTP_POINTER_INDEX 5
+#define OUTP_FILLER_INDEX 7
+#define OUTP_LENGTH 13
+
+#define INP_COUNTER_INDEX (0 + INP_DELAY_FROM_OUTP)
+#define INP_LSB_INDEX (1 + INP_DELAY_FROM_OUTP)
+#define INP_CHECKSUM_INDEX (3 + INP_DELAY_FROM_OUTP)
+#define INP_DATA_INDEX (4 + INP_DELAY_FROM_OUTP)
+#define INP_LENGTH (12 + INP_DELAY_FROM_OUTP)
+
+#define INP_DELAY_FROM_OUTP 3
+#define TOTAL_PACKET_LENGTH (OUTP_LENGTH + INP_DELAY_FROM_OUTP)
 
 struct LinkPacket
 {
@@ -187,8 +202,8 @@ struct LinkPacket
     u16 pointer;
 
     // Incoming data
-    byte recievedData[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
     LinkConnectionError latestError = NO_ERROR;
+    byte recievedData[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 };
 
 class LinkConnection
@@ -238,7 +253,10 @@ public:
     int currLinkPacketArrNum = 0;
     int currLinkPacketArrIndex = 0;
 
-    bool paused = false; // Used for pausing and sending one byte at a time
+    bool pauseOnByte = false;   // Used for pausing and sending one byte at a time
+    bool pauseOnPacket = false; // Used for pausing and sending one packet at a time
+    bool skipPrint = false;     // Skips printing to the screen
+    bool newPacket = false;
 
     void setup(const u16 *debug_charset);
     void startConnection(CompositeState startState);
@@ -250,7 +268,8 @@ public:
 
 private:
     void load_payload(GB_PayloadsFiles payload);
-    void LoadCurrGameFromChecksum();
+    void loadCurrGameFromChecksum();
+    bool processPacket();
     void logicState_initConnection();
     void logicState_packetExchange();
 

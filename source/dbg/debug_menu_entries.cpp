@@ -109,6 +109,7 @@ void fill_debug_menu_with_entries(vertical_menu &menu, u16 *charset)
 #endif
         define_song_row(charset, "Song"),
         define_toggle_row(charset, "Print Link", dbg_set_boolean_flag, g_debug_options.print_link_data, &g_debug_options.print_link_data),
+        define_toggle_row(charset, "Print Packets", dbg_set_boolean_flag, g_debug_options.print_link_packets, &g_debug_options.print_link_packets),
         define_toggle_row(charset, "Instant Text", dbg_set_boolean_flag, g_debug_options.instant_text_speed, &g_debug_options.instant_text_speed),
         define_toggle_row(charset, "Ign Cart", dbg_set_boolean_flag, g_debug_options.ignore_game_pak, &g_debug_options.ignore_game_pak),
         define_toggle_row(charset, "Ign Sprites", dbg_set_boolean_flag, g_debug_options.ignore_game_pak_sprites, &g_debug_options.ignore_game_pak_sprites),

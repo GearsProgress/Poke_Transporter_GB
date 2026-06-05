@@ -38,7 +38,7 @@ void linkCableIRQ()
 
     globalLinkCable.exchangeBytes();
 
-    if (g_debug_options.print_link_data)
+    if (g_debug_options.print_link_data || g_debug_options.print_link_packets)
     {
       globalLinkCable.printData();
     }
@@ -78,7 +78,7 @@ void LinkConnection::startConnection(CompositeState startState)
   case PACKET_EXCHANGE:
     subState = BYTE_EXCHANGE;
     REG_TM3D = -0x0040;
-    //REG_TM3D = -0x4000 / 2;
+    // REG_TM3D = -0x4000 / 2;
     REG_TM3CNT = TM_FREQ_1024 | TM_ENABLE;
     break;
   default:
@@ -107,22 +107,74 @@ void LinkConnection::exchangeBytes()
 
 void LinkConnection::printData()
 {
-  n2hexstr(&line[0], compState & 0xFF, 2);
-  line[2] = ':';
-  n2hexstr(&line[3], compStateCounter & 0xFFFF, 4);
-  line[7] = '|';
-  n2hexstr(&line[8], subState & 0xFF, 2);
-  line[10] = ':';
-  n2hexstr(&line[11], subStateCounter & 0xFFFF, 4);
-  line[15] = '|';
-  line[16] = 'i';
-  n2hexstr(&line[17], inData & 0xFF, 2);
-  line[19] = '|';
-  line[20] = 'o';
-  n2hexstr(&line[21], outData & 0xFF, 2);
-  line[23] = '\0';
-  scroll_text(true, tte_get_context(), false, 8, 8, 138, 135);
-  ptgb_write_debug(this->debug_charset, line, true);
+  if (globalLinkCable.skipPrint)
+  {
+    tte_erase_rect(0, 0, H_MAX, V_MAX);
+  }
+  else
+  {
+    if (g_debug_options.print_link_data)
+    {
+      n2hexstr(&line[0], compState & 0xFF, 2);
+      line[2] = ':';
+      n2hexstr(&line[3], compStateCounter & 0xFFFF, 4);
+      line[7] = '|';
+      n2hexstr(&line[8], subState & 0xFF, 2);
+      line[10] = ':';
+      n2hexstr(&line[11], subStateCounter & 0xFFFF, 4);
+      line[15] = '|';
+      line[16] = 'i';
+      n2hexstr(&line[17], inData & 0xFF, 2);
+      line[19] = '|';
+      line[20] = 'o';
+      n2hexstr(&line[21], outData & 0xFF, 2);
+      line[23] = '\0';
+      scroll_text(true, tte_get_context(), false, 8, 8, 138, 135);
+      ptgb_write_debug(this->debug_charset, line, true);
+    }
+
+    // TODO: This is pretty rough, but it's the best we can do until the text engine rewrite.
+    if (g_debug_options.print_link_packets)
+    {
+      tte_erase_rect(160, 16, H_MAX, V_MAX);
+      for (int i = 0; i < 4; i++)
+      {
+        for (int j = 0; j < 4; j++)
+        {
+          n2hexstr(&line[3 * j], dataOutBuffer[(4 * i) + j], 2);
+          line[(3 * j) + 2] = ' ';
+        }
+        line[12] = '\0';
+        tte_set_pos(160, 16 * i);
+        ptgb_write_debug(this->debug_charset, line, true);
+      }
+
+      for (int i = 0; i < 4; i++)
+      {
+        byte tempBuffer[16];
+        int packetIndex = dataOutBuffer[INP_COUNTER_INDEX];
+        LinkPacket &currLinkPacket = currLinkPacketArr[packetIndex];
+
+        tempBuffer[0] = packetIndex;
+        tempBuffer[1] = currLinkPacket.command;
+        tempBuffer[2] = currLinkPacket.pointer >> 0;
+        tempBuffer[3] = currLinkPacket.pointer >> 8;
+        memcpy(&tempBuffer[4], currLinkPacket.argument, 2);
+        tempBuffer[6] = currLinkPacket.latestError;
+        tempBuffer[7] = 0x00;
+        memcpy(&tempBuffer[8], currLinkPacket.recievedData, 8);
+
+        for (int j = 0; j < 4; j++)
+        {
+          n2hexstr(&line[3 * j], tempBuffer[(4 * i) + j], 2);
+          line[(3 * j) + 2] = ' ';
+        }
+        line[12] = '\0';
+        tte_set_pos(160, (16 * 5) + (16 * i));
+        ptgb_write_debug(this->debug_charset, line, true);
+      }
+    }
+  }
 }
 
 void LinkConnection::writeData()
@@ -187,23 +239,52 @@ void LinkConnection::handleStateLogic()
 
 bool LinkConnection::earlyExit()
 {
-  if (g_debug_options.print_link_data && key_hit(KEY_LEFT))
+  if (g_debug_options.print_link_data && !skipPrint && key_held(KEY_LEFT))
   {
-    globalLinkCable.paused = true;
+    pauseOnByte = true;
+    pauseOnPacket = false;
   }
-  else if (g_debug_options.print_link_data && key_hit(KEY_RIGHT))
+  else if (g_debug_options.print_link_packets && !skipPrint && key_held(KEY_RIGHT))
   {
-    globalLinkCable.paused = false;
+    pauseOnPacket = true;
+    pauseOnByte = false;
+  }
+  else if (g_debug_options.print_link_data && !skipPrint && key_held(KEY_SELECT))
+  {
+    pauseOnByte = false;
+  }
+  else if (g_debug_options.print_link_packets && !skipPrint && key_held(KEY_START))
+  {
+    pauseOnPacket = false;
+  }
+  else if ((g_debug_options.print_link_data || g_debug_options.print_link_packets) && key_held(KEY_UP))
+  {
+    skipPrint = true;
+    pauseOnPacket = false;
+    pauseOnByte = false;
+  }
+  else if ((g_debug_options.print_link_data || g_debug_options.print_link_packets) && key_held(KEY_DOWN))
+  {
+    skipPrint = false;
   }
 
-  if (globalLinkCable.paused && g_debug_options.print_link_data)
+  if (pauseOnByte && g_debug_options.print_link_data)
+  {
+    if (key_hit(KEY_B))
+    {
+      return false; // Even if paused, run once
+    }
+  }
+
+  if (pauseOnPacket && newPacket && g_debug_options.print_link_packets)
   {
     if (key_hit(KEY_A))
     {
       return false; // Even if paused, run once
     }
   }
-  return globalLinkCable.paused;
+
+  return pauseOnByte || (pauseOnPacket && newPacket);
 }
 
 void LinkConnection::logicState_initConnection()
@@ -322,7 +403,6 @@ void LinkConnection::logicState_initConnection()
     break;
 
   case GET_CHECKSUM:
-
     if (inData != 0xFD)
     {
       dataOutBuffer[dataOutBufferCurrIndex] = inData;
@@ -331,8 +411,8 @@ void LinkConnection::logicState_initConnection()
     }
     else if (inData == 0xFD && dataOutBufferCurrIndex > 0)
     {
-      LoadCurrGameFromChecksum();
-      load_payload(GB_PayloadsFiles::SPECIFICPAYLOADGEN1_RB_EN);
+      loadCurrGameFromChecksum();
+      load_payload(GB_PayloadsFiles::SPECIFICPAYLOADGEN1_EN_R);
       nextSubState = SEND_SPECIFIC_PAYLOAD;
     }
     else
@@ -350,7 +430,7 @@ void LinkConnection::logicState_initConnection()
     break;
 
   case SEND_SPECIFIC_PAYLOAD:
-    if (subStateCounter > 200) // The 200 comes from the Universal Payload
+    if (subStateCounter > 255) // The 255 comes from the Universal Payload
     {
       nextSubState = END;
     }
@@ -378,83 +458,39 @@ void LinkConnection::logicState_packetExchange()
 {
   switch (subState)
   {
-
-    /*
-  case SEND_PACKET:
-
-    // Output the payload followed by 0xFF while waiting
-    if (subStateCounter > 12)
-    {
-      nextSubState = RECIEVE_PACKET;
-    }
-    outData = payloadBuffer[subStateCounter];
-    break;
-
-  case WAIT_FOR_RESPONSE:
-    if (inData != 0xFD)
-    {
-      nextSubState = RECIEVE_PACKET;
-    }
-    else if (subStateCounter >= 256)
-    {
-      lastError = PACKET_TIMED_OUT;
-      nextSubState = END;
-    }
-    outData = 0xFF;
-    break;
-
-  case RECIEVE_PACKET:
-    // See if we've already begun recieving the response
-    if (dataOutBufferCurrIndex > 0)
-    {
-      // Are we at the end of the response?
-      if (dataOutBufferCurrIndex >= 13)
-      {
-        nextSubState = END;
-      }
-      else
-      {
-        dataOutBuffer[dataOutBufferCurrIndex] = inData;
-        dataOutBufferCurrIndex++;
-      }
-    }
-    // We haven't... see if this is the first byte in the response
-
-    // Let's also make sure that we haven't been sitting here for a long time
-
-    break;
-*/
-
   case BYTE_EXCHANGE:
 
-    if (subStateCounter < OUT_PACKET_LENGTH)
+    if (subStateCounter < TOTAL_PACKET_LENGTH)
     {
       // Start with OUT_PACKET_LENGTH of bytes of prep to make sure things are set to go
       outData = 0xFF;
     }
     else
     {
-      switch (subStateCounter % OUT_PACKET_LENGTH)
+      switch (subStateCounter % TOTAL_PACKET_LENGTH)
       {
       case 0:
         outData = 0xFD;
         break;
       case 1:
-        outData = currLinkPacketArr[currLinkPacketArrIndex].command;
+        outData = currLinkPacketArrIndex;
         break;
       case 2:
-        outData = currLinkPacketArr[currLinkPacketArrIndex].argument[0];
+        outData = currLinkPacketArr[currLinkPacketArrIndex].command;
         break;
       case 3:
-        outData = currLinkPacketArr[currLinkPacketArrIndex].argument[1];
+        outData = currLinkPacketArr[currLinkPacketArrIndex].argument[0];
         break;
       case 4:
-        outData = currLinkPacketArr[currLinkPacketArrIndex].pointer >> 8;
+        outData = currLinkPacketArr[currLinkPacketArrIndex].argument[1];
         break;
       case 5:
         outData = currLinkPacketArr[currLinkPacketArrIndex].pointer >> 0;
         break;
-      case OUT_PACKET_LENGTH - 1:
+      case 6:
+        outData = currLinkPacketArr[currLinkPacketArrIndex].pointer >> 8;
+        break;
+      case TOTAL_PACKET_LENGTH - 1:
         currLinkPacketArrIndex++;
       default:
         outData = 0xFF;
@@ -465,11 +501,17 @@ void LinkConnection::logicState_packetExchange()
         nextSubState = END;
       }
 
-      if (subStateCounter % OUT_PACKET_LENGTH + 2 == 0)
+      if (subStateCounter % TOTAL_PACKET_LENGTH == 0)
       {
-        // Process packet
+        newPacket = true;
+        processPacket();
       }
-      dataOutBuffer[subStateCounter % OUT_PACKET_LENGTH + 2] = inData;
+      else
+      {
+        newPacket = false;
+      }
+
+      dataOutBuffer[subStateCounter % TOTAL_PACKET_LENGTH] = inData;
     }
     break;
 
@@ -499,7 +541,7 @@ void LinkConnection::load_payload(GB_PayloadsFiles payload)
   this->curr_payload_size = fileSize;
 }
 
-void LinkConnection::LoadCurrGameFromChecksum()
+void LinkConnection::loadCurrGameFromChecksum()
 {
   if (((dataOutBuffer[0] + dataOutBuffer[1]) & 0x7F) != dataOutBuffer[3])
   {
@@ -530,4 +572,36 @@ void LinkConnection::LoadCurrGameFromChecksum()
   }
   currROM = GB_ROM_ERROR;
   return;
+}
+
+bool LinkConnection::processPacket()
+{
+  int checksum = 0;
+  LinkPacket &currPacket = currLinkPacketArr[dataOutBuffer[INP_COUNTER_INDEX]];
+  for (int i = INP_DELAY_FROM_OUTP; i < INP_LENGTH; i++)
+  {
+    if (i != INP_CHECKSUM_INDEX)
+    {
+      checksum += dataOutBuffer[i];
+    }
+  }
+  // Add the read pointer
+  checksum += ((currPacket.pointer + 8) >> 0) & 0xFF;
+  checksum += ((currPacket.pointer + 8) >> 8) & 0xFF;
+
+  checksum &= 0x7F;
+
+  byte lsbByte = dataOutBuffer[INP_LSB_INDEX] | dataOutBuffer[INP_LSB_INDEX + 1];
+  for (int i = 0; i < 8; i++)
+  {
+    currPacket.recievedData[i] =
+        (dataOutBuffer[INP_DATA_INDEX + i] << 1) | ((lsbByte >> (7 - i)) & 0b1);
+  }
+
+  if (checksum != dataOutBuffer[INP_CHECKSUM_INDEX])
+  {
+    currPacket.latestError = CHECKSUM_MISMATCH;
+    return false;
+  }
+  return true;
 }

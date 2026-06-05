@@ -794,16 +794,19 @@ bool run_conditional(int index)
             obj_unhide(flag, 0);
             obj_set_pos(flag, 1.5 * 8, 14 * 8);
 
-            LinkPacket packets[6] = {
-                {CMD_ReadDataRequest, 0x00, 0x00, 0xDCC5},
-                {CMD_ReadDataRequest, 0x00, 0x00, 0xDCC5},
-                {CMD_ReadDataRequest, 0x00, 0x00, 0xDCC5},
-                {CMD_ReadDataRequest, 0x00, 0x00, 0xDCC5},
-                {CMD_ReadDataRequest, 0x00, 0x00, 0xDCC5},
-                {CMD_ReadDataRequest, 0x00, 0x00, 0xDCC5},
+            LinkPacket packets[] = {
+                {CMD_ReadDataRequest, 0x00, 0x00, 0xDA80},
+                {CMD_ReadDataRequest, 0x00, 0x00, 0xDA88},
+                {CMD_ReadDataRequest, 0x00, 0x00, 0xDA90},
+                {CMD_ReadDataRequest, 0x00, 0x00, 0xDA98},
+                {CMD_ReadDataRequest, 0x00, 0x00, 0xDAA0},
+                {CMD_ReadDataRequest, 0x00, 0x00, 0xDAA8},
+                {CMD_ReadDataRequest, 0x00, 0x00, 0xC5DC}
 
             };
-            globalLinkCable.paused = true;
+
+            globalLinkCable.skipPrint = false;
+            globalLinkCable.pauseOnPacket = true;
             while (true)
             {
                 globalLinkCable.currLinkPacketArr = packets;

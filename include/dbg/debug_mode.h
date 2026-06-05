@@ -22,6 +22,9 @@ typedef struct debug_options
     /** This option will print the link cable data. Pause the transfer with L, resume with R. Skip printing with DOWN. */
     bool print_link_data;
 
+    /** This option will print the link cable packets. Pause the transfer with L, resume with R. Skip printing with DOWN. */
+    bool print_link_packets;
+
     /**
      * @brief If this option has been set, we won't animate the text, but show the full text immediately.
      */
@@ -95,7 +98,6 @@ typedef struct debug_options
 } debug_options;
 
 extern debug_options g_debug_options;
-
 
 // Options that affect and require payload_builder
 // (and therefore can't be put in the debug menu)
