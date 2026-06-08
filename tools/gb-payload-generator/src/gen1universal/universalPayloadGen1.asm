@@ -145,43 +145,38 @@ SerialPatchListAligned:
 	ds 5, 0 ; expected result is FD FD [16 bit cartridge checksum] [8 bit safety checksum]. There are no valid cartridge checksums containing 0xFD or 0xFE.
 	ld l, LOW(SerialPatchPreamble) ; send checksum data from this address
 	ld de, 0xC700 ; receive payload at this address
-	push hl
-	ld bc, 7
-	push de
+	ld c, 7
 	call .callSerial_ExchangeBytes ; send checksum to PTGB, bc = 0000 on exit
-	pop de
-	pop hl
+	ld e, c
 	push de
-	ds 4, 0
-	ld c, 255 ; serial patch list size
+	dec c ; c = 0xFF
 	call .callSerial_ExchangeBytes ; receive specific payload from PTGB
+	ds 4, 0
 	pop hl
-	push hl
-	push hl
-	pop de
+	ld e, c
 .findNotPreamble ; we can't be sure if the payload arrived in the exact desired position. Because of this, let's align the payload.
 	ld a, [hli]
 	cp SERIAL_PREAMBLE_BYTE
 	jr z, .findNotPreamble
 .alignPayload ; now that we have found the first non-preamble value, let's align it properly.
 	ld [de], a
-	ds 5, 0
-	inc e ; we're only aligning stuff within the 0xC700 space
+	inc e ; we're only aligning stuff within the 0xC700 space. Exit when de = 0xC700
 	ld a, [hli]
 	jr nz, .alignPayload
-	pop hl
-	ld a, [hl] ; check first non-preamble byte of payload. If 00, resend checksum (incorrect calculated checksum). If FF, an error has occured (correct calculated checksum, but the cartridge checksum is not recognized), so safely reset instead. If any other values, jump to new payload!
+	ld a, [de] ; check first non-preamble byte of payload. If 00, resend checksum (incorrect calculated checksum). If FF, an error has occured (correct calculated checksum, but the cartridge checksum is not recognized), so safely reset instead. If any other values, jump to new payload!
 	and a, a
 	jr z, .sendChecksum
-	push hl ; What I wouldn't give for a conditional jp hl
+	ds 4, 0
+	push de ; push 0xC700 on the stack for the next ret
 	inc a
 	ret nz
-	ldh a, [hOnCGB] ; assuming we're on Yellow, we're going to be responsible and make sure the game loads using the correct color mode.
-	jr .skipFiller
-	ds 4, 0
-.skipFiller
-	add a, BOOTUP_A_CGB - 1
-	jp Start
+	ld a, 0xC3
+	ld hl, Start - 1
+.loopUntilJumpInit
+	inc hl
+	cp a, [hl]
+	jr nz, .loopUntilJumpInit
+	jp hl
 .findPointerAndPatch ; searches for specific opcodes from a certain offset and places the resulting pointer at a specific location
 ; b = first opcode to search for
 ; c = second opcode to search for
@@ -189,22 +184,26 @@ SerialPatchListAligned:
 ; hl = offset to start searching from
 ; return destination pointer in hl, made to minimize amount of M-cycles taken
 	ld de, .callPatchedPointer + 1
+	ds 4, 0
 .findPointerAndPatchLoop
 	ld a, [hli]
 	cp b
 	jr nz, .findPointerAndPatchLoop
-	ld a, [hl]
+	ld a, [hl] ; we can't ldd here, otherwise we could get stuck in an infinite loop
+	jr .skipFiller
+.skipFiller
 	cp c
 	jr nz, .findPointerAndPatchLoop
-	ds 4, 0
 	dec hl
 	ld a, l
 	ld [de], a
 	inc de
 	ld a, h
 	ld [de], a
+	ds 4, 0
 	ret
 .callSerial_ExchangeBytes
+	ld b, 0
 	ld a, IE_SERIAL
 	ldh [rIE], a
 .callPatchedPointer

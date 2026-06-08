@@ -1,12 +1,12 @@
-INCLUDE "include/constants/charmap.asm"
-INCLUDE "include/macros/const.asm"
-INCLUDE "include/constants/serial_constants.asm"
-INCLUDE "include/constants/pokemon_constants.asm"
-INCLUDE "include/constants/symbols.asm"
-INCLUDE "include/constants/hardware.inc"
-INCLUDE "include/payload/payload.asm"
-INCLUDE "include/payload/patches.asm"
-INCLUDE "include/payload/settings.asm"
+INCLUDE "../../include/constants/charmap.asm"
+INCLUDE "../../include/macros/const.asm"
+INCLUDE "../../include/constants/serial_constants.asm"
+INCLUDE "../../include/constants/pokemon_constants.asm"
+INCLUDE "../../include/constants/symbols.asm"
+INCLUDE "../../include/constants/hardware.inc"
+INCLUDE "../../include/payload/payload.asm"
+INCLUDE "../../include/payload/patches.asm"
+INCLUDE "../../include/payload/settings.asm"
 
 SECTION "Payload", ROM0
 Payload:
@@ -139,12 +139,12 @@ SerialPatchListAligned:
 	ld de, SpecificPayloadAddress ; receive payload at this address
 	push hl
 	push de
-	ld bc, CHECKSUMPACKET_SIZE
+	ld c, CHECKSUMPACKET_SIZE
 	call .callSerial_ExchangeBytes ; send checksum to PTGB, bc = 0000 on exit
 	pop de
 	pop hl
 	push de
-	ld c, PATCHLIST_SIZE ; serial patch list size
+	dec c ; serial patch list size
 	push bc
 	call .callSerial_ExchangeBytes ; receive specific payload from PTGB
 	pop bc
@@ -190,6 +190,7 @@ SerialPatchListAligned:
 	ld [de], a
 	ret
 .callSerial_ExchangeBytes
+	ld b, 0
 	ld a, IE_SERIAL
 	ldh [rIE], a
 .callPatchedPointer

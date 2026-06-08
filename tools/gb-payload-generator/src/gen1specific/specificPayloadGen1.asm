@@ -13,27 +13,27 @@ LOAD "Payload", WRAM0[0xC700]
 Payload:
 .loopTransfer
 	ld hl, 0xC5DC ; perfect place to store incoming packets. TODO: on first pass, this will interpret the generic payload as part of an incoming packet. Check if this interferes with anything.
-.skipPreamble
+.searchCounter
 	ld a, [hli]
-	cp SERIAL_PREAMBLE_BYTE
-	jr z, .skipPreamble ; standard sanity check. If current byte does not match preamble, then we've loaded the counter in register a.
-	ld [0xC5DC], a
-	push af
+	bit 7, a
+	jr nz, .searchCounter ; first byte should be a packet counter, with a value between 0x00-0x7F. Also skips preamble bytes.
+	ld [0xC5DC], a ; Put this at the start of the received data, to ensure we'll be sending it back if we're running a command.
+	push af ; we'll retrieve this later
 	ld a, [hli] ; load command byte
 	ld b, [hl] ; load argument byte 1
 	inc hl
 	ld c, [hl] ; load argument byte 2
 	inc hl
 	push hl
-	ld hl, .commandTable
-	cp a, (.end - .commandTable) / 2 ; number of valid commands.
+	ld hl, CommandTable
+	cp a, (CommandTable.end - CommandTable) / 2 ; number of valid commands.
 	call c, CallFunctionInTable ; if command not in table, send data to PTGB instead. Afterwards, request another packet from PTGB.
 	pop hl ; hl should now point to the pointer that PTGB wants us to read data from.
 	ld a, [hli]
 	ld h, [hl]
 	ld l, a
 	ld de, 0xC5D3
-	pop bc
+	pop bc ; sneaky way to load the counter into the checksum
 	push de
 	ld c, 1
 .loop
@@ -68,18 +68,10 @@ Payload:
 	call .changeInterruptsAndCommunicate
 	jr .loopTransfer
 .changeInterruptsAndCommunicate
-	ld b, 0
-	call 0xC690 ; leftover from the universal payload, only allow serial interrupt and call Serial_ExchangeBytes
+	call 0xC68A ; leftover from the universal payload, only allow serial interrupt and call Serial_ExchangeBytes
 	ld a, IE_SERIAL | IE_TIMER | IE_VBLANK ; enable vblank interrupt so that a sound effect can play
 	ldh [rIE], a
 	ret
-.commandTable
-	dw ReloadCurrentBox
-	dw TransferPokemon
-	dw SoftReset
-	dw ModifySRAMAccess
-	dw RunSecondaryPayload
-.end
 VerifySecondaryPayload: ; checks if payload matches expected size and passes verification.
 	ld c, b
 	ld de, 0xC800
@@ -87,15 +79,13 @@ VerifySecondaryPayload: ; checks if payload matches expected size and passes ver
 	push de
 	call Payload.changeInterruptsAndCommunicate
 	pop hl
-	push hl
+	ld e, c
 .skipPreambleAndFF
 	ld a, [hli]
 	inc a
 	jr nz, .skipPreambleAndFF
 	ld c, [hl] ; c now equals the size of the payload's data
 	inc hl
-	pop de
-	push de
 .checksumLoop	
 	ld a, [hli]
 	ld [de], a
@@ -104,58 +94,55 @@ VerifySecondaryPayload: ; checks if payload matches expected size and passes ver
 	ld b, a
 	dec c
 	jr nz, .checksumLoop ; calculates checksum and aligns payload at the same time
-	pop hl
+	ld l, c
 	and a
 	ret z
 	pop hl
-	call ReplaceTextBox.writeCommunicating
 	scf
 	ret
 ReloadCurrentBox:
+	ld [wUpdateSpritesEnabled], a ; disables sprite updates once we reload the save. On entry, a will always be equal to LOW(ReloadCurrentBox)
 	call ReplaceTextBox
-	ld hl, LoadCurrentBoxData ; always resets carry flag at the end
-.bankswitch
-	ld b, LoadCurrentBoxDataBank
-	jp Bankswitch ; preserves carry flag on return
+	ld hl, TryLoadSaveFile + 9	; always resets carry flag at the end
+	call TransferPokemon.bankswitch ; preserves carry flag on return
+	jp SetMapTextPointer
 TransferPokemon: ; possible usecase: use second argument byte to change box?
+	ld [wRemoveMonFromBox], a ; a non-zero value in this address indicates we'll be removing stuff from the current active box.
 	ld a, c
 	ld [wCurrentMenuItem], a
 	push bc
 	ld de, ReplaceTextBox.transferringText
 	call ReplaceTextBox.writeOwnString
-	ld hl, ChangeCurrentBox
-	call ReloadCurrentBox.bankswitch
+	call .changeCurrentBoxBankswitch
 	pop bc
 	call VerifySecondaryPayload
-	inc a
-	ld [wRemoveMonFromBox], a ; a non-zero value in this address indicates we'll be removing stuff from the current active box.
 .removalLoop ; implementation of Gears' removal loop
 	ld a, [hli]
 	cp a, 0xFF
 	jr z, .saveBox ; possible to optimize this jr out?
 	push hl
-	ld hl, wBoxCount
-	cp a, [hl]
 	ld [wWhichPokemon], a
-	call nc, RemovePokemon ; funny thing here, RemovePokemon is located in bank 00 and just contains a jpfar to _RemovePokemon
+	call c, RemovePokemon ; funny thing here, RemovePokemon is located in bank 00 and just contains a jpfar to _RemovePokemon
 	pop hl
 	jr .removalLoop	
 .saveBox
-	ld hl, SaveCurrentBoxData ; resets carry flag
-	call ReloadCurrentBox.bankswitch
-	jr ReplaceTextBox.writeCommunicating
+	ld hl, ReplaceTextBox.writeCommunicating ; the sound of the game saving will provide enough time to display this on screen
+	push hl ; ensures that new text is only written AFTER we save the game
+.changeCurrentBoxBankswitch
+	ld hl, ChangeCurrentBox ; resets carry flag, will just switch to the same box while saving the game.
+.bankswitch
+	ld b, LoadCurrentBoxDataBank
+	jp Bankswitch
 ModifySRAMAccess: ; opens SRAM bank to the bank described in argument byte 1.
 	ld h, b
 	ld [hl], h
 	ld h, 0x40
 	ld [hl], c
-;	and a ; reset carry flag, should not be needed due to how CallFunctionInTable works
 	ret
 RunSecondaryPayload: ; loads new payload of size b, aligns it, verifies it, then executes it.
 	call VerifySecondaryPayload
 	jp hl
 ReplaceTextBox:
-	call ClearScreen
 	hlcoord 2, 10
 	ld bc, 1 << 8 | 14
 	call CableClub_TextBoxBorder
@@ -163,11 +150,17 @@ ReplaceTextBox:
 	ld de, .communicatingText
 .writeOwnString
 	hlcoord 3, 11
-	jp PlaceString
+	jp PlaceStringAndDelay3 ; ensures multiple vblank occur, which will result in the screen updating and displaying the new text.
 .communicatingText:
 	db "COMMUNICATING!@"
 .transferringText:
 	db "TRANSFERRING! @"
+CommandTable:
+	dw ReloadCurrentBox
+	dw TransferPokemon
+	dw SoftReset
+	dw ModifySRAMAccess
+	dw RunSecondaryPayload
 .end
-ds 255 - (ReplaceTextBox.end - Payload), 0
+ds 255 - (CommandTable.end - Payload), 0
 ENDL
