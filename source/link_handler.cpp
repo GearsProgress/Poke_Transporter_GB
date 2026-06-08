@@ -56,6 +56,7 @@ void LinkConnection::setup(const u16 *debug_charset)
 {
   link_cable_memory_section_index = 0;
   link_cable_array_index = 0;
+  writeBufferOffset = 0;
 
   linkSPI->activate(LinkSPI::Mode::MASTER_256KBPS);
   linkSPI->setWaitModeActive(false);
@@ -78,11 +79,11 @@ void LinkConnection::setup(const u16 *debug_charset)
       ++cur;
     }
   }
-
-  if(g_debug_options.load_cable_data_from_save == WRITE_CABLE_DATA_MODE_CART)
+  else if(g_debug_options.write_cable_data_to_save == WRITE_CABLE_DATA_MODE_CART)
   {
-    // if we're loading the cable data from the cart save, we should make sure to load our first section here.
-    copy_save_to_ram(0x1000 * link_cable_memory_section_index, &global_memory_buffer[0], 0x1000);
+    // before each write, we need to erase the sector.
+    // so, let's do that for the first one before we start writing anything.
+    erase_sector(0);
   }
 }
 
@@ -141,17 +142,16 @@ void LinkConnection::exchangeBytes()
       // skip the first 6 bytes, which are for human consumption
       link_cable_array_index += 6;
 
-      inData = global_memory_buffer[link_cable_array_index];
+      inData = read_byte_save((0x1000 * link_cable_memory_section_index) + link_cable_array_index);
       ++link_cable_array_index;
-      outData = global_memory_buffer[link_cable_array_index];
+      outData = read_byte_save((0x1000 * link_cable_memory_section_index) + link_cable_array_index);
       ++link_cable_array_index;
 
-      // we reached the end of our global_memory_buffer, we need to load the next data section from the cart save
       if(link_cable_array_index >= 0x1000)
       {
+        // if we reached the end of the section, we need to load the next section (if there is one)
         ++link_cable_memory_section_index;
         link_cable_array_index = 0;
-        copy_save_to_ram(0x1000 * link_cable_memory_section_index, &global_memory_buffer[0], 0x1000);
       }
       break;
     }
@@ -254,27 +254,19 @@ void LinkConnection::writeData()
       // the next 6 bytes are for human consumption when viewed in a hex editor.
       // they can be useful to correlate the current LinkConnection state with the data that was sent over the cable.
       // but they're not needed for reconstructing the conversation with load_cable_data_from_save
-      global_memory_buffer[link_cable_array_index + 0] = compState;
-      global_memory_buffer[link_cable_array_index + 1] = (compStateCounter >> 8) & 0xFF;
-      global_memory_buffer[link_cable_array_index + 2] = (compStateCounter >> 0) & 0xFF;
-      global_memory_buffer[link_cable_array_index + 3] = subState;
-      global_memory_buffer[link_cable_array_index + 4] = (subStateCounter >> 8) & 0xFF;
-      global_memory_buffer[link_cable_array_index + 5] = (subStateCounter >> 0) & 0xFF;
+      global_memory_buffer[writeBufferOffset + 0] = (u8)compState;
+      global_memory_buffer[writeBufferOffset + 1] = (u8)((compStateCounter >> 8) & 0xFF);
+      global_memory_buffer[writeBufferOffset + 2] = (u8)((compStateCounter >> 0) & 0xFF);
+      global_memory_buffer[writeBufferOffset + 3] = (u8)subState;
+      global_memory_buffer[writeBufferOffset + 4] = (u8)((subStateCounter >> 8) & 0xFF);
+      global_memory_buffer[writeBufferOffset + 5] = (u8)((subStateCounter >> 0) & 0xFF);
 
       // actual data bytes start here.
-      global_memory_buffer[link_cable_array_index + 6] = inData;
-      global_memory_buffer[link_cable_array_index + 7] = outData;
+      global_memory_buffer[writeBufferOffset + 6] = inData;
+      global_memory_buffer[writeBufferOffset + 7] = outData;
 
-      link_cable_array_index += 8;
+      writeBufferOffset += 8;
 
-      // If the buffer is full or we reached nextSubState == END, we save the buffer to the cartridge save
-      if (link_cable_array_index >= 0x1000 || nextSubState == END)
-      {
-        erase_sector(0x1000 * link_cable_memory_section_index);
-        copy_ram_to_save(&global_memory_buffer[0], 0x1000 * link_cable_memory_section_index, 0x1000);
-        ++link_cable_memory_section_index;
-        link_cable_array_index = 0;
-      }
       break;
     }
   }
@@ -317,6 +309,56 @@ void LinkConnection::handleStateLogic()
   {
     compStateCounter++;
     compStateChanged = false;
+  }
+}
+
+/*
+ * So, dealing with writing to the cartridge in the IRQ handler was a no-go.
+ * It just caused too many issues with data corruption, probably because the write and erase_sector
+ * operation was taking too long.
+ *
+ * So, I moved it to the main loop through this function.
+ * However, we need to be aware that this function can get interrupted by the IRQ handler at any time.
+ *
+ * We also need to take care to not have global_memory_buffer overflow as the IRQ handler just keeps adding to it.
+ */
+void LinkConnection::handleCartIO()
+{
+  u8 writeBuffer[0x1000];
+  unsigned curBufDepth = writeBufferOffset;
+
+  // first copy the current data to a local buffer. Note: the IRQ handler could append new data to global_memory_buffer during this call!
+  memcpy(writeBuffer, global_memory_buffer, curBufDepth);
+  // by updating the writeBufferOffset already, we allow the IRQ handler to start writing at the new right position
+  // immediately.
+  writeBufferOffset -= curBufDepth;
+  // now move any data received during the memcpy to before writeBufferOffset, so it will be included in the next batch.
+  // Note: keep in mind, here too the IRQ handler may be appending new data to global_memory_buffer and increase writeBufferOffset.
+  // but it's harmless.
+  memmove(global_memory_buffer, global_memory_buffer + curBufDepth, writeBufferOffset);
+
+  u8 *curWriteBuf = writeBuffer;
+  const u8 * const endWriteBuf = writeBuffer + curBufDepth;
+
+  while(curWriteBuf < endWriteBuf)
+  {
+    // make sure not to write beyond the current flash sector's boundaries. We'll need an erase_sector() call before
+    // we write to the next sector.
+    const unsigned bytesRemainingInSector = 0x1000 - link_cable_array_index;
+    const unsigned bytesToWrite = (curBufDepth < bytesRemainingInSector) ? curBufDepth : bytesRemainingInSector;
+
+    copy_ram_to_save(curWriteBuf, (0x1000 * link_cable_memory_section_index) + link_cable_array_index, bytesToWrite);
+    curWriteBuf += bytesToWrite;
+    curBufDepth -= bytesToWrite;
+    link_cable_array_index += bytesToWrite;
+
+    if(link_cable_array_index >= 0x1000)
+    {
+      // we have reached the end of our current sector. Let's erase the next one.
+      link_cable_array_index = 0;
+      ++link_cable_memory_section_index;
+      erase_sector(0x1000 * link_cable_memory_section_index);
+    }
   }
 }
 

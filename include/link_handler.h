@@ -263,6 +263,9 @@ public:
     void printData();
     void writeData();
     void handleStateLogic();
+    // Some operations are too long to be done within the IRQ.
+    // So we need to handle them in the main loop instead to avoid data corruption.
+    void handleCartIO();
 
 private:
     void load_payload(GB_PayloadsFiles payload);
@@ -276,9 +279,10 @@ private:
 #define NUM_LINES 8
     char stuff[NUM_LINES][LINE_WIDTH];
     char line[LINE_WIDTH] = "OUT";
-    int link_cable_memory_section_index;
-    int link_cable_array_index;
+    unsigned link_cable_memory_section_index;
+    unsigned link_cable_array_index;
     const u16 *debug_charset;
+    unsigned writeBufferOffset;
 };
 
 extern LinkConnection globalLinkCable;
