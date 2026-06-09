@@ -31,22 +31,22 @@ PartyData:
 .tid
 	ds 2, '<NEXT>'
 .partyData
-	db 1
-	db '<LINE>'
+	db 1 ; mask the next character for the Korean version
+	db '<LINE>' ; reset write location to a consistent offset
 	ds 171, '<NEXT>'
 	ds 34, 'A'
-	dw SerialPatchListPayload + 0x100
+	dw SerialPatchListPayload + 0x100 ; stack smash for Crystal
 	db '<NEXT>'
 	ds 10, 'A'
-	dw SerialPatchListPayload
-	db 1
-	db '@'
+	dw SerialPatchListPayload ; stack smash for non-KOR Gold/Silver
+	db 1 ; mask the next character for the Korean version
+	db '@' ; stop text printing and return to overwritten pointer on non-KOR Gold/Silver/Crystal
 	db '<KOR_LINE>'
 	ds 69, 	'<KOR_NEXT>'
 	db '<KOR_LF>'
 	ds 14, 'A'
-	dw SerialPatchListKoreanPayload
-	db '@'
+	dw SerialPatchListKoreanPayload ; stack smash for KOR Gold/Silver
+	db '@' ; stop text printing and return to overwritten pointer on KOR Gold/Silver
 .end
 ds LINKDATASIZE_GEN2 - (PartyData.end - PartyDataPreamble), 0
 
@@ -87,26 +87,26 @@ SerialPatchListPayload: ; on GS: this gets loaded in 0xC5D0. On C: this gets loa
 	xor a
 	ld [hld], a
 	ld [hld], a
-	inc a
+	inc a ; prepare a for Bankswitch. Technically not needed on legit carts, but better to not rely on MBC quirks
 	ld [hl], 6 ; This disables music from playing
 	ld hl, PlaceWaitingText
 	rst FarCall ; call 01:4000
 	pop hl
-	ld bc, .end - .fetchPC ; both .end and .fetchPC share the same misalignment, if any.
+	ld bc, .end - .fetchPC ; both .end and .fetchPC share the same misalignment, if any
 	add hl, bc ; hl now points to the first byte of SerialPatchListAligned.
-	ld de, SerialPatchListAligned
+	ld de, SerialPatchListAligned ; 0xC800
 	ld bc, SerialPatchListAligned.end - SerialPatchListAligned
 	push de
-.alignPayload ; copy remainder of payload to safer location, then jump towards it.
+.alignPayload ; copy remainder of payload to 0xC800, then jump towards it.
 	ld a, [hli]
 	ld [de], a
 	inc de
 	dec c
 	ret z
-	jr .alignPayload
+	jr .alignPayload ; this entire procedure ensures that the payload gets stored in a consistent location across all versions.
 .end
 ENDL
-LOAD "serialPatchAligned", WRAM0[SerialPatchAlignedAddress]
+LOAD "serialPatchAligned", WRAM0[SerialPatchAlignedAddress] ; 0xC800
 SerialPatchListAligned:
 	ld a, HIGH(SerialPatchListPayload.end)
 	sub a, h ; sneaky hack. If we're on GS, this will set the z flag, allowing us to easily determine which version we're running.
@@ -125,7 +125,7 @@ SerialPatchListAligned:
 	ld hl, 0x14E ; locate cartridge checksum
 	ld a, [hli]
 	ld b, [hl]
-	ld hl, SerialPatchPreamble + 0x102 ; prepare to send cartridge checksum
+	ld hl, SerialPatchPreamble + 0x102 ; prepare to send cartridge checksum (0xC6D2)
 	ld [hli], a
 	ld [hl], b
 	inc hl
@@ -136,37 +136,29 @@ SerialPatchListAligned:
 	ld a, SERIAL_PREAMBLE_BYTE ; we can't be sure that the first two bytes contain a preamble, so manually add it.
 	ld [hli], a
 	ld [hld], a
-	ld de, SpecificPayloadAddress ; receive payload at this address
-	push hl
-	push de
+	ld de, SpecificPayloadAddress ; receive payload at 0xC900
 	ld c, CHECKSUMPACKET_SIZE
 	call .callSerial_ExchangeBytes ; send checksum to PTGB, bc = 0000 on exit
-	pop de
-	pop hl
+	ld e, c ; reset de to 0xC900
 	push de
-	dec c ; serial patch list size
-	push bc
+	dec c ; bc =,00FF
 	call .callSerial_ExchangeBytes ; receive specific payload from PTGB
-	pop bc
+	ld e, c ; reset de to 0xC900
 	pop hl
 	push hl
-	push hl
-	pop de
 .findNotPreamble ; we can't be sure if the payload arrived in the exact desired position. Because of this, let's align the payload.
 	ld a, [hli]
 	cp SERIAL_PREAMBLE_BYTE
 	jr z, .findNotPreamble
 .alignPayload ; now that we have found the first non-preamble value, let's align it properly.
 	ld [de], a
-	inc de
-	dec c ; we're only aligning stuff within the 0xC500 space
+	inc e ; exit if de is back to 0xC900
 	ld a, [hli]
 	jr nz, .alignPayload
-	pop hl
-	ld a, [hl] ; check first non-preamble byte of payload. If 00, resend checksum (incorrect calculated checksum). If FF, an error has occured (correct calculated checksum, but the cartridge checksum is not recognized), so safely reset instead. If any other values, jump to new payload!
+	ld a, [de] ; check first non-preamble byte of payload. If 00, resend checksum (incorrect calculated checksum). If FF, an error has occured (correct calculated checksum, but the cartridge checksum is not recognized), so safely reset instead. If any other values, jump to new payload!
 	and a, a
 	jr z, .sendChecksum
-	push hl ; What I wouldn't give for a conditional jp hl
+	push de
 	inc a
 	ret nz
 	pop af ; hCGB has a version-specific address, so retrieve the z flag we used earlier.
