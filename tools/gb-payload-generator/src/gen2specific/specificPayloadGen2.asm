@@ -144,7 +144,8 @@ RunSecondaryPayload: ; loads new payload of size b, aligns it, verifies it, then
 ReplaceTextBox:
 	hlcoord 2, 10
 	ld bc, 1 << 8 | 14
-	predef LinkTextboxAtHL
+	ld a, 0x10 ; predef ID for LinkTextboxAtHL
+	call Predef
 .writeCommunicating
 	ld de, .communicatingText
 .writeOwnString
