@@ -6,6 +6,21 @@
 #include "pokemon_party.h"
 #include "GB_Payloads.h"
 
+#define DATA_PER_PACKET 8
+#define PACKET_DATA_START 2
+#define PACKET_DATA_AT(i) (PACKET_DATA_START + (i * 2))
+#define PACKET_FLAG_AT(i) (PACKET_DATA_START + (i * 2) + 1)
+#define PACKET_CHECKSUM (PACKET_DATA_START + (2 * DATA_PER_PACKET))
+#define PACKET_LOCATION_UPPER (PACKET_CHECKSUM + 1)
+#define PACKET_LOCATION_LOWER (PACKET_CHECKSUM + 2)
+
+// 0xFD, 0x00, data bytes per packet, flag bytes per packet, the checksum, and two location bytes
+#define PACKET_SIZE (1 + 1 + (2 * DATA_PER_PACKET) + 1 + 2) // Originally 13
+
+#define TIMEOUT 2
+#define TIMEOUT_ONE_LENGTH 1000000 // Maybe keep a 10:1 ratio between ONE and TWO?
+#define TIMEOUT_TWO_LENGTH 100000
+
 #define SPI_TEXT_OUT_ARRAY_ELEMENT_SIZE 64
 
 enum GameBoyROM
@@ -111,9 +126,18 @@ const u8 GameBoyROMChecksumTable[][4]{
     {0x19, 0x42, 0xF4, CRYSTAL_SP},
 };
 
-enum LinkState
+enum CompositeState
 {
-    INITIAL_CONNECTION = 0x00,
+    NO_COMPOSITE_STATE,
+    INITIAL_CONNECTION,
+    PACKET_EXCHANGE,
+};
+
+enum SubstateState
+{
+    NO_SUBSTATE,
+
+    // INITIAL_CONNECTION
     CLOCK,
     SAVE_SUCCESS,
     MENU_OPEN,
@@ -128,11 +152,11 @@ enum LinkState
     SEND_SPECIFIC_PAYLOAD,
     SOFT_RESET,
 
-    PACKET_EXCHANGE = 0x10,
+    // PACKET_EXCHANGE
     BYTE_EXCHANGE,
-    PRINT_LAST_PACKET,
 
-    END = 0xFF,
+    END,
+
 };
 
 enum LinkConnectionError
@@ -185,18 +209,21 @@ struct LinkPacket
 class LinkConnection
 {
 public:
-    LinkState enterState;
-    LinkState exitState;
+    CompositeState compState = NO_COMPOSITE_STATE;
+    CompositeState nextCompState = NO_COMPOSITE_STATE;
+    bool compStateChanged = false;
+
+    SubstateState subState = NO_SUBSTATE;
+    SubstateState nextSubState = NO_SUBSTATE;
     bool subStateChanged = false;
 
     LinkConnectionError lastError = NO_ERROR;
 
     uint8_t inData;
     uint8_t outData;
-    uint8_t nextOutData;
 
-    int globalStateCounter = 0; // The counter for the total number of bytes sent
-    int subStateCounter = 0; // The counter for the total number of bytes sent in this substate
+    int compStateCounter = 0; // the counter for the total number of bytes sent compstate
+    int subStateCounter = 0;  // The counter for the total number of bytes sent in this substate
 
     int gen = 0;                    // The generation we are trading with
     GameBoyROM currROM = NO_GB_ROM; // The GameBoy ROM we're communicating with
@@ -204,14 +231,24 @@ public:
     int FF_count = 0;   // The number of 0xFF bytes that have been in a row
     int zero_count = 0; // The number of 0x00 bytes that have been in a row
 
+    int mosi_delay = 4;      // inital delay, speeds up once sending
+    int received_offset = 0; // The offset contained in the last packet
+    int next_offset = 0;     // The offset we are sending in the next packet
+    int packet_index = 0;    // The index of the current packet
+
+    bool failed_packet = false;    // Flags if a packet failed
+    bool init_packet = true;       // Flags if a packet is the inital one
+    bool end_of_data = false;      // Flags if we are at the end of the data
+    bool test_packet_fail = false; // ???
+
+    byte data_packet[PACKET_SIZE];
     byte payloadBuffer[0x2A0];
     int curr_payload_size = 0;
     byte dataOutBuffer[16];
     int dataOutBufferCurrIndex = 0;
 
     LinkPacket *currLinkPacketArr;
-    int currLinkPacketArrTotalCount = 0;
-    int currLinkPacketArrFilledCount = 0;
+    int currLinkPacketArrNum = 0;
     int currLinkPacketArrIndex = 0;
 
     bool pauseOnByte = false;   // Used for pausing and sending one byte at a time
@@ -220,18 +257,19 @@ public:
     bool newPacket = false;
 
     void setup(const u16 *debug_charset);
-    void startConnection(LinkState startState);
+    void startConnection(CompositeState startState);
     bool earlyExit();
     void exchangeBytes();
     void printData();
     void writeData();
     void handleStateLogic();
-    void prepareForNextCycle();
 
 private:
     void load_payload(GB_PayloadsFiles payload);
     void loadCurrGameFromChecksum();
     bool processPacket();
+    void logicState_initConnection();
+    void logicState_packetExchange();
 
     // Used for debug features
 #define LINE_WIDTH 24
