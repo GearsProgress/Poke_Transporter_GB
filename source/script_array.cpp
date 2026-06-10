@@ -778,8 +778,11 @@ bool run_conditional(int index)
                         break;
                     }
                 }
+                globalLinkCable.handleCartIO();
                 VBlankIntrWait();
             }
+            globalLinkCable.handleCartIO();
+
             load_select_sprites(globalLinkCable.currROM);
 
             obj_unhide(gba_cart, 0);
@@ -816,6 +819,7 @@ bool run_conditional(int index)
                 globalLinkCable.startConnection(PACKET_EXCHANGE);
                 while (globalLinkCable.subState != END)
                 {
+                    globalLinkCable.handleCartIO();
                     VBlankIntrWait();
                 }
             }
