@@ -40,3 +40,8 @@ DEF Serial_ExchangeBytes EQU 0x1FCA
 DEF ClearScreen EQU 0x16DD
 DEF PlaceString EQU 0x1723
 DEF CableClub_TextBoxBorder EQU 0x5BA4
+DEF SetMapTextPointer EQU 0x3F59
+DEF TryLoadSaveFile EQU 0x7949
+DEF wUpdateSpritesEnabled EQU 0xCFCF
+DEF DelayFrame EQU 0x1E63
+DEF Delay3 EQU 0x3DE0
