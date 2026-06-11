@@ -142,7 +142,7 @@ const struct ROM_DATA rom_data_values_fre[] = {
         .loc_voicegroup = 0x84492c0,
         .loc_sPicTable_NPC = 0x83753ec,
 
-        // Supposed values for _v1, not tested as of 11/06/2026
+        // UNTESTED BLOCK, using FRE_RUBY_v0 values
         .loc_gMonFrontPicTable = 0x081F075C,
         .loc_gMonPaletteTable = 0x081F29BC,
         .loc_gMonShinyPaletteTable = 0x081F377C,
