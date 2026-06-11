@@ -760,11 +760,11 @@ bool run_conditional(int index)
             load_localized_charset(debug_charset, 3, ENGLISH);
             globalLinkCable.setup(debug_charset);
             globalLinkCable.startConnection(INITIAL_CONNECTION);
-            while (globalLinkCable.subState != END)
+            while (globalLinkCable.exitState != END)
             {
                 if (globalLinkCable.subStateChanged && !g_debug_options.print_link_data)
                 {
-                    switch (globalLinkCable.subState)
+                    switch (globalLinkCable.exitState)
                     {
                     case SAVE_SUCCESS:
                         general_text_reader.readFile(GENERAL_link_success, lineBuffer);
@@ -804,8 +804,6 @@ bool run_conditional(int index)
                 {CMD_ReadDataRequest, 0x00, 0x00, 0xDA98},
                 {CMD_ReadDataRequest, 0x00, 0x00, 0xDAA0},
                 {CMD_ReadDataRequest, 0x00, 0x00, 0xDAA8},
-                {CMD_ReadDataRequest, 0x00, 0x00, 0xC5DC}
-
             };
 
             globalLinkCable.skipPrint = false;
@@ -813,11 +811,11 @@ bool run_conditional(int index)
             while (true)
             {
                 globalLinkCable.currLinkPacketArr = packets;
-                globalLinkCable.currLinkPacketArrNum = 6;
+                globalLinkCable.currLinkPacketArrFilledCount = 6;
                 globalLinkCable.currLinkPacketArrIndex = 0;
 
                 globalLinkCable.startConnection(PACKET_EXCHANGE);
-                while (globalLinkCable.subState != END)
+                while (globalLinkCable.enterState != END)
                 {
                     globalLinkCable.handleCartIO();
                     VBlankIntrWait();
