@@ -74,14 +74,14 @@ Payload:
 	call .changeInterruptsAndCommunicate
 	jr .loopTransfer
 .changeInterruptsAndCommunicate
-	call 0xC85E ; leftover from the universal payload, only allow serial interrupt and call Serial_ExchangeBytes
-	ld a, IE_SERIAL | IE_TIMER | IE_VBLANK ; enable vblank interrupt so that a sound effect can play
+	call 0xC869 ; leftover from the universal payload, only allow serial interrupt and call Serial_ExchangeBytes
+	ld a, IE_JOYPAD | IE_SERIAL | IE_TIMER | IE_VBLANK ; enable vblank interrupt so that a sound effect can play
 	ldh [rIE], a
 	ret
 VerifySecondaryPayload: ; checks if payload matches expected size and passes verification.
 	ld c, b
 	ld de, 0xCA00
-	ld hl, 0xC6D0
+	ld hl, 0xC6DC
 	push de
 	call Payload.changeInterruptsAndCommunicate
 	pop hl

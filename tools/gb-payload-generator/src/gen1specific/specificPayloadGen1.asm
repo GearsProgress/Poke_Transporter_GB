@@ -4,20 +4,29 @@ INCLUDE "include/constants/serial_constants.asm"
 INCLUDE "include/constants/charmap.asm"
 INCLUDE "include/payload/payload.asm"
 INCLUDE "include/payload/patches.asm"
-INCLUDE "include/payload/settings.asm"
+; INCLUDE "include/payload/settings.asm"
 
 SECTION "Main", ROM0
 Main:
 	db 0xFD
-LOAD "Payload", WRAM0[0xC700]
+LOAD "Payload", WRAM0[0xC900]
 Payload:
-.loopTransfer
-	ld hl, 0xC5DC ; perfect place to store incoming packets. TODO: on first pass, this will interpret the generic payload as part of an incoming packet. Check if this interferes with anything.
+	ld hl, 0xC6DC
+	ld c, l
+	xor a
+	ld [hli], a
+	ld [hli], a
+	ld [hli], a
+	ld [hli], a
+	ld [hl], c
+	inc hl
+	ld [hl], h ; load 00 00 00 00 DC C6 into the received packet area, ensuring the first thing we do is running ReloadCurrentBox
+	ld l, c
 .searchCounter
 	ld a, [hli]
 	bit 7, a
 	jr nz, .searchCounter ; first byte should be a packet counter, with a value between 0x00-0x7F. Also skips preamble bytes.
-	ld [0xC5DC], a ; Put this at the start of the received data, to ensure we'll be sending it back if we're running a command.
+	ld [0xC6DC], a ; Put this at the start of the received data, to ensure we'll be sending it back if we're running a command.
 	push af ; we'll retrieve this later
 	ld a, [hli] ; load command byte
 	ld b, [hl] ; load argument byte 1
@@ -32,7 +41,7 @@ Payload:
 	ld a, [hli]
 	ld h, [hl]
 	ld l, a
-	ld de, 0xC5D3
+	ld de, 0xC6D3
 	pop bc ; sneaky way to load the counter into the checksum
 	push de
 	ld c, 1
@@ -66,16 +75,16 @@ Payload:
 	ld [hl], a ; write counter
 	ld c, PACKET_SIZE
 	call .changeInterruptsAndCommunicate
-	jr .loopTransfer
+	jr .searchCounter ; hl now points to 0xC6DC
 .changeInterruptsAndCommunicate
-	call 0xC68A ; leftover from the universal payload, only allow serial interrupt and call Serial_ExchangeBytes
+	call 0xC68E ; leftover from the universal payload, only allow serial interrupt and call Serial_ExchangeBytes
 	ld a, IE_SERIAL | IE_TIMER | IE_VBLANK ; enable vblank interrupt so that a sound effect can play
 	ldh [rIE], a
 	ret
 VerifySecondaryPayload: ; checks if payload matches expected size and passes verification.
 	ld c, b
-	ld de, 0xC800
-	ld hl, 0xC5D0
+	ld de, 0xCA00
+	ld hl, 0xC6DC
 	push de
 	call Payload.changeInterruptsAndCommunicate
 	pop hl

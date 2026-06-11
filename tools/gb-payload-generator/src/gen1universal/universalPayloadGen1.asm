@@ -1,12 +1,13 @@
-INCLUDE "include/constants/charmap.asm"
 INCLUDE "include/macros/const.asm"
+
+INCLUDE "include/constants/charmap.asm"
 INCLUDE "include/constants/serial_constants.asm"
 INCLUDE "include/constants/pokemon_constants.asm"
 INCLUDE "include/constants/symbols.asm"
 INCLUDE "include/constants/hardware.inc"
+
 INCLUDE "include/payload/payload.asm"
 INCLUDE "include/payload/patches.asm"
-INCLUDE "include/payload/settings.asm"
 
 SECTION "Payload", ROM0
 Payload:
@@ -25,8 +26,7 @@ PartyDataPreamble:
 .end
 
 PartyData:
-	db RIVAL_NAME
-	ds 6 - STRLEN(RIVAL_NAME), '@' ; This setup is universal, so take JP name size into account.
+	ds 6, '@'
 	ds 5, DITTO ; on JP, this becomes part of party data. On other versions, this becomes part of the name.
 .partyCount
 	db DITTO
@@ -64,12 +64,12 @@ PartyData:
 	ds 2, MEW
 .skip
 	xor a
-	ld [0xD499], a
+	ld [wPrinterConnectionOpen], a
 	ld b, 1
 	ds 3, 0
-	call 0x0058
+	call SerialInterrupt
 	ld hl, SerialPatchPreamble.end
-	jp 0x3E84 ; Bankswitch in EN Yellow. PrintWaitingText is located in ROM bank 01, so we must switch to correctly find it.
+	jp Bankswitch ; Bankswitch in EN Yellow. PrintWaitingText is located in ROM bank 01, so we must switch to correctly find it.
 .end
 ds PAYLOAD_SIZE - (PartyData.end - PartyDataPreamble), 0
 ENDL
@@ -84,8 +84,8 @@ ENDL
 
 SerialPatchListPayload:
 	ds 1, 0
-	ld bc, 0x0167
-	ld hl, 0xC507 ; bottom right screen tile, will always be 0x7F
+	ld bc, SCREEN_AREA - 1
+	ld hl, wTileMap + SCREEN_AREA - 1 ; bottom right screen tile, will always be 0x7F
 .clearScreenLoop ; replace all tiles on screen with blank tiles.
 	dec bc
 	ld a, [hld]
@@ -100,14 +100,14 @@ SerialPatchListPayload:
 	jr nz, .clearScreenLoop
 	ld hl, SerialPatchListAligned + 1
 	inc a	; possibly overwritten on JP
-	ld [0xC002], a ; always overwritten on JP
+	ld [wMuteAudioAndPauseMusic], a ; always overwritten on JP
 	ds 1, 0
 	push hl
 	pop de
 .findOpcode ; yes, we're cramming this in!!
 	ld a, [hli]
 	push af
-	ld [0xC002], a ; always overwritten on non-JP
+	ld [wMuteAudioAndPauseMusic], a ; always overwritten on non-JP
 	ds 1, 0
 	pop af
 	and a, a ; we're skipping all 0 values
@@ -132,20 +132,20 @@ SerialPatchListAligned:
 	call .findPointerAndPatch
 	ds 5, 0
 .sendChecksum
-	ld hl, 0x14E ; locate cartridge checksum
+	ld hl, GLOBAL_CHECKSUM ; locate cartridge checksum
 	ld a, [hli]
 	ld b, [hl]
-	ld hl, SerialPatchPreamble + 2 ; prepare to send cartridge checksum
+	ld hl, PACKET_SEND + 1 ; prepare to send cartridge checksum
 	ld [hli], a
 	ld [hl], b
 	inc hl
 	add a, b
 	res 7, a
 	ld [hl], a	; place checksum
-	ds 5, 0 ; expected result is FD FD [16 bit cartridge checksum] [8 bit safety checksum]. There are no valid cartridge checksums containing 0xFD or 0xFE.
-	ld l, LOW(SerialPatchPreamble) ; send checksum data from this address
-	ld de, 0xC700 ; receive payload at this address
-	ld c, 7
+	ds 5, 0 ; expected result is FD [16 bit cartridge checksum] [8 bit safety checksum]. There are no valid cartridge checksums containing 0xFD or 0xFE.
+	ld l, LOW(PACKET_SEND) ; send checksum data from this address
+	ld de, SpecificPayloadAddress ; receive payload at this address
+	ld c, CHECKSUMPACKET_SIZE
 	call .callSerial_ExchangeBytes ; send checksum to PTGB, bc = 0000 on exit
 	ld e, c
 	push de
@@ -160,15 +160,17 @@ SerialPatchListAligned:
 	jr z, .findNotPreamble
 .alignPayload ; now that we have found the first non-preamble value, let's align it properly.
 	ld [de], a
-	inc e ; we're only aligning stuff within the 0xC700 space. Exit when de = 0xC700
+	inc e ; we're only aligning stuff within the 0xC800 space. Exit when de = 0xC800
 	ld a, [hli]
 	jr nz, .alignPayload
 	ld a, [de] ; check first non-preamble byte of payload. If 00, resend checksum (incorrect calculated checksum). If FF, an error has occured (correct calculated checksum, but the cartridge checksum is not recognized), so safely reset instead. If any other values, jump to new payload!
 	and a, a
 	jr z, .sendChecksum
 	ds 4, 0
-	push de ; push 0xC700 on the stack for the next ret
+	push de ; push 0xC800 on the stack for the next ret
 	inc a
+	ld a, IE_SERIAL | IE_TIMER | IE_VBLANK
+	ldh [rIE], a
 	ret nz
 	ld a, 0xC3
 	ld hl, Start - 1
@@ -176,6 +178,7 @@ SerialPatchListAligned:
 	inc hl
 	cp a, [hl]
 	jr nz, .loopUntilJumpInit
+	ds 4, 0
 	jp hl
 .findPointerAndPatch ; searches for specific opcodes from a certain offset and places the resulting pointer at a specific location
 ; b = first opcode to search for
@@ -184,25 +187,23 @@ SerialPatchListAligned:
 ; hl = offset to start searching from
 ; return destination pointer in hl, made to minimize amount of M-cycles taken
 	ld de, .callPatchedPointer + 1
-	ds 4, 0
 .findPointerAndPatchLoop
 	ld a, [hli]
 	cp b
 	jr nz, .findPointerAndPatchLoop
 	ld a, [hl] ; we can't ldd here, otherwise we could get stuck in an infinite loop
-	jr .skipFiller
-.skipFiller
 	cp c
 	jr nz, .findPointerAndPatchLoop
 	dec hl
 	ld a, l
 	ld [de], a
 	inc de
+	ds 4, 0
 	ld a, h
 	ld [de], a
-	ds 4, 0
 	ret
 .callSerial_ExchangeBytes
+	ld [hl], SERIAL_PREAMBLE_BYTE
 	ld b, 0
 	ld a, IE_SERIAL
 	ldh [rIE], a

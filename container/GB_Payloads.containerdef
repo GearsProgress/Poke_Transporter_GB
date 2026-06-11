@@ -1,3 +1,4 @@
 tools/gb-payload-generator/build/specificPayloadGen1/specificPayloadGen1_en_r.bin
+tools/gb-payload-generator/build/specificPayloadGen1/specificPayloadGen1_en_y.bin
 tools/gb-payload-generator/build/universalPayloadGen1/universalPayloadGen1.bin
 tools/gb-payload-generator/build/universalPayloadGen2/universalPayloadGen2.bin

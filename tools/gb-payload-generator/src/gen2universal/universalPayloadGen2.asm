@@ -6,7 +6,7 @@ INCLUDE "include/constants/symbols.asm"
 INCLUDE "include/constants/hardware.inc"
 INCLUDE "include/payload/payload.asm"
 INCLUDE "include/payload/patches.asm"
-INCLUDE "include/payload/settings.asm"
+; INCLUDE "include/payload/settings.asm"
 
 SECTION "Payload", ROM0
 Payload:
@@ -21,8 +21,7 @@ PartyDataPreamble:
 .end
 
 PartyData:
-	db RIVAL_NAME
-	ds 6 - STRLEN(RIVAL_NAME), '<NEXT>' ; This setup is universal, so take JP name size into account.
+	ds 6, '<NEXT>' ; This setup is universal, so take JP name size into account.
 	ds 5, '<NEXT>' ; on JP, this becomes part of party data. On other versions, this becomes part of the name.
 .partyCount
 	db '<NEXT>'
@@ -125,17 +124,24 @@ SerialPatchListAligned:
 	ld hl, 0x14E ; locate cartridge checksum
 	ld a, [hli]
 	ld b, [hl]
-	ld hl, SerialPatchPreamble + 0x102 ; prepare to send cartridge checksum (0xC6D2)
+	ld hl, PACKET_SEND + 1 ; prepare to send cartridge checksum (0xC6D2)
 	ld [hli], a
 	ld [hl], b
 	inc hl
 	add a, b
 	res 7, a
 	ld [hl], a	; place checksum
-	ld l, LOW(SerialPatchPreamble) ; send checksum data from this address
-	ld a, SERIAL_PREAMBLE_BYTE ; we can't be sure that the first two bytes contain a preamble, so manually add it.
+	ld l, LOW(PACKET_RECEIVE)
+	ld c, l
+	xor a
 	ld [hli], a
-	ld [hld], a
+	ld [hli], a
+	ld [hli], a
+	ld [hli], a
+	ld [hl], c
+	inc hl
+	ld [hl], h
+	ld l, LOW(PACKET_SEND) ; send checksum data from this address
 	ld de, SpecificPayloadAddress ; receive payload at 0xC900
 	ld c, CHECKSUMPACKET_SIZE
 	call .callSerial_ExchangeBytes ; send checksum to PTGB, bc = 0000 on exit
@@ -182,6 +188,7 @@ SerialPatchListAligned:
 	ld [de], a
 	ret
 .callSerial_ExchangeBytes
+	ld [hl], SERIAL_PREAMBLE_BYTE
 	ld b, 0
 	ld a, IE_SERIAL
 	ldh [rIE], a

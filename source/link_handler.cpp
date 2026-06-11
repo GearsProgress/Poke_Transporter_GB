@@ -695,6 +695,286 @@ bool LinkConnection::earlyExit()
   return pauseOnByte || (pauseOnPacket && newPacket);
 }
 
+void LinkConnection::logicState_initConnection()
+{
+  outData = 0x00;
+  switch (subState)
+  {
+  case CLOCK:
+    if (inData == 0xFE)
+    {
+      nextSubState = SAVE_SUCCESS;
+      // outData defaults to 0x00
+    }
+    else
+    {
+      outData = 0x01;
+    }
+    break;
+
+  case SAVE_SUCCESS:
+    if (inData == 0x60 || inData == 0x61)
+    {
+      nextSubState = MENU_OPEN;
+      outData = inData;
+    }
+    // outData defaults to 0x00
+    break;
+
+  case MENU_OPEN:
+    if (inData == 0xD0 || inData == 0x61)
+    {
+      if (inData == 0xD0)
+      {
+        gen = 1;
+        load_payload(GB_PayloadsFiles::UNIVERSALPAYLOADGEN1);
+        outData = 0xD4;
+      }
+      else if (inData == 0x61)
+      {
+        gen = 2;
+        load_payload(GB_PayloadsFiles::UNIVERSALPAYLOADGEN2);
+        outData = 0x61;
+      }
+      nextSubState = MENU_SUCCESS;
+    }
+    break;
+
+  case MENU_SUCCESS:
+    if (inData == 0xFE)
+    {
+      nextSubState = WAIT_FOR_TRADE;
+    }
+    outData = inData;
+    break;
+
+  case WAIT_FOR_TRADE:
+    if (inData == 0xFD)
+    {
+      REG_TM3D = -0x0040;
+      nextSubState = TRADE_PREAMBLE;
+      // outData defaults to 0x00
+    }
+    else
+    {
+      outData = inData;
+    }
+    break;
+
+  case TRADE_PREAMBLE:
+    if (subStateCounter < 2)
+    {
+      // outData defaults to 0x00
+    }
+    else if (subStateCounter < 9)
+    {
+      outData = 0xFD;
+    }
+    else
+    {
+      nextSubState = TRADE;
+      outData = 0xFD;
+    };
+    break;
+
+  case TRADE:
+    if (subStateCounter > curr_payload_size)
+    {
+      if (this->gen == 2)
+      {
+        nextSubState = MAIL;
+      }
+      else
+      {
+        nextSubState = WAIT_FOR_CHECKSUM_PAYLOAD;
+      }
+    }
+    outData = payloadBuffer[subStateCounter];
+    break;
+
+  case MAIL:
+    if (subStateCounter > 0x186)
+    {
+      nextSubState = WAIT_FOR_CHECKSUM_PAYLOAD;
+    }
+    outData = 0x00;
+    break;
+
+  case WAIT_FOR_CHECKSUM_PAYLOAD:
+    if (inData == 0xFD)
+    {
+      nextSubState = GET_CHECKSUM;
+    }
+    // outData defaults to 0x00
+    break;
+
+  case GET_CHECKSUM:
+    if (inData != 0xFD)
+    {
+      dataOutBuffer[dataOutBufferCurrIndex] = inData;
+      dataOutBufferCurrIndex++;
+      outData = 0x01;
+    }
+    else if (inData == 0xFD && dataOutBufferCurrIndex > 0)
+    {
+      loadCurrGameFromChecksum();
+      load_payload(GB_PayloadsFiles::SPECIFICPAYLOADGEN1_EN_R);
+      nextSubState = SEND_SPECIFIC_PAYLOAD;
+    }
+    else
+    {
+      outData = 0xFD;
+    }
+    break;
+
+  case WAIT_FOR_SECOND_PAYLOAD:
+    if (inData == 0xFD)
+    {
+      nextSubState = SEND_SPECIFIC_PAYLOAD;
+    }
+    // outData defaults to 0x00
+    break;
+
+  case SEND_SPECIFIC_PAYLOAD:
+    if (subStateCounter > 255) // The 255 comes from the Universal Payload
+    {
+      nextSubState = END;
+    }
+    if (subStateCounter < curr_payload_size)
+    {
+      outData = payloadBuffer[subStateCounter];
+    }
+    else
+    {
+      outData = 0x01;
+    }
+    break;
+
+  case END:
+    irq_disable(II_TIMER3);
+    break;
+
+  default:
+    outData = inData;
+    break;
+  }
+}
+
+void LinkConnection::logicState_packetExchange()
+{
+  switch (subState)
+  {
+  case BYTE_EXCHANGE:
+
+    if (subStateCounter < TOTAL_PACKET_LENGTH)
+    {
+      // Start with OUT_PACKET_LENGTH of bytes of prep to make sure things are set to go
+      outData = 0xFF;
+    }
+    else
+    {
+      switch (subStateCounter % TOTAL_PACKET_LENGTH)
+      {
+      case 0:
+        outData = 0xFD;
+        break;
+      case 1:
+        outData = currLinkPacketArrIndex;
+        break;
+      case 2:
+        outData = currLinkPacketArr[currLinkPacketArrIndex].command;
+        break;
+      case 3:
+        outData = currLinkPacketArr[currLinkPacketArrIndex].argument[0];
+        break;
+      case 4:
+        outData = currLinkPacketArr[currLinkPacketArrIndex].argument[1];
+        break;
+      case 5:
+        outData = currLinkPacketArr[currLinkPacketArrIndex].pointer >> 0;
+        break;
+      case 6:
+        outData = currLinkPacketArr[currLinkPacketArrIndex].pointer >> 8;
+        break;
+      case TOTAL_PACKET_LENGTH - 1:
+        currLinkPacketArrIndex++;
+      default:
+        outData = 0xFF;
+        break;
+      }
+      if (currLinkPacketArrIndex >= currLinkPacketArrNum)
+      {
+        nextSubState = END;
+      }
+
+      if (subStateCounter % TOTAL_PACKET_LENGTH == 0)
+      {
+        newPacket = true;
+        processPacket();
+      }
+      else
+      {
+        newPacket = false;
+      }
+
+      dataOutBuffer[subStateCounter % TOTAL_PACKET_LENGTH] = inData;
+    }
+    break;
+
+  case END:
+    irq_disable(II_TIMER3);
+    break;
+
+  default:
+    outData = inData;
+    break;
+  }
+}
+
+void LinkConnection::load_payload(GB_PayloadsFiles payload)
+{
+  u32 fileSize;
+  u8 decompressionBuffer[0x1000];
+  const u8 *chunkList[] = {(const u8 *)GB_Payloads_chunk0_lz10_bin};
+  FileContainerReader reader(chunkList, 1);
+  const u32 fileIndex = (u32)payload;
+
+  reader.init(decompressionBuffer, sizeof(decompressionBuffer));
+  fileSize = reader.getFileSize(fileIndex);
+  reader.seekToFile(fileIndex);
+  reader.read(this->payloadBuffer, fileSize);
+
+  this->curr_payload_size = fileSize;
+}
+
+void LinkConnection::loadCurrGameFromChecksum()
+{
+  if (((dataOutBuffer[0] + dataOutBuffer[1]) & 0x7F) != dataOutBuffer[2])
+  {
+    currROM = GB_ROM_ERROR;
+  };
+
+  int start = RED_JP_v0;
+  int end = GOLD_JP_v0;
+
+  if (gen == 2)
+  {
+    start = end;
+    end = NO_GB_ROM;
+  }
+
+  for (int i = start; i < end; i++)
+  {
+    if (dataOutBuffer[0] == GameBoyROMChecksumTable[i][1] && dataOutBuffer[1] == GameBoyROMChecksumTable[i][2])
+    {
+      currROM = (GameBoyROM)GameBoyROMChecksumTable[i][3];
+      return;
+    }
+  }
+  currROM = GB_ROM_ERROR;
+  return;
+}
+
 bool LinkConnection::processPacket()
 {
   int checksum = 0;
