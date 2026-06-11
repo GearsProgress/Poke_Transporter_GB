@@ -31,7 +31,7 @@ const struct GB_ROM gb_rom_values_fre[] = {
 
      .wRemoveMonFromBox = 0xCF9A,
      .wBoxCount = 0xDA85,
-     .wWhichPokemon = 0xCF95,
+     .wWhichPokemon = 0xCF97,
      .wBoxDataStart = 0xDA85,
      .wBoxDataEnd = 0xDEE7,
      .wSerialEnemyDataBlock = 0xD898,
