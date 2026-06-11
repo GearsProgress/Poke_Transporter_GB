@@ -169,6 +169,8 @@ SerialPatchListAligned:
 	ds 4, 0
 	push de ; push 0xC800 on the stack for the next ret
 	inc a
+	ld a, IE_SERIAL | IE_TIMER | IE_VBLANK
+	ldh [rIE], a
 	ret nz
 	ld a, 0xC3
 	ld hl, Start - 1
@@ -176,6 +178,7 @@ SerialPatchListAligned:
 	inc hl
 	cp a, [hl]
 	jr nz, .loopUntilJumpInit
+	ds 4, 0
 	jp hl
 .findPointerAndPatch ; searches for specific opcodes from a certain offset and places the resulting pointer at a specific location
 ; b = first opcode to search for
@@ -184,7 +187,6 @@ SerialPatchListAligned:
 ; hl = offset to start searching from
 ; return destination pointer in hl, made to minimize amount of M-cycles taken
 	ld de, .callPatchedPointer + 1
-	ds 4, 0
 .findPointerAndPatchLoop
 	ld a, [hli]
 	cp b
@@ -196,10 +198,10 @@ SerialPatchListAligned:
 	ld a, l
 	ld [de], a
 	inc de
+	ds 4, 0
 	ld a, h
 	ld [de], a
 	ret
-	ds 5, 0
 .callSerial_ExchangeBytes
 	ld [hl], SERIAL_PREAMBLE_BYTE
 	ld b, 0

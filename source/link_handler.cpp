@@ -624,7 +624,7 @@ void LinkConnection::load_payload(GB_PayloadsFiles payload)
 
 void LinkConnection::loadCurrGameFromChecksum()
 {
-  if (((dataOutBuffer[0] + dataOutBuffer[1]) & 0x7F) != dataOutBuffer[3])
+  if (((dataOutBuffer[0] + dataOutBuffer[1]) & 0x7F) != dataOutBuffer[2])
   {
     currROM = GB_ROM_ERROR;
   };

@@ -77,7 +77,7 @@ Payload:
 	call .changeInterruptsAndCommunicate
 	jr .searchCounter ; hl now points to 0xC6DC
 .changeInterruptsAndCommunicate
-	call 0xC68A ; leftover from the universal payload, only allow serial interrupt and call Serial_ExchangeBytes
+	call 0xC68E ; leftover from the universal payload, only allow serial interrupt and call Serial_ExchangeBytes
 	ld a, IE_SERIAL | IE_TIMER | IE_VBLANK ; enable vblank interrupt so that a sound effect can play
 	ldh [rIE], a
 	ret
