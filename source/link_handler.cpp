@@ -103,7 +103,7 @@ void LinkConnection::setup(const u16 *debug_charset)
   }
 }
 
-void LinkConnection::load_payload(GB_PayloadsFiles payload)
+void LinkConnection::loadPayload(GB_PayloadsFiles payload)
 {
   u32 fileSize;
   u8 decompressionBuffer[0x1000];
@@ -117,6 +117,11 @@ void LinkConnection::load_payload(GB_PayloadsFiles payload)
   reader.read(this->payloadBuffer, fileSize);
 
   this->curr_payload_size = fileSize;
+}
+
+void LinkConnection::loadPayloadByROM(GameBoyROM rom)
+{
+  loadPayload(GameBoyROMPayloads[rom]);
 }
 
 void LinkConnection::loadCurrGameFromChecksum()
@@ -364,13 +369,13 @@ void LinkConnection::handleStateLogic()
       if (inData == 0xD0)
       {
         gen = 1;
-        load_payload(GB_PayloadsFiles::UNIVERSALPAYLOADGEN1);
+        loadPayload(GB_PayloadsFiles::UNIVERSALPAYLOADGEN1);
         nextOutData = 0xD4;
       }
       else if (inData == 0x61)
       {
         gen = 2;
-        load_payload(GB_PayloadsFiles::UNIVERSALPAYLOADGEN2);
+        loadPayload(GB_PayloadsFiles::UNIVERSALPAYLOADGEN2);
         nextOutData = 0x61;
       }
       exitState = MENU_SUCCESS;
@@ -455,7 +460,7 @@ void LinkConnection::handleStateLogic()
     else if (inData == 0xFD && dataOutBufferCurrIndex > 0)
     {
       loadCurrGameFromChecksum();
-      load_payload(GB_PayloadsFiles::SPECIFICPAYLOADGEN1_EN_R);
+      loadPayloadByROM(currROM);
       exitState = SEND_SPECIFIC_PAYLOAD;
     }
     else

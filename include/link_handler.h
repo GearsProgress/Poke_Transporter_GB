@@ -61,6 +61,56 @@ enum GameBoyROM
     GB_ROM_ERROR,
 };
 
+const GB_PayloadsFiles GameBoyROMPayloads[] =
+    {
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_JP_R,   // RED_JP_v0
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_JP_R11, // RED_JP_v1
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_EN_R,   // RED_EN
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_FR_R,   // RED_FR
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_IT_R,   // RED_IT
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_DE_R,   // RED_DE
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_SP_R,   // RED_SP
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_JP_GR,   // GREEN_JP_v0
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_JP_GR11, // GREEN_JP_v1
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_JP_B,   // BLUE_JP
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_EN_B,   // BLUE_EN
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_FR_B,   // BLUE_FR
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_IT_B,   // BLUE_IT
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_DE_B,   // BLUE_DE
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_SP_B,   // BLUE_SP
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_JP_Y,   // YELLOW_JP_v0
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_JP_Y11, // YELLOW_JP_v1
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_JP_Y12, // YELLOW_JP_v2
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_JP_Y13, // YELLOW_JP_v3
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_EN_Y,   // YELLOW_EN
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_FR_Y,   // YELLOW_FR
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_IT_Y,   // YELLOW_IT
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_DE_Y,   // YELLOW_DE
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_SP_Y,   // YELLOW_SP
+                                                      // GOLD_JP_v0
+                                                      // GOLD_JP_v1
+                                                      // GOLD_EN
+                                                      // GOLD_FR
+                                                      // GOLD_IT
+                                                      // GOLD_DE
+                                                      // GOLD_SP
+                                                      // GOLD_KOR
+                                                      // SILVER_JP_v0
+                                                      // SILVER_JP_v1
+                                                      // SILVER_EN
+                                                      // SILVER_FR
+                                                      // SILVER_IT
+                                                      // SILVER_DE
+                                                      // SILVER_SP
+                                                      // SILVER_KOR
+                                                      // CRYSTAL_JP
+                                                      // CRYSTAL_EN
+                                                      // CRYSTAL_FR
+                                                      // CRYSTAL_IT
+                                                      // CRYSTAL_DE
+                                                      // CRYSTAL_SP
+};
+
 // This table has the 3 checksums, followed by the enum value
 const u8 GameBoyROMChecksumTable[][4]{
     {0x32, 0xA2, 0xC1, RED_JP_v0},
@@ -196,7 +246,7 @@ public:
     uint8_t nextOutData;
 
     int globalStateCounter = 0; // The counter for the total number of bytes sent
-    int subStateCounter = 0; // The counter for the total number of bytes sent in this substate
+    int subStateCounter = 0;    // The counter for the total number of bytes sent in this substate
 
     int gen = 0;                    // The generation we are trading with
     GameBoyROM currROM = NO_GB_ROM; // The GameBoy ROM we're communicating with
@@ -232,7 +282,8 @@ public:
     void handleCartIO();
 
 private:
-    void load_payload(GB_PayloadsFiles payload);
+    void loadPayload(GB_PayloadsFiles payload);
+    void loadPayloadByROM(GameBoyROM rom);
     void loadCurrGameFromChecksum();
     bool processPacket();
 
