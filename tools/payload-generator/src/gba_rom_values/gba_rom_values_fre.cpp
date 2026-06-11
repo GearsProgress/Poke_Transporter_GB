@@ -386,13 +386,12 @@ const struct ROM_DATA rom_data_values_fre[] = {
         .loc_voicegroup = 0x868a990,
         .loc_sPicTable_NPC = 0x850b2f0,
 
-        // TODO
-        .loc_gMonFrontPicTable = 0,
-        .loc_gMonPaletteTable = 0,
-        .loc_gMonShinyPaletteTable = 0,
-        .loc_gMonIconTable = 0,
-        .loc_gMonIconPaletteIndices = 0,
-        .loc_gMonIconPalettes = 0,
+        .loc_gMonFrontPicTable = 0x08308F48,
+        .loc_gMonPaletteTable = 0x0830B1A8,
+        .loc_gMonShinyPaletteTable = 0x0830BF68,
+        .loc_gMonIconTable = 0x08580020,
+        .loc_gMonIconPaletteIndices = 0x08580700,
+        .loc_gMonIconPalettes = 0x08DDE39C,
 
         // The following should be consistant across languages and revisions.
         .loc_gSaveBlock1 = 0,
