@@ -32,11 +32,25 @@ LinkConnection globalLinkCable;
 
 void linkCableIRQ()
 {
+  /*
+  ----------------
+  This handshake process can be a bit weird, so let's break it down:
 
+  First we exchange the bytes via handshake. inData will be set to the recieved byte, and the byte we send out will be outData.
+
+  Then we determining what byte we will be sending out next, based on enterState and inByte in handleStateLogic().
+  This will set exitState and nextOutByte.
+
+  Then we print our information in the following format: globalCounter enterState:stateCounter:exitState inData outData
+
+  We then prepare for the next cycle. Counters are incremented (or reset), enterState is set to exitState, and outByte is set to nextOutByte.
+  ----------------
+  */
   if (!globalLinkCable.earlyExit())
   {
-
     globalLinkCable.exchangeBytes();
+
+    globalLinkCable.handleStateLogic();
 
     if (g_debug_options.print_link_data || g_debug_options.print_link_packets)
     {
@@ -48,7 +62,7 @@ void linkCableIRQ()
       globalLinkCable.writeData();
     }
 
-    globalLinkCable.handleStateLogic();
+    globalLinkCable.prepareForNextCycle();
   }
 }
 
@@ -56,59 +70,81 @@ void LinkConnection::setup(const u16 *debug_charset)
 {
   link_cable_memory_section_index = 0;
   link_cable_array_index = 0;
+  writeBufferOffset = 0;
 
   linkSPI->activate(LinkSPI::Mode::MASTER_256KBPS);
   linkSPI->setWaitModeActive(false);
 
   this->debug_charset = debug_charset;
 
+  lastError = NO_ERROR;
+
   if (g_debug_options.print_link_data == true)
   {
     create_textbox(0, 0, 138, 128, false);
   }
 
-  if(g_debug_options.write_cable_data_to_save == WRITE_CABLE_DATA_MODE_SRAM)
+  if (g_debug_options.write_cable_data_to_save == WRITE_CABLE_DATA_MODE_SRAM)
   {
     // if we're writing the cable data to SRAM, we should clear the SRAM first to make sure there's no leftover data from previous transfers
     volatile u8 *cur = SRAM_PTR;
     volatile u8 *end = SRAM_PTR + 0x10000;
-    while(cur < end)
+    while (cur < end)
     {
       (*cur) = 0;
       ++cur;
     }
   }
-
-  if(g_debug_options.load_cable_data_from_save == WRITE_CABLE_DATA_MODE_CART)
+  else if(g_debug_options.write_cable_data_to_save == WRITE_CABLE_DATA_MODE_CART)
   {
-    // if we're loading the cable data from the cart save, we should make sure to load our first section here.
-    copy_save_to_ram(0x1000 * link_cable_memory_section_index, &global_memory_buffer[0], 0x1000);
+    // before each write, we need to erase the sector.
+    // so, let's do that for the first one before we start writing anything.
+    erase_sector(0);
   }
 }
 
-void LinkConnection::startConnection(CompositeState startState)
+void LinkConnection::load_payload(GB_PayloadsFiles payload)
 {
-  switch (startState)
+  u32 fileSize;
+  u8 decompressionBuffer[0x1000];
+  const u8 *chunkList[] = {(const u8 *)GB_Payloads_chunk0_lz10_bin};
+  FileContainerReader reader(chunkList, 1);
+  const u32 fileIndex = (u32)payload;
+
+  reader.init(decompressionBuffer, sizeof(decompressionBuffer));
+  fileSize = reader.getFileSize(fileIndex);
+  reader.seekToFile(fileIndex);
+  reader.read(this->payloadBuffer, fileSize);
+
+  this->curr_payload_size = fileSize;
+}
+
+void LinkConnection::loadCurrGameFromChecksum()
+{
+  if (((dataOutBuffer[0] + dataOutBuffer[1]) & 0x7F) != dataOutBuffer[3])
   {
-  case INITIAL_CONNECTION:
-    subState = CLOCK;
-    REG_TM3D = -0x4000 / 60;
-    REG_TM3CNT = TM_FREQ_1024 | TM_ENABLE;
-    break;
-  case PACKET_EXCHANGE:
-    subState = BYTE_EXCHANGE;
-    REG_TM3D = -0x0040;
-    // REG_TM3D = -0x4000 / 2;
-    REG_TM3CNT = TM_FREQ_1024 | TM_ENABLE;
-    break;
-  default:
-    break;
+    currROM = GB_ROM_ERROR;
+  };
+
+  int start = RED_JP_v0;
+  int end = GOLD_JP_v0;
+
+  if (gen == 2)
+  {
+    start = end;
+    end = NO_GB_ROM;
   }
 
-  nextSubState = subState;
-  nextCompState = startState;
-  lastError = NO_ERROR;
-  irq_enable(II_TIMER3);
+  for (int i = start; i < end; i++)
+  {
+    if (dataOutBuffer[0] == GameBoyROMChecksumTable[i][1] && dataOutBuffer[1] == GameBoyROMChecksumTable[i][2])
+    {
+      currROM = (GameBoyROM)GameBoyROMChecksumTable[i][3];
+      return;
+    }
+  }
+  currROM = GB_ROM_ERROR;
+  return;
 }
 
 void LinkConnection::exchangeBytes()
@@ -122,40 +158,60 @@ void LinkConnection::exchangeBytes()
       global_next_frame();
       return --timeout_frames <= 0; });
   */
-  switch(g_debug_options.load_cable_data_from_save)
+  switch (g_debug_options.load_cable_data_from_save)
   {
-    case WRITE_CABLE_DATA_MODE_OFF:
-      // Normal transfer :-)
-      inData = linkSPI->transfer(outData);
-      break;
-    case WRITE_CABLE_DATA_MODE_SRAM:
-      // Pretend transfer, by loading the bytes from SRAM (where we stored them with writeData() in a previous transfer)
-      inData = (*(SRAM_PTR + link_cable_array_index));
-      ++link_cable_array_index;
-      outData = (*(SRAM_PTR + link_cable_array_index));
-      ++link_cable_array_index;
-      break;
-    case WRITE_CABLE_DATA_MODE_CART:
-    {
-      // Pretend transfer, by loading the bytes from the cartridge save. (where we stored them with writeData() in a previous transfer)
-      // skip the first 6 bytes, which are for human consumption
-      link_cable_array_index += 6;
+  case WRITE_CABLE_DATA_MODE_OFF:
+    // Normal transfer :-)
+    inData = linkSPI->transfer(outData);
+    break;
+  case WRITE_CABLE_DATA_MODE_SRAM:
+    // Pretend transfer, by loading the bytes from SRAM (where we stored them with writeData() in a previous transfer)
+    inData = (*(SRAM_PTR + link_cable_array_index));
+    ++link_cable_array_index;
+    outData = (*(SRAM_PTR + link_cable_array_index));
+    ++link_cable_array_index;
+    break;
+  case WRITE_CABLE_DATA_MODE_CART:
+  {
+    // Pretend transfer, by loading the bytes from the cartridge save. (where we stored them with writeData() in a previous transfer)
+    // skip the first 6 bytes, which are for human consumption
+    link_cable_array_index += 6;
 
-      inData = global_memory_buffer[link_cable_array_index];
+      inData = read_byte_save((0x1000 * link_cable_memory_section_index) + link_cable_array_index);
       ++link_cable_array_index;
-      outData = global_memory_buffer[link_cable_array_index];
+      outData = read_byte_save((0x1000 * link_cable_memory_section_index) + link_cable_array_index);
       ++link_cable_array_index;
 
-      // we reached the end of our global_memory_buffer, we need to load the next data section from the cart save
       if(link_cable_array_index >= 0x1000)
       {
+        // if we reached the end of the section, we need to load the next section (if there is one)
         ++link_cable_memory_section_index;
         link_cable_array_index = 0;
-        copy_save_to_ram(0x1000 * link_cable_memory_section_index, &global_memory_buffer[0], 0x1000);
       }
       break;
     }
   }
+}
+
+void LinkConnection::startConnection(LinkState startState)
+{
+  switch (startState)
+  {
+  case INITIAL_CONNECTION:
+    REG_TM3D = -0x4000 / 60;
+    REG_TM3CNT = TM_FREQ_1024 | TM_ENABLE;
+    break;
+  case PACKET_EXCHANGE:
+    REG_TM3D = -0x0040;
+    // REG_TM3D = -0x4000 / 2;
+    REG_TM3CNT = TM_FREQ_1024 | TM_ENABLE;
+    break;
+  default:
+    break;
+  }
+
+  enterState = startState;
+  irq_enable(II_TIMER3);
 }
 
 void LinkConnection::printData()
@@ -168,13 +224,13 @@ void LinkConnection::printData()
   {
     if (g_debug_options.print_link_data)
     {
-      n2hexstr(&line[0], compState & 0xFF, 2);
-      line[2] = ':';
-      n2hexstr(&line[3], compStateCounter & 0xFFFF, 4);
-      line[7] = '|';
-      n2hexstr(&line[8], subState & 0xFF, 2);
-      line[10] = ':';
-      n2hexstr(&line[11], subStateCounter & 0xFFFF, 4);
+      n2hexstr(&line[0], globalStateCounter & 0xFFFF, 4);
+      line[4] = '|';
+      n2hexstr(&line[5], enterState & 0xFF, 2);
+      line[7] = ':';
+      n2hexstr(&line[8], subStateCounter & 0xFFFF, 4);
+      line[12] = ':';
+      n2hexstr(&line[13], exitState & 0xFF, 2);
       line[15] = '|';
       line[16] = 'i';
       n2hexstr(&line[17], inData & 0xFF, 2);
@@ -232,49 +288,41 @@ void LinkConnection::printData()
 
 void LinkConnection::writeData()
 {
-  switch(g_debug_options.write_cable_data_to_save)
+  switch (g_debug_options.write_cable_data_to_save)
   {
-    case WRITE_CABLE_DATA_MODE_OFF:
-      break;
-    case WRITE_CABLE_DATA_MODE_SRAM:
-    {
-      (*(SRAM_PTR + link_cable_array_index)) = inData;
-      ++link_cable_array_index;
+  case WRITE_CABLE_DATA_MODE_OFF:
+    break;
+  case WRITE_CABLE_DATA_MODE_SRAM:
+  {
+    (*(SRAM_PTR + link_cable_array_index)) = inData;
+    ++link_cable_array_index;
 
-      (*(SRAM_PTR + link_cable_array_index)) = outData;
-      ++link_cable_array_index;
-      break;
-    }
-    case WRITE_CABLE_DATA_MODE_CART:
-    {
-      // save the data to the cartridge in chunks of 4 KB
-      // WARNING: If you want to add or remove fields here,
-      // make sure to keep the number of bytes a clean divider of 4096 (global_memory_buffer_size)
+    (*(SRAM_PTR + link_cable_array_index)) = outData;
+    ++link_cable_array_index;
+    break;
+  }
+  case WRITE_CABLE_DATA_MODE_CART:
+  {
+    // save the data to the cartridge in chunks of 4 KB
+    // WARNING: If you want to add or remove fields here,
+    // make sure to keep the number of bytes a clean divider of 4096 (global_memory_buffer_size)
 
       // the next 6 bytes are for human consumption when viewed in a hex editor.
       // they can be useful to correlate the current LinkConnection state with the data that was sent over the cable.
       // but they're not needed for reconstructing the conversation with load_cable_data_from_save
-      global_memory_buffer[link_cable_array_index + 0] = compState;
-      global_memory_buffer[link_cable_array_index + 1] = (compStateCounter >> 8) & 0xFF;
-      global_memory_buffer[link_cable_array_index + 2] = (compStateCounter >> 0) & 0xFF;
-      global_memory_buffer[link_cable_array_index + 3] = subState;
-      global_memory_buffer[link_cable_array_index + 4] = (subStateCounter >> 8) & 0xFF;
-      global_memory_buffer[link_cable_array_index + 5] = (subStateCounter >> 0) & 0xFF;
+    global_memory_buffer[writeBufferOffset + 0] = (u8)(globalStateCounter >> 8) & 0xFF;
+    global_memory_buffer[writeBufferOffset + 1] = (u8)(globalStateCounter >> 0) & 0xFF;
+    global_memory_buffer[writeBufferOffset + 2] = (u8)enterState;
+    global_memory_buffer[writeBufferOffset + 3] = (u8)(subStateCounter >> 8) & 0xFF;
+    global_memory_buffer[writeBufferOffset + 4] = (u8)(subStateCounter >> 0) & 0xFF;
+    global_memory_buffer[writeBufferOffset + 5] = (u8)exitState;
 
       // actual data bytes start here.
-      global_memory_buffer[link_cable_array_index + 6] = inData;
-      global_memory_buffer[link_cable_array_index + 7] = outData;
+      global_memory_buffer[writeBufferOffset + 6] = inData;
+      global_memory_buffer[writeBufferOffset + 7] = outData;
 
-      link_cable_array_index += 8;
+      writeBufferOffset += 8;
 
-      // If the buffer is full or we reached nextSubState == END, we save the buffer to the cartridge save
-      if (link_cable_array_index >= 0x1000 || nextSubState == END)
-      {
-        erase_sector(0x1000 * link_cable_memory_section_index);
-        copy_ram_to_save(&global_memory_buffer[0], 0x1000 * link_cable_memory_section_index, 0x1000);
-        ++link_cable_memory_section_index;
-        link_cable_array_index = 0;
-      }
       break;
     }
   }
@@ -282,22 +330,255 @@ void LinkConnection::writeData()
 
 void LinkConnection::handleStateLogic()
 {
-  subState = nextSubState;
-  compState = nextCompState;
-
-  switch (compState)
+  switch (enterState)
   {
   case INITIAL_CONNECTION:
-    logicState_initConnection();
+    nextOutData = 0xFF;
+    exitState = CLOCK;
     break;
+
+  case CLOCK:
+    if (inData == 0xFE)
+    {
+      exitState = SAVE_SUCCESS;
+      nextOutData = 0x00;
+    }
+    else
+    {
+      nextOutData = 0x01;
+    }
+    break;
+
+  case SAVE_SUCCESS:
+    if (inData == 0x60 || inData == 0x61)
+    {
+      exitState = MENU_OPEN;
+      nextOutData = inData;
+    }
+    // nextOutData defaults to 0x00
+    break;
+
+  case MENU_OPEN:
+    if (inData == 0xD0 || inData == 0x61)
+    {
+      if (inData == 0xD0)
+      {
+        gen = 1;
+        load_payload(GB_PayloadsFiles::UNIVERSALPAYLOADGEN1);
+        nextOutData = 0xD4;
+      }
+      else if (inData == 0x61)
+      {
+        gen = 2;
+        load_payload(GB_PayloadsFiles::UNIVERSALPAYLOADGEN2);
+        nextOutData = 0x61;
+      }
+      exitState = MENU_SUCCESS;
+    }
+    break;
+
+  case MENU_SUCCESS:
+    if (inData == 0xFE)
+    {
+      exitState = WAIT_FOR_TRADE;
+    }
+    nextOutData = inData;
+    break;
+
+  case WAIT_FOR_TRADE:
+    if (inData == 0xFD)
+    {
+      REG_TM3D = -0x0040;
+      exitState = TRADE_PREAMBLE;
+      // nextOutData defaults to 0x00
+    }
+    else
+    {
+      nextOutData = inData;
+    }
+    break;
+
+  case TRADE_PREAMBLE:
+    if (subStateCounter < 2)
+    {
+      // nextOutData defaults to 0x00
+    }
+    else if (subStateCounter < 9)
+    {
+      nextOutData = 0xFD;
+    }
+    else
+    {
+      exitState = TRADE;
+      nextOutData = 0xFD;
+    };
+    break;
+
+  case TRADE:
+    if (subStateCounter > curr_payload_size)
+    {
+      if (this->gen == 2)
+      {
+        exitState = MAIL;
+      }
+      else
+      {
+        exitState = WAIT_FOR_CHECKSUM_PAYLOAD;
+      }
+    }
+    nextOutData = payloadBuffer[subStateCounter];
+    break;
+
+  case MAIL:
+    if (subStateCounter > 0x186)
+    {
+      exitState = WAIT_FOR_CHECKSUM_PAYLOAD;
+    }
+    nextOutData = 0x00;
+    break;
+
+  case WAIT_FOR_CHECKSUM_PAYLOAD:
+    if (inData == 0xFD)
+    {
+      exitState = GET_CHECKSUM;
+    }
+    // nextOutData defaults to 0x00
+    break;
+
+  case GET_CHECKSUM:
+    if (inData != 0xFD)
+    {
+      dataOutBuffer[dataOutBufferCurrIndex] = inData;
+      dataOutBufferCurrIndex++;
+      nextOutData = 0x01;
+    }
+    else if (inData == 0xFD && dataOutBufferCurrIndex > 0)
+    {
+      loadCurrGameFromChecksum();
+      load_payload(GB_PayloadsFiles::SPECIFICPAYLOADGEN1_EN_R);
+      exitState = SEND_SPECIFIC_PAYLOAD;
+    }
+    else
+    {
+      nextOutData = 0xFD;
+    }
+    break;
+
+  case WAIT_FOR_SECOND_PAYLOAD:
+    if (inData == 0xFD)
+    {
+      exitState = SEND_SPECIFIC_PAYLOAD;
+    }
+    // nextOutData defaults to 0x00
+    break;
+
+  case SEND_SPECIFIC_PAYLOAD:
+    if (subStateCounter > 255) // The 255 comes from the Universal Payload
+    {
+      exitState = END;
+    }
+    if (subStateCounter < curr_payload_size)
+    {
+      nextOutData = payloadBuffer[subStateCounter];
+    }
+    else
+    {
+      nextOutData = 0x01;
+    }
+    break;
+
   case PACKET_EXCHANGE:
-    logicState_packetExchange();
+    nextOutData = 0xFF;
+    exitState = BYTE_EXCHANGE;
     break;
+
+  case BYTE_EXCHANGE:
+  {
+    switch (subStateCounter % TOTAL_PACKET_LENGTH)
+    {
+    case 0:
+      nextOutData = 0xFD;
+      break;
+    case 1:
+      nextOutData = currLinkPacketArrIndex;
+      break;
+    case 2:
+      nextOutData = currLinkPacketArr[currLinkPacketArrIndex].command;
+      break;
+    case 3:
+      nextOutData = currLinkPacketArr[currLinkPacketArrIndex].argument[0];
+      break;
+    case 4:
+      nextOutData = currLinkPacketArr[currLinkPacketArrIndex].argument[1];
+      break;
+    case 5:
+      nextOutData = currLinkPacketArr[currLinkPacketArrIndex].pointer >> 0;
+      break;
+    case 6:
+      nextOutData = currLinkPacketArr[currLinkPacketArrIndex].pointer >> 8;
+      break;
+    case TOTAL_PACKET_LENGTH - 1:
+      currLinkPacketArrIndex++;
+    default:
+      nextOutData = 0xFF;
+      break;
+    }
+
+    if (currLinkPacketArrIndex >= currLinkPacketArrFilledCount + 2)
+    {
+      exitState = PRINT_LAST_PACKET;
+    }
+    else if (currLinkPacketArrIndex >= currLinkPacketArrFilledCount)
+    {
+      // We don't want to send another packet, we just want the data back
+      nextOutData = 0xFF;
+    }
+
+    if ((subStateCounter % TOTAL_PACKET_LENGTH == 0) && (currLinkPacketArrIndex > 1))
+    {
+      newPacket = true;
+
+      if (processPacket() == false)
+      {
+        // Packet failed, we need to put it back in the queue
+        if (currLinkPacketArrFilledCount < currLinkPacketArrTotalCount)
+        {
+          currLinkPacketArr[currLinkPacketArrFilledCount] = currLinkPacketArr[currLinkPacketArrIndex];
+          currLinkPacketArrFilledCount++;
+        }
+        else
+        {
+          // We have filled the packet array. Set
+        }
+      }
+    }
+    else
+    {
+      newPacket = false;
+    }
+
+    dataOutBuffer[subStateCounter % TOTAL_PACKET_LENGTH] = inData;
+  }
+  break;
+  
+  case PRINT_LAST_PACKET:
+    nextOutData = 0xFF;
+    exitState = END;
+    break;
+
+  case END:
+    irq_disable(II_TIMER3);
+    break;
+
   default:
+    nextOutData = inData;
     break;
   }
+}
 
-  if (nextSubState != subState)
+void LinkConnection::prepareForNextCycle()
+{
+  if (exitState != enterState)
   {
     subStateCounter = 0;
     subStateChanged = true;
@@ -308,15 +589,59 @@ void LinkConnection::handleStateLogic()
     subStateChanged = false;
   }
 
-  if (nextCompState != compState)
+  globalStateCounter++;
+  enterState = exitState;
+  outData = nextOutData;
+
+}
+
+/*
+ * So, dealing with writing to the cartridge in the IRQ handler was a no-go.
+ * It just caused too many issues with data corruption, probably because the write and erase_sector
+ * operation was taking too long.
+ *
+ * So, I moved it to the main loop through this function.
+ * However, we need to be aware that this function can get interrupted by the IRQ handler at any time.
+ *
+ * We also need to take care to not have global_memory_buffer overflow as the IRQ handler just keeps adding to it.
+ */
+void LinkConnection::handleCartIO()
+{
+  u8 writeBuffer[0x1000];
+  unsigned curBufDepth = writeBufferOffset;
+
+  // first copy the current data to a local buffer. Note: the IRQ handler could append new data to global_memory_buffer during this call!
+  memcpy(writeBuffer, global_memory_buffer, curBufDepth);
+  // by updating the writeBufferOffset already, we allow the IRQ handler to start writing at the new right position
+  // immediately.
+  writeBufferOffset -= curBufDepth;
+  // now move any data received during the memcpy to before writeBufferOffset, so it will be included in the next batch.
+  // Note: keep in mind, here too the IRQ handler may be appending new data to global_memory_buffer and increase writeBufferOffset.
+  // but it's harmless.
+  memmove(global_memory_buffer, global_memory_buffer + curBufDepth, writeBufferOffset);
+
+  u8 *curWriteBuf = writeBuffer;
+  const u8 * const endWriteBuf = writeBuffer + curBufDepth;
+
+  while(curWriteBuf < endWriteBuf)
   {
-    compStateCounter = 0;
-    compStateChanged = true;
-  }
-  else
-  {
-    compStateCounter++;
-    compStateChanged = false;
+    // make sure not to write beyond the current flash sector's boundaries. We'll need an erase_sector() call before
+    // we write to the next sector.
+    const unsigned bytesRemainingInSector = 0x1000 - link_cable_array_index;
+    const unsigned bytesToWrite = (curBufDepth < bytesRemainingInSector) ? curBufDepth : bytesRemainingInSector;
+
+    copy_ram_to_save(curWriteBuf, (0x1000 * link_cable_memory_section_index) + link_cable_array_index, bytesToWrite);
+    curWriteBuf += bytesToWrite;
+    curBufDepth -= bytesToWrite;
+    link_cable_array_index += bytesToWrite;
+
+    if(link_cable_array_index >= 0x1000)
+    {
+      // we have reached the end of our current sector. Let's erase the next one.
+      link_cable_array_index = 0;
+      ++link_cable_memory_section_index;
+      erase_sector(0x1000 * link_cable_memory_section_index);
+    }
   }
 }
 
@@ -654,6 +979,7 @@ bool LinkConnection::processPacket()
 {
   int checksum = 0;
   LinkPacket &currPacket = currLinkPacketArr[dataOutBuffer[INP_COUNTER_INDEX]];
+
   for (int i = INP_DELAY_FROM_OUTP; i < INP_LENGTH; i++)
   {
     if (i != INP_CHECKSUM_INDEX)
