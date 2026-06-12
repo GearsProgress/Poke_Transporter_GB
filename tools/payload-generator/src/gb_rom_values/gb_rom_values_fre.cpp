@@ -151,7 +151,7 @@ const struct GB_ROM gb_rom_values_fre[] = {
      .padding_1 = 0,
 
      .clearScreen = 0x000EE2,
-     .CableClub_TextBoxBorder = 0x0A4D88, // LinkTextboxAtHL
+     .CableClub_TextBoxBorder = 0x0A4DFA, // LinkTextboxAtHL
      .placeString = 0x000F74,
      .Serial_ExchangeBytes = 0x0710,
      ._RemovePokemon = 0x03603F, // RemoveMonFromPartyOrBox
