@@ -166,6 +166,8 @@ SerialPatchListAligned:
 	jr z, .sendChecksum
 	push de
 	inc a
+	ld a, IE_JOYPAD | IE_SERIAL | IE_TIMER | IE_VBLANK
+	ldh [rIE], a
 	ret nz
 	pop af ; hCGB has a version-specific address, so retrieve the z flag we used earlier.
 	ldh a, [hCGB_GS]

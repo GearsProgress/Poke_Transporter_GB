@@ -74,7 +74,7 @@ Payload:
 	call .changeInterruptsAndCommunicate
 	jr .loopTransfer
 .changeInterruptsAndCommunicate
-	call 0xC869 ; leftover from the universal payload, only allow serial interrupt and call Serial_ExchangeBytes
+	call 0xC86B ; leftover from the universal payload, only allow serial interrupt and call Serial_ExchangeBytes
 	ld a, IE_JOYPAD | IE_SERIAL | IE_TIMER | IE_VBLANK ; enable vblank interrupt so that a sound effect can play
 	ldh [rIE], a
 	ret
