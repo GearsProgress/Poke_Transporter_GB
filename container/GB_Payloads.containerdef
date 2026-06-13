@@ -1,10 +1,6 @@
-tools/gb-payload-generator/build/universalPayloadGen1/universalPayloadGen1.bin
-tools/gb-payload-generator/build/universalPayloadGen2/universalPayloadGen2.bin
-tools/gb-payload-generator/build/specificPayloadGen1/specificPayloadGen1_en_r.bin
-tools/gb-payload-generator/build/specificPayloadGen1/specificPayloadGen1_en_y.bin
-
 tools/gb-payload-generator/build/specificPayloadGen1/specificPayloadGen1_jp_r.bin
 tools/gb-payload-generator/build/specificPayloadGen1/specificPayloadGen1_jp_r11.bin
+tools/gb-payload-generator/build/specificPayloadGen1/specificPayloadGen1_en_r.bin
 tools/gb-payload-generator/build/specificPayloadGen1/specificPayloadGen1_fr_r.bin
 tools/gb-payload-generator/build/specificPayloadGen1/specificPayloadGen1_it_r.bin
 tools/gb-payload-generator/build/specificPayloadGen1/specificPayloadGen1_de_r.bin
@@ -21,7 +17,10 @@ tools/gb-payload-generator/build/specificPayloadGen1/specificPayloadGen1_jp_y.bi
 tools/gb-payload-generator/build/specificPayloadGen1/specificPayloadGen1_jp_y11.bin
 tools/gb-payload-generator/build/specificPayloadGen1/specificPayloadGen1_jp_y12.bin
 tools/gb-payload-generator/build/specificPayloadGen1/specificPayloadGen1_jp_y13.bin
+tools/gb-payload-generator/build/specificPayloadGen1/specificPayloadGen1_en_y.bin
 tools/gb-payload-generator/build/specificPayloadGen1/specificPayloadGen1_fr_y.bin
 tools/gb-payload-generator/build/specificPayloadGen1/specificPayloadGen1_it_y.bin
 tools/gb-payload-generator/build/specificPayloadGen1/specificPayloadGen1_de_y.bin
 tools/gb-payload-generator/build/specificPayloadGen1/specificPayloadGen1_sp_y.bin
+tools/gb-payload-generator/build/universalPayloadGen1/universalPayloadGen1.bin
+tools/gb-payload-generator/build/universalPayloadGen2/universalPayloadGen2.bin

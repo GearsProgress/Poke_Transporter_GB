@@ -18,6 +18,9 @@
 #include "translated_text.h"
 
 #include "GB_Payloads_chunk0_lz10_bin.h"
+#include "GB_Payloads_chunk1_lz10_bin.h"
+#include "GB_Payloads_chunk2_lz10_bin.h"
+#include "GB_Payloads_chunk3_lz10_bin.h"
 #include "GB_Payloads.h"
 
 LinkSPI linkSPIInstance;
@@ -107,8 +110,13 @@ void LinkConnection::loadPayload(GB_PayloadsFiles payload)
 {
   u32 fileSize;
   u8 decompressionBuffer[0x1000];
-  const u8 *chunkList[] = {(const u8 *)GB_Payloads_chunk0_lz10_bin};
-  FileContainerReader reader(chunkList, 1);
+  const u8 *chunkList[] = {
+    (const u8 *)GB_Payloads_chunk0_lz10_bin,
+    (const u8 *)GB_Payloads_chunk1_lz10_bin,
+    (const u8 *)GB_Payloads_chunk2_lz10_bin,
+    (const u8 *)GB_Payloads_chunk3_lz10_bin,
+  };
+  FileContainerReader reader(chunkList, 4);
   const u32 fileIndex = (u32)payload;
 
   reader.init(decompressionBuffer, sizeof(decompressionBuffer));
