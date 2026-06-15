@@ -797,34 +797,25 @@ bool run_conditional(int index)
             obj_unhide(flag, 0);
             obj_set_pos(flag, 1.5 * 8, 14 * 8);
 
-            LinkPacket packets[] = {
-                {CMD_ReadDataRequest, 0x00, 0x00, 0xDA80},
-                {CMD_ReadDataRequest, 0x00, 0x00, 0xDA88},
-                {CMD_ReadDataRequest, 0x00, 0x00, 0xDA90},
-                {CMD_ReadDataRequest, 0x00, 0x00, 0xDA98},
-                {CMD_ReadDataRequest, 0x00, 0x00, 0xDAA0},
-                {CMD_ReadDataRequest, 0x00, 0x00, 0xDAA8},
-            };
-
-            globalLinkCable.skipPrint = false;
-            globalLinkCable.pauseOnPacket = true;
-            while (true)
+            if (g_debug_options.print_link_packets)
             {
-                globalLinkCable.currLinkPacketArr = packets;
-                globalLinkCable.currLinkPacketArrFilledCount = 6;
-                globalLinkCable.currLinkPacketArrIndex = 0;
-
-                globalLinkCable.startConnection(PACKET_EXCHANGE);
-                while (globalLinkCable.enterState != END)
-                {
-                    globalLinkCable.handleCartIO();
-                    VBlankIntrWait();
-                }
+                globalLinkCable.skipPrint = false;
+                globalLinkCable.pauseOnPacket = true;
             }
+
+            globalLinkCable.readMemorySection(0xDA80, party_data.box_data_array, 1122);
+            globalLinkCable.startConnection(PACKET_EXCHANGE);
+            while (globalLinkCable.enterState != END)
+            {
+                globalLinkCable.handleCartIO();
+                VBlankIntrWait();
+            }
+            party_data.box.loadData(globalLinkCable.gen, globalLinkCable.lang, party_data.box_data_array);
         }
         reload_textbox_background();
         load_flex_background(FLEXBG_FENNEL, 2);
         link_animation_state(0);
+
         return true;
 
     case CMD_IMPORT_POKEMON:

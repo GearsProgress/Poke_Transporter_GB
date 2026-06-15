@@ -98,7 +98,7 @@ void LinkConnection::setup(const u16 *debug_charset)
       ++cur;
     }
   }
-  else if(g_debug_options.write_cable_data_to_save == WRITE_CABLE_DATA_MODE_CART)
+  else if (g_debug_options.write_cable_data_to_save == WRITE_CABLE_DATA_MODE_CART)
   {
     // before each write, we need to erase the sector.
     // so, let's do that for the first one before we start writing anything.
@@ -111,10 +111,10 @@ void LinkConnection::loadPayload(GB_PayloadsFiles payload)
   u32 fileSize;
   u8 decompressionBuffer[0x1000];
   const u8 *chunkList[] = {
-    (const u8 *)GB_Payloads_chunk0_lz10_bin,
-    (const u8 *)GB_Payloads_chunk1_lz10_bin,
-    (const u8 *)GB_Payloads_chunk2_lz10_bin,
-    (const u8 *)GB_Payloads_chunk3_lz10_bin,
+      (const u8 *)GB_Payloads_chunk0_lz10_bin,
+      (const u8 *)GB_Payloads_chunk1_lz10_bin,
+      (const u8 *)GB_Payloads_chunk2_lz10_bin,
+      (const u8 *)GB_Payloads_chunk3_lz10_bin,
   };
   FileContainerReader reader(chunkList, 4);
   const u32 fileIndex = (u32)payload;
@@ -130,6 +130,7 @@ void LinkConnection::loadPayload(GB_PayloadsFiles payload)
 void LinkConnection::loadPayloadByROM(GameBoyROM rom)
 {
   loadPayload(GameBoyROMPayloads[rom]);
+  lang = GameBoyROMLanguages[rom];
 }
 
 void LinkConnection::loadCurrGameFromChecksum()
@@ -190,19 +191,19 @@ void LinkConnection::exchangeBytes()
     // skip the first 6 bytes, which are for human consumption
     link_cable_array_index += 6;
 
-      inData = read_byte_save((0x1000 * link_cable_memory_section_index) + link_cable_array_index);
-      ++link_cable_array_index;
-      outData = read_byte_save((0x1000 * link_cable_memory_section_index) + link_cable_array_index);
-      ++link_cable_array_index;
+    inData = read_byte_save((0x1000 * link_cable_memory_section_index) + link_cable_array_index);
+    ++link_cable_array_index;
+    outData = read_byte_save((0x1000 * link_cable_memory_section_index) + link_cable_array_index);
+    ++link_cable_array_index;
 
-      if(link_cable_array_index >= 0x1000)
-      {
-        // if we reached the end of the section, we need to load the next section (if there is one)
-        ++link_cable_memory_section_index;
-        link_cable_array_index = 0;
-      }
-      break;
+    if (link_cable_array_index >= 0x1000)
+    {
+      // if we reached the end of the section, we need to load the next section (if there is one)
+      ++link_cable_memory_section_index;
+      link_cable_array_index = 0;
     }
+    break;
+  }
   }
 }
 
@@ -275,7 +276,7 @@ void LinkConnection::printData()
       {
         byte tempBuffer[16];
         int packetIndex = dataOutBuffer[INP_COUNTER_INDEX];
-        LinkPacket &currLinkPacket = currLinkPacketArr[packetIndex];
+        LinkPacket &currLinkPacket = linkPacketArr[packetIndex];
 
         tempBuffer[0] = packetIndex;
         tempBuffer[1] = currLinkPacket.command;
@@ -320,9 +321,9 @@ void LinkConnection::writeData()
     // WARNING: If you want to add or remove fields here,
     // make sure to keep the number of bytes a clean divider of 4096 (global_memory_buffer_size)
 
-      // the next 6 bytes are for human consumption when viewed in a hex editor.
-      // they can be useful to correlate the current LinkConnection state with the data that was sent over the cable.
-      // but they're not needed for reconstructing the conversation with load_cable_data_from_save
+    // the next 6 bytes are for human consumption when viewed in a hex editor.
+    // they can be useful to correlate the current LinkConnection state with the data that was sent over the cable.
+    // but they're not needed for reconstructing the conversation with load_cable_data_from_save
     global_memory_buffer[writeBufferOffset + 0] = (u8)(globalStateCounter >> 8) & 0xFF;
     global_memory_buffer[writeBufferOffset + 1] = (u8)(globalStateCounter >> 0) & 0xFF;
     global_memory_buffer[writeBufferOffset + 2] = (u8)enterState;
@@ -330,14 +331,14 @@ void LinkConnection::writeData()
     global_memory_buffer[writeBufferOffset + 4] = (u8)(subStateCounter >> 0) & 0xFF;
     global_memory_buffer[writeBufferOffset + 5] = (u8)exitState;
 
-      // actual data bytes start here.
-      global_memory_buffer[writeBufferOffset + 6] = inData;
-      global_memory_buffer[writeBufferOffset + 7] = outData;
+    // actual data bytes start here.
+    global_memory_buffer[writeBufferOffset + 6] = inData;
+    global_memory_buffer[writeBufferOffset + 7] = outData;
 
-      writeBufferOffset += 8;
+    writeBufferOffset += 8;
 
-      break;
-    }
+    break;
+  }
   }
 }
 
@@ -513,57 +514,39 @@ void LinkConnection::handleStateLogic()
       nextOutData = 0xFD;
       break;
     case 1:
-      nextOutData = currLinkPacketArrIndex;
+      nextOutData = linkPacketArrIndex;
       break;
     case 2:
-      nextOutData = currLinkPacketArr[currLinkPacketArrIndex].command;
+      nextOutData = linkPacketArr[linkPacketArrIndex].command;
       break;
     case 3:
-      nextOutData = currLinkPacketArr[currLinkPacketArrIndex].argument[0];
+      nextOutData = linkPacketArr[linkPacketArrIndex].argument[0];
       break;
     case 4:
-      nextOutData = currLinkPacketArr[currLinkPacketArrIndex].argument[1];
+      nextOutData = linkPacketArr[linkPacketArrIndex].argument[1];
       break;
     case 5:
-      nextOutData = currLinkPacketArr[currLinkPacketArrIndex].pointer >> 0;
+      nextOutData = linkPacketArr[linkPacketArrIndex].pointer >> 0;
       break;
     case 6:
-      nextOutData = currLinkPacketArr[currLinkPacketArrIndex].pointer >> 8;
+      nextOutData = linkPacketArr[linkPacketArrIndex].pointer >> 8;
       break;
     case TOTAL_PACKET_LENGTH - 1:
-      currLinkPacketArrIndex++;
+      linkPacketArrIndex = (linkPacketArrIndex + 1) % LINK_PACKET_ARRAY_SIZE;
     default:
       nextOutData = 0xFF;
       break;
     }
 
-    if (currLinkPacketArrIndex >= currLinkPacketArrFilledCount + 2)
+    if (allPacketsProcessed())
     {
       exitState = PRINT_LAST_PACKET;
     }
-    else if (currLinkPacketArrIndex >= currLinkPacketArrFilledCount)
-    {
-      // We don't want to send another packet, we just want the data back
-      nextOutData = 0xFF;
-    }
 
-    if ((subStateCounter % TOTAL_PACKET_LENGTH == 0) && (currLinkPacketArrIndex > 1))
+    if (subStateCounter % TOTAL_PACKET_LENGTH == 0)
     {
       newPacket = true;
-
-      if (processPacket() == false)
-      {
-        // Packet failed, we need to put it back in the queue
-        if (currLinkPacketArrFilledCount < currLinkPacketArrTotalCount)
-        {
-          currLinkPacketArr[currLinkPacketArrFilledCount] = currLinkPacketArr[currLinkPacketArrIndex];
-          currLinkPacketArrFilledCount++;
-        }
-        else
-        {
-          // We have filled the packet array. Set
-        }
-      }
+      processPacket();
     }
     else
     {
@@ -573,7 +556,7 @@ void LinkConnection::handleStateLogic()
     dataOutBuffer[subStateCounter % TOTAL_PACKET_LENGTH] = inData;
   }
   break;
-  
+
   case PRINT_LAST_PACKET:
     nextOutData = 0xFF;
     exitState = END;
@@ -602,10 +585,14 @@ void LinkConnection::prepareForNextCycle()
     subStateChanged = false;
   }
 
+  if (newPacket)
+  {
+    loadNextPacket();
+  }
+
   globalStateCounter++;
   enterState = exitState;
   outData = nextOutData;
-
 }
 
 /*
@@ -634,9 +621,9 @@ void LinkConnection::handleCartIO()
   memmove(global_memory_buffer, global_memory_buffer + curBufDepth, writeBufferOffset);
 
   u8 *curWriteBuf = writeBuffer;
-  const u8 * const endWriteBuf = writeBuffer + curBufDepth;
+  const u8 *const endWriteBuf = writeBuffer + curBufDepth;
 
-  while(curWriteBuf < endWriteBuf)
+  while (curWriteBuf < endWriteBuf)
   {
     // make sure not to write beyond the current flash sector's boundaries. We'll need an erase_sector() call before
     // we write to the next sector.
@@ -648,7 +635,7 @@ void LinkConnection::handleCartIO()
     curBufDepth -= bytesToWrite;
     link_cable_array_index += bytesToWrite;
 
-    if(link_cable_array_index >= 0x1000)
+    if (link_cable_array_index >= 0x1000)
     {
       // we have reached the end of our current sector. Let's erase the next one.
       link_cable_array_index = 0;
@@ -711,9 +698,9 @@ bool LinkConnection::earlyExit()
 bool LinkConnection::processPacket()
 {
   int checksum = 0;
-  LinkPacket &currPacket = currLinkPacketArr[dataOutBuffer[INP_COUNTER_INDEX]];
+  LinkPacket &currPacket = linkPacketArr[dataOutBuffer[INP_COUNTER_INDEX] & (LINK_PACKET_ARRAY_SIZE - 1)];
 
-  for (int i = INP_DELAY_FROM_OUTP; i < INP_LENGTH; i++)
+  for (int i = INP_COUNTER_INDEX; i < INP_LENGTH; i++)
   {
     if (i != INP_CHECKSUM_INDEX)
     {
@@ -737,6 +724,66 @@ bool LinkConnection::processPacket()
   {
     currPacket.latestError = CHECKSUM_MISMATCH;
     return false;
+  }
+  currPacket.latestError = PACKET_SUCCESS;
+  return true;
+}
+
+void LinkConnection::loadNextPacket()
+{
+  /*
+  ----------------
+  For this part, the LinkConnection has an array of 4 packets that it will send.
+  The current packet will be sent and a response will be recieved at the same time. If the recieved packet is
+  successful, the data will be moved to the outArray and the packet will be replaced by a packet asking for the next data section.
+  If the packet was not successful it will stay in the list and be ran again down the line. If packets have been sent for all the
+  data sections, a completed packet will be replaced with an empty packet. Once the array is full of empty packets, the data
+  has all been read and we are finished.
+  ----------------
+*/
+  LinkPacket &currPacket = linkPacketArr[dataOutBuffer[INP_COUNTER_INDEX] & (LINK_PACKET_ARRAY_SIZE - 1)];
+  if (currPacket.latestError == PACKET_SUCCESS)
+  {
+    // Packet was successful, Find which packet sent it and mark it.
+    // If this was data, then save the data and replace it with the next one in line
+
+    currPacket.latestError = PACKET_READ;
+    if (((currPacket.pointer - linkPacketDataStart) < linkPacketDataSize))
+    {
+      memcpy(&outDataArrayPtr[currPacket.pointer - linkPacketDataStart], &currPacket.recievedData[0], 8);
+      currPacket = {CMD_ReadDataRequest, 0x00, 0x00, linkPacketDataAddr};
+      linkPacketDataAddr += 8;
+    }
+  }
+  else
+  {
+    // Packet failed, don't remove it.
+  }
+}
+
+bool LinkConnection::allPacketsProcessed()
+{
+  for (int i = 0; i < LINK_PACKET_ARRAY_SIZE; i++)
+  {
+    if (linkPacketArr[i].latestError != PACKET_READ)
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool LinkConnection::readMemorySection(u16 dataPointer, byte outArray[], int outArraySize)
+{
+  linkPacketDataStart = dataPointer;
+  linkPacketDataSize = outArraySize;
+  linkPacketDataAddr = dataPointer;
+  outDataArrayPtr = outArray;
+
+  for (int i = 0; i < LINK_PACKET_ARRAY_SIZE; i++)
+  {
+    linkPacketArr[i] = {CMD_ReadDataRequest, 0x00, 0x00, linkPacketDataAddr};
+    linkPacketDataAddr += 8;
   }
   return true;
 }

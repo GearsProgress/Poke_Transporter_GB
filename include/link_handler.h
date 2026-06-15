@@ -63,52 +63,102 @@ enum GameBoyROM
 
 const GB_PayloadsFiles GameBoyROMPayloads[] =
     {
-        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_JP_R,   // RED_JP_v0
-        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_JP_R11, // RED_JP_v1
-        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_EN_R,   // RED_EN
-        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_FR_R,   // RED_FR
-        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_IT_R,   // RED_IT
-        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_DE_R,   // RED_DE
-        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_SP_R,   // RED_SP
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_JP_R,    // RED_JP_v0
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_JP_R11,  // RED_JP_v1
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_EN_R,    // RED_EN
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_FR_R,    // RED_FR
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_IT_R,    // RED_IT
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_DE_R,    // RED_DE
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_SP_R,    // RED_SP
         GB_PayloadsFiles::SPECIFICPAYLOADGEN1_JP_GR,   // GREEN_JP_v0
         GB_PayloadsFiles::SPECIFICPAYLOADGEN1_JP_GR11, // GREEN_JP_v1
-        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_JP_B,   // BLUE_JP
-        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_EN_B,   // BLUE_EN
-        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_FR_B,   // BLUE_FR
-        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_IT_B,   // BLUE_IT
-        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_DE_B,   // BLUE_DE
-        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_SP_B,   // BLUE_SP
-        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_JP_Y,   // YELLOW_JP_v0
-        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_JP_Y11, // YELLOW_JP_v1
-        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_JP_Y12, // YELLOW_JP_v2
-        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_JP_Y13, // YELLOW_JP_v3
-        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_EN_Y,   // YELLOW_EN
-        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_FR_Y,   // YELLOW_FR
-        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_IT_Y,   // YELLOW_IT
-        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_DE_Y,   // YELLOW_DE
-        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_SP_Y,   // YELLOW_SP
-                                                      // GOLD_JP_v0
-                                                      // GOLD_JP_v1
-                                                      // GOLD_EN
-                                                      // GOLD_FR
-                                                      // GOLD_IT
-                                                      // GOLD_DE
-                                                      // GOLD_SP
-                                                      // GOLD_KOR
-                                                      // SILVER_JP_v0
-                                                      // SILVER_JP_v1
-                                                      // SILVER_EN
-                                                      // SILVER_FR
-                                                      // SILVER_IT
-                                                      // SILVER_DE
-                                                      // SILVER_SP
-                                                      // SILVER_KOR
-                                                      // CRYSTAL_JP
-                                                      // CRYSTAL_EN
-                                                      // CRYSTAL_FR
-                                                      // CRYSTAL_IT
-                                                      // CRYSTAL_DE
-                                                      // CRYSTAL_SP
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_JP_B,    // BLUE_JP
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_EN_B,    // BLUE_EN
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_FR_B,    // BLUE_FR
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_IT_B,    // BLUE_IT
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_DE_B,    // BLUE_DE
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_SP_B,    // BLUE_SP
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_JP_Y,    // YELLOW_JP_v0
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_JP_Y11,  // YELLOW_JP_v1
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_JP_Y12,  // YELLOW_JP_v2
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_JP_Y13,  // YELLOW_JP_v3
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_EN_Y,    // YELLOW_EN
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_FR_Y,    // YELLOW_FR
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_IT_Y,    // YELLOW_IT
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_DE_Y,    // YELLOW_DE
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN1_SP_Y,    // YELLOW_SP
+                                                       // GOLD_JP_v0
+                                                       // GOLD_JP_v1
+                                                       // GOLD_EN
+                                                       // GOLD_FR
+                                                       // GOLD_IT
+                                                       // GOLD_DE
+                                                       // GOLD_SP
+                                                       // GOLD_KOR
+                                                       // SILVER_JP_v0
+                                                       // SILVER_JP_v1
+                                                       // SILVER_EN
+                                                       // SILVER_FR
+                                                       // SILVER_IT
+                                                       // SILVER_DE
+                                                       // SILVER_SP
+                                                       // SILVER_KOR
+                                                       // CRYSTAL_JP
+                                                       // CRYSTAL_EN
+                                                       // CRYSTAL_FR
+                                                       // CRYSTAL_IT
+                                                       // CRYSTAL_DE
+                                                       // CRYSTAL_SP
+};
+
+const Language GameBoyROMLanguages[] =
+    {
+        JAPANESE, // RED_JP_v0
+        JAPANESE, // RED_JP_v1
+        ENGLISH,  // RED_EN
+        FRENCH,   // RED_FR
+        ITALIAN,  // RED_IT
+        GERMAN,   // RED_DE
+        SPANISH,  // RED_SP
+        JAPANESE, // GREEN_JP_v0
+        JAPANESE, // GREEN_JP_v1
+        JAPANESE, // BLUE_JP
+        ENGLISH,  // BLUE_EN
+        FRENCH,   // BLUE_FR
+        ITALIAN,  // BLUE_IT
+        GERMAN,   // BLUE_DE
+        SPANISH,  // BLUE_SP
+        JAPANESE, // YELLOW_JP_v0
+        JAPANESE, // YELLOW_JP_v1
+        JAPANESE, // YELLOW_JP_v2
+        JAPANESE, // YELLOW_JP_v3
+        ENGLISH,  // YELLOW_EN
+        FRENCH,   // YELLOW_FR
+        ITALIAN,  // YELLOW_IT
+        GERMAN,   // YELLOW_DE
+        SPANISH,  // YELLOW_SP
+        JAPANESE, // GOLD_JP_v0
+        JAPANESE, // GOLD_JP_v1
+        ENGLISH,  // GOLD_EN
+        FRENCH,   // GOLD_FR
+        ITALIAN,  // GOLD_IT
+        GERMAN,   // GOLD_DE
+        SPANISH,  // GOLD_SP
+        KOREAN,   // GOLD_KOR
+        JAPANESE, // SILVER_JP_v0
+        JAPANESE, // SILVER_JP_v1
+        ENGLISH,  // SILVER_EN
+        FRENCH,   // SILVER_FR
+        ITALIAN,  // SILVER_IT
+        GERMAN,   // SILVER_DE
+        SPANISH,  // SILVER_SP
+        KOREAN,   // SILVER_KOR
+        JAPANESE, // CRYSTAL_JP
+        ENGLISH,  // CRYSTAL_EN
+        FRENCH,   // CRYSTAL_FR
+        ITALIAN,  // CRYSTAL_IT
+        GERMAN,   // CRYSTAL_DE
+        SPANISH,  // CRYSTAL_SP
 };
 
 // This table has the 3 checksums, followed by the enum value
@@ -190,6 +240,9 @@ enum LinkConnectionError
     NO_ERROR,
     PACKET_TIMED_OUT,
     CHECKSUM_MISMATCH,
+
+    PACKET_SUCCESS,
+    PACKET_READ,
 };
 
 enum PayloadCommand
@@ -247,8 +300,9 @@ public:
     int globalStateCounter = 0; // The counter for the total number of bytes sent
     int subStateCounter = 0;    // The counter for the total number of bytes sent in this substate
 
-    int gen = 0;                    // The generation we are trading with
-    GameBoyROM currROM = NO_GB_ROM; // The GameBoy ROM we're communicating with
+    int gen = 0;                      // The generation we are trading with
+    Language lang = LANGUAGE_UNKNOWN; // The language we are trading with
+    GameBoyROM currROM = NO_GB_ROM;   // The GameBoy ROM we're communicating with
 
     int FF_count = 0;   // The number of 0xFF bytes that have been in a row
     int zero_count = 0; // The number of 0x00 bytes that have been in a row
@@ -258,10 +312,14 @@ public:
     byte dataOutBuffer[16];
     int dataOutBufferCurrIndex = 0;
 
-    LinkPacket *currLinkPacketArr;
-    int currLinkPacketArrTotalCount = 0;
-    int currLinkPacketArrFilledCount = 0;
-    int currLinkPacketArrIndex = 0;
+    // This MUST be a power of 2!
+#define LINK_PACKET_ARRAY_SIZE 4
+    LinkPacket linkPacketArr[LINK_PACKET_ARRAY_SIZE];
+    int linkPacketArrIndex = 0;
+    u16 linkPacketDataAddr = 0;
+    u16 linkPacketDataStart = 0;
+    int linkPacketDataSize = 0;
+    byte *outDataArrayPtr;
 
     bool pauseOnByte = false;   // Used for pausing and sending one byte at a time
     bool pauseOnPacket = false; // Used for pausing and sending one packet at a time
@@ -276,6 +334,8 @@ public:
     void writeData();
     void handleStateLogic();
     void prepareForNextCycle();
+    bool readMemorySection(u16 dataPointer, byte outArray[], int outArraySize);
+
     // Some operations are too long to be done within the IRQ.
     // So we need to handle them in the main loop instead to avoid data corruption.
     void handleCartIO();
@@ -284,7 +344,9 @@ private:
     void loadPayload(GB_PayloadsFiles payload);
     void loadPayloadByROM(GameBoyROM rom);
     void loadCurrGameFromChecksum();
+    bool allPacketsProcessed();
     bool processPacket();
+    void loadNextPacket();
 
     // Used for debug features
 #define LINE_WIDTH 24
