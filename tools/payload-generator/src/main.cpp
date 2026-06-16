@@ -27,17 +27,17 @@ void generate_payloads_for(uint8_t generation, bool yellow_version, const char *
     const struct GB_ROM *rom_value_sets[] = {
         gb_rom_values_eng,
         gb_rom_values_fre,
-        // gb_rom_values_ger,
-        // gb_rom_values_ita,
-        // gb_rom_values_spa,
+        gb_rom_values_ger,
+        gb_rom_values_ita,
+        gb_rom_values_spa,
     };
 
     const u16 rom_value_sizes[] = {
         gb_rom_values_eng_size,
         gb_rom_values_fre_size,
-        // gb_rom_values_ger_size,
-        // gb_rom_values_ita_size,
-        // gb_rom_values_spa_size,
+        gb_rom_values_ger_size,
+        gb_rom_values_ita_size,
+        gb_rom_values_spa_size,
     };
 
     const u8 num_elements = sizeof(rom_value_sizes) / sizeof(u16);
@@ -109,17 +109,17 @@ void test_payloads(const char *full_path)
     const struct GB_ROM *rom_value_sets[] = {
         gb_rom_values_eng,
         gb_rom_values_fre,
-        // gb_rom_values_ger,
-        // gb_rom_values_ita,
-        // gb_rom_values_spa,
+        gb_rom_values_ger,
+        gb_rom_values_ita,
+        gb_rom_values_spa,
     };
 
     const u16 rom_value_sizes[] = {
         gb_rom_values_eng_size,
         gb_rom_values_fre_size,
-        // gb_rom_values_ger_size,
-        // gb_rom_values_ita_size,
-        // gb_rom_values_spa_size,
+        gb_rom_values_ger_size,
+        gb_rom_values_ita_size,
+        gb_rom_values_spa_size,
     };
 
     const u8 num_elements = sizeof(rom_value_sizes) / sizeof(u16);
