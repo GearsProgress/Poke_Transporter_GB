@@ -345,7 +345,7 @@ bool Pokemon_Party::get_contains_missingno()
 
 void Pokemon_Party::init_payload()
 {
-	u8 decompression_buffer[1512];
+	u8 decompression_buffer[2048];
 	const u8 *payload_src;
 	u32 payload_file_size;
 
