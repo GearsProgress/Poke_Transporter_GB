@@ -29,7 +29,8 @@ extern OBJ_ATTR *type_sprites[14];
 #include "flag_ger.h"
 #include "flag_spa.h"
 #include "flag_kor.h"
-extern OBJ_ATTR *flag;
+extern OBJ_ATTR *gb_flag;
+extern OBJ_ATTR *gba_flag;
 #include "Label_Green.h"
 #include "Label_Red.h"
 #include "Label_Blue.h"

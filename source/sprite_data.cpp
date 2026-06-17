@@ -352,7 +352,9 @@ OBJ_ATTR *button_yes = &obj_buffer[num_sprites++];
 OBJ_ATTR *button_no = &obj_buffer[num_sprites++];
 OBJ_ATTR *cart_shell = &obj_buffer[num_sprites++];
 OBJ_ATTR *cart_label = &obj_buffer[num_sprites++];
-OBJ_ATTR *flag = &obj_buffer[num_sprites++];
+OBJ_ATTR *gb_flag = &obj_buffer[num_sprites++];
+OBJ_ATTR *gba_flag = &obj_buffer[num_sprites++];
+
 
 OBJ_ATTR *type_sprites[14] = {
     &obj_buffer[num_sprites++],
@@ -743,8 +745,8 @@ void load_select_sprites(GameBoyROM currROM)
     load_sprite_compressed(cart_shell, cart_tiles, curr_tile_id, GB_CART_PAL, ATTR0_SQUARE, ATTR1_SIZE_64x64, 1);
     load_sprite_compressed(cart_label, label_tiles, curr_tile_id, GB_CART_PAL, ATTR0_SQUARE, ATTR1_SIZE_32x32, 1);
 
-    const unsigned int *flag_tiles = 0;
-    const unsigned short *flag_palette = 0;
+    const unsigned int *gb_flag_tiles = 0;
+    const unsigned short *gb_flag_palette = 0;
     switch (currROM)
     {
     case RED_JP_v0:
@@ -761,8 +763,8 @@ void load_select_sprites(GameBoyROM currROM)
     case SILVER_JP_v0:
     case SILVER_JP_v1:
     case CRYSTAL_JP:
-        flag_tiles = flag_jpnTiles;
-        flag_palette = flag_jpnPal;
+        gb_flag_tiles = flag_jpnTiles;
+        gb_flag_palette = flag_jpnPal;
         break;
 
     case RED_EN:
@@ -771,8 +773,8 @@ void load_select_sprites(GameBoyROM currROM)
     case GOLD_EN:
     case SILVER_EN:
     case CRYSTAL_EN:
-        flag_tiles = flag_engTiles;
-        flag_palette = flag_engPal;
+        gb_flag_tiles = flag_engTiles;
+        gb_flag_palette = flag_engPal;
         break;
 
     case RED_FR:
@@ -781,8 +783,8 @@ void load_select_sprites(GameBoyROM currROM)
     case GOLD_FR:
     case SILVER_FR:
     case CRYSTAL_FR:
-        flag_tiles = flag_freTiles;
-        flag_palette = flag_frePal;
+        gb_flag_tiles = flag_freTiles;
+        gb_flag_palette = flag_frePal;
         break;
 
     case RED_IT:
@@ -791,8 +793,8 @@ void load_select_sprites(GameBoyROM currROM)
     case GOLD_IT:
     case SILVER_IT:
     case CRYSTAL_IT:
-        flag_tiles = flag_itaTiles;
-        flag_palette = flag_itaPal;
+        gb_flag_tiles = flag_itaTiles;
+        gb_flag_palette = flag_itaPal;
         break;
 
     case RED_DE:
@@ -801,8 +803,8 @@ void load_select_sprites(GameBoyROM currROM)
     case GOLD_DE:
     case SILVER_DE:
     case CRYSTAL_DE:
-        flag_tiles = flag_gerTiles;
-        flag_palette = flag_gerPal;
+        gb_flag_tiles = flag_gerTiles;
+        gb_flag_palette = flag_gerPal;
         break;
 
     case RED_SP:
@@ -811,24 +813,25 @@ void load_select_sprites(GameBoyROM currROM)
     case GOLD_SP:
     case SILVER_SP:
     case CRYSTAL_SP:
-        flag_tiles = flag_spaTiles;
-        flag_palette = flag_spaPal;
+        gb_flag_tiles = flag_spaTiles;
+        gb_flag_palette = flag_spaPal;
         break;
 
     case GOLD_KOR:
     case SILVER_KOR:
-        flag_tiles = flag_korTiles;
-        flag_palette = flag_korPal;
+        gb_flag_tiles = flag_korTiles;
+        gb_flag_palette = flag_korPal;
         break;
 
     default:
-        flag_tiles = flag_korTiles;
-        flag_palette = flag_jpnPal;
+        gb_flag_tiles = flag_korTiles;
+        gb_flag_palette = flag_jpnPal;
         break;
     }
 
-    load_sprite_compressed(flag, flag_tiles, curr_tile_id, FLAG_PAL, ATTR0_WIDE, ATTR1_SIZE_32x64, 1);
-    tonccpy(pal_obj_mem + (FLAG_PAL * 16), flag_palette, 16); // Grit is being stupid.
+    load_sprite_compressed(gb_flag, gb_flag_tiles, curr_tile_id, FLAG_PAL, ATTR0_WIDE, ATTR1_SIZE_32x64, 1);
+    load_sprite_compressed(gba_flag, gb_flag_tiles, curr_tile_id, FLAG_PAL, ATTR0_WIDE, ATTR1_SIZE_32x64, 1);
+    tonccpy(pal_obj_mem + (FLAG_PAL * 16), gb_flag_palette, 16); // Grit is being stupid.
 
     const unsigned int *gba_cart_tiles = 0;
     const unsigned short *gba_cart_palette = 0;
@@ -859,6 +862,51 @@ void load_select_sprites(GameBoyROM currROM)
 
     load_sprite_compressed(gba_cart, gba_cart_tiles, curr_tile_id, GBA_CART_PAL, ATTR0_WIDE, ATTR1_SIZE_32x64, 1);
     tonccpy(pal_obj_mem + (GBA_CART_PAL * 16), gba_cart_palette, 32);
+
+    const unsigned int *gba_flag_tiles = 0;
+    const unsigned short *gba_flag_palette = 0;
+    switch (curr_GBA_rom.language)
+    {
+    case LANG_JPN:
+        gba_flag_tiles = flag_jpnTiles;
+        gba_flag_palette = flag_jpnPal;
+        break;
+
+    case LANG_ENG:
+        gba_flag_tiles = flag_engTiles;
+        gba_flag_palette = flag_engPal;
+        break;
+
+    case LANG_FRE:
+        gba_flag_tiles = flag_freTiles;
+        gba_flag_palette = flag_frePal;
+        break;
+
+    case LANG_ITA:
+        gba_flag_tiles = flag_itaTiles;
+        gba_flag_palette = flag_itaPal;
+        break;
+
+    case LANG_GER:
+        gba_flag_tiles = flag_gerTiles;
+        gba_flag_palette = flag_gerPal;
+        break;
+
+    case LANG_SPA:
+        gba_flag_tiles = flag_spaTiles;
+        gba_flag_palette = flag_spaPal;
+        break;
+
+    default:
+        gba_flag_tiles = flag_korTiles;
+        gba_flag_palette = flag_jpnPal;
+        break;
+    }
+
+    load_sprite_compressed(gba_flag, gba_flag_tiles, curr_tile_id, FLAG_PAL, ATTR0_WIDE, ATTR1_SIZE_32x64, 1);
+    load_sprite_compressed(gba_flag, gba_flag_tiles, curr_tile_id, FLAG_PAL, ATTR0_WIDE, ATTR1_SIZE_32x64, 1);
+    tonccpy(pal_obj_mem + (FLAG_PAL * 16), gba_flag_palette, 16); // Grit is being stupid.
+
 }
 // tile ID, VH Flip, Palette Bank
 #define FEN_BLI_L00 (34 | (0b00 << 0xA) | (2 << 0xC))
@@ -960,7 +1008,7 @@ void update_y_offset()
     y_offset_timer--;
     obj_set_pos(cart_shell, (8 * 11) + 4, (8 * 4) + 11 + y_offset);
     obj_set_pos(cart_label, (8 * 11) + 4 + 8, (8 * 4) + 11 + 13 + y_offset);
-    obj_set_pos(flag, (8 * 11) + 4, (8 * 4) + 19 + y_offset);
+    obj_set_pos(gb_flag, (8 * 11) + 4, (8 * 4) + 19 + y_offset);
 }
 
 void update_front_box_sprite(Pokemon *curr_pkmn, bool make_greyscale)

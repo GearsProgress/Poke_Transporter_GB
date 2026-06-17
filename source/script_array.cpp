@@ -756,6 +756,9 @@ bool run_conditional(int index)
             obj_unhide(cart_label, 0);
             obj_set_pos(cart_label, (8 * 8) + 8, (11 * 8) + 11 + 13);
 
+            obj_unhide(gba_flag, 0);
+            obj_set_pos(gba_flag, 23 * 8, 14 * 8);
+
             u16 debug_charset[256];
             load_localized_charset(debug_charset, 3, ENGLISH);
             globalLinkCable.setup(debug_charset);
@@ -785,17 +788,8 @@ bool run_conditional(int index)
 
             load_select_sprites(globalLinkCable.currROM);
 
-            obj_unhide(gba_cart, 0);
-            obj_set_pos(gba_cart, 17 * 8, 14 * 8);
-
-            obj_unhide(cart_shell, 0);
-            obj_set_pos(cart_shell, (8 * 8), (11 * 8) + 11);
-
-            obj_unhide(cart_label, 0);
-            obj_set_pos(cart_label, (8 * 8) + 8, (11 * 8) + 11 + 13);
-
-            obj_unhide(flag, 0);
-            obj_set_pos(flag, 1.5 * 8, 14 * 8);
+            obj_unhide(gb_flag, 0);
+            obj_set_pos(gb_flag, 1.5 * 8, 14 * 8);
 
             if (g_debug_options.print_link_packets)
             {

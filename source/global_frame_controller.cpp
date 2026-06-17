@@ -212,6 +212,8 @@ void link_animation_state(int state)
         obj_hide(gba_cart);
         obj_hide(cart_shell);
         obj_hide(cart_label);
+        obj_hide(gb_flag);
+        obj_hide(gba_flag);
         break;
     }
     curr_link_animation_state = state;
