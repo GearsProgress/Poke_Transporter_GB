@@ -106,26 +106,27 @@ const struct GB_ROM gb_rom_values_fre[] = {
      .padding_1 = 0,
 
      .clearScreen = 0x16DA,
-     .CableClub_TextBoxBorder = 0x5BE3, // TextBoxBoarder, since the Cable Club isn't loaded
+     .CableClub_TextBoxBorder = 0x16ED, // TextBoxBoarder, since the Cable Club isn't loaded
      .placeString = 0x1720,
      .Serial_ExchangeBytes = 0x1FC7,
-     ._RemovePokemon = 0x7A69,
+     ._RemovePokemon = 0x017A69,
      .SaveSAVtoSRAM1 = 0x1C7B03,
      .SaveSAVtoSRAM2 = 0x1C7B27,
+     .LoadCurrentBoxData = 0x1C79CD,
      .OpenSRAM = 0x3E9C,
      .SaveBox = 0,
-     .Bankswitch = 0x3E81, // BankswitchCommon
+     .Bankswitch = 0x3E87, // BankswitchCommon
      .SoftReset = 0x1D01,
      .CloseSRAM = 0x3EAC,
      .garbageDataLocation = 0x0161,
 
-     .wRemoveMonFromBox = 0xCF94,
-     .wBoxCount = 0xDA7F,
-     .wWhichPokemon = 0xCF91,
-     .wBoxDataStart = 0xDA7F,
-     .wBoxDataEnd = 0xDEE1,
-     .wSerialEnemyDataBlock = 0xD892,
-     .wEnemyMonSpecies = 0xCFE4,
+     .wRemoveMonFromBox = 0xCF99,
+     .wBoxCount = 0xDA84,
+     .wWhichPokemon = 0xCF96,
+     .wBoxDataStart = 0xDA84,
+     .wBoxDataEnd = 0xDEE6,
+     .wSerialEnemyDataBlock = 0xD897,
+     .wEnemyMonSpecies = 0xCFE9,
 
      .wSerialEnemyMonsPatchList = 0xC5D0,
      .wSerialOtherGameboyRandomNumberListBlock = 0xCD81,
