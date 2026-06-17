@@ -204,7 +204,7 @@ int main(int argc, char **argv)
 {
     printf("Converting data into bin files!\n[");
     const char *output_path = (argc > 1) ? argv[1] : "";
-    
+
     generate_and_test_payloads_for(1, false, output_path, "gb_gen1_payloads_RB.bin");
     generate_and_test_payloads_for(1, true, output_path, "gb_gen1_payloads_Y.bin");
     generate_and_test_payloads_for(2, false, output_path, "gb_gen2_payloads.bin");

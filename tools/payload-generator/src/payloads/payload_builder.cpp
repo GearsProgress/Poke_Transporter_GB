@@ -370,15 +370,37 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
 
         // Mon #2 data
         z80_payload.index = 0x46;
-        z80_payload.add_bytes(9,
-                              0x4E, 0x4E, 0x4E, 0x00, 0x01, 0x80, 0x80, 0xD4, 0xCF);
+        int16_t YELLOW_CUSTOM_PTR = 0x0; // We Define this ROM dependent value in the cases
+        switch (curr_rom.language)
+        {
+        case ENG_ID:
+            YELLOW_CUSTOM_PTR = 0xCFD4;
+            z80_payload.add_bytes(9,
+                                  0x4E, 0x4E, 0x4E, 0x00, 0x01, 0x80, 0x80, YELLOW_CUSTOM_PTR >> 0, YELLOW_CUSTOM_PTR >> 8);
 
-        z80_payload.add_bytes(2, asm_start.place_pointer(&z80_payload), 0x00); // These values must not have any control characters in them.
+            z80_payload.add_bytes(2, asm_start.place_pointer(&z80_payload), 0x00); // These values must not have any control characters in them.
 
-        z80_payload.add_bytes(33,
-                              0x4E, 0x00, 0x00, 0x00, 0x00,
-                              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x4E, 0x50, 0x00, 0x00,
-                              0x00, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x59);
+            z80_payload.add_bytes(33,
+                                  0x4E, 0x00, 0x00, 0x00, 0x00,
+                                  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x4E, 0x50, 0x00, 0x00,
+                                  0x00, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x59);
+            break;
+        case FRE_ID:
+            YELLOW_CUSTOM_PTR = 0xCFDB;
+            z80_payload.add_bytes(12,
+                                  0x4E, 0x4E, 0x4E, 0x00, 0x01, 0x4E, 0x80, 0x80, 0x80, 0x80,
+                                  YELLOW_CUSTOM_PTR >> 0, YELLOW_CUSTOM_PTR >> 8);
+
+            z80_payload.add_bytes(15, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
+
+            z80_payload.add_bytes(2, asm_start.place_pointer(&z80_payload), 0x00); // These values must not have any control characters in them.
+
+            z80_payload.add_bytes(15,
+                                  0x4E, 0x59, 0x50, 0x00, 0x4E, 0x80, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E);
+            break;
+        default:
+            break;
+        }
 
         // Mon #2 name
         z80_payload.index = 0x16F;
@@ -406,7 +428,19 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
 
         asm_start.set_start(&z80_payload);
 
-        z80_payload.CALL(0x2233 | T_U16); // Stop the battle music
+        int16_t YELLOW_STOP_MUSIC = 0x0; // We Define this ROM dependent value in the cases
+        switch (curr_rom.language)
+        {
+        case ENG_ID:
+            YELLOW_STOP_MUSIC = 0x2233;
+            z80_payload.CALL(YELLOW_STOP_MUSIC | T_U16); // Stop the battle music
+            break;
+        case FRE_ID:
+            YELLOW_STOP_MUSIC = 0x222F;
+            z80_payload.CALL(YELLOW_STOP_MUSIC | T_U16); // Stop the battle music
+        default:
+            break;
+        }
 
         /* Write transferring message to screen: */
         // call ClearScreen
