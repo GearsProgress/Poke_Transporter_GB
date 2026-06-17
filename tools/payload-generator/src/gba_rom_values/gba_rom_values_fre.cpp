@@ -80,13 +80,12 @@ const struct ROM_DATA rom_data_values_fre[] = {
         .loc_voicegroup = 0x8448df0,
         .loc_sPicTable_NPC = 0x837537c,
 
-        // TODO
-        .loc_gMonFrontPicTable = 0,
-        .loc_gMonPaletteTable = 0,
-        .loc_gMonShinyPaletteTable = 0,
-        .loc_gMonIconTable = 0,
-        .loc_gMonIconPaletteIndices = 0,
-        .loc_gMonIconPalettes = 0,
+        .loc_gMonFrontPicTable = 0x081F06EC,
+        .loc_gMonPaletteTable = 0x081F294C,
+        .loc_gMonShinyPaletteTable = 0x081F370C,
+        .loc_gMonIconTable = 0x083C3234,
+        .loc_gMonIconPaletteIndices = 0x083C3914,
+        .loc_gMonIconPalettes = 0x08E968FC,
 
         // The following should be consistant across languages and revisions.
         .loc_gSaveBlock1 = 0x02025734,
@@ -142,7 +141,6 @@ const struct ROM_DATA rom_data_values_fre[] = {
         .loc_voicegroup = 0x84492c0,
         .loc_sPicTable_NPC = 0x83753ec,
 
-        // UNTESTED BLOCK, using FRE_RUBY_v0 values
         .loc_gMonFrontPicTable = 0x081F075C,
         .loc_gMonPaletteTable = 0x081F29BC,
         .loc_gMonShinyPaletteTable = 0x081F377C,
@@ -204,13 +202,12 @@ const struct ROM_DATA rom_data_values_fre[] = {
         .loc_voicegroup = 0x8448df0,
         .loc_sPicTable_NPC = 0x837537c,
 
-        // TODO
-        .loc_gMonFrontPicTable = 0,
-        .loc_gMonPaletteTable = 0,
-        .loc_gMonShinyPaletteTable = 0,
-        .loc_gMonIconTable = 0,
-        .loc_gMonIconPaletteIndices = 0,
-        .loc_gMonIconPalettes = 0,
+        .loc_gMonFrontPicTable = 0x081F06EC,
+        .loc_gMonPaletteTable = 0x081F294C,
+        .loc_gMonShinyPaletteTable = 0x081F370C,
+        .loc_gMonIconTable = 0x083C3234,
+        .loc_gMonIconPaletteIndices = 0x083C3914,
+        .loc_gMonIconPalettes = 0x08E968FC,
 
         // The following should be consistant across languages and revisions.
         .loc_gSaveBlock1 = 0x02025734,
@@ -266,13 +263,12 @@ const struct ROM_DATA rom_data_values_fre[] = {
         .loc_voicegroup = 0x848e940,
         .loc_sPicTable_NPC = 0x839aea8,
 
-        // TODO
-        .loc_gMonFrontPicTable = 0,
-        .loc_gMonPaletteTable = 0,
-        .loc_gMonShinyPaletteTable = 0,
-        .loc_gMonIconTable = 0,
-        .loc_gMonIconPaletteIndices = 0,
-        .loc_gMonIconPalettes = 0,
+        .loc_gMonFrontPicTable = 0x0822F4B8,
+        .loc_gMonPaletteTable = 0x08231718,
+        .loc_gMonShinyPaletteTable = 0x082324D8,
+        .loc_gMonIconTable = 0x083CD5E0,
+        .loc_gMonIconPaletteIndices = 0x083CDCC0,
+        .loc_gMonIconPalettes = 0x083CD580,
 
         // The following should be consistant across languages and revisions.
         .loc_gSaveBlock1 = 0,
@@ -329,13 +325,12 @@ const struct ROM_DATA rom_data_values_fre[] = {
         .loc_voicegroup = 0x848d668,
         .loc_sPicTable_NPC = 0x839ae88,
 
-        // TODO
-        .loc_gMonFrontPicTable = 0,
-        .loc_gMonPaletteTable = 0,
-        .loc_gMonShinyPaletteTable = 0,
-        .loc_gMonIconTable = 0,
-        .loc_gMonIconPaletteIndices = 0,
-        .loc_gMonIconPalettes = 0,
+        .loc_gMonFrontPicTable = 0x0822F494,
+        .loc_gMonPaletteTable = 0x082316F4,
+        .loc_gMonShinyPaletteTable = 0x082324B4,
+        .loc_gMonIconTable = 0x083CD41C,
+        .loc_gMonIconPaletteIndices = 0x083CDAFC,
+        .loc_gMonIconPalettes = 0x083CD3BC,
 
         // The following should be consistant across languages and revisions.
         .loc_gSaveBlock1 = 0,
