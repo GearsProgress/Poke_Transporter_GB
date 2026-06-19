@@ -9,6 +9,9 @@
 #include "payload_file_reader.h"
 #include "gb_rom_values_eng_lz10_bin.h"
 #include "gb_rom_values_fre_lz10_bin.h"
+#include "gb_rom_values_ger_lz10_bin.h"
+#include "gb_rom_values_ita_lz10_bin.h"
+#include "gb_rom_values_spa_lz10_bin.h"
 #include "gb_gen1_payloads_RB_lz10_bin.h"
 #include "gb_gen1_payloads_Y_lz10_bin.h"
 #include "gb_gen2_payloads_lz10_bin.h"
@@ -292,6 +295,15 @@ bool Pokemon_Party::load_gb_rom()
 	case FRE_ID:
 		compressed_rom_table = gb_rom_values_fre_lz10_bin;
 		break;
+	case GER_ID:
+		compressed_rom_table = gb_rom_values_ger_lz10_bin;
+		break;
+	case ITA_ID:
+		compressed_rom_table = gb_rom_values_ita_lz10_bin;
+		break;
+	case SPA_ID:
+		compressed_rom_table = gb_rom_values_spa_lz10_bin;
+		break;
 	default:
 		// no rom table for this language
 		return false;
@@ -345,7 +357,7 @@ bool Pokemon_Party::get_contains_missingno()
 
 void Pokemon_Party::init_payload()
 {
-	u8 decompression_buffer[2560];
+	u8 decompression_buffer[2344];
 	const u8 *payload_src;
 	u32 payload_file_size;
 
