@@ -539,12 +539,7 @@ void LinkConnection::handleStateLogic()
       break;
     }
 
-    if (allPacketsProcessed())
-    {
-      exitState = PRINT_LAST_PACKET;
-    }
-
-    if (subStateCounter % TOTAL_PACKET_LENGTH == 0)
+    if (subStateCounter % TOTAL_PACKET_LENGTH == 0 && subStateCounter != 0)
     {
       newPacket = true;
       processPacket();
@@ -552,6 +547,11 @@ void LinkConnection::handleStateLogic()
     else
     {
       newPacket = false;
+    }
+
+    if (allPacketsProcessed())
+    {
+      exitState = PRINT_LAST_PACKET;
     }
 
     dataOutBuffer[subStateCounter % TOTAL_PACKET_LENGTH] = inData;
@@ -764,7 +764,13 @@ void LinkConnection::loadNextPacket()
     currPacket.latestError = PACKET_READ;
     if (((currPacket.command == CMD_ReadDataRequest) && (currPacket.pointer - linkPacketDataStart) < linkPacketDataSize))
     {
-      memcpy(&outDataArrayPtr[currPacket.pointer - linkPacketDataStart], &currPacket.recievedData[0], 8);
+      for (int i = 0; i < 8; i++)
+      {
+        if (((currPacket.pointer - linkPacketDataStart) + i) < linkPacketDataSize)
+        {
+          outDataArrayPtr[(currPacket.pointer - linkPacketDataStart) + i] = currPacket.recievedData[i];
+        }
+      }
       currPacket = LinkPacket(CMD_ReadDataRequest, 0x00, 0x00, linkPacketDataAddr);
       linkPacketDataAddr += 8;
     }
@@ -797,6 +803,18 @@ void LinkConnection::resetLinkPackets()
   for (int i = 0; i < LINK_PACKET_ARRAY_SIZE; i++)
   {
     linkPacketArr[i] = LinkPacket();
+  }
+
+  // Loop the packet index around back to 0
+  while (linkPacketArrIndex % LINK_PACKET_ARRAY_SIZE != 0)
+  {
+    linkPacketArrIndex++;
+  }
+
+  softResetActivated = false;
+  for (int i = 0; i < 16; i++)
+  {
+    dataOutBuffer[i] = 0;
   }
 }
 

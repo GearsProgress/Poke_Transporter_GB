@@ -281,7 +281,7 @@ struct LinkPacket
     PayloadCommand command = CMD_NONE;
     byte argument[2] = {0x00, 0x00};
     u16 pointer = 0;
-    byte packetID;
+    byte packetID = 0;
 
     // Incoming data
     LinkConnectionError latestError = NO_ERROR;
