@@ -247,6 +247,7 @@ enum LinkConnectionError
 
 enum PayloadCommand
 {
+    CMD_NONE = -1,
     CMD_ReloadCurrentBox,    // no arguments used. Reloads the current box from SRAM. Use this as the first command byte before performing other commands.
     CMD_TransferPokemon,     // 1st argument = secondary payload size, 2nd argument = box that should be transferred from. This command uses a secondary payload. The size of this secondary payload needs to be declared beforehand. Prior to requesting a secondary payload, the program will use the second argument to load a specific box from SRAM. Box numbers are 0-indexed and range from 0x00 (box 1) to 0x0B(box 12). This load procedure currently cannot be skipped. Once the secondary payload arrives, the program will verify its integrity and align the payload. Afterwards, it will use the information within this payload to remove pokémon from the current box. Once all transferred pokémon have been removed, the program will save the current box.
     CMD_SoftReset,           // no arguments used. Instantly soft resets the game.
@@ -274,14 +275,27 @@ enum PayloadCommand
 
 struct LinkPacket
 {
+    bool inUse = false;
+
     // Out packet parameters
-    PayloadCommand command;
+    PayloadCommand command = CMD_NONE;
     byte argument[2] = {0x00, 0x00};
-    u16 pointer;
+    u16 pointer = 0;
+    byte packetID;
 
     // Incoming data
     LinkConnectionError latestError = NO_ERROR;
     byte recievedData[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+    LinkPacket() {};
+    LinkPacket(PayloadCommand cmd, byte arg1, byte arg2, u16 addr)
+    {
+        command = cmd;
+        argument[0] = arg1;
+        argument[1] = arg2;
+        pointer = addr;
+        inUse = true;
+    };
 };
 
 class LinkConnection
@@ -315,7 +329,7 @@ public:
     // This MUST be a power of 2!
 #define LINK_PACKET_ARRAY_SIZE 4
     LinkPacket linkPacketArr[LINK_PACKET_ARRAY_SIZE];
-    int linkPacketArrIndex = 0;
+    byte linkPacketArrIndex = 0;
     u16 linkPacketDataAddr = 0;
     u16 linkPacketDataStart = 0;
     int linkPacketDataSize = 0;
@@ -326,6 +340,8 @@ public:
     bool skipPrint = false;     // Skips printing to the screen
     bool newPacket = false;
 
+    bool softResetActivated = false;
+
     void setup(const u16 *debug_charset);
     void startConnection(LinkState startState);
     bool earlyExit();
@@ -334,7 +350,16 @@ public:
     void writeData();
     void handleStateLogic();
     void prepareForNextCycle();
-    bool readMemorySection(u16 dataPointer, byte outArray[], int outArraySize);
+    void resetLinkPackets();
+
+    // These are all the Link Commands
+    bool LinkCommand_InitalizeConnection(bool waitForCompletion = true);
+    bool LinkCommand_ReloadCurrentBox(bool waitForCompletion = true);
+    bool LinkCommand_TransferPokemon(bool waitForCompletion = true);
+    bool LinkCommand_SoftReset(bool waitForCompletion = true);
+    bool LinkCommand_ModifySRAMAccess(bool enableSRAM, byte SRAMbank, bool waitForCompletion = true);
+    bool LinkCommand_RunSecondaryPayload(bool waitForCompletion = true);
+    bool LinkCommand_ReadMemorySection(u16 dataPointer, byte outArray[], int outArraySize, bool waitForCompletion = true);
 
     // Some operations are too long to be done within the IRQ.
     // So we need to handle them in the main loop instead to avoid data corruption.
@@ -347,6 +372,7 @@ private:
     bool allPacketsProcessed();
     bool processPacket();
     void loadNextPacket();
+    void waitForEnd();
 
     // Used for debug features
 #define LINE_WIDTH 24

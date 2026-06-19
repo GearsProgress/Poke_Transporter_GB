@@ -515,24 +515,25 @@ void LinkConnection::handleStateLogic()
       break;
     case 1:
       nextOutData = linkPacketArrIndex;
+      linkPacketArr[linkPacketArrIndex % LINK_PACKET_ARRAY_SIZE].packetID = linkPacketArrIndex;
       break;
     case 2:
-      nextOutData = linkPacketArr[linkPacketArrIndex].command;
+      nextOutData = linkPacketArr[linkPacketArrIndex % LINK_PACKET_ARRAY_SIZE].command;
       break;
     case 3:
-      nextOutData = linkPacketArr[linkPacketArrIndex].argument[0];
+      nextOutData = linkPacketArr[linkPacketArrIndex % LINK_PACKET_ARRAY_SIZE].argument[0];
       break;
     case 4:
-      nextOutData = linkPacketArr[linkPacketArrIndex].argument[1];
+      nextOutData = linkPacketArr[linkPacketArrIndex % LINK_PACKET_ARRAY_SIZE].argument[1];
       break;
     case 5:
-      nextOutData = linkPacketArr[linkPacketArrIndex].pointer >> 0;
+      nextOutData = linkPacketArr[linkPacketArrIndex % LINK_PACKET_ARRAY_SIZE].pointer >> 0;
       break;
     case 6:
-      nextOutData = linkPacketArr[linkPacketArrIndex].pointer >> 8;
+      nextOutData = linkPacketArr[linkPacketArrIndex % LINK_PACKET_ARRAY_SIZE].pointer >> 8;
       break;
     case TOTAL_PACKET_LENGTH - 1:
-      linkPacketArrIndex = (linkPacketArrIndex + 1) % LINK_PACKET_ARRAY_SIZE;
+      linkPacketArrIndex = (linkPacketArrIndex + 1) & 0x7F;
     default:
       nextOutData = 0xFF;
       break;
@@ -698,7 +699,12 @@ bool LinkConnection::earlyExit()
 bool LinkConnection::processPacket()
 {
   int checksum = 0;
-  LinkPacket &currPacket = linkPacketArr[dataOutBuffer[INP_COUNTER_INDEX] & (LINK_PACKET_ARRAY_SIZE - 1)];
+  LinkPacket &currPacket = linkPacketArr[dataOutBuffer[INP_COUNTER_INDEX] % LINK_PACKET_ARRAY_SIZE];
+  if (currPacket.packetID != dataOutBuffer[INP_COUNTER_INDEX])
+  {
+    // This packet is not the correct ID for the response, ignore it
+    return false;
+  }
 
   for (int i = INP_COUNTER_INDEX; i < INP_LENGTH; i++)
   {
@@ -720,11 +726,19 @@ bool LinkConnection::processPacket()
         (dataOutBuffer[INP_DATA_INDEX + i] << 1) | ((lsbByte >> (7 - i)) & 0b1);
   }
 
-  if (checksum != dataOutBuffer[INP_CHECKSUM_INDEX])
+  // The soft reset command has no response, don't expect one.
+  if (currPacket.command == CMD_SoftReset)
   {
+    // If this is a soft reset packet, that means that we don't care what we recieve from the final packet.
+    softResetActivated = true;
+  }
+  else if (checksum != dataOutBuffer[INP_CHECKSUM_INDEX])
+  {
+    // The checksum has to match in order for it to be valid, if we've made it this far down the line.
     currPacket.latestError = CHECKSUM_MISMATCH;
     return false;
   }
+
   currPacket.latestError = PACKET_SUCCESS;
   return true;
 }
@@ -748,10 +762,10 @@ void LinkConnection::loadNextPacket()
     // If this was data, then save the data and replace it with the next one in line
 
     currPacket.latestError = PACKET_READ;
-    if (((currPacket.pointer - linkPacketDataStart) < linkPacketDataSize))
+    if (((currPacket.command == CMD_ReadDataRequest) && (currPacket.pointer - linkPacketDataStart) < linkPacketDataSize))
     {
       memcpy(&outDataArrayPtr[currPacket.pointer - linkPacketDataStart], &currPacket.recievedData[0], 8);
-      currPacket = {CMD_ReadDataRequest, 0x00, 0x00, linkPacketDataAddr};
+      currPacket = LinkPacket(CMD_ReadDataRequest, 0x00, 0x00, linkPacketDataAddr);
       linkPacketDataAddr += 8;
     }
   }
@@ -763,9 +777,14 @@ void LinkConnection::loadNextPacket()
 
 bool LinkConnection::allPacketsProcessed()
 {
+  if (softResetActivated)
+  {
+    // This counts as processed, return true.
+    return true;
+  }
   for (int i = 0; i < LINK_PACKET_ARRAY_SIZE; i++)
   {
-    if (linkPacketArr[i].latestError != PACKET_READ)
+    if (linkPacketArr[i].inUse && linkPacketArr[i].latestError != PACKET_READ)
     {
       return false;
     }
@@ -773,7 +792,117 @@ bool LinkConnection::allPacketsProcessed()
   return true;
 }
 
-bool LinkConnection::readMemorySection(u16 dataPointer, byte outArray[], int outArraySize)
+void LinkConnection::resetLinkPackets()
+{
+  for (int i = 0; i < LINK_PACKET_ARRAY_SIZE; i++)
+  {
+    linkPacketArr[i] = LinkPacket();
+  }
+}
+
+void LinkConnection::waitForEnd()
+{
+  while (enterState != END)
+  {
+    handleCartIO();
+    VBlankIntrWait();
+  }
+}
+
+bool LinkConnection::LinkCommand_InitalizeConnection(bool waitForCompletion)
+{
+  globalLinkCable.startConnection(INITIAL_CONNECTION);
+
+  if (waitForCompletion)
+  {
+    waitForEnd();
+  }
+  return true;
+}
+
+bool LinkConnection::LinkCommand_ReloadCurrentBox(bool waitForCompletion)
+{
+  resetLinkPackets();
+
+  linkPacketArr[0] = LinkPacket(CMD_ReloadCurrentBox, 0x00, 0x00, 0x0000);
+
+  globalLinkCable.startConnection(PACKET_EXCHANGE);
+  if (waitForCompletion)
+  {
+    waitForEnd();
+  }
+  return true;
+};
+
+bool LinkConnection::LinkCommand_TransferPokemon(bool waitForCompletion)
+{
+  // Check that box number is correct
+  resetLinkPackets();
+
+  linkPacketArr[0] = LinkPacket(CMD_ReloadCurrentBox, 0x00, 0x00, 0x0000);
+
+  globalLinkCable.startConnection(PACKET_EXCHANGE);
+  if (waitForCompletion)
+  {
+    waitForEnd();
+  }
+  return true;
+};
+
+bool LinkConnection::LinkCommand_SoftReset(bool waitForCompletion)
+{
+  resetLinkPackets();
+
+  linkPacketArr[0] = LinkPacket(CMD_SoftReset, 0x00, 0x00, 0x0000);
+
+  globalLinkCable.startConnection(PACKET_EXCHANGE);
+  if (waitForCompletion)
+  {
+    waitForEnd();
+  }
+  return true;
+};
+
+bool LinkConnection::LinkCommand_ModifySRAMAccess(bool enableSRAM, byte SRAMbank, bool waitForCompletion)
+{
+  if (SRAMbank > 3)
+  {
+    return false;
+  }
+  resetLinkPackets();
+
+  if (enableSRAM)
+  {
+    linkPacketArr[0] = LinkPacket(CMD_ModifySRAMAccess, 0x0A, SRAMbank, 0x0000);
+  }
+  else
+  {
+    linkPacketArr[0] = LinkPacket(CMD_ModifySRAMAccess, 0x00, 0x00, 0x0000);
+  }
+
+  globalLinkCable.startConnection(PACKET_EXCHANGE);
+  if (waitForCompletion)
+  {
+    waitForEnd();
+  }
+  return true;
+};
+
+bool LinkConnection::LinkCommand_RunSecondaryPayload(bool waitForCompletion)
+{
+  resetLinkPackets();
+
+  linkPacketArr[0] = LinkPacket(CMD_ReloadCurrentBox, 0x00, 0x00, 0x0000);
+
+  globalLinkCable.startConnection(PACKET_EXCHANGE);
+  if (waitForCompletion)
+  {
+    waitForEnd();
+  }
+  return true;
+};
+
+bool LinkConnection::LinkCommand_ReadMemorySection(u16 dataPointer, byte outArray[], int outArraySize, bool waitForCompletion)
 {
   linkPacketDataStart = dataPointer;
   linkPacketDataSize = outArraySize;
@@ -782,8 +911,14 @@ bool LinkConnection::readMemorySection(u16 dataPointer, byte outArray[], int out
 
   for (int i = 0; i < LINK_PACKET_ARRAY_SIZE; i++)
   {
-    linkPacketArr[i] = {CMD_ReadDataRequest, 0x00, 0x00, linkPacketDataAddr};
+    linkPacketArr[i] = LinkPacket(CMD_ReadDataRequest, 0x00, 0x00, linkPacketDataAddr);
     linkPacketDataAddr += 8;
+  }
+
+  globalLinkCable.startConnection(PACKET_EXCHANGE);
+  if (waitForCompletion)
+  {
+    waitForEnd();
   }
   return true;
 }

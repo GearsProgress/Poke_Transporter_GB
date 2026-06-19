@@ -762,7 +762,8 @@ bool run_conditional(int index)
             u16 debug_charset[256];
             load_localized_charset(debug_charset, 3, ENGLISH);
             globalLinkCable.setup(debug_charset);
-            globalLinkCable.startConnection(INITIAL_CONNECTION);
+
+            globalLinkCable.LinkCommand_InitalizeConnection(false);
             while (globalLinkCable.exitState != END)
             {
                 if (globalLinkCable.subStateChanged && !g_debug_options.print_link_data)
@@ -784,26 +785,23 @@ bool run_conditional(int index)
                 globalLinkCable.handleCartIO();
                 VBlankIntrWait();
             }
-            globalLinkCable.handleCartIO();
+            globalLinkCable.handleCartIO(); // Does this need to be here?
 
             load_select_sprites(globalLinkCable.currROM);
 
             obj_unhide(gb_flag, 0);
             obj_set_pos(gb_flag, 1.5 * 8, 14 * 8);
 
+            globalLinkCable.LinkCommand_ReadMemorySection(0xDA80, party_data.box_data_array, 1122);
+            
             if (g_debug_options.print_link_packets)
             {
                 globalLinkCable.skipPrint = false;
                 globalLinkCable.pauseOnPacket = true;
             }
 
-            globalLinkCable.readMemorySection(0xDA80, party_data.box_data_array, 1122);
-            globalLinkCable.startConnection(PACKET_EXCHANGE);
-            while (globalLinkCable.enterState != END)
-            {
-                globalLinkCable.handleCartIO();
-                VBlankIntrWait();
-            }
+            globalLinkCable.LinkCommand_SoftReset();
+
             party_data.box.loadData(globalLinkCable.gen, globalLinkCable.lang, party_data.box_data_array);
         }
         reload_textbox_background();
