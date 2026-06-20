@@ -793,13 +793,14 @@ bool run_conditional(int index)
             obj_set_pos(gb_flag, 1.5 * 8, 14 * 8);
 
             globalLinkCable.LinkCommand_ReadMemorySection(0xDA80, party_data.box_data_array, 1122);
-            
+
             if (g_debug_options.print_link_packets)
             {
                 globalLinkCable.skipPrint = false;
                 globalLinkCable.pauseOnPacket = true;
             }
 
+            globalLinkCable.LinkCommand_ModifySRAMAccess(true, 3);
             globalLinkCable.LinkCommand_SoftReset();
 
             party_data.box.loadData(globalLinkCable.gen, globalLinkCable.lang, party_data.box_data_array);

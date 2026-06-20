@@ -275,7 +275,7 @@ void LinkConnection::printData()
       for (int i = 0; i < 4; i++)
       {
         byte tempBuffer[16];
-        int packetIndex = dataOutBuffer[INP_COUNTER_INDEX];
+        int packetIndex = dataOutBuffer[INP_COUNTER_INDEX] % LINK_PACKET_ARRAY_SIZE;
         LinkPacket &currLinkPacket = linkPacketArr[packetIndex];
 
         tempBuffer[0] = packetIndex;
@@ -508,6 +508,7 @@ void LinkConnection::handleStateLogic()
 
   case BYTE_EXCHANGE:
   {
+    LinkPacket &currPacket = linkPacketArr[linkPacketArrIndex % LINK_PACKET_ARRAY_SIZE];
     switch (subStateCounter % TOTAL_PACKET_LENGTH)
     {
     case 0:
@@ -515,43 +516,55 @@ void LinkConnection::handleStateLogic()
       break;
     case 1:
       nextOutData = linkPacketArrIndex;
-      linkPacketArr[linkPacketArrIndex % LINK_PACKET_ARRAY_SIZE].packetID = linkPacketArrIndex;
+      currPacket.packetID = linkPacketArrIndex;
       break;
     case 2:
-      nextOutData = linkPacketArr[linkPacketArrIndex % LINK_PACKET_ARRAY_SIZE].command;
+      nextOutData = currPacket.command;
+      if (currPacket.command == CMD_SoftReset)
+      {
+        // Immedaitely remove the Soft Reset packet from in use, it will not get a response.
+        currPacket.inUse = false;
+      }
       break;
     case 3:
-      nextOutData = linkPacketArr[linkPacketArrIndex % LINK_PACKET_ARRAY_SIZE].argument[0];
+      nextOutData = currPacket.argument[0];
       break;
     case 4:
-      nextOutData = linkPacketArr[linkPacketArrIndex % LINK_PACKET_ARRAY_SIZE].argument[1];
+      nextOutData = currPacket.argument[1];
       break;
     case 5:
-      nextOutData = linkPacketArr[linkPacketArrIndex % LINK_PACKET_ARRAY_SIZE].pointer >> 0;
+      nextOutData = currPacket.pointer >> 0;
       break;
     case 6:
-      nextOutData = linkPacketArr[linkPacketArrIndex % LINK_PACKET_ARRAY_SIZE].pointer >> 8;
+      nextOutData = currPacket.pointer >> 8;
       break;
     case TOTAL_PACKET_LENGTH - 1:
+      if (currPacket.command == CMD_SoftReset)
+      {
+        // There's no response to be had, so just end the connection.
+        // exitState = PRINT_LAST_PACKET;
+      }
       linkPacketArrIndex = (linkPacketArrIndex + 1) & 0x7F;
     default:
       nextOutData = 0xFF;
       break;
     }
 
-    if (subStateCounter % TOTAL_PACKET_LENGTH == 0 && subStateCounter != 0)
+    if (subStateCounter % TOTAL_PACKET_LENGTH == 0)
     {
       newPacket = true;
-      processPacket();
+      if (subStateCounter != 0)
+      {
+        processPacket();
+      }
+      if (allPacketsProcessed())
+      {
+        exitState = END;
+      }
     }
     else
     {
       newPacket = false;
-    }
-
-    if (allPacketsProcessed())
-    {
-      exitState = PRINT_LAST_PACKET;
     }
 
     dataOutBuffer[subStateCounter % TOTAL_PACKET_LENGTH] = inData;
@@ -730,13 +743,30 @@ bool LinkConnection::processPacket()
   if (currPacket.command == CMD_SoftReset)
   {
     // If this is a soft reset packet, that means that we don't care what we recieve from the final packet.
-    softResetActivated = true;
   }
   else if (checksum != dataOutBuffer[INP_CHECKSUM_INDEX])
   {
     // The checksum has to match in order for it to be valid, if we've made it this far down the line.
     currPacket.latestError = CHECKSUM_MISMATCH;
     return false;
+  }
+
+  if (currPacket.command != CMD_ReadDataRequest)
+  {
+    // These command types will echo the first 8 bytes of the packet back to verify they were recieved correctly. Make sure that's the case.
+    if (
+        currPacket.recievedData[0] != currPacket.packetID ||
+        currPacket.recievedData[1] != currPacket.command ||
+        currPacket.recievedData[2] != currPacket.argument[0] ||
+        currPacket.recievedData[3] != currPacket.argument[1] ||
+        currPacket.recievedData[4] != ((currPacket.pointer >> 0) & 0xFF) ||
+        currPacket.recievedData[5] != ((currPacket.pointer >> 8) & 0xFF) ||
+        currPacket.recievedData[6] != 0xFF ||
+        currPacket.recievedData[7] != 0xFF)
+    {
+      currPacket.latestError = ECHO_MISMATCH;
+      return false;
+    }
   }
 
   currPacket.latestError = PACKET_SUCCESS;
@@ -774,6 +804,11 @@ void LinkConnection::loadNextPacket()
       currPacket = LinkPacket(CMD_ReadDataRequest, 0x00, 0x00, linkPacketDataAddr);
       linkPacketDataAddr += 8;
     }
+    else
+    {
+      // Mark the packet as out of use, we've gotten all the data we need.
+      currPacket.inUse = false;
+    }
   }
   else
   {
@@ -783,11 +818,6 @@ void LinkConnection::loadNextPacket()
 
 bool LinkConnection::allPacketsProcessed()
 {
-  if (softResetActivated)
-  {
-    // This counts as processed, return true.
-    return true;
-  }
   for (int i = 0; i < LINK_PACKET_ARRAY_SIZE; i++)
   {
     if (linkPacketArr[i].inUse && linkPacketArr[i].latestError != PACKET_READ)
@@ -808,10 +838,9 @@ void LinkConnection::resetLinkPackets()
   // Loop the packet index around back to 0
   while (linkPacketArrIndex % LINK_PACKET_ARRAY_SIZE != 0)
   {
-    linkPacketArrIndex++;
+    linkPacketArrIndex = (linkPacketArrIndex + 1) & 0x7F;
   }
 
-  softResetActivated = false;
   for (int i = 0; i < 16; i++)
   {
     dataOutBuffer[i] = 0;
@@ -842,7 +871,7 @@ bool LinkConnection::LinkCommand_ReloadCurrentBox(bool waitForCompletion)
 {
   resetLinkPackets();
 
-  linkPacketArr[0] = LinkPacket(CMD_ReloadCurrentBox, 0x00, 0x00, 0x0000);
+  linkPacketArr[0] = LinkPacket(CMD_ReloadCurrentBox, 0x00, 0x00, 0xC6DC);
 
   globalLinkCable.startConnection(PACKET_EXCHANGE);
   if (waitForCompletion)
@@ -857,7 +886,7 @@ bool LinkConnection::LinkCommand_TransferPokemon(bool waitForCompletion)
   // Check that box number is correct
   resetLinkPackets();
 
-  linkPacketArr[0] = LinkPacket(CMD_ReloadCurrentBox, 0x00, 0x00, 0x0000);
+  linkPacketArr[0] = LinkPacket(CMD_ReloadCurrentBox, 0x00, 0x00, 0xC6DC);
 
   globalLinkCable.startConnection(PACKET_EXCHANGE);
   if (waitForCompletion)
@@ -871,7 +900,12 @@ bool LinkConnection::LinkCommand_SoftReset(bool waitForCompletion)
 {
   resetLinkPackets();
 
-  linkPacketArr[0] = LinkPacket(CMD_SoftReset, 0x00, 0x00, 0x0000);
+  linkPacketArr[0] = LinkPacket(CMD_SoftReset, 0x00, 0x00, 0xC6DC);
+
+  // linkPacketArr[1] = LinkPacket(CMD_SoftReset, 0x00, 0x00, 0xC6DC);
+
+  // This is used to flush the Soft Reset packet to be run.
+  // linkPacketArr[0] = LinkPacket(CMD_ReadDataRequest, 0x00, 0x00, 0xC6DC);
 
   globalLinkCable.startConnection(PACKET_EXCHANGE);
   if (waitForCompletion)
@@ -891,11 +925,11 @@ bool LinkConnection::LinkCommand_ModifySRAMAccess(bool enableSRAM, byte SRAMbank
 
   if (enableSRAM)
   {
-    linkPacketArr[0] = LinkPacket(CMD_ModifySRAMAccess, 0x0A, SRAMbank, 0x0000);
+    linkPacketArr[0] = LinkPacket(CMD_ModifySRAMAccess, 0x0A, SRAMbank, 0xC6DC);
   }
   else
   {
-    linkPacketArr[0] = LinkPacket(CMD_ModifySRAMAccess, 0x00, 0x00, 0x0000);
+    linkPacketArr[0] = LinkPacket(CMD_ModifySRAMAccess, 0x00, 0x00, 0xC6DC);
   }
 
   globalLinkCable.startConnection(PACKET_EXCHANGE);
@@ -910,7 +944,7 @@ bool LinkConnection::LinkCommand_RunSecondaryPayload(bool waitForCompletion)
 {
   resetLinkPackets();
 
-  linkPacketArr[0] = LinkPacket(CMD_ReloadCurrentBox, 0x00, 0x00, 0x0000);
+  linkPacketArr[0] = LinkPacket(CMD_ReloadCurrentBox, 0x00, 0x00, 0xC6DC);
 
   globalLinkCable.startConnection(PACKET_EXCHANGE);
   if (waitForCompletion)
@@ -922,6 +956,8 @@ bool LinkConnection::LinkCommand_RunSecondaryPayload(bool waitForCompletion)
 
 bool LinkConnection::LinkCommand_ReadMemorySection(u16 dataPointer, byte outArray[], int outArraySize, bool waitForCompletion)
 {
+  resetLinkPackets();
+
   linkPacketDataStart = dataPointer;
   linkPacketDataSize = outArraySize;
   linkPacketDataAddr = dataPointer;

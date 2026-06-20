@@ -240,6 +240,7 @@ enum LinkConnectionError
     NO_ERROR,
     PACKET_TIMED_OUT,
     CHECKSUM_MISMATCH,
+    ECHO_MISMATCH,
 
     PACKET_SUCCESS,
     PACKET_READ,
@@ -262,7 +263,7 @@ enum PayloadCommand
 #define OUTP_ARGS_INDEX 3
 #define OUTP_POINTER_INDEX 5
 #define OUTP_FILLER_INDEX 7
-#define OUTP_LENGTH 13
+#define OUTP_LENGTH 12
 
 #define INP_COUNTER_INDEX (0 + INP_DELAY_FROM_OUTP)
 #define INP_LSB_INDEX (1 + INP_DELAY_FROM_OUTP)
@@ -280,7 +281,7 @@ struct LinkPacket
     // Out packet parameters
     PayloadCommand command = CMD_NONE;
     byte argument[2] = {0x00, 0x00};
-    u16 pointer = 0;
+    u16 pointer = 0xC6DC;
     byte packetID = 0;
 
     // Incoming data
@@ -339,8 +340,6 @@ public:
     bool pauseOnPacket = false; // Used for pausing and sending one packet at a time
     bool skipPrint = false;     // Skips printing to the screen
     bool newPacket = false;
-
-    bool softResetActivated = false;
 
     void setup(const u16 *debug_charset);
     void startConnection(LinkState startState);
