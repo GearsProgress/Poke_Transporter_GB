@@ -69,6 +69,27 @@ void linkCableIRQ()
   }
 }
 
+LinkPacket::LinkPacket(PayloadCommand cmd, byte arg1, byte arg2, u16 addr)
+{
+  command = cmd;
+  argument[0] = arg1;
+  argument[1] = arg2;
+  pointer = addr;
+  inUse = true;
+};
+
+LinkPacket::LinkPacket(byte *payload, int payloadSize)
+{
+  command = CMD_SecondaryPayload;
+  secondaryPayloadData = payload;
+  secondaryPayloadDataSize = payloadSize + 1;
+  for (int i = 0; i < payloadSize; i++)
+  {
+    secondaryPayloadSizeChecksum += payload[i];
+  }
+  secondaryPayloadSizeChecksum = 0x100 - secondaryPayloadSizeChecksum;
+}
+
 void LinkConnection::setup(const u16 *debug_charset)
 {
   link_cable_memory_section_index = 0;
@@ -503,77 +524,104 @@ void LinkConnection::handleStateLogic()
 
   case PACKET_EXCHANGE:
     nextOutData = 0xFF;
-    exitState = BYTE_EXCHANGE;
+    exitState = PACKET_EXCHANGE_BYTES;
     break;
 
-  case BYTE_EXCHANGE:
+  case PACKET_EXCHANGE_BYTES:
   {
     LinkPacket &currPacket = linkPacketArr[linkPacketArrIndex % LINK_PACKET_ARRAY_SIZE];
-    switch (subStateCounter % TOTAL_PACKET_LENGTH)
+
+    if (currPacket.command != CMD_SecondaryPayload)
     {
-    case 0:
-      nextOutData = 0xFD;
-      break;
-    case 1:
-      nextOutData = linkPacketArrIndex;
-      currPacket.packetID = linkPacketArrIndex;
-      break;
-    case 2:
-      nextOutData = currPacket.command;
-      if (currPacket.command == CMD_SoftReset)
+      switch (subStateCounter)
       {
-        // Immedaitely remove the Soft Reset packet from in use, it will not get a response.
-        currPacket.inUse = false;
+      case 0:
+        nextOutData = 0xFD;
+        break;
+      case 1:
+        nextOutData = linkPacketArrIndex;
+        currPacket.packetID = linkPacketArrIndex;
+        break;
+      case 2:
+        nextOutData = currPacket.command;
+        if (currPacket.command == CMD_SoftReset)
+        {
+          // Immedaitely remove the Soft Reset packet from in use, it will not get a response.
+          currPacket.inUse = false;
+        }
+        break;
+      case 3:
+        nextOutData = currPacket.argument[0];
+        break;
+      case 4:
+        nextOutData = currPacket.argument[1];
+        break;
+      case 5:
+        nextOutData = currPacket.pointer >> 0;
+        break;
+      case 6:
+        nextOutData = currPacket.pointer >> 8;
+        break;
+      case TOTAL_PACKET_LENGTH - 1:
+        exitState = PACKET_END;
+      default:
+        nextOutData = 0xFF;
+        break;
       }
-      break;
-    case 3:
-      nextOutData = currPacket.argument[0];
-      break;
-    case 4:
-      nextOutData = currPacket.argument[1];
-      break;
-    case 5:
-      nextOutData = currPacket.pointer >> 0;
-      break;
-    case 6:
-      nextOutData = currPacket.pointer >> 8;
-      break;
-    case TOTAL_PACKET_LENGTH - 1:
-      if (currPacket.command == CMD_SoftReset)
+    }
+    else // This packet is a secondary payload. Send that instead.
+    {
+      switch (subStateCounter)
       {
-        // There's no response to be had, so just end the connection.
-        // exitState = PRINT_LAST_PACKET;
+      case 0:
+        nextOutData = 0xFD;
+        break;
+      case 1:
+        nextOutData = linkPacketArrIndex;
+        currPacket.packetID = linkPacketArrIndex;
+        break;
+      case 2:
+        // The command ID matches the saftey byte (0xFF)
+        nextOutData = currPacket.command;
+        break;
+      case 3:
+        nextOutData = currPacket.secondaryPayloadDataSize;
+        break;
+      default:
+        // We're through all the constant values, let's do the rest.
+        if ((subStateCounter - 4) < currPacket.secondaryPayloadDataSize)
+        {
+          nextOutData = currPacket.secondaryPayloadData[subStateCounter - 4];
+        }
+        else if ((subStateCounter - 4) == currPacket.secondaryPayloadDataSize)
+        {
+          // Add the checksum and we're done with the packet.
+          nextOutData = currPacket.secondaryPayloadSizeChecksum;
+          exitState = PACKET_END;
+        }
+        break;
       }
-      linkPacketArrIndex = (linkPacketArrIndex + 1) & 0x7F;
-    default:
-      nextOutData = 0xFF;
-      break;
     }
 
-    if (subStateCounter % TOTAL_PACKET_LENGTH == 0)
-    {
-      newPacket = true;
-      if (subStateCounter != 0)
-      {
-        processPacket();
-      }
-      if (allPacketsProcessed())
-      {
-        exitState = END;
-      }
-    }
-    else
-    {
-      newPacket = false;
-    }
-
-    dataOutBuffer[subStateCounter % TOTAL_PACKET_LENGTH] = inData;
+    dataOutBuffer[subStateCounter] = inData;
   }
   break;
 
-  case PRINT_LAST_PACKET:
-    nextOutData = 0xFF;
-    exitState = END;
+  case PACKET_END:
+    newPacket = true;
+    // if (subStateCounter != 0)
+    {
+      processPacket();
+    }
+    if (allPacketsProcessed())
+    {
+      exitState = END;
+    }
+    else
+    {
+      linkPacketArrIndex = (linkPacketArrIndex + 1) & 0x7F;
+      exitState = PACKET_EXCHANGE_BYTES;
+    }
     break;
 
   case END:
@@ -902,11 +950,6 @@ bool LinkConnection::LinkCommand_SoftReset(bool waitForCompletion)
 
   linkPacketArr[0] = LinkPacket(CMD_SoftReset, 0x00, 0x00, 0xC6DC);
 
-  // linkPacketArr[1] = LinkPacket(CMD_SoftReset, 0x00, 0x00, 0xC6DC);
-
-  // This is used to flush the Soft Reset packet to be run.
-  // linkPacketArr[0] = LinkPacket(CMD_ReadDataRequest, 0x00, 0x00, 0xC6DC);
-
   globalLinkCable.startConnection(PACKET_EXCHANGE);
   if (waitForCompletion)
   {
@@ -944,7 +987,11 @@ bool LinkConnection::LinkCommand_RunSecondaryPayload(bool waitForCompletion)
 {
   resetLinkPackets();
 
-  linkPacketArr[0] = LinkPacket(CMD_ReloadCurrentBox, 0x00, 0x00, 0xC6DC);
+  byte tempPayload[] = {0x21, 0xA0, 0xC3, 0x75, 0xC9};
+  byte size = 5;
+
+  linkPacketArr[0] = LinkPacket(CMD_RunSecondaryPayload, size, 0x00, 0xC6DC);
+  linkPacketArr[1] = LinkPacket(tempPayload, size);
 
   globalLinkCable.startConnection(PACKET_EXCHANGE);
   if (waitForCompletion)

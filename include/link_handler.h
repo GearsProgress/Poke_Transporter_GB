@@ -229,8 +229,8 @@ enum LinkState
     SOFT_RESET,
 
     PACKET_EXCHANGE = 0x10,
-    BYTE_EXCHANGE,
-    PRINT_LAST_PACKET,
+    PACKET_EXCHANGE_BYTES,
+    PACKET_END,
 
     END = 0xFF,
 };
@@ -249,12 +249,13 @@ enum LinkConnectionError
 enum PayloadCommand
 {
     CMD_NONE = -1,
-    CMD_ReloadCurrentBox,    // no arguments used. Reloads the current box from SRAM. Use this as the first command byte before performing other commands.
-    CMD_TransferPokemon,     // 1st argument = secondary payload size, 2nd argument = box that should be transferred from. This command uses a secondary payload. The size of this secondary payload needs to be declared beforehand. Prior to requesting a secondary payload, the program will use the second argument to load a specific box from SRAM. Box numbers are 0-indexed and range from 0x00 (box 1) to 0x0B(box 12). This load procedure currently cannot be skipped. Once the secondary payload arrives, the program will verify its integrity and align the payload. Afterwards, it will use the information within this payload to remove pokémon from the current box. Once all transferred pokémon have been removed, the program will save the current box.
-    CMD_SoftReset,           // no arguments used. Instantly soft resets the game.
-    CMD_ModifySRAMAccess,    // 1st argument = SRAM dis/enable. set to 0x0A to open access, set to 0x00 to close access. Second argument = SRAM bank. When closing SRAM access, set to 0x00. SRAM remains open until closed by this command or until closed by CMD_TransferPokemon/CMD_ReloadCurrentBox.
-    CMD_RunSecondaryPayload, // 1st argument = secondary payload size. This command uses a secondary payload. The size of this secondary payload needs to be declared beforehand. Once the secondary payload arrives, the program will verify its integrity and align the payload. Afterwards, it will jump to the secondary payload and execute it. IMPORTANT: if you want to report an error when executing this secondary payload, return with carry flag set. IMPORTANT: if you want to report that the payload was executed safely, return with carry flag reset.*/
-    CMD_ReadDataRequest,     // a request to read data starting from the address defined by the 16-bit pointer.
+    CMD_ReloadCurrentBox,        // no arguments used. Reloads the current box from SRAM. Use this as the first command byte before performing other commands.
+    CMD_TransferPokemon,         // 1st argument = secondary payload size, 2nd argument = box that should be transferred from. This command uses a secondary payload. The size of this secondary payload needs to be declared beforehand. Prior to requesting a secondary payload, the program will use the second argument to load a specific box from SRAM. Box numbers are 0-indexed and range from 0x00 (box 1) to 0x0B(box 12). This load procedure currently cannot be skipped. Once the secondary payload arrives, the program will verify its integrity and align the payload. Afterwards, it will use the information within this payload to remove pokémon from the current box. Once all transferred pokémon have been removed, the program will save the current box.
+    CMD_SoftReset,               // no arguments used. Instantly soft resets the game.
+    CMD_ModifySRAMAccess,        // 1st argument = SRAM dis/enable. set to 0x0A to open access, set to 0x00 to close access. Second argument = SRAM bank. When closing SRAM access, set to 0x00. SRAM remains open until closed by this command or until closed by CMD_TransferPokemon/CMD_ReloadCurrentBox.
+    CMD_RunSecondaryPayload,     // 1st argument = secondary payload size. This command uses a secondary payload. The size of this secondary payload needs to be declared beforehand. Once the secondary payload arrives, the program will verify its integrity and align the payload. Afterwards, it will jump to the secondary payload and execute it. IMPORTANT: if you want to report an error when executing this secondary payload, return with carry flag set. IMPORTANT: if you want to report that the payload was executed safely, return with carry flag reset.*/
+    CMD_ReadDataRequest,         // a request to read data starting from the address defined by the 16-bit pointer.
+    CMD_SecondaryPayload = 0xFF, // Used whenever a packet is for a secondary payload.
 };
 
 #define OUTP_PREAMBLE_INDEX 0
@@ -288,15 +289,14 @@ struct LinkPacket
     LinkConnectionError latestError = NO_ERROR;
     byte recievedData[8] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
+    // Secondary payload
+    byte *secondaryPayloadData = nullptr;
+    int secondaryPayloadDataSize = 0;
+    byte secondaryPayloadSizeChecksum = 0;
+
     LinkPacket() {};
-    LinkPacket(PayloadCommand cmd, byte arg1, byte arg2, u16 addr)
-    {
-        command = cmd;
-        argument[0] = arg1;
-        argument[1] = arg2;
-        pointer = addr;
-        inUse = true;
-    };
+    LinkPacket(PayloadCommand cmd, byte arg1, byte arg2, u16 addr);
+    LinkPacket(byte *payload, int payloadSize);
 };
 
 class LinkConnection
