@@ -792,11 +792,13 @@ bool run_conditional(int index)
             obj_unhide(gb_flag, 0);
             obj_set_pos(gb_flag, 1.5 * 8, 14 * 8);
 
+            globalLinkCable.skipPrint = false;
+            globalLinkCable.pauseOnPacket = true;
+
             //globalLinkCable.LinkCommand_ReadMemorySection(0xDA80, party_data.box_data_array, 1122);
-
-
-            //globalLinkCable.LinkCommand_SoftReset();
+            //globalLinkCable.LinkCommand_ModifySRAMAccess(true, 3);
             globalLinkCable.LinkCommand_RunSecondaryPayload();
+            //globalLinkCable.LinkCommand_SoftReset();
 
             party_data.box.loadData(globalLinkCable.gen, globalLinkCable.lang, party_data.box_data_array);
         }

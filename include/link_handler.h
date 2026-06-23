@@ -226,11 +226,13 @@ enum LinkState
     GET_CHECKSUM,
     WAIT_FOR_SECOND_PAYLOAD,
     SEND_SPECIFIC_PAYLOAD,
-    SOFT_RESET,
+    SEND_FIRST_PACKET,
 
     PACKET_EXCHANGE = 0x10,
-    PACKET_EXCHANGE_BYTES,
-    PACKET_END,
+    STANDARD_PACKET_EXCHANGE,
+    SECONDARY_PACKET_EXCHANGE,
+    PROCESS_PACKET,
+    LOAD_NEXT_PACKET,
 
     END = 0xFF,
 };
@@ -293,6 +295,7 @@ struct LinkPacket
     byte *secondaryPayloadData = nullptr;
     int secondaryPayloadDataSize = 0;
     byte secondaryPayloadSizeChecksum = 0;
+#define SECONDARY_PAYLOAD_HEADER_SIZE 4 // The size of a secondary packet, not including the data bytes or checksum
 
     LinkPacket() {};
     LinkPacket(PayloadCommand cmd, byte arg1, byte arg2, u16 addr);
@@ -330,6 +333,8 @@ public:
     // This MUST be a power of 2!
 #define LINK_PACKET_ARRAY_SIZE 4
     LinkPacket linkPacketArr[LINK_PACKET_ARRAY_SIZE];
+    LinkPacket *currOutgoingPacket;
+    LinkPacket *currIncomingPacket;
     byte linkPacketArrIndex = 0;
     u16 linkPacketDataAddr = 0;
     u16 linkPacketDataStart = 0;
@@ -339,7 +344,6 @@ public:
     bool pauseOnByte = false;   // Used for pausing and sending one byte at a time
     bool pauseOnPacket = false; // Used for pausing and sending one packet at a time
     bool skipPrint = false;     // Skips printing to the screen
-    bool newPacket = false;
 
     void setup(const u16 *debug_charset);
     void startConnection(LinkState startState);

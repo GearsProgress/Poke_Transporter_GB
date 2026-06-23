@@ -82,7 +82,7 @@ LinkPacket::LinkPacket(byte *payload, int payloadSize)
 {
   command = CMD_SecondaryPayload;
   secondaryPayloadData = payload;
-  secondaryPayloadDataSize = payloadSize + 1;
+  secondaryPayloadDataSize = payloadSize;
   for (int i = 0; i < payloadSize; i++)
   {
     secondaryPayloadSizeChecksum += payload[i];
@@ -296,17 +296,15 @@ void LinkConnection::printData()
       for (int i = 0; i < 4; i++)
       {
         byte tempBuffer[16];
-        int packetIndex = dataOutBuffer[INP_COUNTER_INDEX] % LINK_PACKET_ARRAY_SIZE;
-        LinkPacket &currLinkPacket = linkPacketArr[packetIndex];
 
-        tempBuffer[0] = packetIndex;
-        tempBuffer[1] = currLinkPacket.command;
-        tempBuffer[2] = currLinkPacket.pointer >> 0;
-        tempBuffer[3] = currLinkPacket.pointer >> 8;
-        memcpy(&tempBuffer[4], currLinkPacket.argument, 2);
-        tempBuffer[6] = currLinkPacket.latestError;
+        tempBuffer[0] = currIncomingPacket->packetID;
+        tempBuffer[1] = currIncomingPacket->command;
+        tempBuffer[2] = currIncomingPacket->pointer >> 0;
+        tempBuffer[3] = currIncomingPacket->pointer >> 8;
+        memcpy(&tempBuffer[4], currIncomingPacket->argument, 2);
+        tempBuffer[6] = currIncomingPacket->latestError;
         tempBuffer[7] = 0x00;
-        memcpy(&tempBuffer[8], currLinkPacket.recievedData, 8);
+        memcpy(&tempBuffer[8], currIncomingPacket->recievedData, 8);
 
         for (int j = 0; j < 4; j++)
         {
@@ -510,7 +508,7 @@ void LinkConnection::handleStateLogic()
   case SEND_SPECIFIC_PAYLOAD:
     if (subStateCounter > 255) // The 255 comes from the Universal Payload
     {
-      exitState = END;
+      exitState = SEND_FIRST_PACKET;
     }
     if (subStateCounter < curr_payload_size)
     {
@@ -522,97 +520,120 @@ void LinkConnection::handleStateLogic()
     }
     break;
 
-  case PACKET_EXCHANGE:
-    nextOutData = 0xFF;
-    exitState = PACKET_EXCHANGE_BYTES;
+  case SEND_FIRST_PACKET:
+    // In order to make sure everything is set to go, we need to "send and recieve" one packet
+    if (subStateCounter % TOTAL_PACKET_LENGTH == 0)
+    {
+      nextOutData = 0xFD;
+    }
+    else
+    {
+      nextOutData = 0x00;
+    }
+    if (subStateCounter >= TOTAL_PACKET_LENGTH * 2)
+    {
+      exitState = END;
+    }
     break;
 
-  case PACKET_EXCHANGE_BYTES:
+  case PACKET_EXCHANGE:
+    nextOutData = 0xFF;
+    if (currOutgoingPacket->command == CMD_SecondaryPayload)
+    {
+      exitState = SECONDARY_PACKET_EXCHANGE;
+    }
+    else
+    {
+      exitState = STANDARD_PACKET_EXCHANGE;
+    }
+    break;
+
+  case STANDARD_PACKET_EXCHANGE:
   {
-    LinkPacket &currPacket = linkPacketArr[linkPacketArrIndex % LINK_PACKET_ARRAY_SIZE];
-
-    if (currPacket.command != CMD_SecondaryPayload)
+    switch (subStateCounter)
     {
-      switch (subStateCounter)
+    case 0:
+      nextOutData = 0xFD;
+      break;
+    case 1:
+      nextOutData = linkPacketArrIndex;
+      currOutgoingPacket->packetID = linkPacketArrIndex;
+      break;
+    case 2:
+      nextOutData = currOutgoingPacket->command;
+      if (currOutgoingPacket->command == CMD_SoftReset)
       {
-      case 0:
-        nextOutData = 0xFD;
-        break;
-      case 1:
-        nextOutData = linkPacketArrIndex;
-        currPacket.packetID = linkPacketArrIndex;
-        break;
-      case 2:
-        nextOutData = currPacket.command;
-        if (currPacket.command == CMD_SoftReset)
-        {
-          // Immedaitely remove the Soft Reset packet from in use, it will not get a response.
-          currPacket.inUse = false;
-        }
-        break;
-      case 3:
-        nextOutData = currPacket.argument[0];
-        break;
-      case 4:
-        nextOutData = currPacket.argument[1];
-        break;
-      case 5:
-        nextOutData = currPacket.pointer >> 0;
-        break;
-      case 6:
-        nextOutData = currPacket.pointer >> 8;
-        break;
-      case TOTAL_PACKET_LENGTH - 1:
-        exitState = PACKET_END;
-      default:
-        nextOutData = 0xFF;
-        break;
+        // Immedaitely remove the Soft Reset packet from in use, it will not get a response.
+        currOutgoingPacket->inUse = false;
       }
+      break;
+    case 3:
+      nextOutData = currOutgoingPacket->argument[0];
+      break;
+    case 4:
+      nextOutData = currOutgoingPacket->argument[1];
+      break;
+    case 5:
+      nextOutData = currOutgoingPacket->pointer >> 0;
+      break;
+    case 6:
+      nextOutData = currOutgoingPacket->pointer >> 8;
+      break;
+    case TOTAL_PACKET_LENGTH:
+      exitState = PROCESS_PACKET;
+    default:
+      nextOutData = 0xFF;
+      break;
     }
-    else // This packet is a secondary payload. Send that instead.
-    {
-      switch (subStateCounter)
-      {
-      case 0:
-        nextOutData = 0xFD;
-        break;
-      case 1:
-        nextOutData = linkPacketArrIndex;
-        currPacket.packetID = linkPacketArrIndex;
-        break;
-      case 2:
-        // The command ID matches the saftey byte (0xFF)
-        nextOutData = currPacket.command;
-        break;
-      case 3:
-        nextOutData = currPacket.secondaryPayloadDataSize;
-        break;
-      default:
-        // We're through all the constant values, let's do the rest.
-        if ((subStateCounter - 4) < currPacket.secondaryPayloadDataSize)
-        {
-          nextOutData = currPacket.secondaryPayloadData[subStateCounter - 4];
-        }
-        else if ((subStateCounter - 4) == currPacket.secondaryPayloadDataSize)
-        {
-          // Add the checksum and we're done with the packet.
-          nextOutData = currPacket.secondaryPayloadSizeChecksum;
-          exitState = PACKET_END;
-        }
-        break;
-      }
-    }
-
-    dataOutBuffer[subStateCounter] = inData;
   }
-  break;
+    dataOutBuffer[subStateCounter] = inData;
+    break;
 
-  case PACKET_END:
-    newPacket = true;
-    // if (subStateCounter != 0)
+  case SECONDARY_PACKET_EXCHANGE:
+  {
+    switch (subStateCounter)
     {
-      processPacket();
+    case 0:
+      nextOutData = 0xFD;
+      break;
+    case 1:
+      nextOutData = linkPacketArrIndex;
+      currOutgoingPacket->packetID = linkPacketArrIndex;
+      break;
+    case 2:
+      // The command ID matches the saftey byte (0xFF)
+      nextOutData = currOutgoingPacket->command;
+      break;
+    case 3:
+      nextOutData = currOutgoingPacket->secondaryPayloadDataSize;
+      break;
+    default:
+      // We're through all the constant values, let's do the rest.
+      if ((subStateCounter - SECONDARY_PAYLOAD_HEADER_SIZE) < currOutgoingPacket->secondaryPayloadDataSize)
+      {
+        nextOutData = currOutgoingPacket->secondaryPayloadData[subStateCounter - SECONDARY_PAYLOAD_HEADER_SIZE];
+      }
+      else if ((subStateCounter - SECONDARY_PAYLOAD_HEADER_SIZE) == currOutgoingPacket->secondaryPayloadDataSize)
+      {
+        // Add the checksum and we're done with the packet.
+        nextOutData = currOutgoingPacket->secondaryPayloadSizeChecksum;
+        exitState = PROCESS_PACKET;
+      }
+      break;
     }
+  }
+    dataOutBuffer[subStateCounter] = inData;
+    break;
+
+  case PROCESS_PACKET:
+    currIncomingPacket = &linkPacketArr[dataOutBuffer[INP_COUNTER_INDEX] % LINK_PACKET_ARRAY_SIZE];
+    processPacket();
+    nextOutData = 0xFF;
+    exitState = LOAD_NEXT_PACKET;
+    break;
+
+  case LOAD_NEXT_PACKET:
+    loadNextPacket();
     if (allPacketsProcessed())
     {
       exitState = END;
@@ -620,8 +641,10 @@ void LinkConnection::handleStateLogic()
     else
     {
       linkPacketArrIndex = (linkPacketArrIndex + 1) & 0x7F;
-      exitState = PACKET_EXCHANGE_BYTES;
+      currOutgoingPacket = &linkPacketArr[linkPacketArrIndex % LINK_PACKET_ARRAY_SIZE];
+      exitState = PACKET_EXCHANGE;
     }
+    nextOutData = 0xFF;
     break;
 
   case END:
@@ -645,11 +668,6 @@ void LinkConnection::prepareForNextCycle()
   {
     subStateCounter++;
     subStateChanged = false;
-  }
-
-  if (newPacket)
-  {
-    loadNextPacket();
   }
 
   globalStateCounter++;
@@ -746,7 +764,7 @@ bool LinkConnection::earlyExit()
     }
   }
 
-  if (pauseOnPacket && newPacket && g_debug_options.print_link_packets)
+  if (pauseOnPacket && (enterState == LOAD_NEXT_PACKET) && g_debug_options.print_link_packets)
   {
     if (key_hit(KEY_A))
     {
@@ -754,14 +772,13 @@ bool LinkConnection::earlyExit()
     }
   }
 
-  return pauseOnByte || (pauseOnPacket && newPacket);
+  return pauseOnByte || (pauseOnPacket && (enterState == LOAD_NEXT_PACKET));
 }
 
 bool LinkConnection::processPacket()
 {
   int checksum = 0;
-  LinkPacket &currPacket = linkPacketArr[dataOutBuffer[INP_COUNTER_INDEX] % LINK_PACKET_ARRAY_SIZE];
-  if (currPacket.packetID != dataOutBuffer[INP_COUNTER_INDEX])
+  if (currIncomingPacket->packetID != dataOutBuffer[INP_COUNTER_INDEX])
   {
     // This packet is not the correct ID for the response, ignore it
     return false;
@@ -775,49 +792,49 @@ bool LinkConnection::processPacket()
     }
   }
   // Add the read pointer
-  checksum += ((currPacket.pointer + 8) >> 0) & 0xFF;
-  checksum += ((currPacket.pointer + 8) >> 8) & 0xFF;
+  checksum += ((currIncomingPacket->pointer + 8) >> 0) & 0xFF;
+  checksum += ((currIncomingPacket->pointer + 8) >> 8) & 0xFF;
 
   checksum &= 0x7F;
 
   byte lsbByte = dataOutBuffer[INP_LSB_INDEX] | dataOutBuffer[INP_LSB_INDEX + 1];
   for (int i = 0; i < 8; i++)
   {
-    currPacket.recievedData[i] =
+    currIncomingPacket->recievedData[i] =
         (dataOutBuffer[INP_DATA_INDEX + i] << 1) | ((lsbByte >> (7 - i)) & 0b1);
   }
 
   // The soft reset command has no response, don't expect one.
-  if (currPacket.command == CMD_SoftReset)
+  if (currIncomingPacket->command == CMD_SoftReset)
   {
     // If this is a soft reset packet, that means that we don't care what we recieve from the final packet.
   }
   else if (checksum != dataOutBuffer[INP_CHECKSUM_INDEX])
   {
     // The checksum has to match in order for it to be valid, if we've made it this far down the line.
-    currPacket.latestError = CHECKSUM_MISMATCH;
+    currIncomingPacket->latestError = CHECKSUM_MISMATCH;
     return false;
   }
 
-  if (currPacket.command != CMD_ReadDataRequest)
+  if (currIncomingPacket->command != CMD_ReadDataRequest)
   {
     // These command types will echo the first 8 bytes of the packet back to verify they were recieved correctly. Make sure that's the case.
     if (
-        currPacket.recievedData[0] != currPacket.packetID ||
-        currPacket.recievedData[1] != currPacket.command ||
-        currPacket.recievedData[2] != currPacket.argument[0] ||
-        currPacket.recievedData[3] != currPacket.argument[1] ||
-        currPacket.recievedData[4] != ((currPacket.pointer >> 0) & 0xFF) ||
-        currPacket.recievedData[5] != ((currPacket.pointer >> 8) & 0xFF) ||
-        currPacket.recievedData[6] != 0xFF ||
-        currPacket.recievedData[7] != 0xFF)
+        currIncomingPacket->recievedData[0] != currIncomingPacket->packetID ||
+        currIncomingPacket->recievedData[1] != currIncomingPacket->command ||
+        currIncomingPacket->recievedData[2] != currIncomingPacket->argument[0] ||
+        currIncomingPacket->recievedData[3] != currIncomingPacket->argument[1] ||
+        currIncomingPacket->recievedData[4] != ((currIncomingPacket->pointer >> 0) & 0xFF) ||
+        currIncomingPacket->recievedData[5] != ((currIncomingPacket->pointer >> 8) & 0xFF) ||
+        currIncomingPacket->recievedData[6] != 0xFF ||
+        currIncomingPacket->recievedData[7] != 0xFF)
     {
-      currPacket.latestError = ECHO_MISMATCH;
+      currIncomingPacket->latestError = ECHO_MISMATCH;
       return false;
     }
   }
 
-  currPacket.latestError = PACKET_SUCCESS;
+  currIncomingPacket->latestError = PACKET_SUCCESS;
   return true;
 }
 
@@ -833,29 +850,29 @@ void LinkConnection::loadNextPacket()
   has all been read and we are finished.
   ----------------
 */
-  LinkPacket &currPacket = linkPacketArr[dataOutBuffer[INP_COUNTER_INDEX] & (LINK_PACKET_ARRAY_SIZE - 1)];
-  if (currPacket.latestError == PACKET_SUCCESS)
+  //currIncomingPacket = &linkPacketArr[dataOutBuffer[INP_COUNTER_INDEX] & (LINK_PACKET_ARRAY_SIZE - 1)];
+  if (currIncomingPacket->latestError == PACKET_SUCCESS)
   {
     // Packet was successful, Find which packet sent it and mark it.
     // If this was data, then save the data and replace it with the next one in line
 
-    currPacket.latestError = PACKET_READ;
-    if (((currPacket.command == CMD_ReadDataRequest) && (currPacket.pointer - linkPacketDataStart) < linkPacketDataSize))
+    currIncomingPacket->latestError = PACKET_READ;
+    if (((currIncomingPacket->command == CMD_ReadDataRequest) && (currIncomingPacket->pointer - linkPacketDataStart) < linkPacketDataSize))
     {
       for (int i = 0; i < 8; i++)
       {
-        if (((currPacket.pointer - linkPacketDataStart) + i) < linkPacketDataSize)
+        if (((currIncomingPacket->pointer - linkPacketDataStart) + i) < linkPacketDataSize)
         {
-          outDataArrayPtr[(currPacket.pointer - linkPacketDataStart) + i] = currPacket.recievedData[i];
+          outDataArrayPtr[(currIncomingPacket->pointer - linkPacketDataStart) + i] = currIncomingPacket->recievedData[i];
         }
       }
-      currPacket = LinkPacket(CMD_ReadDataRequest, 0x00, 0x00, linkPacketDataAddr);
+      *currIncomingPacket = LinkPacket(CMD_ReadDataRequest, 0x00, 0x00, linkPacketDataAddr);
       linkPacketDataAddr += 8;
     }
     else
     {
       // Mark the packet as out of use, we've gotten all the data we need.
-      currPacket.inUse = false;
+      currIncomingPacket->inUse = false;
     }
   }
   else
@@ -912,6 +929,7 @@ bool LinkConnection::LinkCommand_InitalizeConnection(bool waitForCompletion)
   {
     waitForEnd();
   }
+
   return true;
 }
 
