@@ -220,6 +220,8 @@ charArrays = {
             ["{MLE}", [0xFC, 0x01, 0x08]],
             ["{SPA}", [0xFC]],
             ["{PLR}", [0xFD, 0x01]],
+            ["{VLN}", [0xFD, 0x0A]], # Displays MAXIE in Ruby or ARCHIE in Sapphire and Emerald 
+            ["{VLN2}", [0xFD, 0x0B]], # Displays ARCHIE in Ruby or MAXIE in Sapphire and Emerald. In our case, have purpose in Emerlad only.
             ["{NEW}", [0xFE]],
             ["{END}", [0xFF]],
         ]
@@ -236,6 +238,8 @@ charArrays = {
             ["{SPA}", [0xFC]],
             ["{FPC}", [0xFC, 0x06, 0x05]],
             ["{PLR}", [0xFD, 0x01]],
+            ["{VLN}", [0xFD, 0x0A]], # Displays MAXIE in Ruby or ARCHIE in Sapphire and Emerald 
+            ["{VLN2}", [0xFD, 0x0B]], # Displays ARCHIE in Ruby or MAXIE in Sapphire and Emerald. Have purpose in Emerlad only.
             ["{NEW}", [0xFE]],
             ["{END}", [0xFF]],
         ]

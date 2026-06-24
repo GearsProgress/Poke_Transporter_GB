@@ -385,7 +385,7 @@ void mystery_gift_script::build_script(PokeBox *box)
     case RUBY_ID:
         textGreet.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textGreet_rse));
         textMoveBox.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textMoveBox_rs));
-        textWeHere.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textWeHere_r));
+        textWeHere.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textWeHere_rs));
         textReceived.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textRecieved_rs));
         textIAm.set_text(decompressed_text_table.get_text_entry(first_time ? RSEFRLG_dia_textIAm_first_rs : RSEFRLG_dia_textIAm_second_rs));
         textPCConvo.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textPCConvo_rs)); // ȼDon’t worry ƲÀ,Ňyou won’t have to do a thing!");
@@ -397,7 +397,7 @@ void mystery_gift_script::build_script(PokeBox *box)
     case SAPPHIRE_ID:
         textGreet.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textGreet_rse));
         textMoveBox.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textMoveBox_rs));
-        textWeHere.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textWeHere_s));
+        textWeHere.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textWeHere_rs));
         textReceived.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textRecieved_rs));
         textIAm.set_text(decompressed_text_table.get_text_entry(first_time ? RSEFRLG_dia_textIAm_first_rs : RSEFRLG_dia_textIAm_second_rs));
         textPCConvo.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textPCConvo_rs)); // ȼDon’t worry ƲÀ,Ňyou won’t have to do a thing!");
