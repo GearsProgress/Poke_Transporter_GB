@@ -1,12 +1,15 @@
 #include "payloads/payload_builder.h"
+#include "../../../include/dbg/debug_mode.h"
 #include "gb_rom_values/base_gb_rom_struct.h"
 #include "payloads/z80_asm.h"
-#include "../../../include/dbg/debug_mode.h"
 #include <cstring>
 
-#define DATA_LOC (SHOW_DATA_PACKETS ? curr_rom.transferStringLocation : curr_rom.wEnemyMonSpecies)
+#define DATA_LOC                                                               \
+    (SHOW_DATA_PACKETS ? curr_rom.transferStringLocation                       \
+                       : curr_rom.wEnemyMonSpecies)
 
-void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool debug)
+void init_payload(
+    byte *payload_buffer, const GB_ROM &curr_rom, int type, bool debug)
 {
     if (DEBUG_PAYLOADS)
     {
@@ -27,7 +30,8 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
         std::vector<z80_jump *> jump_vector;
         std::vector<z80_variable *> var_vector;
 
-        z80_asm_handler z80_rng_seed(0x0A, curr_rom.wSerialOtherGameboyRandomNumberListBlock + 8);
+        z80_asm_handler z80_rng_seed(
+            0x0A, curr_rom.wSerialOtherGameboyRandomNumberListBlock + 8);
         z80_asm_handler z80_payload(0x1AA, curr_rom.wSerialEnemyDataBlock);
         z80_asm_handler z80_patchlist(0xC9, curr_rom.wSerialEnemyMonsPatchList);
 
@@ -38,8 +42,11 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
         z80_jump fe_bypass(&jump_vector);
         z80_jump send_packet_loop(&jump_vector);
 
-        z80_variable array_counter(&var_vector, 1, 0x00); // 1 byte to store the current array counter
-        z80_variable removal_array(&var_vector);          // 40 byte storage for list of Pokemon to remove, plus a permanent array terminator
+        z80_variable array_counter(
+            &var_vector, 1, 0x00); // 1 byte to store the current array counter
+        z80_variable removal_array(
+            &var_vector); // 40 byte storage for list of Pokemon to remove, plus
+                          // a permanent array terminator
 
         byte removal_array_data[41];
         for (int i = 0; i < 41; i++)
@@ -55,9 +62,10 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
         }
         removal_array.load_data(41, removal_array_data);
         z80_variable transfer_wait_string(&var_vector, 13, // SENDING DATA
-                                          0x92, 0x84, 0x8D, 0x83, 0x88, 0x8D, 0x86, 0x7F, 0x83, 0x80, 0x93, 0x80, 0x50);
+            0x92, 0x84, 0x8D, 0x83, 0x88, 0x8D, 0x86, 0x7F, 0x83, 0x80, 0x93,
+            0x80, 0x50);
         z80_variable custom_name(&var_vector, 11, // FENNEL
-                                 0x85, 0x84, 0x8D, 0x8D, 0x84, 0x8B, 0x50, 0x50, 0x50, 0x50, 0x50);
+            0x85, 0x84, 0x8D, 0x8D, 0x84, 0x8B, 0x50, 0x50, 0x50, 0x50, 0x50);
 
         // RNG Seed
         // Location of the entrance vector
@@ -89,7 +97,8 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
         // Calculate the number of Pokemon names that need to be printed,
         // and add them to the list. Then terminate the list.
         z80_payload.index = 0x13;
-        int distance = curr_rom.stack_overwrite_location - curr_rom.print_string_start;
+        int distance =
+            curr_rom.stack_overwrite_location - curr_rom.print_string_start;
         distance /= 20; // Automatically truncated, so it won't overshoot
 
         for (int i = 0; i < distance; i++)
@@ -121,7 +130,8 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
         z80_patchlist.LD(B, curr_rom.textBorderHeight | T_U8);
         z80_patchlist.CALL(curr_rom.CableClub_TextBoxBorder | T_U16);
         z80_patchlist.LD(HL, curr_rom.transferStringLocation | T_U16);
-        z80_patchlist.LD(DE, transfer_wait_string.place_ptr(&z80_patchlist) | T_U16);
+        z80_patchlist.LD(
+            DE, transfer_wait_string.place_ptr(&z80_patchlist) | T_U16);
         z80_patchlist.CALL(curr_rom.placeString | T_U16);
 
         /* Build the packet */
@@ -132,14 +142,16 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
         //      C is the counter
         send_packet_loop.set_start(&z80_patchlist);
 
-        z80_patchlist.LD(HL, (DATA_LOC + PACKET_SIZE + 3) | T_U16); // Load the next data location into HL
+        z80_patchlist.LD(HL, (DATA_LOC + PACKET_SIZE + 3) |
+                                 T_U16); // Load the next data location into HL
         z80_patchlist.LD(A, HLI_PTR);
         z80_patchlist.LD(H, HL_PTR);
         z80_patchlist.LD(L, A);
-        z80_patchlist.LD(DE, (DATA_LOC + 2) | T_U16); // Enemy Pokemon data, should be unused
-        z80_patchlist.XOR(A, A);                      // Clear the register
-        z80_patchlist.LD(B, A);                       // Clear B as well
-        z80_patchlist.LD(C, A);                       // Clear C as well
+        z80_patchlist.LD(
+            DE, (DATA_LOC + 2) | T_U16); // Enemy Pokemon data, should be unused
+        z80_patchlist.XOR(A, A);         // Clear the register
+        z80_patchlist.LD(B, A);          // Clear B as well
+        z80_patchlist.LD(C, A);          // Clear C as well
         z80_patchlist.PUSH(AF);
         packet_loop.set_start(&z80_patchlist);
         z80_patchlist.LD(B, 0x00 | T_U8); // Reset the flag byte
@@ -147,11 +159,13 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
         z80_patchlist.ADD(A, HL_PTR); // Add the current data to the checksum
         z80_patchlist.PUSH(AF);
         z80_patchlist.LD(A, 0xFE);
-        z80_patchlist.CP(A, HL_PTR);  // Compare the current data to 0xFE
-        z80_patchlist.LD(A, HLI_PTR); // Load HL's data into A for modification (if need be)
+        z80_patchlist.CP(A, HL_PTR); // Compare the current data to 0xFE
+        z80_patchlist.LD(
+            A, HLI_PTR); // Load HL's data into A for modification (if need be)
 
         // If HL's data is 0xFE
-        z80_patchlist.JR(NZ_F, fe_bypass.place_relative_jump(&z80_patchlist) | T_I8);
+        z80_patchlist.JR(
+            NZ_F, fe_bypass.place_relative_jump(&z80_patchlist) | T_I8);
         z80_patchlist.DEC(A);
         z80_patchlist.INC(B); // Set flag
 
@@ -166,9 +180,14 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
         z80_patchlist.INC(C);
         z80_patchlist.LD(A, DATA_PER_PACKET - 1);
         z80_patchlist.CP(A, C);
-        z80_patchlist.JR(NC_F, packet_loop.place_relative_jump(&z80_patchlist) | T_I8); // If all the data has been set, send the rest of the data
+        z80_patchlist.JR(NC_F,
+            packet_loop.place_relative_jump(&z80_patchlist) |
+                T_I8); // If all the data has been set, send the
+                       // rest of the data
         z80_patchlist.POP(AF);
-        z80_patchlist.RES(7 | T_BIT, A); // Reset bit 7 of the checksum, guaranteeing that it will never be 0xFE
+        z80_patchlist.RES(7 | T_BIT,
+            A); // Reset bit 7 of the checksum,
+                // guaranteeing that it will never be 0xFE
         z80_patchlist.LD(DE_PTR, A);
         z80_patchlist.INC(DE);
         z80_patchlist.LD(A, H);
@@ -180,14 +199,23 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
         // z80_patchlist.LD(HL, curr_rom.garbageDataLocation | T_U16);
 
         /* Transfer box data packet: */
-        z80_patchlist.LD(A, (debug ? 0x02 : 0x01) | T_U8);                      // Make sure GB is the slave, master if debug
-        z80_patchlist.LDH((curr_rom.hSerialConnectionStatus & 0xFF) | T_U8, A); // Since hSerialConnectionStatus is at 0xFFxx we can use this method instead
+        z80_patchlist.LD(
+            A, (debug ? 0x02 : 0x01) |
+                   T_U8); // Make sure GB is the slave, master if debug
+        z80_patchlist.LDH((curr_rom.hSerialConnectionStatus & 0xFF) | T_U8,
+            A); // Since hSerialConnectionStatus is at 0xFFxx we
+                // can use this method instead
         z80_patchlist.LD(HL, DATA_LOC | T_U16);
-        z80_patchlist.LD(HL_PTR, 0xFD | T_U8); // set the start of the data to 0xFD so Serial_ExchangeBytes is happy
+        z80_patchlist.LD(HL_PTR,
+            0xFD | T_U8); // set the start of the data to 0xFD
+                          // so Serial_ExchangeBytes is happy
         z80_patchlist.INC(HL);
-        z80_patchlist.LD(HL_PTR, 0x00 | T_U8);                  // add a 0x00 after the 0xFD to prevent further 0xFDs from being interpreted as part of the preamble
-        z80_patchlist.DEC(HL);                                  // Reset HL back so it points to 0xFD
-        z80_patchlist.LD(DE, (DATA_LOC + PACKET_SIZE) | T_U16); // location to put stored data
+        z80_patchlist.LD(HL_PTR,
+            0x00 | T_U8); // add a 0x00 after the 0xFD to prevent further 0xFDs
+                          // from being interpreted as part of the preamble
+        z80_patchlist.DEC(HL); // Reset HL back so it points to 0xFD
+        z80_patchlist.LD(DE,
+            (DATA_LOC + PACKET_SIZE) | T_U16); // location to put stored data
         z80_patchlist.LD(BC, PACKET_SIZE | T_U16);
         if (debug) // Don't call serialExchangeBytes if debug is enabled
         {
@@ -200,15 +228,19 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
 
         z80_patchlist.LD(A, (DATA_LOC + PACKET_SIZE + 3 + 1) | T_U16);
         z80_patchlist.CP(A, 0xFF);
-        z80_patchlist.JR(NZ_F, send_packet_loop.place_relative_jump(&z80_patchlist) | T_I8);
+        z80_patchlist.JR(
+            NZ_F, send_packet_loop.place_relative_jump(&z80_patchlist) | T_I8);
 
         /* Recieve the Pokemon to remove */
-        z80_patchlist.LD(HL, curr_rom.hSerialConnectionStatus | T_U16); // This can also be shortened
-        z80_patchlist.LD(HL_PTR, (debug ? 0x02 : 0x01) | T_U8);         // Make sure GB is the slave, master if debug
+        z80_patchlist.LD(HL, curr_rom.hSerialConnectionStatus |
+                                 T_U16); // This can also be shortened
+        z80_patchlist.LD(HL_PTR,
+            (debug ? 0x02 : 0x01) |
+                T_U8); // Make sure GB is the slave, master if debug
         z80_patchlist.LD(HL, curr_rom.garbageDataLocation | T_U16);
         z80_patchlist.LD(DE, removal_array.place_ptr(&z80_patchlist) | T_U16);
         z80_patchlist.LD(BC, 0x001E | T_U16); // Preamble does *not* count
-        if (debug)                            // Don't add in the Serial_ExchangeBytes call if in debug
+        if (debug) // Don't add in the Serial_ExchangeBytes call if in debug
         {
             z80_patchlist.index += 3;
         }
@@ -219,7 +251,8 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
 
         /* Remove the transfered Pokemon */
         z80_patchlist.LD(HL, curr_rom.wRemoveMonFromBox | T_U16);
-        z80_patchlist.LD(HL_PTR, 0x01 | T_U8); // != 0x00 specifies the current box
+        z80_patchlist.LD(HL_PTR,
+            0x01 | T_U8); // != 0x00 specifies the current box
         remove_array_loop.set_start(&z80_patchlist);
         z80_patchlist.LD(A, array_counter.place_ptr(&z80_patchlist) | T_U16);
         z80_patchlist.LD(E, A);
@@ -232,9 +265,11 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
         z80_patchlist.LD(B, A);
         z80_patchlist.LD(A, HL_PTR);
         z80_patchlist.CP(A, 0xFF | T_U8);
-        z80_patchlist.JR(Z_F, save_box.place_relative_jump(&z80_patchlist) | T_I8);
+        z80_patchlist.JR(
+            Z_F, save_box.place_relative_jump(&z80_patchlist) | T_I8);
         z80_patchlist.CP(A, B);
-        z80_patchlist.JR(NC_F, remove_array_loop.place_relative_jump(&z80_patchlist) | T_I8);
+        z80_patchlist.JR(
+            NC_F, remove_array_loop.place_relative_jump(&z80_patchlist) | T_I8);
         z80_patchlist.LD(HL, curr_rom.wWhichPokemon | T_U16);
         z80_patchlist.LD(HL_PTR, A);
         if (DONT_REMOVE_PKMN)
@@ -245,14 +280,18 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
         {
             z80_patchlist.CALL(curr_rom._RemovePokemon | T_U16);
         }
-        z80_patchlist.JR((remove_array_loop.place_relative_jump(&z80_patchlist) & 0xFF) | T_I8);
+        z80_patchlist.JR(
+            (remove_array_loop.place_relative_jump(&z80_patchlist) & 0xFF) |
+            T_I8);
 
         /* Save the current box */
         save_box.set_start(&z80_patchlist);
-        z80_patchlist.LD(B, (curr_rom.SaveSAVtoSRAM1 >> 16) | T_U8); // Load ROM Bank
+        z80_patchlist.LD(B,
+            (curr_rom.SaveSAVtoSRAM1 >> 16) | T_U8); // Load ROM Bank
         z80_patchlist.LD(HL, curr_rom.SaveSAVtoSRAM1 | T_U16);
         z80_patchlist.CALL(curr_rom.Bankswitch | T_U16);
-        z80_patchlist.LD(B, (curr_rom.SaveSAVtoSRAM1 >> 16) | T_U8); // Load ROM Bank
+        z80_patchlist.LD(B,
+            (curr_rom.SaveSAVtoSRAM1 >> 16) | T_U8); // Load ROM Bank
         z80_patchlist.LD(HL, curr_rom.SaveSAVtoSRAM2 | T_U16);
         z80_patchlist.CALL(curr_rom.Bankswitch | T_U16);
         z80_patchlist.JP(curr_rom.SoftReset | T_U16);
@@ -263,10 +302,11 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
         removal_array.insert_variable(&z80_payload);
         transfer_wait_string.insert_variable(&z80_patchlist);
 
-        // This payload works by placing Pokemon ID 0xFC's name in the stack, and causing a return to CD8E,
-        // which is part of the RNG seed. From there we can jump anywhere- and we choose to jump to D887,
-        // which is the rival's name. This code fixes the stack and jumps to the patchlist, which is where
-        // our final code is.
+        // This payload works by placing Pokemon ID 0xFC's name in the stack,
+        // and causing a return to CD8E, which is part of the RNG seed. From
+        // there we can jump anywhere- and we choose to jump to D887, which is
+        // the rival's name. This code fixes the stack and jumps to the
+        // patchlist, which is where our final code is.
 
         // Update all the pointers
         for (unsigned int i = 0; i < var_vector.size(); i++)
@@ -280,11 +320,14 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
 
         // Combine the vectors into the full payload
         u8 *cur_out = payload_buffer;
-        memcpy(cur_out, z80_rng_seed.data_vector.data(), z80_rng_seed.data_vector.size());
+        memcpy(cur_out, z80_rng_seed.data_vector.data(),
+            z80_rng_seed.data_vector.size());
         cur_out += z80_rng_seed.data_vector.size();
-        memcpy(cur_out, z80_payload.data_vector.data(), z80_payload.data_vector.size());
+        memcpy(cur_out, z80_payload.data_vector.data(),
+            z80_payload.data_vector.size());
         cur_out += z80_payload.data_vector.size();
-        memcpy(cur_out, z80_patchlist.data_vector.data(), z80_patchlist.data_vector.size());
+        memcpy(cur_out, z80_patchlist.data_vector.data(),
+            z80_patchlist.data_vector.size());
         cur_out += z80_patchlist.data_vector.size();
 
         return;
@@ -295,8 +338,13 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
         std::vector<z80_jump *> jump_vector;
         std::vector<z80_variable *> var_vector;
 
-        z80_asm_handler z80_rng_seed(0x0A, curr_rom.wSerialOtherGameboyRandomNumberListBlock + 8);
-        z80_asm_handler z80_payload(0x1AA, curr_rom.wSerialEnemyDataBlock - 8); // Subtracting 8 is because the data is shifted after patching, removing part of the enemy name. May change depending on language
+        z80_asm_handler z80_rng_seed(
+            0x0A, curr_rom.wSerialOtherGameboyRandomNumberListBlock + 8);
+        z80_asm_handler z80_payload(
+            0x1AA, curr_rom.wSerialEnemyDataBlock -
+                       8); // Subtracting 8 is because the data is shifted after
+                           // patching, removing part of the enemy name. May
+                           // change depending on language
         z80_asm_handler z80_patchlist(0xC9, curr_rom.wSerialEnemyMonsPatchList);
 
         z80_jump asm_start(&jump_vector);
@@ -309,8 +357,11 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
 
         z80_jump test_loop(&jump_vector);
 
-        z80_variable array_counter(&var_vector, 1, 0x00); // 1 byte to store the current array counter
-        z80_variable removal_array(&var_vector);          // 40 byte storage for list of Pokemon to remove, plus a permanent array terminator
+        z80_variable array_counter(
+            &var_vector, 1, 0x00); // 1 byte to store the current array counter
+        z80_variable removal_array(
+            &var_vector); // 40 byte storage for list of Pokemon to remove, plus
+                          // a permanent array terminator
 
         byte removal_array_data[41];
         for (int i = 0; i < 41; i++)
@@ -326,9 +377,10 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
         }
         removal_array.load_data(41, removal_array_data);
         z80_variable transfer_wait_string(&var_vector, 13, // SENDING DATA
-                                          0x92, 0x84, 0x8D, 0x83, 0x88, 0x8D, 0x86, 0x7F, 0x83, 0x80, 0x93, 0x80, 0x50);
+            0x92, 0x84, 0x8D, 0x83, 0x88, 0x8D, 0x86, 0x7F, 0x83, 0x80, 0x93,
+            0x80, 0x50);
         z80_variable custom_name(&var_vector, 11, // FENNEL
-                                 0x85, 0x84, 0x8D, 0x8D, 0x84, 0x8B, 0x50, 0x50, 0x50, 0x50, 0x50);
+            0x85, 0x84, 0x8D, 0x8D, 0x84, 0x8B, 0x50, 0x50, 0x50, 0x50, 0x50);
 
         // RNG Seed:
         // at 0x00, 0x0A in length
@@ -365,38 +417,82 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
         // Specific for each language
 
         // Mon #1 HP
-        z80_payload.add_bytes(2,
-                              0x00, 0x00);
+        z80_payload.add_bytes(2, 0x00, 0x00);
 
         // Mon #2 data
         z80_payload.index = 0x46;
-        int16_t YELLOW_CUSTOM_PTR = 0x0; // We Define this ROM dependent value in the cases
+        int16_t YELLOW_CUSTOM_PTR = 0x0;
+        0x0; // We Define this ROM dependent value in the cases
         switch (curr_rom.language)
         {
         case ENG_ID:
             YELLOW_CUSTOM_PTR = 0xCFD4;
-            z80_payload.add_bytes(9,
-                                  0x4E, 0x4E, 0x4E, 0x00, 0x01, 0x80, 0x80, YELLOW_CUSTOM_PTR >> 0, YELLOW_CUSTOM_PTR >> 8);
+            z80_payload.add_bytes(9, 0x4E, 0x4E, 0x4E, 0x00, 0x01, 0x80, 0x80,
+                YELLOW_CUSTOM_PTR >> 0, YELLOW_CUSTOM_PTR >> 8);
 
-            z80_payload.add_bytes(2, asm_start.place_pointer(&z80_payload), 0x00); // These values must not have any control characters in them.
+            z80_payload.add_bytes(2, asm_start.place_pointer(&z80_payload),
+                0x00); // These values must not have any
+                       // control characters in them.
 
-            z80_payload.add_bytes(33,
-                                  0x4E, 0x00, 0x00, 0x00, 0x00,
-                                  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80, 0x4E, 0x50, 0x00, 0x00,
-                                  0x00, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x59);
+            z80_payload.add_bytes(33, 0x4E, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x80,
+                0x4E, 0x50, 0x00, 0x00, 0x00, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E,
+                0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x59);
             break;
         case FRE_ID:
             YELLOW_CUSTOM_PTR = 0xCFDB;
-            z80_payload.add_bytes(12,
-                                  0x4E, 0x4E, 0x4E, 0x00, 0x01, 0x4E, 0x80, 0x80, 0x80, 0x80,
-                                  YELLOW_CUSTOM_PTR >> 0, YELLOW_CUSTOM_PTR >> 8);
+            z80_payload.add_bytes(12, 0x4E, 0x4E, 0x4E, 0x00, 0x01, 0x4E, 0x80,
+                0x80, 0x80, 0x80, YELLOW_CUSTOM_PTR >> 0,
+                YELLOW_CUSTOM_PTR >> 8);
 
-            z80_payload.add_bytes(15, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
+            z80_payload.add_bytes(15, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00);
 
-            z80_payload.add_bytes(2, asm_start.place_pointer(&z80_payload), 0x00); // These values must not have any control characters in them.
+            z80_payload.add_bytes(2, asm_start.place_pointer(&z80_payload),
+                0x00); // These values must not have any
+                       // control characters in them.
 
-            z80_payload.add_bytes(15,
-                                  0x4E, 0x59, 0x50, 0x00, 0x4E, 0x80, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E);
+            z80_payload.add_bytes(15, 0x4E, 0x59, 0x50, 0x00, 0x4E, 0x80, 0x4E,
+                0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E);
+            break;
+        case GER_ID:
+            YELLOW_CUSTOM_PTR = 0xCFD8;
+            z80_payload.add_bytes(7, 0x4E, 0x4E, 0x4E, 0x00, 0x01,
+                YELLOW_CUSTOM_PTR >> 0, YELLOW_CUSTOM_PTR >> 8);
+
+            z80_payload.add_bytes(
+                2, asm_start.place_pointer(&z80_payload), 0x00);
+
+            z80_payload.add_bytes(35, 0x4E, 0x80, 0x4E, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x4E, 0x4E, 0x00, 0x00, 0x00, 0x00, 0x4E, 0x4E, 0x4E,
+                0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x80, 0x59, 0x50);
+            break;
+        case ITA_ID:
+            YELLOW_CUSTOM_PTR = 0xCFDB;
+            z80_payload.add_bytes(27, 0x4E, 0x4E, 0x4E, 0x00, 0x01, 0x4E, 0x80,
+                0x80, 0X80, 0X80, YELLOW_CUSTOM_PTR >> 0,
+                YELLOW_CUSTOM_PTR >> 8, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0X00, 0x00);
+
+            z80_payload.add_bytes(
+                2, asm_start.place_pointer(&z80_payload), 0x00);
+
+            z80_payload.add_bytes(15, 0x4E, 0x59, 0x50, 0x00, 0x4E, 0x80, 0x4E,
+                0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x4E);
+            break;
+        case SPA_ID:
+            YELLOW_CUSTOM_PTR = 0xCFD8;
+            z80_payload.add_bytes(7, 0x4E, 0x4E, 0x4E, 0x00, 0x01,
+                YELLOW_CUSTOM_PTR >> 0, YELLOW_CUSTOM_PTR >> 8);
+
+            z80_payload.add_bytes(
+                2, asm_start.place_pointer(&z80_payload), 0x00);
+
+            z80_payload.add_bytes(35, 0x4E, 0x80, 0x4E, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                0x00, 0x4E, 0x4E, 0x00, 0x00, 0x00, 0x00, 0x4E, 0x4E, 0x4E,
+                0x4E, 0x4E, 0x4E, 0x4E, 0x4E, 0x5C, 0x59, 0x50);
             break;
         default:
             break;
@@ -409,8 +505,9 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
             z80_payload.add_byte(0x4E);
         }
 
-        // Now that the ACE has been set up, we can use the space between Mon #2's data and Mon #2's name to put our code.
-        // Since this space is larger than the patchlist, we will be able to fit everything in it
+        // Now that the ACE has been set up, we can use the space between Mon
+        // #2's data and Mon #2's name to put our code. Since this space is
+        // larger than the patchlist, we will be able to fit everything in it
 
         // Patchlist preamble
         // At 0x1B4 0x07 in length
@@ -428,18 +525,17 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
 
         asm_start.set_start(&z80_payload);
 
-        int16_t YELLOW_STOP_MUSIC = 0x0; // We Define this ROM dependent value in the cases
-        switch (curr_rom.language)
+        /* Block intended to stop the battle music
+         * TODO: Find out why it makes SPA Yellow "SENDING DATA" disappear,
+         * which was fine prior to this.
+         * Also, german battle music is already skipped (why ?), so we skip this
+         * statement if the Yellow version is a German one */
+        if (curr_rom.language != GER_ID)
         {
-        case ENG_ID:
-            YELLOW_STOP_MUSIC = 0x2233;
-            z80_payload.CALL(YELLOW_STOP_MUSIC | T_U16); // Stop the battle music
-            break;
-        case FRE_ID:
-            YELLOW_STOP_MUSIC = 0x222F;
-            z80_payload.CALL(YELLOW_STOP_MUSIC | T_U16); // Stop the battle music
-        default:
-            break;
+            // Send 0x01 value to 0xC002 address (wMuteAudioAndPauseMusic
+            // symbol, TimoVM's advice)
+            z80_payload.LD(A, 0x01 | T_U8);
+            z80_payload.LD(0xC002 | T_U16, A);
         }
 
         /* Write transferring message to screen: */
@@ -450,15 +546,19 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
         z80_payload.LD(B, curr_rom.textBorderHeight | T_U8);
         z80_payload.CALL(curr_rom.CableClub_TextBoxBorder | T_U16);
         z80_payload.LD(HL, curr_rom.transferStringLocation | T_U16);
-        z80_payload.LD(DE, transfer_wait_string.place_ptr(&z80_payload) | T_U16);
+        z80_payload.LD(
+            DE, transfer_wait_string.place_ptr(&z80_payload) | T_U16);
         z80_payload.CALL(curr_rom.placeString | T_U16);
-        z80_payload.JR(skip_enemy_write.place_relative_jump(&z80_payload) | T_I8); // This is a simple way to avoid the enemy name placement. Might have to modify for other languages
+        z80_payload.JR(skip_enemy_write.place_relative_jump(&z80_payload) |
+                       T_I8); // This is a simple way to avoid the enemy name
+        // placement. Might have to modify for other languages
 
         z80_payload.index = 0xCA;
 
         skip_enemy_write.set_start(&z80_payload);
 
-        // Reload the save data to remove any data that was overwritten during exploit entry
+        // Reload the save data to remove any data that was overwritten during
+        // exploit entry
         z80_payload.LD(B, (curr_rom.LoadCurrentBoxData >> 16) | T_U8);
         z80_payload.LD(HL, curr_rom.LoadCurrentBoxData | T_U16);
         z80_payload.CALL(curr_rom.Bankswitch | T_U16);
@@ -472,14 +572,17 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
             //      C is the counter
             send_packet_loop.set_start(&z80_payload);
 
-            z80_payload.LD(HL, (DATA_LOC + PACKET_SIZE + 3) | T_U16); // Load the next data location into HL
+            z80_payload.LD(HL,
+                (DATA_LOC + PACKET_SIZE + 3) |
+                    T_U16); // Load the next data location into HL
             z80_payload.LD(A, HLI_PTR);
             z80_payload.LD(H, HL_PTR);
             z80_payload.LD(L, A);
-            z80_payload.LD(DE, (DATA_LOC + 2) | T_U16); // Enemy Pokemon data, should be unused
-            z80_payload.XOR(A, A);                      // Clear the register
-            z80_payload.LD(B, A);                       // Clear B as well
-            z80_payload.LD(C, A);                       // Clear C as well
+            z80_payload.LD(DE,
+                (DATA_LOC + 2) | T_U16); // Enemy Pokemon data, should be unused
+            z80_payload.XOR(A, A);       // Clear the register
+            z80_payload.LD(B, A);        // Clear B as well
+            z80_payload.LD(C, A);        // Clear C as well
             z80_payload.PUSH(AF);
             packet_loop.set_start(&z80_payload);
             z80_payload.LD(B, 0x00 | T_U8); // Reset the flag byte
@@ -487,11 +590,13 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
             z80_payload.ADD(A, HL_PTR); // Add the current data to the checksum
             z80_payload.PUSH(AF);
             z80_payload.LD(A, 0xFE);
-            z80_payload.CP(A, HL_PTR);  // Compare the current data to 0xFE
-            z80_payload.LD(A, HLI_PTR); // Load HL's data into A for modification (if need be)
+            z80_payload.CP(A, HL_PTR); // Compare the current data to 0xFE
+            z80_payload.LD(A,
+                HLI_PTR); // Load HL's data into A for modification (if need be)
 
             // If HL's data is 0xFE
-            z80_payload.JR(NZ_F, fe_bypass.place_relative_jump(&z80_payload) | T_I8);
+            z80_payload.JR(
+                NZ_F, fe_bypass.place_relative_jump(&z80_payload) | T_I8);
             z80_payload.DEC(A);
             z80_payload.INC(B); // Set flag
 
@@ -506,9 +611,14 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
             z80_payload.INC(C);
             z80_payload.LD(A, DATA_PER_PACKET - 1);
             z80_payload.CP(A, C);
-            z80_payload.JR(NC_F, packet_loop.place_relative_jump(&z80_payload) | T_I8); // If all the data has been set, send the rest of the data
+            z80_payload.JR(NC_F,
+                packet_loop.place_relative_jump(&z80_payload) |
+                    T_I8); // If all the data has been set, send the
+                           // rest of the data
             z80_payload.POP(AF);
-            z80_payload.RES(7 | T_BIT, A); // Reset bit 7 of the checksum, guaranteeing that it will never be 0xFE
+            z80_payload.RES(7 | T_BIT,
+                A); // Reset bit 7 of the checksum,
+                    // guaranteeing that it will never be 0xFE
             z80_payload.LD(DE_PTR, A);
             z80_payload.INC(DE);
             z80_payload.LD(A, H);
@@ -519,14 +629,24 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
             z80_payload.LD(DE_PTR, A);
 
             /* Transfer box data packet: */
-            z80_payload.LD(A, (debug ? 0x02 : 0x01) | T_U8);                      // Make sure GB is the slave, master if debug
-            z80_payload.LDH((curr_rom.hSerialConnectionStatus & 0xFF) | T_U8, A); // Since hSerialConnectionStatus is at 0xFFxx we can use this method instead
+            z80_payload.LD(
+                A, (debug ? 0x02 : 0x01) |
+                       T_U8); // Make sure GB is the slave, master if debug
+            z80_payload.LDH((curr_rom.hSerialConnectionStatus & 0xFF) | T_U8,
+                A); // Since hSerialConnectionStatus is at 0xFFxx we
+                    // can use this method instead
             z80_payload.LD(HL, DATA_LOC | T_U16);
-            z80_payload.LD(HL_PTR, 0xFD | T_U8); // set the start of the data to 0xFD so Serial_ExchangeBytes is happy
+            z80_payload.LD(HL_PTR,
+                0xFD | T_U8); // set the start of the data to 0xFD
+                              // so Serial_ExchangeBytes is happy
             z80_payload.INC(HL);
-            z80_payload.LD(HL_PTR, 0x00 | T_U8);                  // add a 0x00 after the 0xFD to prevent further 0xFDs from being interpreted as part of the preamble
-            z80_payload.DEC(HL);                                  // Reset HL back so it points to 0xFD
-            z80_payload.LD(DE, (DATA_LOC + PACKET_SIZE) | T_U16); // location to put stored data
+            z80_payload.LD(HL_PTR,
+                0x00 |
+                    T_U8); // add a 0x00 after the 0xFD to prevent further 0xFDs
+                           // from being interpreted as part of the preamble
+            z80_payload.DEC(HL); // Reset HL back so it points to 0xFD
+            z80_payload.LD(DE, (DATA_LOC + PACKET_SIZE) |
+                                   T_U16); // location to put stored data
             z80_payload.LD(BC, PACKET_SIZE | T_U16);
             if (debug) // Don't call serialExchangeBytes if debug is enabled
             {
@@ -545,16 +665,20 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
             }
             else
             {
-                z80_payload.JR(NZ_F, send_packet_loop.place_relative_jump(&z80_payload) | T_I8);
+                z80_payload.JR(NZ_F,
+                    send_packet_loop.place_relative_jump(&z80_payload) | T_I8);
             }
         }
         /* Recieve the Pokemon to remove */
-        z80_payload.LD(HL, curr_rom.hSerialConnectionStatus | T_U16); // This can also be shortened
-        z80_payload.LD(HL_PTR, (debug ? 0x02 : 0x01) | T_U8);         // Make sure GB is the slave, master if debug
+        z80_payload.LD(HL, curr_rom.hSerialConnectionStatus |
+                               T_U16); // This can also be shortened
+        z80_payload.LD(HL_PTR,
+            (debug ? 0x02 : 0x01) |
+                T_U8); // Make sure GB is the slave, master if debug
         z80_payload.LD(HL, curr_rom.garbageDataLocation | T_U16);
         z80_payload.LD(DE, removal_array.place_ptr(&z80_payload) | T_U16);
         z80_payload.LD(BC, 0x001E | T_U16); // Preamble does *not* count
-        if (debug)                          // Don't add in the Serial_ExchangeBytes call if in debug
+        if (debug) // Don't add in the Serial_ExchangeBytes call if in debug
         {
             z80_payload.index += 3;
         }
@@ -565,7 +689,8 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
 
         /* Remove the transfered Pokemon */
         z80_payload.LD(HL, curr_rom.wRemoveMonFromBox | T_U16);
-        z80_payload.LD(HL_PTR, 0x01 | T_U8); // != 0x00 specifies the current box
+        z80_payload.LD(HL_PTR,
+            0x01 | T_U8); // != 0x00 specifies the current box
         remove_array_loop.set_start(&z80_payload);
         z80_payload.LD(A, array_counter.place_ptr(&z80_payload) | T_U16);
         z80_payload.LD(E, A);
@@ -580,7 +705,8 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
         z80_payload.CP(A, 0xFF | T_U8);
         z80_payload.JR(Z_F, save_box.place_relative_jump(&z80_payload) | T_I8);
         z80_payload.CP(A, B);
-        z80_payload.JR(NC_F, remove_array_loop.place_relative_jump(&z80_payload) | T_I8);
+        z80_payload.JR(
+            NC_F, remove_array_loop.place_relative_jump(&z80_payload) | T_I8);
         z80_payload.LD(HL, curr_rom.wWhichPokemon | T_U16);
         z80_payload.LD(HL_PTR, A);
         if (DONT_REMOVE_PKMN)
@@ -589,22 +715,28 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
         }
         else
         {
-            z80_payload.LD(B, (curr_rom._RemovePokemon >> 16) | T_U8); // Load ROM Bank
+            z80_payload.LD(B,
+                (curr_rom._RemovePokemon >> 16) | T_U8); // Load ROM Bank
             z80_payload.LD(HL, curr_rom._RemovePokemon | T_U16);
             z80_payload.CALL(curr_rom.Bankswitch | T_U16);
         }
-        z80_payload.JR((remove_array_loop.place_relative_jump(&z80_payload) & 0xFF) | T_I8);
+        z80_payload.JR(
+            (remove_array_loop.place_relative_jump(&z80_payload) & 0xFF) |
+            T_I8);
 
         // We need to move this in order to not corrupt the 4E's
-        z80_payload.JR((save_box.place_relative_jump(&z80_payload) & 0xFF) | T_I8);
+        z80_payload.JR(
+            (save_box.place_relative_jump(&z80_payload) & 0xFF) | T_I8);
         z80_payload.index = 0x17A;
 
         /* Save the current box */
         save_box.set_start(&z80_payload);
-        z80_payload.LD(B, (curr_rom.SaveSAVtoSRAM1 >> 16) | T_U8); // Load ROM Bank
+        z80_payload.LD(B,
+            (curr_rom.SaveSAVtoSRAM1 >> 16) | T_U8); // Load ROM Bank
         z80_payload.LD(HL, curr_rom.SaveSAVtoSRAM1 | T_U16);
         z80_payload.CALL(curr_rom.Bankswitch | T_U16);
-        z80_payload.LD(B, (curr_rom.SaveSAVtoSRAM2 >> 16) | T_U8); // Load ROM Bank
+        z80_payload.LD(B,
+            (curr_rom.SaveSAVtoSRAM2 >> 16) | T_U8); // Load ROM Bank
         z80_payload.LD(HL, curr_rom.SaveSAVtoSRAM2 | T_U16);
         z80_payload.CALL(curr_rom.Bankswitch | T_U16);
         z80_payload.JP(curr_rom.SoftReset | T_U16);
@@ -615,10 +747,11 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
         // At 0x1BB / 0x1DE, 0xC2 in length (0xC4, but the last 2 are unused)
         z80_patchlist.generate_patchlist(&z80_payload);
 
-        // This payload works by placing Pokemon ID 0xFC's name in the stack, and causing a return to CD8E,
-        // which is part of the RNG seed. From there we can jump anywhere- and we choose to jump to D887,
-        // which is the rival's name. This code fixes the stack and jumps to the patchlist, which is where
-        // our final code is.
+        // This payload works by placing Pokemon ID 0xFC's name in the stack,
+        // and causing a return to CD8E, which is part of the RNG seed. From
+        // there we can jump anywhere- and we choose to jump to D887, which is
+        // the rival's name. This code fixes the stack and jumps to the
+        // patchlist, which is where our final code is.
 
         // Update all the pointers
         for (unsigned int i = 0; i < var_vector.size(); i++)
@@ -632,11 +765,14 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
 
         // Combine the vectors into the full payload
         u8 *cur_out = payload_buffer;
-        memcpy(cur_out, z80_rng_seed.data_vector.data(), z80_rng_seed.data_vector.size());
+        memcpy(cur_out, z80_rng_seed.data_vector.data(),
+            z80_rng_seed.data_vector.size());
         cur_out += z80_rng_seed.data_vector.size();
-        memcpy(cur_out, z80_payload.data_vector.data(), z80_payload.data_vector.size());
+        memcpy(cur_out, z80_payload.data_vector.data(),
+            z80_payload.data_vector.size());
         cur_out += z80_payload.data_vector.size();
-        memcpy(cur_out, z80_patchlist.data_vector.data(), z80_patchlist.data_vector.size());
+        memcpy(cur_out, z80_patchlist.data_vector.data(),
+            z80_patchlist.data_vector.size());
         cur_out += z80_patchlist.data_vector.size();
 
         return;
@@ -671,8 +807,8 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
             //  CUSTOM EVENT SCRIPT:
             // Start with the table data
             int init_offset = offset;
-            insert_ext_copy_cmd(&offset, 0x11410E, 0xD930, 18); // Copy text pointers
-            insert_ext_copy_cmd(&offset, 0x00C120, 0xC140, 10); //
+            insert_ext_copy_cmd(&offset, 0x11410E, 0xD930, 18); // Copy text
+        pointers insert_ext_copy_cmd(&offset, 0x00C120, 0xC140, 10); //
             insert_ext_copy_cmd(&offset, 0x00C220, 0xC240, 16); //
             byte temp[] = {0xD0, 0x0A};
             insert_int_copy_cmd(&offset, 0xD4E9, 2, temp); //
@@ -684,9 +820,12 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
             insert_int_copy_cmd(&offset, 0xD5D3, 3, temp3); //
             byte temp4[] = {0x05};
             insert_int_copy_cmd(&offset, 0xD4E0, 1, temp4); //
-            byte temp5[] = {0x44, 0xD9, 0x08, 0x21, 0x54, 0xD9, 0xCD, 0x68, 0x31, 0x21, 0xB0, 0xC1, 0x00, 0x00, 0xC3, 0xD2, 0x23, 0x01, 0x00, 0x5E, 0xD8, 0xD8, 0xC9, 0xD8, 0xC9, 0xD8, 0xC9, 0xD8, 0xC9, 0x00, 0x8C, 0xB8, 0xB4, 0xB4, 0xE7, 0x50, 0x08, 0x3E, 0x83, 0xCD, 0x8B, 0x11, 0xCD, 0x3E, 0x37, 0xC3, 0xD2, 0x23};
-            insert_int_copy_cmd(&offset, 0xD942, 48, temp5); //
-            payload_storage[offset++] = 0xFF;
+            byte temp5[] = {0x44, 0xD9, 0x08, 0x21, 0x54, 0xD9, 0xCD, 0x68,
+        0x31, 0x21, 0xB0, 0xC1, 0x00, 0x00, 0xC3, 0xD2, 0x23, 0x01, 0x00, 0x5E,
+        0xD8, 0xD8, 0xC9, 0xD8, 0xC9, 0xD8, 0xC9, 0xD8, 0xC9, 0x00, 0x8C, 0xB8,
+        0xB4, 0xB4, 0xE7, 0x50, 0x08, 0x3E, 0x83, 0xCD, 0x8B, 0x11, 0xCD, 0x3E,
+        0x37, 0xC3, 0xD2, 0x23}; insert_int_copy_cmd(&offset, 0xD942, 48,
+        temp5); // payload_storage[offset++] = 0xFF;
 
 
             // call CloseSRAM
@@ -707,20 +846,28 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
         std::vector<z80_jump *> jump_vector;
         std::vector<z80_variable *> var_vector;
 
-        z80_asm_handler z80_rng_seed(0x0A, curr_rom.wSerialOtherGameboyRandomNumberListBlock);
-        z80_asm_handler z80_payload(0x1CD, curr_rom.wSerialEnemyDataBlock);      // wOTPartyData
-        z80_asm_handler z80_patchlist(0xC9, curr_rom.wSerialEnemyMonsPatchList); // wOTPatchLists
+        z80_asm_handler z80_rng_seed(
+            0x0A, curr_rom.wSerialOtherGameboyRandomNumberListBlock);
+        z80_asm_handler z80_payload(0x1CD,
+            curr_rom.wSerialEnemyDataBlock); // wOTPartyData
+        z80_asm_handler z80_patchlist(
+            0xC9, curr_rom.wSerialEnemyMonsPatchList); // wOTPatchLists
 
         /*
         Initally the entire wLinkData is copied into the data section at D26B.
         then, CopyBytes is called four times within link.skip_mail:
             1. It copies 0xB bytes from wLinkData to wOTPlayerName (D26B)
-            2. It copies 0x8 bytes from where the previous one ended (D280) to wOTPartyCount
-            3. It copies 0x2 bytes from where the previous one ended (D276) to wOTPlayerID
-            4. It copies 0x1A4 bytes from where the previous one ended (D288) to wOTPartyMons
+            2. It copies 0x8 bytes from where the previous one ended (D280) to
+        wOTPartyCount
+            3. It copies 0x2 bytes from where the previous one ended (D276) to
+        wOTPlayerID
+            4. It copies 0x1A4 bytes from where the previous one ended (D288) to
+        wOTPartyMons
 
-            8 bytes aren't overwritten when copied over (D278-D28F), which is where the weird offset comes from. These bytes are index 0xE through 0x15 in the original data
-            By having 9 bytes of 0xFD, the offset ends up working out correctly.
+            8 bytes aren't overwritten when copied over (D278-D28F), which is
+        where the weird offset comes from. These bytes are index 0xE through
+        0x15 in the original data By having 9 bytes of 0xFD, the offset ends up
+        working out correctly.
         */
 
         z80_jump asm_start(&jump_vector);
@@ -732,8 +879,11 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
         z80_jump fe_bypass(&jump_vector);
         z80_jump send_packet_loop(&jump_vector);
 
-        z80_variable array_counter(&var_vector, 1, 0x00); // 1 byte to store the current array counter
-        z80_variable removal_array(&var_vector);          // 40 byte storage for list of Pokemon to remove, plus a permanent array terminator
+        z80_variable array_counter(
+            &var_vector, 1, 0x00); // 1 byte to store the current array counter
+        z80_variable removal_array(
+            &var_vector); // 40 byte storage for list of Pokemon to remove, plus
+                          // a permanent array terminator
         byte removal_array_data[41];
         for (int i = 0; i < 41; i++)
         {
@@ -748,9 +898,10 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
         }
         removal_array.load_data(41, removal_array_data);
         z80_variable transfer_wait_string(&var_vector, 13, // SENDING DATA
-                                          0x92, 0x84, 0x8D, 0x83, 0x88, 0x8D, 0x86, 0x7F, 0x83, 0x80, 0x93, 0x80, 0x50);
+            0x92, 0x84, 0x8D, 0x83, 0x88, 0x8D, 0x86, 0x7F, 0x83, 0x80, 0x93,
+            0x80, 0x50);
         z80_variable custom_name(&var_vector, 11, // FENNEL
-                                 0x85, 0x84, 0x8D, 0x8D, 0x84, 0x8B, 0x50, 0x50, 0x50, 0x50, 0x50);
+            0x85, 0x84, 0x8D, 0x8D, 0x84, 0x8B, 0x50, 0x50, 0x50, 0x50, 0x50);
 
         // RNG Seed:
         // at 0x00, 0x0A in length
@@ -767,10 +918,12 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
         // Preamble/Rival name
         // At 0x00, 0x1C5 in length
         // Set to stored name
-        int distance = curr_rom.stack_overwrite_location - curr_rom.print_string_start;
+        int distance =
+            curr_rom.stack_overwrite_location - curr_rom.print_string_start;
         int remainder = distance % 40;
         distance /= 40; // Automatically truncated, so it won't overshoot
-        distance -= 8;  // There will be 8 extra bytes due to how the copy functions work.
+        distance -= 8;  // There will be 8 extra bytes due to how the copy
+                        // functions work.
 
         for (int i = 0; i < distance; i++)
         {
@@ -781,7 +934,8 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
             z80_payload.add_byte(0x80);
         }
 
-        z80_payload.index -= 1; // Prep for the direct jump, since it usually has to jump forward one for the ASM call
+        z80_payload.index -= 1; // Prep for the direct jump, since it usually
+                                // has to jump forward one for the ASM call
         jump_to_payload.place_direct_jump(&z80_payload);
         z80_payload.index += 3;
         z80_payload.add_byte(0x50); // String terminator
@@ -819,7 +973,8 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
         z80_patchlist.RST(0x10); // Bank switch
         z80_patchlist.CALL(curr_rom.CableClub_TextBoxBorder | T_U16);
         z80_patchlist.LD(HL, curr_rom.transferStringLocation | T_U16);
-        z80_patchlist.LD(DE, transfer_wait_string.place_ptr(&z80_patchlist) | T_U16);
+        z80_patchlist.LD(
+            DE, transfer_wait_string.place_ptr(&z80_patchlist) | T_U16);
 
         // call PlaceString
         z80_patchlist.CALL(curr_rom.placeString | T_U16);
@@ -836,15 +991,17 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
         //      C is the counter
         send_packet_loop.set_start(&z80_patchlist);
 
-        z80_patchlist.LD(HL, (DATA_LOC + PACKET_SIZE + 3) | T_U16); // Load the next data location into HL
+        z80_patchlist.LD(HL, (DATA_LOC + PACKET_SIZE + 3) |
+                                 T_U16); // Load the next data location into HL
         z80_patchlist.LD(A, HLI_PTR);
         z80_patchlist.LD(H, HL_PTR);
         z80_patchlist.LD(L, A);
 
-        z80_patchlist.LD(DE, (DATA_LOC + 2) | T_U16); // Enemy Pokemon data, should be unused
-        z80_patchlist.XOR(A, A);                      // Clear the register
-        z80_patchlist.LD(B, A);                       // Clear B as well
-        z80_patchlist.LD(C, A);                       // Clear C as well
+        z80_patchlist.LD(
+            DE, (DATA_LOC + 2) | T_U16); // Enemy Pokemon data, should be unused
+        z80_patchlist.XOR(A, A);         // Clear the register
+        z80_patchlist.LD(B, A);          // Clear B as well
+        z80_patchlist.LD(C, A);          // Clear C as well
         z80_patchlist.PUSH(AF);
         packet_loop.set_start(&z80_patchlist);
         z80_patchlist.LD(B, 0x00 | T_U8); // Reset the flag byte
@@ -852,11 +1009,13 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
         z80_patchlist.ADD(A, HL_PTR); // Add the current data to the checksum
         z80_patchlist.PUSH(AF);
         z80_patchlist.LD(A, 0xFE);
-        z80_patchlist.CP(A, HL_PTR);  // Compare the current data to 0xFE
-        z80_patchlist.LD(A, HLI_PTR); // Load HL's data into A for modification (if need be)
+        z80_patchlist.CP(A, HL_PTR); // Compare the current data to 0xFE
+        z80_patchlist.LD(
+            A, HLI_PTR); // Load HL's data into A for modification (if need be)
 
         // If HL's data is 0xFE
-        z80_patchlist.JR(NZ_F, fe_bypass.place_relative_jump(&z80_patchlist) | T_I8);
+        z80_patchlist.JR(
+            NZ_F, fe_bypass.place_relative_jump(&z80_patchlist) | T_I8);
         z80_patchlist.DEC(A);
         z80_patchlist.INC(B); // Set flag
 
@@ -871,9 +1030,14 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
         z80_patchlist.INC(C);
         z80_patchlist.LD(A, DATA_PER_PACKET - 1);
         z80_patchlist.CP(A, C);
-        z80_patchlist.JR(NC_F, packet_loop.place_relative_jump(&z80_patchlist) | T_I8); // If all the data has been set, send the rest of the data
+        z80_patchlist.JR(NC_F,
+            packet_loop.place_relative_jump(&z80_patchlist) |
+                T_I8); // If all the data has been set, send the
+                       // rest of the data
         z80_patchlist.POP(AF);
-        z80_patchlist.RES(7 | T_BIT, A); // Reset bit 7 of the checksum, guaranteeing that it will never be 0xFE
+        z80_patchlist.RES(7 | T_BIT,
+            A); // Reset bit 7 of the checksum,
+                // guaranteeing that it will never be 0xFE
         z80_patchlist.LD(DE_PTR, A);
         z80_patchlist.INC(DE);
         z80_patchlist.LD(A, H);
@@ -883,14 +1047,23 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
         z80_patchlist.LD(DE_PTR, A);
 
         /* Transfer box data packet: */
-        z80_patchlist.LD(A, (debug ? 0x02 : 0x01) | T_U8);                      // Make sure GB is the slave, master if debug
-        z80_patchlist.LDH((curr_rom.hSerialConnectionStatus & 0xFF) | T_U8, A); // Since hSerialConnectionStatus is at 0xFFxx we can use this method instead
+        z80_patchlist.LD(
+            A, (debug ? 0x02 : 0x01) |
+                   T_U8); // Make sure GB is the slave, master if debug
+        z80_patchlist.LDH((curr_rom.hSerialConnectionStatus & 0xFF) | T_U8,
+            A); // Since hSerialConnectionStatus is at 0xFFxx we
+                // can use this method instead
         z80_patchlist.LD(HL, DATA_LOC | T_U16);
-        z80_patchlist.LD(HL_PTR, 0xFD | T_U8); // set the start of the data to 0xFD so Serial_ExchangeBytes is happy
+        z80_patchlist.LD(HL_PTR,
+            0xFD | T_U8); // set the start of the data to 0xFD
+                          // so Serial_ExchangeBytes is happy
         z80_patchlist.INC(HL);
-        z80_patchlist.LD(HL_PTR, 0x00 | T_U8);                  // add a 0x00 after the 0xFD to prevent further 0xFDs from being interpreted as part of the preamble
-        z80_patchlist.DEC(HL);                                  // Reset HL back so it points to 0xFD
-        z80_patchlist.LD(DE, (DATA_LOC + PACKET_SIZE) | T_U16); // location to put stored data
+        z80_patchlist.LD(HL_PTR,
+            0x00 | T_U8); // add a 0x00 after the 0xFD to prevent further 0xFDs
+                          // from being interpreted as part of the preamble
+        z80_patchlist.DEC(HL); // Reset HL back so it points to 0xFD
+        z80_patchlist.LD(DE,
+            (DATA_LOC + PACKET_SIZE) | T_U16); // location to put stored data
         z80_patchlist.LD(BC, PACKET_SIZE | T_U16);
         if (debug) // Don't call serialExchangeBytes if debug is enabled
         {
@@ -903,15 +1076,19 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
 
         z80_patchlist.LD(A, (DATA_LOC + PACKET_SIZE + 3 + 1) | T_U16);
         z80_patchlist.CP(A, 0xFF);
-        z80_patchlist.JR(NZ_F, send_packet_loop.place_relative_jump(&z80_patchlist) | T_I8);
+        z80_patchlist.JR(
+            NZ_F, send_packet_loop.place_relative_jump(&z80_patchlist) | T_I8);
 
         // Recieve the Pokemon to remove
-        z80_patchlist.LD(HL, curr_rom.hSerialConnectionStatus | T_U16); // This can also be shortened
-        z80_patchlist.LD(HL_PTR, (debug ? 0x02 : 0x01) | T_U8);         // Make sure GB is the slave, master if debug
+        z80_patchlist.LD(HL, curr_rom.hSerialConnectionStatus |
+                                 T_U16); // This can also be shortened
+        z80_patchlist.LD(HL_PTR,
+            (debug ? 0x02 : 0x01) |
+                T_U8); // Make sure GB is the slave, master if debug
         z80_patchlist.LD(HL, curr_rom.garbageDataLocation | T_U16);
         z80_patchlist.LD(DE, removal_array.place_ptr(&z80_patchlist) | T_U16);
         z80_patchlist.LD(BC, 0x001E | T_U16); // Preamble does *not* count
-        if (debug)                            // Don't add in the Serial_ExchangeBytes call if in debug
+        if (debug) // Don't add in the Serial_ExchangeBytes call if in debug
         {
             z80_patchlist.index += 3;
         }
@@ -922,7 +1099,8 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
 
         // Remove the transfered Pokemon
         z80_patchlist.LD(HL, curr_rom.wRemoveMonFromBox | T_U16);
-        z80_patchlist.LD(HL_PTR, 0x01 | T_U8); // != 0x00 specifies the current box
+        z80_patchlist.LD(HL_PTR,
+            0x01 | T_U8); // != 0x00 specifies the current box
         remove_array_loop.set_start(&z80_patchlist);
         z80_patchlist.LD(A, array_counter.place_ptr(&z80_patchlist) | T_U16);
         z80_patchlist.LD(E, A);
@@ -935,9 +1113,11 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
         z80_patchlist.LD(B, A);
         z80_patchlist.LD(A, HL_PTR);
         z80_patchlist.CP(A, 0xFF | T_U8);
-        z80_patchlist.JR(Z_F, save_box.place_relative_jump(&z80_patchlist) | T_I8);
+        z80_patchlist.JR(
+            Z_F, save_box.place_relative_jump(&z80_patchlist) | T_I8);
         z80_patchlist.CP(A, B);
-        z80_patchlist.JR(NC_F, remove_array_loop.place_relative_jump(&z80_patchlist) | T_I8);
+        z80_patchlist.JR(
+            NC_F, remove_array_loop.place_relative_jump(&z80_patchlist) | T_I8);
         z80_patchlist.LD(HL, curr_rom.wWhichPokemon | T_U16);
         z80_patchlist.LD(HL_PTR, A);
         if (DONT_REMOVE_PKMN)
@@ -950,19 +1130,23 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
             z80_patchlist.RST(0x10); // Bank switch
             z80_patchlist.CALL(curr_rom._RemovePokemon | T_U16);
         }
-        z80_patchlist.JR(remove_array_loop.place_relative_jump(&z80_patchlist) | T_I8);
+        z80_patchlist.JR(
+            remove_array_loop.place_relative_jump(&z80_patchlist) | T_I8);
 
         save_box.set_start(&z80_patchlist);
-        z80_patchlist.JP(jump_to_party.place_direct_jump(&z80_patchlist) | T_U16); // jp pkmn list (because saving the box overwrites the data)
+        z80_patchlist.JP(
+            jump_to_party.place_direct_jump(&z80_patchlist) |
+            T_U16); // jp pkmn list (because saving the box overwrites the data)
 
         array_counter.insert_variable(&z80_patchlist);
         removal_array.insert_variable(&z80_payload);
         transfer_wait_string.insert_variable(&z80_patchlist);
 
-        // This payload works by placing Pokemon ID 0xFC's name in the stack, and causing a return to CD8E,
-        // which is part of the RNG seed. From there we can jump anywhere- and we choose to jump to D887,
-        // which is the rival's name. This code fixes the stack and jumps to the patchlist, which is where
-        // our final code is.
+        // This payload works by placing Pokemon ID 0xFC's name in the stack,
+        // and causing a return to CD8E, which is part of the RNG seed. From
+        // there we can jump anywhere- and we choose to jump to D887, which is
+        // the rival's name. This code fixes the stack and jumps to the
+        // patchlist, which is where our final code is.
 
         // Update all the pointers
         for (unsigned int i = 0; i < var_vector.size(); i++)
@@ -976,26 +1160,30 @@ void init_payload(byte *payload_buffer, const GB_ROM &curr_rom, int type, bool d
 
         // Combine the vectors into the full payload
         u8 *cur_out = payload_buffer;
-        memcpy(cur_out, z80_rng_seed.data_vector.data(), z80_rng_seed.data_vector.size());
+        memcpy(cur_out, z80_rng_seed.data_vector.data(),
+            z80_rng_seed.data_vector.size());
         cur_out += z80_rng_seed.data_vector.size();
-        memcpy(cur_out, z80_payload.data_vector.data(), z80_payload.data_vector.size());
+        memcpy(cur_out, z80_payload.data_vector.data(),
+            z80_payload.data_vector.size());
         cur_out += z80_payload.data_vector.size();
-        memcpy(cur_out, z80_patchlist.data_vector.data(), z80_patchlist.data_vector.size());
+        memcpy(cur_out, z80_patchlist.data_vector.data(),
+            z80_patchlist.data_vector.size());
         cur_out += z80_patchlist.data_vector.size();
 
         return;
 
-        // This payload works by placing Pokemon ID 0xFC's name in the stack, and causing a return to CD8E,
-        // which is part of the RNG seed. From there we can jump anywhere- and we choose to jump to D887,
-        // which is the rival's name. This code fixes the stack and jumps to the patchlist, which is where
-        // our final code is.
+        // This payload works by placing Pokemon ID 0xFC's name in the stack,
+        // and causing a return to CD8E, which is part of the RNG seed. From
+        // there we can jump anywhere- and we choose to jump to D887, which is
+        // the rival's name. This code fixes the stack and jumps to the
+        // patchlist, which is where our final code is.
     }
     memset(payload_buffer, 0x00, PAYLOAD_SIZE);
 };
 
 #if PAYLOAD_EXPORT_TEST
-#include <cstdio>
 #include "gb_rom_values/gb_rom_values.h"
+#include <cstdio>
 int main()
 {
     byte buffer[672] = {0};
