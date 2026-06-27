@@ -43,13 +43,14 @@
 #define colosseum 6
 #define cancel 7
 #define trade_data 8
-#define box_preamble 9
-#define box_data 10
-#define end1 11
-#define reboot 12
-#define remove_array_preamble 13
-#define send_remove_array 14
-#define end2 15
+#define mail_data 9
+#define box_preamble 10
+#define box_data 11
+#define end1 12
+#define reboot 13
+#define remove_array_preamble 14
+#define send_remove_array 15
+#define end2 16
 
 const int MODE = 1; // mode=0 will transfer pokemon data from pokemon.h
                     // mode=1 will copy pokemon party data being received
@@ -64,6 +65,7 @@ connection_state_t connection_state;
 
 int counter;
 int data_counter = 0;
+int mail_counter = 0;
 int gen_1_room_counter = 0;
 int gen;
 int trade_pokemon;
@@ -306,15 +308,30 @@ byte handleIncomingByte(byte in, byte *box_data_storage, byte *curr_payload, GB_
     {
       if (in == 0xFD)
       {
-        state = box_preamble;
-        init_packet = true;
+        if (curr_gb_rom->generation == 2){
+          state = mail_data;
+          mail_counter = 0;
+        }
+        else
+        {
+          state = box_preamble;
+        }
       }
-      else
-      {
-        return 0x00;
-      }
+      return 0x00;
     }
     return exchange_parties(in, curr_payload);
+  }
+
+  else if (state == mail_data)
+  {
+    #define MAIL_SIZE 390
+    if (mail_counter >= MAIL_SIZE)
+    {
+      state = box_preamble;
+      init_packet = true;
+    }
+    mail_counter++;
+    return 0x00;
   }
 
   else if (state == box_preamble)
