@@ -851,6 +851,7 @@ def write_text_bin_file(filename, dictionary, lang, section, context=None):
         "GB": 9999,
         "GENERAL": 2048,
         "CREDITS": 2048,
+        "TUTORIAL": 2048,
         "PKMN_NAMES": 3072,
     }
 

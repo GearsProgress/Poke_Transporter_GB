@@ -206,11 +206,52 @@ int credits()
 	}
 };
 
+int tutorial()
+{
+	u8 text_decompression_buffer[2048];
+	text_data_table tutorial_text_table(text_decompression_buffer);
+	int curr_tutorial_num = 0;
+
+	tutorial_text_table.decompress(get_compressed_text_table(TUTORIAL_INDEX));
+	bool update = true;
+
+	global_next_frame();
+	while (true)
+	{
+		if (update)
+		{
+			ptgb_write_textbox(tutorial_text_table.get_text_entry(curr_tutorial_num), true, false,
+							   TUTORIAL_INDEX, curr_tutorial_num, false);
+			update = false;
+		}
+
+		if (key_hit(KEY_B))
+		{
+			tte_erase_rect(0, 0, H_MAX, V_MAX);
+			hide_textbox();
+			erase_textbox_tiles();
+			return 0;
+		}
+		if (key_hit(KEY_LEFT) && curr_tutorial_num > 0)
+		{
+			curr_tutorial_num--;
+			update = true;
+		}
+		if (key_hit(KEY_RIGHT) && curr_tutorial_num < (tutorial_text_table.get_number_of_text_entries() - 1))
+		{
+			curr_tutorial_num++;
+			update = true;
+		}
+
+		global_next_frame();
+	}
+};
+
 int main_menu_loop()
 {
-#define NUM_MENU_OPTIONS 3
-	const uint8_t menu_options[NUM_MENU_OPTIONS] = {GENERAL_option_transfer, GENERAL_option_dreamdex, GENERAL_option_credits};
-	int return_values[NUM_MENU_OPTIONS] = {BTN_TRANSFER, BTN_POKEDEX, BTN_CREDITS};
+#define NUM_MENU_OPTIONS 4
+	const uint8_t menu_options[NUM_MENU_OPTIONS] = {GENERAL_option_transfer, GENERAL_option_dreamdex, GENERAL_option_credits, GENERAL_option_tutorial};
+	int return_values[NUM_MENU_OPTIONS] = {BTN_TRANSFER, BTN_POKEDEX, BTN_CREDITS, BTN_TUTORIAL};
 
 	uint8_t general_text_table_buffer[2048];
 	text_data_table general_text(general_text_table_buffer);
@@ -229,7 +270,7 @@ int main_menu_loop()
 				text_entry = general_text.get_text_entry(menu_options[i]);
 				int string_length = get_string_length(text_entry);
 				int x = ((240 - string_length) / 2);
-				tte_set_pos(x, ((i * (16 + 10)) + 70));
+				tte_set_pos(x, ((i * (16 + 6)) + 70));
 				if (i == curr_selection)
 				{
 					tte_set_ink(INK_WHITE);
@@ -433,6 +474,12 @@ int main(void)
 			BG_FLEX = (BG_FLEX & ~BG_PRIO_MASK) | BG_PRIO(3);
 			obj_hide_multi(ptgb_logo_l, 2);
 			credits();
+			break;
+		case (BTN_TUTORIAL):
+			tte_set_ink(INK_DARK_GREY);
+			BG_FLEX = (BG_FLEX & ~BG_PRIO_MASK) | BG_PRIO(3);
+			obj_hide_multi(ptgb_logo_l, 2);
+			tutorial();
 			break;
 		case (BTN_EVENTS):
 			obj_hide_multi(ptgb_logo_l, 2);
