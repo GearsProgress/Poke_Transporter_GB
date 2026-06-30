@@ -727,7 +727,8 @@ bool run_conditional(int index)
         link_animation_state(STATE_CONNECTION);
         if (g_debug_options.ignore_link_cable)
         {
-            // TODO - Fix debug data being added here
+            // TODO - Make this less hardcoded
+            //party_data.box.loadData(1, ENGLISH, gen1_rb_debug_box_data);
         }
         else
         {
@@ -795,10 +796,7 @@ bool run_conditional(int index)
             globalLinkCable.skipPrint = false;
             globalLinkCable.pauseOnPacket = true;
 
-            //globalLinkCable.LinkCommand_ReadMemorySection(0xDA80, party_data.box_data_array, 1122);
-            //globalLinkCable.LinkCommand_ModifySRAMAccess(true, 3);
-            globalLinkCable.LinkCommand_RunSecondaryPayload();
-            //globalLinkCable.LinkCommand_SoftReset();
+            globalLinkCable.LinkCommand_ReadMemorySection(0xDA80, party_data.box_data_array, 1122);
 
             party_data.box.loadData(globalLinkCable.gen, globalLinkCable.lang, party_data.box_data_array);
         }
@@ -884,6 +882,26 @@ bool run_conditional(int index)
         return true;
 
     case CMD_CONTINUE_LINK:
+    {
+        byte boxRemovalPayload[31];
+        int arrayIndex = 0;
+        for (int i = 29; i >= 0; i--)
+        {
+            if (party_data.box.getGen3Pokemon(i)->isValid)
+            {
+                party_data.box.removePokemon(i);
+                if (!(DONT_TRANSFER_POKEMON_AT_INDEX_X && i == POKEMON_INDEX_TO_SKIP))
+                {
+                    boxRemovalPayload[arrayIndex] = i;
+                    arrayIndex++;
+                }
+            }
+        }
+        boxRemovalPayload[arrayIndex] = 0xFF;
+        arrayIndex++;
+
+        globalLinkCable.LinkCommand_TransferPokemon(boxRemovalPayload, arrayIndex);
+    }
         return true;
 
     case CMD_BOX_MENU:
@@ -900,6 +918,7 @@ bool run_conditional(int index)
         return party_data.box.getNumValid() > 0 || g_debug_options.dont_hide_invalid_pkmn;
 
     case CMD_CANCEL_LINK:
+        globalLinkCable.LinkCommand_SoftReset();
         return true;
 
     case CMD_END_MISSINGNO:

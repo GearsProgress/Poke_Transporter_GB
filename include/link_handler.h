@@ -285,7 +285,7 @@ struct LinkPacket
     PayloadCommand command = CMD_NONE;
     byte argument[2] = {0x00, 0x00};
     u16 pointer = 0xC6DC;
-    byte packetID = 0;
+    byte packetID = 0x7F;
 
     // Incoming data
     LinkConnectionError latestError = NO_ERROR;
@@ -299,7 +299,7 @@ struct LinkPacket
 
     LinkPacket() {};
     LinkPacket(PayloadCommand cmd, byte arg1, byte arg2, u16 addr);
-    LinkPacket(byte *payload, int payloadSize);
+    void loadSecondaryPayload(byte *payload, int payloadSize);
 };
 
 class LinkConnection
@@ -332,9 +332,14 @@ public:
 
     // This MUST be a power of 2!
 #define LINK_PACKET_ARRAY_SIZE 4
+
+// This is lower than the max 0x7F so we can save that value for dummy packets
+#define LINK_PACKET_INDEX_MASK 0x3F
+
     LinkPacket linkPacketArr[LINK_PACKET_ARRAY_SIZE];
     LinkPacket *currOutgoingPacket;
     LinkPacket *currIncomingPacket;
+    LinkPacket dummyPacket = LinkPacket();
     byte linkPacketArrIndex = 0;
     u16 linkPacketDataAddr = 0;
     u16 linkPacketDataStart = 0;
@@ -358,10 +363,10 @@ public:
     // These are all the Link Commands
     bool LinkCommand_InitalizeConnection(bool waitForCompletion = true);
     bool LinkCommand_ReloadCurrentBox(bool waitForCompletion = true);
-    bool LinkCommand_TransferPokemon(bool waitForCompletion = true);
+    bool LinkCommand_TransferPokemon(byte payload[], int payloadLength, bool waitForCompletion = true);
     bool LinkCommand_SoftReset(bool waitForCompletion = true);
     bool LinkCommand_ModifySRAMAccess(bool enableSRAM, byte SRAMbank, bool waitForCompletion = true);
-    bool LinkCommand_RunSecondaryPayload(bool waitForCompletion = true);
+    bool LinkCommand_RunSecondaryPayload(byte payload[], int payloadLength, bool waitForCompletion = true);
     bool LinkCommand_ReadMemorySection(u16 dataPointer, byte outArray[], int outArraySize, bool waitForCompletion = true);
 
     // Some operations are too long to be done within the IRQ.
@@ -374,7 +379,8 @@ private:
     void loadCurrGameFromChecksum();
     bool allPacketsProcessed();
     bool processPacket();
-    void loadNextPacket();
+    void consumePacket();
+    bool prepareNextPacket();
     void waitForEnd();
 
     // Used for debug features
