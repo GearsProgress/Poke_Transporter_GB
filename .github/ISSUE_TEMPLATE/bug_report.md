@@ -8,9 +8,11 @@ assignees: ''
 ---
 
 **Describe the bug**
+
 A clear and concise description of what the bug is. Please be clear on the steps and order of the steps you performed. The slightest detail could make a difference sometimes.
 
 **Version Details**
+
 At the very least, tell us the version on which you experienced the issue.
 
 But if you would be so kind, we would appreciate a screenshot of a specific debug info screen:
@@ -20,6 +22,7 @@ Please go to the credits screen and press select. This will bring up a menu with
 The debug info screen would give us a bit more context on the specific game states of the games involved. That could help repeating the issue.
 
 **Save Files**
+
 Save files can extremely useful to help us repeat the issue when we're debugging. Especially from the gen 1/2 side of things. But sometimes the gen3 save could be needed/useful as well, depending on the problem.
 
 If you have any, please attach them here.
