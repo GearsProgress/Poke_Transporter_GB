@@ -20,8 +20,8 @@ Poké Transporter GB is a Multiboot program for the Game Boy Advance.
 
 There are 3 main ways to run the Poké Transporter GB ROM on a Game Boy Advance:
 - Use a program such as FIX94's [GBA Link Cable ROM Sender](https://github.com/FIX94/gba-link-cable-rom-sender) on a GameCube or Wii running Homebrew along with a GBA GameCube Link Cable
-- Upload the Multiboot ROM to a GBA Flash Cart, launch the game in Multiboot mode (often by holding L when selecting the ROM), and \*\*swap\*\* the Game Pak after the program loads.
-- Copy the loader.gba file to a GBA Flash Cart and \*\*swap\*\* the Game Pak after the program loads. This is useful for flashcarts that don't support launching multiboot roms directly (SuperCard SD for example), although it should work on any flashcart.
+- Upload the Multiboot ROM to a GBA Flash Cart, launch the game in Multiboot mode (often by holding L when selecting the ROM), and swap\* the Game Pak after the program loads.
+- Copy the loader.gba file to a GBA Flash Cart and swap\* the Game Pak after the program loads. This is useful for flashcarts that don't support launching multiboot roms directly (SuperCard SD for example), although it should work on any flashcart.
 
 EZ Flash Omega DE users, read [this](docs/EZ_Flash_Omega_DE.md)!
 
@@ -29,7 +29,7 @@ Please note that transfering Pokémon will only work with a Game Boy Color Link 
 
 *Due to Poké Transporter GB being built off of a niche intereaction between the GameBoy and Game Boy Advance, there is currently **no** emulator that supports it. The code is expected to run correctly, but there is no way to communicate between the GameBoy and Game Boy Advanced within an emulator context at this time. Please check back in the future for other options if you do not have the physcial hardware needed to run it!*
 
-\*\* Swapping to certain cartridges sometimes lead to the GBA resetting. (see [this issue ticket](https://github.com/Striaton-Lab-Team/Poke_Transporter_GB/issues/41)) Try it again with fresh/fully charged batteries. If that doesn't work, you can use PTGB using one of the methods listed [here](https://github.com/Striaton-Lab-Team/Poke_Transporter_GB/blob/latest-release/docs/EZ_Flash_Omega_DE.md#method-1-wiigamecube)
+\* Swapping to certain cartridges sometimes lead to the GBA resetting. (see [this issue ticket](https://github.com/Striaton-Lab-Team/Poke_Transporter_GB/issues/41)) Try it again with fresh/fully charged batteries. If that doesn't work, you can use PTGB using one of the methods listed [here](https://github.com/Striaton-Lab-Team/Poke_Transporter_GB/blob/latest-release/docs/EZ_Flash_Omega_DE.md#method-1-wiigamecube)
 
 ### 
 
