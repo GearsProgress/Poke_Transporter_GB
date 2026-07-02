@@ -20,15 +20,13 @@ int y_offset_direction = 1;
 #include "background.h"
 void load_background()
 {
-    int CBB = 2;
-    int SBB = 12;
     // Load palette
     tonccpy(pal_bg_mem, backgroundPal, backgroundPalLen);
     // Load tiles into CBB 0
-    LZ77UnCompVram(backgroundTiles, &tile_mem[CBB][0]);
+    LZ77UnCompVram(backgroundTiles, &tile_mem[TILESET_PTGB][TILESET_OFFSET_BACKDROP]);
     // Load map into SBB 0
-    LZ77UnCompVram(backgroundMap, &se_mem[SBB][0]);
-    BG_BACKDROP = BG_CBB(CBB) | BG_SBB(SBB) | BG_4BPP | BG_REG_32x32 | BG_PRIO(3);
+    LZ77UnCompVram(backgroundMap, &se_mem[TILEMAP_BACKDROP][0]);
+    BG_BACKDROP = BG_CBB(TILESET_PTGB) | BG_SBB(TILEMAP_BACKDROP) | BG_4BPP | BG_REG_32x32 | BG_PRIO(3);
 }
 
 void set_background_pal(int curr_rom_id, bool dark, bool fade)
@@ -124,108 +122,101 @@ void set_background_pal(int curr_rom_id, bool dark, bool fade)
 #include "menu_bars.h"
 #include "boxBG.h"
 
+struct flex_background {
+    const unsigned short *palette;
+    u16 palette_len;
+    u16 voffset;
+    const unsigned int *tileset;
+    const unsigned short *tilemap;
+};
+
+static const flex_background FLEX_BACKGROUNDS[] = {
+    [FLEXBG_OPENING] = {
+        openingBGPal,
+        openingBGPalLen,
+        96,
+        openingBGTiles,
+        openingBGMap,
+    },
+    [FLEXBG_FENNEL] = {
+        fennelBGPal,
+        fennelBGPalLen,
+        FENNEL_SHIFT,
+        fennelBGTiles,
+        fennelBGMap,
+    },
+    [FLEXBG_DEX] = {
+        dexBGPal,
+        dexBGPalLen,
+        0,
+        dexBGTiles,
+        dexBGMap,
+    },
+    [FLEXBG_MAIN_MENU] = {
+        pal_bg_mem,
+        backgroundPalLen,
+        0,
+        menu_barsTiles,
+        menu_barsMap,
+    },
+    [FLEXBG_BOX] = {
+        boxBGPal,
+        boxBGPalLen,
+        0,
+        boxBGTiles,
+        boxBGMap,
+    }
+};
+
 void load_flex_background(int background_id, int layer)
 {
-    int CBB = 3;  // CBB is the tiles that make up the sprite
-    int SBB = 31; // SSB is the array of which tile goes where
-
     if (curr_flex_background != background_id) // Only load the background if it isn't already loaded
     {
         // This prevents screen tearing on this frame
         global_next_frame();
         BG_FLEX = (BG_FLEX && !BG_PRIO_MASK) | BG_PRIO(3);
-
-        switch (background_id)
-        {
-        case (FLEXBG_OPENING):
-            // Load palette
-            tonccpy(pal_bg_mem + 32, openingBGPal, openingBGPalLen);
-            // Load tiles into CBB 0
-            LZ77UnCompVram(openingBGTiles, &tile_mem[CBB][0]);
-            // Give it a frame to uncompress the data
-            global_next_frame();
-            // Load map into SBB 0
-            LZ77UnCompVram(openingBGMap, &se_mem[SBB][0]);
-            REG_BG1VOFS = 96;
-            break;
-        case (FLEXBG_FENNEL):
-            // Load palette
-            tonccpy(pal_bg_mem + 32, fennelBGPal, fennelBGPalLen);
-            // Load tiles into CBB 0
-            LZ77UnCompVram(fennelBGTiles, &tile_mem[CBB][0]);
-            // Give it a frame to uncompress the data
-            global_next_frame();
-            // Load map into SBB 0
-            LZ77UnCompVram(fennelBGMap, &se_mem[SBB][0]);
-            REG_BG1VOFS = FENNEL_SHIFT;
-            break;
-        case (FLEXBG_DEX):
-            // Load palette
-            tonccpy(pal_bg_mem + 32, dexBGPal, dexBGPalLen);
-            // Load tiles into CBB 0
-            LZ77UnCompVram(dexBGTiles, &tile_mem[CBB][0]);
-            // Give it a frame to uncompress the data
-            global_next_frame();
-            // Load map into SBB 0
-            LZ77UnCompVram(dexBGMap, &se_mem[SBB][0]);
-            REG_BG1VOFS = 0;
-            break;
-        case (FLEXBG_MAIN_MENU):
-            // Load palette
-            tonccpy(pal_bg_mem + 32, pal_bg_mem, backgroundPalLen);
-            // Load tiles into CBB 0
-            LZ77UnCompVram(menu_barsTiles, &tile_mem[CBB][0]);
-            // Give it a frame to uncompress the data
-            global_next_frame();
-            // Load map into SBB 0
-            LZ77UnCompVram(menu_barsMap, &se_mem[SBB][0]);
-            REG_BG1VOFS = 0;
-            break;
-        case (FLEXBG_BOX):
-            // Load palette
-            tonccpy(pal_bg_mem + 32, boxBGPal, boxBGPalLen);
-            // Load tiles into CBB 0
-            LZ77UnCompVram(boxBGTiles, &tile_mem[CBB][0]);
-            // Give it a frame to uncompress the data
-            global_next_frame();
-            // Load map into SBB 0
-            LZ77UnCompVram(boxBGMap, &se_mem[SBB][0]);
-            REG_BG1VOFS = 0;
-            break;
+        const flex_background *flex = &FLEX_BACKGROUNDS[background_id];
+#ifdef DEBUG
+        // Check to make sure we aren't overflowing tile memory
+        if ((flex->tileset[0] >> 8) > (6 * 1024)) {
+            for (;;) {}
         }
+#endif
+        tonccpy(pal_bg_mem + 32, flex->palette, flex->palette_len);
+        // Load tiles
+        LZ77UnCompVram(flex->tileset, &tile_mem[TILESET_PTGB][TILESET_OFFSET_FLEXBG]);
+        // Give it a frame to uncompress the data
+        global_next_frame();
+        // Load map into the tilemap
+        LZ77UnCompVram(flex->tilemap, &se_mem[TILEMAP_FLEXBG][0]);
+        // Set vertical offset
+        REG_BG1VOFS = flex->voffset;
     }
 
-    BG_FLEX = BG_CBB(CBB) | BG_SBB(SBB) | BG_4BPP | BG_REG_32x32 | BG_PRIO(layer);
+    BG_FLEX = BG_CBB(TILESET_PTGB) | BG_SBB(TILEMAP_FLEXBG) | BG_4BPP | BG_REG_32x32 | BG_PRIO(layer);
     curr_flex_background = background_id;
 }
 #include "textBoxBG.h"
 void load_textbox_background()
 {
-    int CBB = 2;
-    int SBB = 20;
     // Load palette
     tonccpy(pal_bg_mem + 16, textBoxBGPal, textBoxBGPalLen);
     // Load tiles into CBB 0
-    LZ77UnCompVram(textBoxBGTiles, &tile_mem[CBB][38]);
+    LZ77UnCompVram(textBoxBGTiles, &tile_mem[TILESET_PTGB][TILESET_OFFSET_TEXTBOX]);
     // Load map into SBB 0
     reload_textbox_background();
 
     REG_BG2VOFS = 96;
-    BG_TEXTBOX = BG_CBB(CBB) | BG_SBB(SBB) | BG_4BPP | BG_REG_32x32 | BG_PRIO(3);
+    BG_TEXTBOX = BG_CBB(TILESET_PTGB) | BG_SBB(TILEMAP_TEXTBOX) | BG_4BPP | BG_REG_32x32 | BG_PRIO(3);
 }
 
 void reload_textbox_background()
 {
-    int SBB = 20;
-    LZ77UnCompVram(textBoxBGMap, &se_mem[SBB][0]);
-    for (int i = 0; i < 1024; i++)
-    {
-        se_mem[SBB][i] += 38; // This should be overflow protected, but if we're flipping back around we're already in trouble
-    }
+    LZ77UnCompVram(textBoxBGMap, &se_mem[TILEMAP_TEXTBOX][0]);
 }
 
 // tile ID, VH Flip, Palette Bank
-#define TILE_OFFSET 38
+#define TILE_OFFSET TILESET_OFFSET_TEXTBOX
 #define TILE_CLEAR ((0 + TILE_OFFSET) | (0b00 << 0xA) | (1 << 0xC))
 #define TILE_MID ((1 + TILE_OFFSET) | (0b00 << 0xA) | (1 << 0xC))
 #define TILE_N ((2 + TILE_OFFSET) | (0b00 << 0xA) | (1 << 0xC))
@@ -258,25 +249,24 @@ void reload_textbox_background()
 
 #define MENU_WIDTH 11 - 1 // Currently static
 
-static int TILE_SE_U_ARR[4] = {TILE_SE_0, TILE_SE_2, TILE_SE_4U, TILE_SE_6U};
-static int TILE_S_U_ARR[4] = {TILE_S_0, TILE_S_2, TILE_S_4U, TILE_S_6U};
-static int TILE_SW_U_ARR[4] = {TILE_SW_0, TILE_SW_2, TILE_SW_4U, TILE_SW_6U};
-static int TILE_SE_L_ARR[4] = {TILE_CLEAR, TILE_CLEAR, TILE_SE_4L, TILE_SE_6L};
-static int TILE_S_L_ARR[4] = {TILE_CLEAR, TILE_CLEAR, TILE_S_4L, TILE_S_6L};
-static int TILE_SW_L_ARR[4] = {TILE_CLEAR, TILE_CLEAR, TILE_SW_4L, TILE_SW_6L};
+static const u16 TILE_SE_U_ARR[4] = {TILE_SE_0, TILE_SE_2, TILE_SE_4U, TILE_SE_6U};
+static const u16 TILE_S_U_ARR[4] = {TILE_S_0, TILE_S_2, TILE_S_4U, TILE_S_6U};
+static const u16 TILE_SW_U_ARR[4] = {TILE_SW_0, TILE_SW_2, TILE_SW_4U, TILE_SW_6U};
+static const u16 TILE_SE_L_ARR[4] = {TILE_CLEAR, TILE_CLEAR, TILE_SE_4L, TILE_SE_6L};
+static const u16 TILE_S_L_ARR[4] = {TILE_CLEAR, TILE_CLEAR, TILE_S_4L, TILE_S_6L};
+static const u16 TILE_SW_L_ARR[4] = {TILE_CLEAR, TILE_CLEAR, TILE_SW_4L, TILE_SW_6L};
 
 void add_menu_box(int options, int startTileX, int startTileY)
 {
     add_menu_box(startTileX, startTileY, (MENU_WIDTH) * 8, (options * 10) + 16);
 }
 
+// TODO: clean this mess. manual masking used for now but there is a buffer overflow in how the bottom
+// row is calculated.
 void add_menu_box(int startTileX, int startTileY, int full_width, int full_height)
 {
-
     // We can't check the current offset very easily, so we'll just assume it's in the text box position.
     startTileY += 12;
-
-    int SBB = 20;
 
     int start = (32 * startTileY) + startTileX;
     int tiles = (full_height / 8) - 1; // For the flex edge
@@ -284,26 +274,26 @@ void add_menu_box(int startTileX, int startTileY, int full_width, int full_heigh
     full_width = (full_width / 8) - 1; // For the right edge
 
     // Corners
-    se_mem[SBB][start] = TILE_NW;
-    se_mem[SBB][start + full_width] = TILE_NE;
-    se_mem[SBB][start + (32 * (tiles))] = TILE_SW_U_ARR[vert_rem / 2];
-    se_mem[SBB][start + (32 * (tiles + 1))] = TILE_SW_L_ARR[vert_rem / 2];
-    se_mem[SBB][start + (32 * (tiles)) + full_width] = TILE_SE_U_ARR[vert_rem / 2];
-    se_mem[SBB][start + (32 * (tiles + 1)) + full_width] = TILE_SE_L_ARR[vert_rem / 2];
+    se_mem[TILEMAP_TEXTBOX][start] = TILE_NW;
+    se_mem[TILEMAP_TEXTBOX][start + full_width] = TILE_NE;
+    se_mem[TILEMAP_TEXTBOX][(start + (32 * (tiles))) & 0x3ff] = TILE_SW_U_ARR[vert_rem / 2];
+    se_mem[TILEMAP_TEXTBOX][(start + (32 * (tiles + 1))) & 0x3ff] = TILE_SW_L_ARR[vert_rem / 2];
+    se_mem[TILEMAP_TEXTBOX][(start + (32 * (tiles)) + full_width) & 0x3ff] = TILE_SE_U_ARR[vert_rem / 2];
+    se_mem[TILEMAP_TEXTBOX][(start + (32 * (tiles + 1)) + full_width) & 0x3ff] = TILE_SE_L_ARR[vert_rem / 2];
 
     // Top and bottom edge
     for (int i = 1; i < full_width; i++)
     {
-        se_mem[SBB][start + i] = TILE_N;
-        se_mem[SBB][start + ((32 * (tiles))) + i] = TILE_S_U_ARR[vert_rem / 2];
-        se_mem[SBB][start + ((32 * (tiles + 1))) + i] = TILE_S_L_ARR[vert_rem / 2];
+        se_mem[TILEMAP_TEXTBOX][start + i] = TILE_N;
+        se_mem[TILEMAP_TEXTBOX][(start + ((32 * (tiles))) + i) & 0x3ff] = TILE_S_U_ARR[vert_rem / 2];
+        se_mem[TILEMAP_TEXTBOX][(start + ((32 * (tiles + 1))) + i) & 0x3ff] = TILE_S_L_ARR[vert_rem / 2];
     }
 
     // Sides
     for (int i = 1; i < tiles; i++)
     {
-        se_mem[SBB][start + (32 * i) + full_width] = TILE_E;
-        se_mem[SBB][start + (32 * i)] = TILE_W;
+        se_mem[TILEMAP_TEXTBOX][(start + (32 * i) + full_width) & 0x3ff] = TILE_E;
+        se_mem[TILEMAP_TEXTBOX][(start + (32 * i)) & 0x3ff] = TILE_W;
     }
 
     // Middle
@@ -311,7 +301,7 @@ void add_menu_box(int startTileX, int startTileY, int full_width, int full_heigh
     {
         for (int y = 1; y < tiles; y++)
         {
-            se_mem[SBB][start + (32 * y) + x] = TILE_MID;
+            se_mem[TILEMAP_TEXTBOX][(start + (32 * y) + x) & 0x3ff] = TILE_MID;
         }
     }
 }
@@ -323,13 +313,12 @@ void erase_textbox_tiles()
     int startTileY = 12;
 
     int start = (32 * startTileY);
-    int SBB = 20;
 
     for (int x = 0; x < 30; x++)
     {
         for (int y = 0; y < 20; y++)
         {
-            se_mem[SBB][start + (32 * y) + x] = TILE_CLEAR;
+            se_mem[TILEMAP_TEXTBOX][start + (32 * y) + x] = TILE_CLEAR;
         }
     }
 }
@@ -770,47 +759,46 @@ void load_select_sprites(u8 game_id, u8 lang)
     tonccpy(pal_obj_mem + (GBA_CART_PAL * 16), gba_cart_palette, 32);
 }
 // tile ID, VH Flip, Palette Bank
-#define FEN_BLI_L00 (34 | (0b00 << 0xA) | (2 << 0xC))
-#define FEN_BLI_L01 (35 | (0b00 << 0xA) | (2 << 0xC))
-#define FEN_BLI_L10 (140 | (0b00 << 0xA) | (2 << 0xC))
-#define FEN_BLI_L11 (141 | (0b00 << 0xA) | (2 << 0xC))
-#define FEN_BLI_L20 (143 | (0b00 << 0xA) | (2 << 0xC))
-#define FEN_BLI_L21 (144 | (0b00 << 0xA) | (2 << 0xC))
-#define FEN_BLI_R0 (37 | (0b00 << 0xA) | (2 << 0xC))
-#define FEN_BLI_R1 (142 | (0b00 << 0xA) | (2 << 0xC))
-#define FEN_BLI_R2 (145 | (0b00 << 0xA) | (2 << 0xC))
+#define FEN_BLI_L00 ((TILESET_OFFSET_FLEXBG + 34) | (0b00 << 0xA) | (2 << 0xC))
+#define FEN_BLI_L01 ((TILESET_OFFSET_FLEXBG + 35) | (0b00 << 0xA) | (2 << 0xC))
+#define FEN_BLI_L10 ((TILESET_OFFSET_FLEXBG + 140) | (0b00 << 0xA) | (2 << 0xC))
+#define FEN_BLI_L11 ((TILESET_OFFSET_FLEXBG + 141) | (0b00 << 0xA) | (2 << 0xC))
+#define FEN_BLI_L20 ((TILESET_OFFSET_FLEXBG + 143) | (0b00 << 0xA) | (2 << 0xC))
+#define FEN_BLI_L21 ((TILESET_OFFSET_FLEXBG + 144) | (0b00 << 0xA) | (2 << 0xC))
+#define FEN_BLI_R0 ((TILESET_OFFSET_FLEXBG + 37) | (0b00 << 0xA) | (2 << 0xC))
+#define FEN_BLI_R1 ((TILESET_OFFSET_FLEXBG + 142) | (0b00 << 0xA) | (2 << 0xC))
+#define FEN_BLI_R2 ((TILESET_OFFSET_FLEXBG + 145) | (0b00 << 0xA) | (2 << 0xC))
 
 // tile ID, VH Flip, Palette Bank
-#define FEN_SPE_00 (46 | (0b00 << 0xA) | (2 << 0xC))
-#define FEN_SPE_01 (56 | (0b00 << 0xA) | (2 << 0xC))
-#define FEN_SPE_10 (146 | (0b00 << 0xA) | (2 << 0xC))
-#define FEN_SPE_11 (56 | (0b00 << 0xA) | (2 << 0xC))
-#define FEN_SPE_20 (147 | (0b00 << 0xA) | (2 << 0xC))
-#define FEN_SPE_21 (149 | (0b00 << 0xA) | (2 << 0xC))
-#define FEN_SPE_30 (148 | (0b00 << 0xA) | (2 << 0xC))
-#define FEN_SPE_31 (150 | (0b00 << 0xA) | (2 << 0xC))
+#define FEN_SPE_00 ((TILESET_OFFSET_FLEXBG + 46) | (0b00 << 0xA) | (2 << 0xC))
+#define FEN_SPE_01 ((TILESET_OFFSET_FLEXBG + 56) | (0b00 << 0xA) | (2 << 0xC))
+#define FEN_SPE_10 ((TILESET_OFFSET_FLEXBG + 146) | (0b00 << 0xA) | (2 << 0xC))
+#define FEN_SPE_11 ((TILESET_OFFSET_FLEXBG + 56) | (0b00 << 0xA) | (2 << 0xC))
+#define FEN_SPE_20 ((TILESET_OFFSET_FLEXBG + 147) | (0b00 << 0xA) | (2 << 0xC))
+#define FEN_SPE_21 ((TILESET_OFFSET_FLEXBG + 149) | (0b00 << 0xA) | (2 << 0xC))
+#define FEN_SPE_30 ((TILESET_OFFSET_FLEXBG + 148) | (0b00 << 0xA) | (2 << 0xC))
+#define FEN_SPE_31 ((TILESET_OFFSET_FLEXBG + 150) | (0b00 << 0xA) | (2 << 0xC))
 
 void fennel_blink(int frame)
 {
     bool missingno = get_missingno_enabled();
-    int SBB = 31; // SSB is the array of which tile goes where
     switch (frame)
     {
     case 0:
-        se_mem[SBB][12 + (5 * 32)] = missingno ? FEN_SPE_00 | FEN_BLI_L20 : FEN_BLI_L20;
-        se_mem[SBB][13 + (5 * 32)] = missingno ? FEN_SPE_01 | FEN_BLI_L21 : FEN_BLI_L21;
-        se_mem[SBB][15 + (5 * 32)] = missingno ? FEN_SPE_10 | FEN_BLI_R2 : FEN_BLI_R2;
+        se_mem[TILEMAP_FLEXBG][12 + (5 * 32)] = missingno ? FEN_SPE_00 | FEN_BLI_L20 : FEN_BLI_L20;
+        se_mem[TILEMAP_FLEXBG][13 + (5 * 32)] = missingno ? FEN_SPE_01 | FEN_BLI_L21 : FEN_BLI_L21;
+        se_mem[TILEMAP_FLEXBG][15 + (5 * 32)] = missingno ? FEN_SPE_10 | FEN_BLI_R2 : FEN_BLI_R2;
         break;
     case 1:
     case 3:
-        se_mem[SBB][12 + (5 * 32)] = missingno ? FEN_SPE_11 | FEN_BLI_L10 : FEN_BLI_L10;
-        se_mem[SBB][13 + (5 * 32)] = missingno ? FEN_SPE_20 | FEN_BLI_L11 : FEN_BLI_L11;
-        se_mem[SBB][15 + (5 * 32)] = missingno ? FEN_SPE_21 | FEN_BLI_R1 : FEN_BLI_R1;
+        se_mem[TILEMAP_FLEXBG][12 + (5 * 32)] = missingno ? FEN_SPE_11 | FEN_BLI_L10 : FEN_BLI_L10;
+        se_mem[TILEMAP_FLEXBG][13 + (5 * 32)] = missingno ? FEN_SPE_20 | FEN_BLI_L11 : FEN_BLI_L11;
+        se_mem[TILEMAP_FLEXBG][15 + (5 * 32)] = missingno ? FEN_SPE_21 | FEN_BLI_R1 : FEN_BLI_R1;
         break;
     case 2:
-        se_mem[SBB][12 + (5 * 32)] = missingno ? FEN_SPE_30 | FEN_BLI_L00 : FEN_BLI_L00;
-        se_mem[SBB][13 + (5 * 32)] = missingno ? FEN_SPE_31 | FEN_BLI_L01 : FEN_BLI_L01;
-        se_mem[SBB][15 + (5 * 32)] = missingno ? FEN_SPE_00 | FEN_BLI_R0 : FEN_BLI_R0;
+        se_mem[TILEMAP_FLEXBG][12 + (5 * 32)] = missingno ? FEN_SPE_30 | FEN_BLI_L00 : FEN_BLI_L00;
+        se_mem[TILEMAP_FLEXBG][13 + (5 * 32)] = missingno ? FEN_SPE_31 | FEN_BLI_L01 : FEN_BLI_L01;
+        se_mem[TILEMAP_FLEXBG][15 + (5 * 32)] = missingno ? FEN_SPE_00 | FEN_BLI_R0 : FEN_BLI_R0;
         break;
     }
 }
@@ -818,25 +806,24 @@ void fennel_blink(int frame)
 void fennel_speak(int frame)
 {
     bool missingno = get_missingno_enabled();
-    int SBB = 31; // SSB is the array of which tile goes where
     switch (frame)
     {
     case 0:
-        se_mem[SBB][14 + (6 * 32)] = missingno ? FEN_SPE_00 | FEN_BLI_L20 : FEN_SPE_00;
-        se_mem[SBB][14 + (7 * 32)] = missingno ? FEN_SPE_01 | FEN_BLI_L21 : FEN_SPE_01;
+        se_mem[TILEMAP_FLEXBG][14 + (6 * 32)] = missingno ? FEN_SPE_00 | FEN_BLI_L20 : FEN_SPE_00;
+        se_mem[TILEMAP_FLEXBG][14 + (7 * 32)] = missingno ? FEN_SPE_01 | FEN_BLI_L21 : FEN_SPE_01;
         break;
     case 1:
-        se_mem[SBB][14 + (6 * 32)] = missingno ? FEN_SPE_10 | FEN_BLI_R2 : FEN_SPE_10;
-        se_mem[SBB][14 + (7 * 32)] = missingno ? FEN_SPE_11 | FEN_BLI_L10 : FEN_SPE_11;
+        se_mem[TILEMAP_FLEXBG][14 + (6 * 32)] = missingno ? FEN_SPE_10 | FEN_BLI_R2 : FEN_SPE_10;
+        se_mem[TILEMAP_FLEXBG][14 + (7 * 32)] = missingno ? FEN_SPE_11 | FEN_BLI_L10 : FEN_SPE_11;
         break;
     case 2:
     case 4:
-        se_mem[SBB][14 + (6 * 32)] = missingno ? FEN_SPE_01 | FEN_BLI_L21 : FEN_SPE_20;
-        se_mem[SBB][14 + (7 * 32)] = missingno ? FEN_SPE_01 | FEN_BLI_L21 : FEN_SPE_21;
+        se_mem[TILEMAP_FLEXBG][14 + (6 * 32)] = missingno ? FEN_SPE_01 | FEN_BLI_L21 : FEN_SPE_20;
+        se_mem[TILEMAP_FLEXBG][14 + (7 * 32)] = missingno ? FEN_SPE_01 | FEN_BLI_L21 : FEN_SPE_21;
         break;
     case 3:
-        se_mem[SBB][14 + (6 * 32)] = missingno ? FEN_SPE_30 | FEN_BLI_L00 : FEN_SPE_30;
-        se_mem[SBB][14 + (7 * 32)] = missingno ? FEN_SPE_31 | FEN_BLI_L01 : FEN_SPE_31;
+        se_mem[TILEMAP_FLEXBG][14 + (6 * 32)] = missingno ? FEN_SPE_30 | FEN_BLI_L00 : FEN_SPE_30;
+        se_mem[TILEMAP_FLEXBG][14 + (7 * 32)] = missingno ? FEN_SPE_31 | FEN_BLI_L01 : FEN_SPE_31;
         break;
     }
 }

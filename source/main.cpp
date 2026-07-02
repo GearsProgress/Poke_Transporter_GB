@@ -383,6 +383,8 @@ static void __attribute__((noinline)) show_intro()
 
 int main(void)
 {
+	// Clear VRAM. We use it as extra BSS.
+	RegisterRamReset(RESET_VRAM);
 	malloc_init_default_pool();
 	initialization_script();
 
