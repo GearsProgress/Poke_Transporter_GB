@@ -2,7 +2,6 @@
 #define SCRIPT_ARRAY_H
 
 #include "script_obj.h"
-#include "pokemon_party.h"
 #include "rom_data.h"
 #include "translated_text.h"
 

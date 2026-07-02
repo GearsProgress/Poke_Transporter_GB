@@ -14,9 +14,10 @@
 #include "translated_text.h"
 #include "link_handler.h"
 #include "text_tables.h"
+#include "gb_rom_values/gb_rom_values.h"
 
 int last_error;
-Pokemon_Party party_data;
+PokeBox box;
 
 Select_Menu langs(false, LANG_MENU, 18, 0);
 Select_Menu games(false, CART_MENU, 18, 0);
@@ -644,8 +645,6 @@ void populate_game_menu(int lang)
 bool run_conditional(int index)
 {
     // Here is most of the logic that drives what lines show up where. It's probably not the best way to code it, but it works
-    int game;
-    int lang;
     bool ret;
     switch (index)
     {
@@ -675,7 +674,7 @@ bool run_conditional(int index)
         return get_tutorial_flag() && !g_debug_options.force_tutorial;
 
     case COND_NEW_POKEMON:
-        return party_data.get_has_new_pkmn();
+        return box.getHasNewPkmn();
 
     case COND_IS_HOENN_RS:
         return curr_GBA_rom.is_ruby_sapphire();
@@ -693,7 +692,7 @@ bool run_conditional(int index)
         return true;
 
     case COND_CHECK_MYTHIC:
-        return party_data.get_contains_mythical();
+        return box.getContainsMythical();
 
     case COND_CHECK_DEX:
         if (globalLinkCable.gen == 1)
@@ -709,13 +708,13 @@ bool run_conditional(int index)
         return globalLinkCable.gen == 1;
 
     case COND_SOME_INVALID_PKMN:
-        return party_data.get_contains_invalid();
+        return box.getContainsInvalid();
 
     case COND_IS_HOENN_E:
         return curr_GBA_rom.gamecode == EMERALD_ID;
 
     case COND_CHECK_MISSINGNO:
-        if (party_data.get_contains_missingno())
+        if (box.getContainsMissingNo())
         {
             set_missingno(true);
             return true;
@@ -728,7 +727,7 @@ bool run_conditional(int index)
         if (g_debug_options.ignore_link_cable)
         {
             // TODO - Make this less hardcoded
-            //party_data.box.loadData(1, ENGLISH, gen1_rb_debug_box_data);
+            //box.loadData(1, ENGLISH, gen1_rb_debug_box_data);
         }
         else
         {
@@ -796,9 +795,11 @@ bool run_conditional(int index)
             globalLinkCable.skipPrint = false;
             globalLinkCable.pauseOnPacket = true;
 
-            globalLinkCable.LinkCommand_ReadMemorySection(0xDA80, party_data.box_data_array, 1122);
+            byte boxDataArray[1122];
+            
+            globalLinkCable.LinkCommand_ReadMemorySection(0xDA80, boxDataArray, 1122);
 
-            party_data.box.loadData(globalLinkCable.gen, globalLinkCable.lang, party_data.box_data_array);
+            box.loadData(globalLinkCable.gen, globalLinkCable.lang, boxDataArray);
         }
         reload_textbox_background();
         load_flex_background(FLEXBG_FENNEL, 2);
@@ -807,7 +808,7 @@ bool run_conditional(int index)
         return true;
 
     case CMD_IMPORT_POKEMON:
-        inject_mystery(&party_data.box);
+        inject_mystery(&box);
         return true;
 
     case CMD_BACK_TO_MENU:
@@ -836,29 +837,13 @@ bool run_conditional(int index)
         return true;
 
     case CMD_LANG_MENU:
-        populate_lang_menu();
-        lang = langs.select_menu_main();
-        // We have our choice, we should release
-        // the memory of the options since we won't need them anymore
-        langs.clear_options();
-        if (lang == BUTTON_CANCEL)
-        {
-            return false;
-        }
-        games.set_lang(static_cast<u8>(lang));
-        party_data.set_lang(static_cast<u8>(lang));
+        // No longer used
         return true;
+
     case CMD_GAME_MENU:
-        populate_game_menu(party_data.get_lang());
-        game = games.select_menu_main();
-        // We have our choice, we should release
-        // the memory of the options since we won't need them anymore
-        games.clear_options();
-        if (game == BUTTON_CANCEL)
-        {
-            return false;
-        }
+        // No longer used
         return true;
+
     case CMD_SLIDE_PROF_LEFT:
         for (int i = 0; i <= (8 * 7); i += 2)
         {
@@ -887,9 +872,9 @@ bool run_conditional(int index)
         int arrayIndex = 0;
         for (int i = 29; i >= 0; i--)
         {
-            if (party_data.box.getGen3Pokemon(i)->isValid)
+            if (box.getGen3Pokemon(i)->isValid)
             {
-                party_data.box.removePokemon(i);
+                box.removePokemon(i);
                 if (!(DONT_TRANSFER_POKEMON_AT_INDEX_X && i == POKEMON_INDEX_TO_SKIP))
                 {
                     boxRemovalPayload[arrayIndex] = i;
@@ -906,16 +891,16 @@ bool run_conditional(int index)
 
     case CMD_BOX_MENU:
         hide_textbox();
-        ret = (box_viewer.box_main(&party_data.box) == CONFIRM_BUTTON);
+        ret = (box_viewer.box_main(&box) == CONFIRM_BUTTON);
         show_textbox();
         return ret;
 
     case CMD_MYTHIC_MENU:
-        party_data.set_mythic_stabilization(yes_no_menu.button_main());
+        box.stabilize_mythical = yes_no_menu.button_main();
         return true;
 
     case CMD_IS_A_VALID_PKMN:
-        return party_data.box.getNumValid() > 0 || g_debug_options.dont_hide_invalid_pkmn;
+        return box.getNumValid() > 0 || g_debug_options.dont_hide_invalid_pkmn;
 
     case CMD_CANCEL_LINK:
         globalLinkCable.LinkCommand_SoftReset();

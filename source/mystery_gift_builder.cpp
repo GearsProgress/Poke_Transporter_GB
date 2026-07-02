@@ -1,7 +1,6 @@
 #include <tonc.h>
 #include "libstd_replacements.h"
 #include "mystery_gift_builder.h"
-#include "pokemon_party.h"
 #include "pokemon_data.h"
 #include "rom_data.h"
 #include "translated_text.h"

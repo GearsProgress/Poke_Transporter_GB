@@ -2,7 +2,6 @@
 #define SPRITE_DATA_H
 
 #include <tonc.h>
-#include "pokemon_party.h"
 #include "rom_data.h"
 #include "box_menu.h"
 #include "link_handler.h"

@@ -16,6 +16,7 @@
 #include "FileContainerReader.h"
 #include "text_tables.h"
 #include "translated_text.h"
+#include "gb_rom_values/base_gb_rom_struct.h"
 
 #include "GB_Payloads_chunk0_lz10_bin.h"
 #include "GB_Payloads_chunk1_lz10_bin.h"

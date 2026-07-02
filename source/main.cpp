@@ -8,7 +8,6 @@
 #include "random.h"
 #include "text_engine.h"
 #include "background_engine.h"
-#include "pokemon_party.h"
 #include "pokemon_data.h"
 #include "script_array.h"
 #include "sprite_data.h"

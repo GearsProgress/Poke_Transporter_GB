@@ -3,8 +3,8 @@
 
 #include <tonc.h>
 #include "libraries/gba-link-connection/LinkSPI.hpp"
-#include "pokemon_party.h"
 #include "GB_Payloads.h"
+#include "typeDefs.h"
 
 #define SPI_TEXT_OUT_ARRAY_ELEMENT_SIZE 64
 

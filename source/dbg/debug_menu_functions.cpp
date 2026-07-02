@@ -15,6 +15,7 @@
 #include "Gen3Pokemon.h"
 #include "pokemon_data.h"
 #include "translated_text.h"
+#include "dbg/debug_mode.h"
 
 #define LEFT 8
 #define RIGHT (H_MAX - LEFT)
