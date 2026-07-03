@@ -175,6 +175,35 @@ int __attribute__((noinline)) pokedex_loop()
                 delay++;
             }
         }
+        else if (key_hit(KEY_LEFT) || key_hit(KEY_RIGHT))
+        {
+            dex_shift += key_tri_horz() * 7;
+            update = true;
+        }
+        else if (key_held(KEY_LEFT) || key_held(KEY_RIGHT))
+        {
+            if (delay > SPEED_DELAY)
+            {
+                if ((get_frame_count() % speed == 0))
+                {
+                    if (count > 3 && speed >= 5)
+                    {
+                        speed = speed / 2;
+                        count = 0;
+                    }
+                    else
+                    {
+                        count++;
+                    }
+                    dex_shift += key_tri_horz() * 7;
+                    update = true;
+                }
+            }
+            else
+            {
+                delay++;
+            }
+        }
         else
         {
             speed = 20;

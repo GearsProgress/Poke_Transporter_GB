@@ -234,6 +234,8 @@ charArrays = {
             ["{MLE}", [0xFC, 0x01, 0x08]],
             ["{SPA}", [0xFC]],
             ["{PLR}", [0xFD, 0x01]],
+            ["{VLN}", [0xFD, 0x0A]], # Displays MAXIE in Ruby or ARCHIE in Sapphire and Emerald 
+            ["{VLN2}", [0xFD, 0x0B]], # Displays ARCHIE in Ruby or MAXIE in Sapphire and Emerald. In our case, have purpose in Emerlad only.
             ["{NEW}", [0xFE]],
             ["{END}", [0xFF]],
         ]
@@ -250,6 +252,8 @@ charArrays = {
             ["{SPA}", [0xFC]],
             ["{FPC}", [0xFC, 0x06, 0x05]],
             ["{PLR}", [0xFD, 0x01]],
+            ["{VLN}", [0xFD, 0x0A]], # Displays MAXIE in Ruby or ARCHIE in Sapphire and Emerald 
+            ["{VLN2}", [0xFD, 0x0B]], # Displays ARCHIE in Ruby or MAXIE in Sapphire and Emerald. Have purpose in Emerlad only.
             ["{NEW}", [0xFE]],
             ["{END}", [0xFF]],
         ]
@@ -871,6 +875,32 @@ def write_text_file_container(filename, dictionary, lang, section, context=None)
         defLine = "@chunkSize=" + str(get_file_container_chunk_size(section)) + "\n"
         defFile.write(defLine.encode("utf-8"))
         
+def write_text_bin_file(filename, dictionary, lang, section, context=None):
+    MAX_BIN_SIZES = {
+        "PTGB": 6144,
+        "RSEFRLG": 3444,
+        "GB": 9999,
+        "GENERAL": 2048,
+        "CREDITS": 2048,
+        "TUTORIAL": 2048,
+        "PKMN_NAMES": 3072,
+    }
+
+    Path(filename).parent.mkdir(parents=True, exist_ok=True)
+    with open(filename, 'wb') as binFile:
+        # Let the first byte indicate the number of entries
+        dict_size = len(dictionary)
+        # We need to store 2 bytes instead of one, because not aligning the data to 16 bits will cause corruption on the gba.
+        binFile.write(bytes([dict_size & 0xFF, (dict_size >> 8) & 0xFF]))
+        # After this initial byte, we will read the offset (16 bit) of each line (relative to the last index byte)
+        index = bytearray(len(dictionary) * 2)
+        # bindata will contain the binary data of each entry
+        bindata = bytearray()
+        current_offset = 0
+
+        num = 0
+        # Append every line's binary data to bindata
+        # keep an index of the binary offset within bindata at which each line starts
         for key, line in dictionary.items():
             with open(buildpath + str(key), 'wb') as lineFile:
                 dictionary[key] = convert_item(line, lang, context)

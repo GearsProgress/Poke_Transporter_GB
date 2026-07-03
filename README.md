@@ -11,7 +11,7 @@ Pokémon Transfered using Poké Transporter GB *will* be removed from Red, Blue,
 
 Currently the only release is in English. Releases supporting other languages is planned for the near future.
 
-Currently English versions of Red, Blue, Yellow, Gold, Silver, Crystal are supported- plus English, Spanish, German, Italian, French versions of Ruby, Sapphire, FireRed, LeafGreen, and Emerald. Compatibility for other languages is currently in development and will be added in the near future.
+English, French, German, Italian and Spanish games are supported.
 
 Poke Transporter GB supports original gen III cartridges AND the gen III games in mode B on the [EZ Flash Omega Definitive Edition flashcart](docs/EZ_Flash_Omega_DE.md).
 
@@ -97,7 +97,7 @@ One of my favorite aspects of the Pokémon franchise is the ability to send Pok�
 - [Serebii](https://www.serebii.net/)
 - [PokeAPI](https://pokeapi.co/)
 - [Glitch City Wiki](https://glitchcity.wiki/wiki/Main_Page)
-  
+
 # Discord Community Assistance:
 - [Hex Maniac Advance Development](https://discord.com/invite/x9eQuBg)
 - [GBAdev](https://discord.gg/ctGSNxRkg2)

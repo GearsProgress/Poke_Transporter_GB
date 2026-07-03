@@ -14,9 +14,6 @@
 #include "FileContainerReader.h"
 #include "text_tables.h"
 
-#define TEXT_CBB 0
-#define TEXT_SBB 10
-
 script_obj curr_line;
 uint char_index;
 uint line_char_index;
@@ -60,17 +57,17 @@ void init_text_engine()
     // Load the TTE
     // tte_init_se(3, BG_CBB(TEXT_CBB) | BG_SBB(TEXT_SBB) | BG_PRIO(0), 0, CLR_WHITE, 14, &japanese_smallFont, NULL);
 
-    tte_init_chr4c(3,                                   // BG 3
-                   BG_CBB(TEXT_CBB) | BG_SBB(TEXT_SBB), // Charblock 0; screenblock 10
-                   0xF000,                              // Screen-entry offset
-                   bytes2word(                          // Color attributes:
-                       13,                              // Text color
-                       15,                              // Shadow color
-                       0,                               // Paper
-                       0),                              // Special
-                   CLR_WHITE,                           // White text
-                   BUILD_FONT,                          // Custom font
-                   NULL                                 // Use default chr4 renderer
+    tte_init_chr4c(3,                                           // BG 3
+                   BG_CBB(TILESET_TEXT) | BG_SBB(TILEMAP_TEXT), // Charblock 0; screenblock 10
+                   0xF000,                                      // Screen-entry offset
+                   bytes2word(                                  // Color attributes:
+                       13,                                      // Text color
+                       15,                                      // Shadow color
+                       0,                                       // Paper
+                       0),                                      // Special
+                   CLR_WHITE,                                   // White text
+                   BUILD_FONT,                                  // Custom font
+                   NULL                                         // Use default chr4 renderer
     );
     tte_init_con();
 
@@ -170,7 +167,12 @@ int text_loop(int script)
                 }
                 else if (key_hit(KEY_UP))
                 {
-                    text_section = (text_section + 1) % NUM_TEXT_SECTIONS;
+                    if (text_section == 0) {
+                        text_section = NUM_TEXT_SECTIONS - 1;
+                    }
+                    else {
+                        text_section = ((text_section + (NUM_TEXT_SECTIONS - 1)) % NUM_TEXT_SECTIONS);
+                    }
                     update_text = true;
                 }
                 else if (key_hit(KEY_DOWN))
@@ -268,7 +270,10 @@ int ptgb_write_textbox(const byte *text, bool instant, bool waitForUser,
     int out = ptgb_write(text, instant, 9999, text_box_type_tables[text_section][text_key]); // This is kinda silly but it'll work.
     if (waitForUser)
     {
-        wait_for_user_to_continue();
+        
+        int right = H_MAX - 5;
+        int bottom = V_MAX - 5;
+        wait_for_user_to_continue(right, bottom);
     }
     if (eraseMainBox)
     {
@@ -288,11 +293,11 @@ int ptgb_write_simple(const byte *text, bool instant)
 // Re-implementing TTE's "tte_write" to use the gen 3 character encoding chart
 int ptgb_write(const byte *text, bool instant, int length, int box_type)
 {
-    int left, top, right, bottom;
-
     instant = instant || g_debug_options.instant_text_speed;
     if (text == NULL)
         return 0;
+
+    int left, top, right, bottom;
 
     if (box_type == -1)
     {
@@ -327,7 +332,7 @@ int ptgb_write(const byte *text, bool instant, int length, int box_type)
                 {
                     tc->drawgProc(0x79);
                 }
-                wait_for_user_to_continue();
+                wait_for_user_to_continue(right, bottom);
                 scroll_text(instant, tc, true, left, top, right, bottom);
                 break;
             case 0xFB:
@@ -335,7 +340,7 @@ int ptgb_write(const byte *text, bool instant, int length, int box_type)
                 {
                     tc->drawgProc(0xB9);
                 }
-                wait_for_user_to_continue();
+                wait_for_user_to_continue(right, bottom);
                 tte_erase_rect(left, top, right, bottom);
                 tte_set_pos(left, top);
                 break;
@@ -424,7 +429,7 @@ int ptgb_write_debug(const u16 *charset, const char *text, bool instant)
     return ptgb_write_simple(temp_holding, instant);
 }
 
-void wait_for_user_to_continue()
+void wait_for_user_to_continue(int right, int bottom)
 {
     if (get_curr_flex_background() == FLEXBG_FENNEL)
     {
@@ -438,11 +443,29 @@ void wait_for_user_to_continue()
             fennel_speak(0);
         }
     }
+
+    //obj_set_pos(scroll_indicator_red, right-16, bottom-11);
+    //obj_set_pos(scroll_indicator_gray, right-16, bottom-10);
+    //obj_unhide(scroll_indicator_red, 0);
+    
     VBlankIntrWait();
     while (!(key_hit(KEY_A) || key_hit(KEY_B)))
     {
+        /*
+        int frameCount = get_frame_count();
+        if (frameCount % 60 == 0) {
+            obj_unhide(scroll_indicator_red, 0);
+            obj_hide(scroll_indicator_gray);
+        }
+        else if (frameCount % 30 == 0) {
+            obj_hide(scroll_indicator_red);
+            obj_unhide(scroll_indicator_gray, 0);
+        }
+        */
         VBlankIntrWait();
     }
+    //obj_hide(scroll_indicator_red);
+    //obj_hide(scroll_indicator_gray);
 }
 
 void scroll_text(bool instant, TTC *tc, bool scrollUp, int left, int top, int right, int bottom)
@@ -465,7 +488,7 @@ void scroll_text(bool instant, TTC *tc, bool scrollUp, int left, int top, int ri
     {
         for (int i = 0; i < 30; i++)
         {
-            tonccpy(&tile_mem[TEXT_CBB][0 + (i * 20)], &tile_mem[TEXT_CBB][2 + (i * 20)], 20 * 32);
+            tonccpy(&tile_mem[TILESET_TEXT][0 + (i * 20)], &tile_mem[TILESET_TEXT][2 + (i * 20)], 20 * 32);
         }
     }
     else

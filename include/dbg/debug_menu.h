@@ -2,6 +2,9 @@
 #define _DEBUG_MENU_H
 
 #include "vertical_menu.h"
+#include "debug_menu_entries.h"
+
+#define MAX_MENU_LAYERS 3
 
 // This file contains the implementation of the debug menu.
 // But it doesn't actually define the entries or callback functions.
@@ -100,5 +103,6 @@ private:
 };
 
 void show_debug_menu();
+void push_debug_menu_section(DebugMenuSection section);
 
 #endif

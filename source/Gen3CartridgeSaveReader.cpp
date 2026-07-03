@@ -148,3 +148,8 @@ void Gen3CartridgeSaveReader::flush()
     copy_ram_to_save(sector_buffer_, sector_start_, SECTOR_SIZE);
     dirty_ = false;
 }
+
+bool Gen3CartridgeSaveReader::shouldRecalculateChecksumsOnFinish() const
+{
+    return false;
+}

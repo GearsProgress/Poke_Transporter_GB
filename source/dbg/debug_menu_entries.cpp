@@ -7,6 +7,11 @@
 
 #include <cstdlib>
 
+#if ENABLE_MYSTERY_GIFT
+#include "dbg/old_sea_map.h"
+#include "dbg/eon_ticket_rs.h"
+#endif
+
 static const option_data toggle_options[] = {
     {
         .text = "Off",
@@ -15,6 +20,20 @@ static const option_data toggle_options[] = {
     {
         .text = "On",
         .value = 1
+    }
+};
+
+static void fill_debug_menu_with_main_menu_entries(vertical_menu &menu, u16 *charset);
+static void fill_debug_menu_with_injection_entries(vertical_menu &menu, u16 *charset);
+
+static const MenuSectionMapEntry menu_section_map[] = {
+    {
+        .section = DebugMenuSection::MAIN,
+        .fill_func = fill_debug_menu_with_main_menu_entries
+    },
+    {
+        .section = DebugMenuSection::INJECTION,
+        .fill_func = fill_debug_menu_with_injection_entries
     }
 };
 
@@ -109,17 +128,15 @@ static debug_menu_row_widget* __attribute__((noinline)) define_executable_row(co
     return new debug_menu_row_widget(row_data);
 }
 
-// Here we define the actual entries of the debug menu, using the helper functions defined above.
-void fill_debug_menu_with_entries(vertical_menu &menu, u16 *charset)
+/// Here we define the actual entries of the main debug menu, using the helper functions defined above.
+static void fill_debug_menu_with_main_menu_entries(vertical_menu &menu, u16 *charset)
 {
     i_item_widget* item_widgets[] = {
 #if ENABLE_TEXT_DEBUG_SCREEN
         define_executable_row(charset, "Text Debug", show_text_debug_screen, 0, nullptr),
 #endif
         define_executable_row(charset, "Info", show_debug_info_screen, 0, nullptr),
-#if ENABLE_DEBUG_PKMN_INJECTION
-        define_executable_row(charset, "Inject Celebi", dbg_inject_pkmn, 0, nullptr),
-#endif
+        define_executable_row(charset, "Injection", show_debug_menu_section, static_cast<unsigned>(DebugMenuSection::INJECTION), nullptr),
 #if ENABLE_MYSTERY_GIFT
         define_executable_row(charset, "Unlock MystE", dbg_unlock_mystery, 0, nullptr),
         define_executable_row(charset, "Unlock MystG", dbg_unlock_mystery, 1, nullptr),
@@ -143,4 +160,37 @@ void fill_debug_menu_with_entries(vertical_menu &menu, u16 *charset)
     };
 
     menu.add_item_widgets(item_widgets, sizeof(item_widgets) / sizeof(item_widgets[0]));
+}
+
+/// This function defines the entries of the injection submenu
+static void fill_debug_menu_with_injection_entries(vertical_menu &menu, u16 *charset)
+{
+    i_item_widget* item_widgets[] = {
+#if ENABLE_DEBUG_PKMN_INJECTION
+        define_executable_row(charset, "Inject Celebi", dbg_inject_pkmn, 0, nullptr),
+#endif
+#if ENABLE_MYSTERY_GIFT
+        define_executable_row(charset, "Unlock MystE", dbg_unlock_mystery, 0, nullptr),
+        define_executable_row(charset, "Unlock MystG", dbg_unlock_mystery, 1, nullptr),
+        define_executable_row(charset, "Inj OldSeaMap(E)", dbg_inject_wc3, sizeof(OldSeaMap_E_custom), const_cast<u8*>(OldSeaMap_E_custom)),
+        define_executable_row(charset, "Inj Eon Ticket(RS)", dbg_inject_me3, sizeof(RS_Item_Eon_Ticket_e_Card_ENG_US_), const_cast<u8*>(RS_Item_Eon_Ticket_e_Card_ENG_US_)),
+        
+#endif
+    };
+    menu.add_item_widgets(item_widgets, sizeof(item_widgets) / sizeof(item_widgets[0]));
+}
+
+void fill_debug_menu_with_entries(vertical_menu &menu, u16 *charset, DebugMenuSection section)
+{
+    const size_t num_sections = sizeof(menu_section_map) / sizeof(menu_section_map[0]);
+    size_t i = 0;
+    while(i < num_sections)
+    {
+        if(menu_section_map[i].section == section)
+        {
+            menu_section_map[i].fill_func(menu, charset);
+            break;
+        }
+        ++i;
+    }
 }

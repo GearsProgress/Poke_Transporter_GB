@@ -391,21 +391,53 @@ void mystery_gift_script::build_script(PokeBox *box)
     switch (curr_GBA_rom.gamecode)
     {
     case RUBY_ID:
+        textGreet.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textGreet_rse));
+        textMoveBox.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textMoveBox_rs));
+        textWeHere.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textWeHere_rs));
+        textReceived.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textRecieved_rs));
+        textIAm.set_text(decompressed_text_table.get_text_entry(first_time ? RSEFRLG_dia_textIAm_first_rs : RSEFRLG_dia_textIAm_second_rs));
+        textPCConvo.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textPCConvo_rs)); // ȼDon’t worry ƲÀ,Ňyou won’t have to do a thing!");
+        textPCThanks.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textPCThanks_rs));
+        textThank.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textThank_rs));
+        textPCFull.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textPCFull_rs));
+        textLookerFull.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textLookerFull_rs));
+        break;
     case SAPPHIRE_ID:
         textGreet.set_text(rsefrlgTableReader.getPointerToFileInDecompressionBuffer(RSEFRLG_dia_textGreet_rse));
         textMoveBox.set_text(rsefrlgTableReader.getPointerToFileInDecompressionBuffer(RSEFRLG_dia_textMoveBox_rs));
-        textWeHere.set_text(rsefrlgTableReader.getPointerToFileInDecompressionBuffer(RSEFRLG_dia_textWeHere_r));
+        textWeHere.set_text(rsefrlgTableReader.getPointerToFileInDecompressionBuffer(RSEFRLG_dia_textWeHere_rs));
+        textReceived.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textRecieved_rs));
+        textIAm.set_text(decompressed_text_table.get_text_entry(first_time ? RSEFRLG_dia_textIAm_first_rs : RSEFRLG_dia_textIAm_second_rs));
+        textPCConvo.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textPCConvo_rs)); // ȼDon’t worry ƲÀ,Ňyou won’t have to do a thing!");
+        textPCThanks.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textPCThanks_rs));
+        textThank.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textThank_rs));
+        textPCFull.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textPCFull_rs));
+        textLookerFull.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textLookerFull_rr));
         break;
     case FIRERED_ID:
     case LEAFGREEN_ID:
         textGreet.set_text(rsefrlgTableReader.getPointerToFileInDecompressionBuffer(RSEFRLG_dia_textGreet_frlg));
         textMoveBox.set_text(rsefrlgTableReader.getPointerToFileInDecompressionBuffer(RSEFRLG_dia_textMoveBox_frlg));
         textWeHere.set_text(rsefrlgTableReader.getPointerToFileInDecompressionBuffer(RSEFRLG_dia_textWeHere_frlg));
+        textReceived.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textRecieved_frlge));
+        textIAm.set_text(decompressed_text_table.get_text_entry(first_time ? RSEFRLG_dia_textIAm_first_frlge : RSEFRLG_dia_textIAm_second_frlge));
+        textPCConvo.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textPCConvo_frlge)); // ȼDon’t worry ƲÀ,Ňyou won’t have to do a thing!");
+        textPCThanks.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textPCThanks_frlge));
+        textThank.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textThank_frlge));
+        textPCFull.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textPCFull_frlge));
+        textLookerFull.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textLookerFull_frlge));
         break;
     case EMERALD_ID:
         textGreet.set_text(rsefrlgTableReader.getPointerToFileInDecompressionBuffer(RSEFRLG_dia_textGreet_rse));
         textMoveBox.set_text(rsefrlgTableReader.getPointerToFileInDecompressionBuffer(RSEFRLG_dia_textMoveBox_e));
         textWeHere.set_text(rsefrlgTableReader.getPointerToFileInDecompressionBuffer(RSEFRLG_dia_textWeHere_e));
+        textReceived.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textRecieved_frlge));
+        textIAm.set_text(decompressed_text_table.get_text_entry(first_time ? RSEFRLG_dia_textIAm_first_frlge : RSEFRLG_dia_textIAm_second_frlge));
+        textPCConvo.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textPCConvo_frlge)); // ȼDon’t worry ƲÀ,Ňyou won’t have to do a thing!");
+        textPCThanks.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textPCThanks_frlge));
+        textThank.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textThank_frlge));
+        textPCFull.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textPCFull_frlge));
+        textLookerFull.set_text(decompressed_text_table.get_text_entry(RSEFRLG_dia_textLookerFull_frlge));
         break;
     }
     textReceived.set_text(rsefrlgTableReader.getPointerToFileInDecompressionBuffer(RSEFRLG_dia_textRecieved));

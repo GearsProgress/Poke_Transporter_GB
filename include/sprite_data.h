@@ -114,6 +114,34 @@ extern OBJ_ATTR *grabbed_front_sprite;
 #define FLEXBG_MAIN_MENU 3
 #define FLEXBG_BOX 4
 
+//
+// VRAM usage is heavily optimized so the rest of it can be used
+// as additional work RAM in the future.
+//
+// VRAM Map
+//   06000000 - 06000800 ( 2K): Eternal backdrop and textbox tileset
+//   06000800 - 06002000 ( 6K): Flex BG tileset
+//   06002000 - 06002400 ( 2K): BG0: Backdrop tilemap
+//   06002800 - 06003000 ( 2K): BG1: Flex BG tilemap
+//   06003000 - 06003800 ( 2K): BG2: Textbox tilemap
+//   06003800 - 06004000 ( 2K): BG3: Text tilemap
+//   06004000 -~06009000 (20K): Text rendering bitmap
+//   06009000 - 06010000 (28K): Free work RAM (watch the 16-bit bus!)
+//   06010000 - 06018000 (32K): Sprite tileset
+//
+
+#define TILESET_PTGB 0
+#define TILESET_TEXT 1
+
+#define TILESET_OFFSET_BACKDROP  0
+#define TILESET_OFFSET_TEXTBOX  38
+#define TILESET_OFFSET_FLEXBG   64
+
+#define TILEMAP_BACKDROP 4
+#define TILEMAP_FLEXBG   5
+#define TILEMAP_TEXTBOX  6
+#define TILEMAP_TEXT     7
+
 extern rom_data curr_GBA_rom;
 
 void load_sprite(OBJ_ATTR *sprite, const unsigned int objTiles[], int objTilesLen,

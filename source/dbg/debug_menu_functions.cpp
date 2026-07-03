@@ -1,4 +1,5 @@
 #include "dbg/debug_menu_functions.h"
+#include "dbg/debug_menu.h"
 #include "libraries/nanoprintf/nanoprintf.h"
 #include "text_engine.h"
 #include "pokemon_data.h"
@@ -95,6 +96,13 @@ static void convert_OT_to_utf8(const u8 *encoded_OT, u8 *output_buffer, const u1
         cur_out += num_bytes;
     }
     *cur_out = '\0';
+}
+
+void show_debug_menu_section(void *context, unsigned user_param)
+{
+    (void)context; // unused
+    const DebugMenuSection section_to_show = static_cast<DebugMenuSection>(user_param);
+    push_debug_menu_section(section_to_show);
 }
 
 void show_text_debug_screen(void *context, unsigned user_param)
@@ -271,7 +279,7 @@ void dbg_inject_pkmn(void *context, unsigned user_param)
     npf_snprintf(text_buffer, sizeof(text_buffer), "%s received a Celebi!\n Celebi was sent to box %d!", decoded_OT_utf8, boxIndex);
     ptgb_write_debug(tables.gen3_charset, text_buffer, false);
 
-    wait_for_user_to_continue();
+    wait_for_user_to_continue(H_MAX, V_MAX);
 
     if(!g_debug_options.ignore_game_pak && !g_debug_options.ignore_game_pak_sprites)
     {
@@ -308,6 +316,58 @@ void dbg_unlock_mystery(void *context, unsigned user_param)
 
     save_manager.setMysteryEventUnlocked(user_param == 0);
     save_manager.setMysteryGiftUnlocked(user_param != 0);
+
+    save_manager.finishSave();
+    reader.flush();
+}
+
+void dbg_inject_wc3(void *context, unsigned user_param)
+{
+    const u8* wc3_data_ptr = reinterpret_cast<const u8*>(context);
+    size_t wc3_data_size = user_param;
+    if(wc3_data_ptr == nullptr)
+    {
+        return;
+    }
+
+    const Game game_type = convert_rom_game_id_to_ptgb_game(curr_GBA_rom.gamecode);
+    if(game_type != EMERALD)
+    {
+        return;
+    }
+
+    const Language game_lang = convert_rom_lang_to_ptgb_lang(curr_GBA_rom.language);
+    Gen3CartridgeSaveReader reader(global_memory_buffer);
+    Gen3SaveManager save_manager(game_type, game_lang, reader);
+
+    save_manager.setMysteryGiftUnlocked(user_param != 0);
+    save_manager.injectMysteryGift(wc3_data_ptr, wc3_data_size);
+
+    save_manager.finishSave();
+    reader.flush();
+}
+
+void dbg_inject_me3(void *context, unsigned user_param)
+{
+    const u8* me3_data_ptr = reinterpret_cast<const u8*>(context);
+    size_t me3_data_size = user_param;
+    if(me3_data_ptr == nullptr)
+    {
+        return;
+    }
+
+    const Game game_type = convert_rom_game_id_to_ptgb_game(curr_GBA_rom.gamecode);
+    if(game_type != RUBY && game_type != SAPPHIRE)
+    {
+        return;
+    }
+
+    const Language game_lang = convert_rom_lang_to_ptgb_lang(curr_GBA_rom.language);
+    Gen3CartridgeSaveReader reader(global_memory_buffer);
+    Gen3SaveManager save_manager(game_type, game_lang, reader);
+
+    save_manager.setMysteryEventUnlocked(true);
+    save_manager.injectMysteryEvent(me3_data_ptr, me3_data_size);
 
     save_manager.finishSave();
     reader.flush();

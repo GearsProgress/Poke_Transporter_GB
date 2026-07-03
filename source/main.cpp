@@ -206,14 +206,96 @@ int __attribute__((noinline)) credits()
 	}
 };
 
+int tutorial()
+{
+	u8 text_decompression_buffer[2048];
+	text_data_table tutorial_text_table(text_decompression_buffer);
+	int curr_tutorial_num = 0;
+
+	tutorial_text_table.decompress(get_compressed_text_table(TUTORIAL_INDEX));
+	bool update = true;
+
+	global_next_frame();
+	while (true)
+	{
+		if (update)
+		{
+			ptgb_write_textbox(tutorial_text_table.get_text_entry(curr_tutorial_num), true, false,
+							   TUTORIAL_INDEX, curr_tutorial_num, false);
+			update = false;
+		}
+
+		if (key_hit(KEY_B))
+		{
+			tte_erase_rect(0, 0, H_MAX, V_MAX);
+			hide_textbox();
+			erase_textbox_tiles();
+			return 0;
+		}
+		if (key_hit(KEY_LEFT) && curr_tutorial_num > 0)
+		{
+			curr_tutorial_num--;
+			update = true;
+		}
+		if (key_hit(KEY_RIGHT) && curr_tutorial_num < (tutorial_text_table.get_number_of_text_entries() - 1))
+		{
+			curr_tutorial_num++;
+			update = true;
+		}
+
+		VBlankIntrWait();
+	}
+};
+
+int tutorial()
+{
+	u8 text_decompression_buffer[2048];
+	text_data_table tutorial_text_table(text_decompression_buffer);
+	int curr_tutorial_num = 0;
+
+	tutorial_text_table.decompress(get_compressed_text_table(TUTORIAL_INDEX));
+	bool update = true;
+
+	global_next_frame();
+	while (true)
+	{
+		if (update)
+		{
+			ptgb_write_textbox(tutorial_text_table.get_text_entry(curr_tutorial_num), true, false,
+							   TUTORIAL_INDEX, curr_tutorial_num, false);
+			update = false;
+		}
+
+		if (key_hit(KEY_B))
+		{
+			tte_erase_rect(0, 0, H_MAX, V_MAX);
+			hide_textbox();
+			erase_textbox_tiles();
+			return 0;
+		}
+		if (key_hit(KEY_LEFT) && curr_tutorial_num > 0)
+		{
+			curr_tutorial_num--;
+			update = true;
+		}
+		if (key_hit(KEY_RIGHT) && curr_tutorial_num < (tutorial_text_table.get_number_of_text_entries() - 1))
+		{
+			curr_tutorial_num++;
+			update = true;
+		}
+
+		global_next_frame();
+	}
+};
+
 // attribute noinline is used to avoid permanently storing the general_text_table_buffer in IWRAM
 int __attribute__((noinline)) main_menu_loop()
 {
 	uint8_t general_text_table_buffer[2048];
 	u8 lineBuffer[1024];
-#define NUM_MENU_OPTIONS 3
-	const uint8_t menu_options[NUM_MENU_OPTIONS] = {GENERAL_option_transfer, GENERAL_option_dreamdex, GENERAL_option_credits};
-	int return_values[NUM_MENU_OPTIONS] = {BTN_TRANSFER, BTN_POKEDEX, BTN_CREDITS};
+#define NUM_MENU_OPTIONS 4
+	const uint8_t menu_options[NUM_MENU_OPTIONS] = {GENERAL_option_transfer, GENERAL_option_dreamdex, GENERAL_option_credits, GENERAL_option_tutorial};
+	int return_values[NUM_MENU_OPTIONS] = {BTN_TRANSFER, BTN_POKEDEX, BTN_CREDITS, BTN_TUTORIAL};
 	const u8 **chunkList;
 	u32 numChunks;
 	u32 chunkSize;
@@ -234,7 +316,7 @@ int __attribute__((noinline)) main_menu_loop()
 				text_reader.readFile(menu_options[i], lineBuffer);
 				int string_length = get_string_length(lineBuffer);
 				int x = ((240 - string_length) / 2);
-				tte_set_pos(x, ((i * (16 + 10)) + 70));
+				tte_set_pos(x, ((i * (16 + 6)) + 70));
 				if (i == curr_selection)
 				{
 					tte_set_ink(INK_WHITE);
@@ -255,7 +337,12 @@ int __attribute__((noinline)) main_menu_loop()
 		}
 		else if (key_hit(KEY_UP))
 		{
-			curr_selection = ((curr_selection + (NUM_MENU_OPTIONS - 1)) % NUM_MENU_OPTIONS);
+			if (curr_selection == 0) {
+				curr_selection = NUM_MENU_OPTIONS - 1;
+			}
+			else {
+				curr_selection = ((curr_selection + (NUM_MENU_OPTIONS - 1)) % NUM_MENU_OPTIONS);
+			}
 		}
 		else if (key_hit(KEY_A))
 		{
@@ -343,6 +430,8 @@ static void __attribute__((noinline)) show_intro()
 
 int main(void)
 {
+	// Clear VRAM. We use it as extra BSS.
+	RegisterRamReset(RESET_VRAM);
 	malloc_init_default_pool();
 	initialization_script();
 
@@ -429,6 +518,12 @@ int main(void)
 			BG_FLEX = (BG_FLEX & ~BG_PRIO_MASK) | BG_PRIO(3);
 			obj_hide_multi(ptgb_logo_l, 2);
 			credits();
+			break;
+		case (BTN_TUTORIAL):
+			tte_set_ink(INK_DARK_GREY);
+			BG_FLEX = (BG_FLEX & ~BG_PRIO_MASK) | BG_PRIO(3);
+			obj_hide_multi(ptgb_logo_l, 2);
+			tutorial();
 			break;
 		case (BTN_EVENTS):
 			obj_hide_multi(ptgb_logo_l, 2);
