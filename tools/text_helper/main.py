@@ -875,6 +875,18 @@ def write_text_file_container(filename, dictionary, lang, section, context=None)
         defLine = "@chunkSize=" + str(get_file_container_chunk_size(section)) + "\n"
         defFile.write(defLine.encode("utf-8"))
         
+        for key, line in dictionary.items():
+            with open(buildpath + str(key), 'wb') as lineFile:
+                dictionary[key] = convert_item(line, lang, context)
+                linedata = bytes.fromhex(dictionary[key]['bytes'])
+                lineFile.write(linedata)
+                lineFile.close()
+            
+            defLine = buildpath + str(key) + "\n"
+            defFile.write(defLine.encode("utf-8"))
+        defFile.close()
+
+
 def write_text_bin_file(filename, dictionary, lang, section, context=None):
     MAX_BIN_SIZES = {
         "PTGB": 6144,
@@ -902,16 +914,24 @@ def write_text_bin_file(filename, dictionary, lang, section, context=None):
         # Append every line's binary data to bindata
         # keep an index of the binary offset within bindata at which each line starts
         for key, line in dictionary.items():
-            with open(buildpath + str(key), 'wb') as lineFile:
-                dictionary[key] = convert_item(line, lang, context)
-                linedata = bytes.fromhex(dictionary[key]['bytes'])
-                lineFile.write(linedata)
-                lineFile.close()
-            
-            defLine = buildpath + str(key) + "\n"
-            defFile.write(defLine.encode("utf-8"))
-        defFile.close()
-    
+            dictionary[key] = convert_item(line, lang, context)
+            # store the offset of the line in the index as a 16 bit little endian value
+            index[num * 2] = (current_offset & 0xFF)
+            index[num * 2 + 1] = (current_offset >> 8) & 0xFF
+            linedata = bytes.fromhex(dictionary[key]['bytes'])
+
+            bindata.extend(linedata)
+            current_offset += len(linedata)
+
+            num += 1
+
+        # Write the index and bindata to the file
+        binFile.write(index)
+        binFile.write(bindata)
+        binFile.seek(0, os.SEEK_END)
+        if binFile.tell() > MAX_BIN_SIZES[section]:
+            log_warning_error(lang, "Error", f'Section {section} exceeds the max binary file size by {binFile.tell() - MAX_BIN_SIZES[section]} bytes!', context=context)
+        binFile.close()
 
 def write_enum_to_header_file(hFile, prefix, dictionary):
     num = 0

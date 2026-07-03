@@ -497,8 +497,8 @@ void scroll_text(bool instant, TTC *tc, bool scrollUp, int left, int top, int ri
         {
             // Due to the order of tonccpy, we need to store the data in a temporary buffer
             byte buffer[20 * 32];
-            tonccpy(&buffer, &tile_mem[TEXT_CBB][0 + (i * 20)], 20 * 32);
-            tonccpy(&tile_mem[TEXT_CBB][2 + (i * 20)], &buffer, 20 * 32);
+            tonccpy(&buffer, &tile_mem[TILESET_TEXT][0 + (i * 20)], 20 * 32);
+            tonccpy(&tile_mem[TILESET_TEXT][2 + (i * 20)], &buffer, 20 * 32);
         }
     }
     // Remove text that went outside of the box and set the position

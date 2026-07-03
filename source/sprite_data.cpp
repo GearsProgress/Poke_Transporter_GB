@@ -193,7 +193,7 @@ void load_flex_background(int background_id, int layer)
         REG_BG1VOFS = flex->voffset;
     }
 
-    BG_FLEX = BG_CBB(CBB) | BG_SBB(SBB) | BG_4BPP | BG_REG_32x32 | BG_PRIO(layer);
+    BG_FLEX = BG_CBB(TILESET_PTGB) | BG_SBB(TILEMAP_FLEXBG) | BG_4BPP | BG_REG_32x32 | BG_PRIO(layer);
     curr_flex_background = background_id;
 }
 #include "textBoxBG.h"

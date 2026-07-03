@@ -157,7 +157,7 @@ void __attribute__((noinline)) game_load_error(void)
 		delay_counter++;
 		VBlankIntrWait();
 	}
-}
+};
 
 // avoid inlining to avoid permanently storing the credits_decompression_buffer in IWRAM
 int __attribute__((noinline)) credits()
@@ -206,22 +206,29 @@ int __attribute__((noinline)) credits()
 	}
 };
 
-int tutorial()
+// avoid inlining to avoid permanently storing the tutorial_decompression_buffer in IWRAM
+int __attribute__((noinline)) tutorial()
 {
-	u8 text_decompression_buffer[2048];
-	text_data_table tutorial_text_table(text_decompression_buffer);
-	int curr_tutorial_num = 0;
 
-	tutorial_text_table.decompress(get_compressed_text_table(TUTORIAL_INDEX));
+	u8 tutorial_decompression_buffer[2048];
+	u8 lineBuffer[1024];
+	const u8 **chunkList;
+	u32 numChunks;
+	u32 chunkSize;
+
+	get_text_table_chunks(TUTORIAL_INDEX, &chunkList, &numChunks, &chunkSize);
+	FileContainerReader tutorialReader(chunkList, numChunks, chunkSize);
+	u32 curr_tutorial_num = 0;
+
+	tutorialReader.init(tutorial_decompression_buffer, sizeof(tutorial_decompression_buffer));
 	bool update = true;
 
-	global_next_frame();
 	while (true)
 	{
 		if (update)
 		{
-			ptgb_write_textbox(tutorial_text_table.get_text_entry(curr_tutorial_num), true, false,
-							   TUTORIAL_INDEX, curr_tutorial_num, false);
+			tutorialReader.readFile(curr_tutorial_num, lineBuffer);
+			ptgb_write_textbox(lineBuffer, true, false, TUTORIAL_INDEX, curr_tutorial_num, false);
 			update = false;
 		}
 
@@ -237,54 +244,13 @@ int tutorial()
 			curr_tutorial_num--;
 			update = true;
 		}
-		if (key_hit(KEY_RIGHT) && curr_tutorial_num < (tutorial_text_table.get_number_of_text_entries() - 1))
+		if (key_hit(KEY_RIGHT) && curr_tutorial_num < (tutorialReader.getNumberOfFiles() - 1))
 		{
 			curr_tutorial_num++;
 			update = true;
 		}
 
 		VBlankIntrWait();
-	}
-};
-
-int tutorial()
-{
-	u8 text_decompression_buffer[2048];
-	text_data_table tutorial_text_table(text_decompression_buffer);
-	int curr_tutorial_num = 0;
-
-	tutorial_text_table.decompress(get_compressed_text_table(TUTORIAL_INDEX));
-	bool update = true;
-
-	global_next_frame();
-	while (true)
-	{
-		if (update)
-		{
-			ptgb_write_textbox(tutorial_text_table.get_text_entry(curr_tutorial_num), true, false,
-							   TUTORIAL_INDEX, curr_tutorial_num, false);
-			update = false;
-		}
-
-		if (key_hit(KEY_B))
-		{
-			tte_erase_rect(0, 0, H_MAX, V_MAX);
-			hide_textbox();
-			erase_textbox_tiles();
-			return 0;
-		}
-		if (key_hit(KEY_LEFT) && curr_tutorial_num > 0)
-		{
-			curr_tutorial_num--;
-			update = true;
-		}
-		if (key_hit(KEY_RIGHT) && curr_tutorial_num < (tutorial_text_table.get_number_of_text_entries() - 1))
-		{
-			curr_tutorial_num++;
-			update = true;
-		}
-
-		global_next_frame();
 	}
 };
 
