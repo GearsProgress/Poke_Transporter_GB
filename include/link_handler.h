@@ -363,7 +363,7 @@ public:
     // These are all the Link Commands
     bool LinkCommand_InitalizeConnection(bool waitForCompletion = true);
     bool LinkCommand_ReloadCurrentBox(bool waitForCompletion = true);
-    bool LinkCommand_TransferPokemon(byte payload[], int payloadLength, bool waitForCompletion = true);
+    bool LinkCommand_TransferPokemon(int boxNumber, byte removalArray[], int removalArrayLength, bool waitForCompletion);
     bool LinkCommand_SoftReset(bool waitForCompletion = true);
     bool LinkCommand_ModifySRAMAccess(bool enableSRAM, byte SRAMbank, bool waitForCompletion = true);
     bool LinkCommand_RunSecondaryPayload(byte payload[], int payloadLength, bool waitForCompletion = true);

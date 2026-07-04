@@ -610,6 +610,11 @@ void LinkConnection::handleStateLogic()
         // Add the checksum and we're done with the packet.
         nextOutData = currOutgoingPacket->secondaryPayloadSizeChecksum;
       }
+      else if (inData != currOutgoingPacket->packetID)
+      {
+        // We need to wait until the packet is ready to be recieved.
+        nextOutData = 0xFF;
+      }
       else
       {
         // Now it's time to process the packet. Use a dummy packet to flush it out
@@ -679,6 +684,11 @@ void LinkConnection::prepareForNextCycle()
   {
     subStateCounter++;
     subStateChanged = false;
+  }
+
+  if (key_held(KEY_L) && key_held(KEY_R))
+  {
+    exitState = END;
   }
 
   globalStateCounter++;
@@ -825,6 +835,7 @@ bool LinkConnection::processPacket()
   if (currIncomingPacket->command != CMD_ReadDataRequest)
   {
     // These command types will echo the first 8 bytes of the packet back to verify they were recieved correctly. Make sure that's the case.
+    // This will also fail if a secondary packet fails
     if (
         currIncomingPacket->recievedData[0] != currIncomingPacket->packetID ||
         currIncomingPacket->recievedData[1] != currIncomingPacket->command ||
@@ -983,15 +994,41 @@ bool LinkConnection::LinkCommand_ReloadCurrentBox(bool waitForCompletion)
   return true;
 };
 
-bool LinkConnection::LinkCommand_TransferPokemon(byte payload[], int payloadLength, bool waitForCompletion)
+bool LinkConnection::LinkCommand_TransferPokemon(int boxNumber, byte removalArray[], int removalArrayLength, bool waitForCompletion)
 {
-  // Check that box number is correct
+  int maxBoxes = 0;
+  if (gen == 1)
+  {
+    if (lang == JAPANESE)
+    {
+      maxBoxes = 8;
+    }
+    else
+    {
+      maxBoxes = 12;
+    }
+  }
+  else
+  {
+        if (lang == JAPANESE)
+    {
+      maxBoxes = 9;
+    }
+    else
+    {
+      maxBoxes = 14;
+    }
+  }
+
+  if (boxNumber >= maxBoxes)
+  {
+    return false;
+  }
+  
   resetLinkPackets();
 
-
-  // TODO: THIS SHOULD NOT BE HARDCODED TO A BOX
-  linkPacketArr[0] = LinkPacket(CMD_RunSecondaryPayload, payloadLength + SECONDARY_PAYLOAD_HEADER_SIZE, 0x03, 0xC6DC);
-  linkPacketArr[0].loadSecondaryPayload(payload, payloadLength);
+  linkPacketArr[0] = LinkPacket(CMD_TransferPokemon, removalArrayLength + SECONDARY_PAYLOAD_HEADER_SIZE, boxNumber, 0xC6DC);
+  linkPacketArr[0].loadSecondaryPayload(removalArray, removalArrayLength);
 
   globalLinkCable.startConnection(PACKET_EXCHANGE);
   if (waitForCompletion)
@@ -1044,11 +1081,8 @@ bool LinkConnection::LinkCommand_RunSecondaryPayload(byte payload[], int payload
 {
   resetLinkPackets();
 
-  byte tempPayload[] = {0x21, 0xA0, 0xC3, 0x75, 0xC9};
-  byte size = 5;
-
-  linkPacketArr[0] = LinkPacket(CMD_RunSecondaryPayload, size + SECONDARY_PAYLOAD_HEADER_SIZE, 0x00, 0xC6DC);
-  linkPacketArr[0].loadSecondaryPayload(tempPayload, size);
+  linkPacketArr[0] = LinkPacket(CMD_RunSecondaryPayload, payloadLength + SECONDARY_PAYLOAD_HEADER_SIZE, 0x00, 0xC6DC);
+  linkPacketArr[0].loadSecondaryPayload(payload, payloadLength);
 
   globalLinkCable.startConnection(PACKET_EXCHANGE);
   if (waitForCompletion)
