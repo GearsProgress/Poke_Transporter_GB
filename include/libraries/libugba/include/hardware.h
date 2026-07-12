@@ -91,7 +91,7 @@ static inline uint16_t RGB15(uint16_t r, uint16_t g, uint16_t b)
 
 // Base addresses of all regions
 
-#ifdef __GBA__
+#if 1
 
 # define MEM_BIOS_ADDR      (0x00000000)
 # define MEM_EWRAM_ADDR     (0x02000000)
