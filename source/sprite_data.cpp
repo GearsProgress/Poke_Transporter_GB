@@ -9,7 +9,7 @@
 #define SPRITE_CHAR_BLOCK 4
 
 OBJ_ATTR obj_buffer[128];
-OBJ_AFFINE *obj_aff_buffer = (OBJ_AFFINE *)obj_buffer;
+OBJ_AFFINE *const obj_aff_buffer = (OBJ_AFFINE *)obj_buffer;
 int curr_flex_background = -1;
 int y_offset = 0;
 int y_offset_timer = 0;
@@ -325,96 +325,97 @@ void erase_textbox_tiles()
 
 // SPRITES
 
-int num_sprites = 0;
-OBJ_ATTR *ptgb_logo_l = &obj_buffer[num_sprites++];
-OBJ_ATTR *ptgb_logo_r = &obj_buffer[num_sprites++];
+OBJ_ATTR *const ptgb_logo_l = &obj_buffer[__COUNTER__];
+OBJ_ATTR *const ptgb_logo_r = &obj_buffer[__COUNTER__];
 
-OBJ_ATTR *btn_t_l = &obj_buffer[num_sprites++];
-OBJ_ATTR *btn_t_r = &obj_buffer[num_sprites++];
-OBJ_ATTR *btn_p_l = &obj_buffer[num_sprites++];
-OBJ_ATTR *btn_p_r = &obj_buffer[num_sprites++];
-OBJ_ATTR *btn_c_l = &obj_buffer[num_sprites++];
-OBJ_ATTR *btn_c_r = &obj_buffer[num_sprites++];
-OBJ_ATTR *btn_d_l = &obj_buffer[num_sprites++];
-OBJ_ATTR *btn_d_r = &obj_buffer[num_sprites++];
-OBJ_ATTR *button_yes = &obj_buffer[num_sprites++];
-OBJ_ATTR *button_no = &obj_buffer[num_sprites++];
-OBJ_ATTR *cart_shell = &obj_buffer[num_sprites++];
-OBJ_ATTR *cart_label = &obj_buffer[num_sprites++];
-OBJ_ATTR *flag = &obj_buffer[num_sprites++];
+OBJ_ATTR *const btn_t_l = &obj_buffer[__COUNTER__];
+OBJ_ATTR *const btn_t_r = &obj_buffer[__COUNTER__];
+OBJ_ATTR *const btn_p_l = &obj_buffer[__COUNTER__];
+OBJ_ATTR *const btn_p_r = &obj_buffer[__COUNTER__];
+OBJ_ATTR *const btn_c_l = &obj_buffer[__COUNTER__];
+OBJ_ATTR *const btn_c_r = &obj_buffer[__COUNTER__];
+OBJ_ATTR *const btn_d_l = &obj_buffer[__COUNTER__];
+OBJ_ATTR *const btn_d_r = &obj_buffer[__COUNTER__];
+OBJ_ATTR *const button_yes = &obj_buffer[__COUNTER__];
+OBJ_ATTR *const button_no = &obj_buffer[__COUNTER__];
+OBJ_ATTR *const cart_shell = &obj_buffer[__COUNTER__];
+OBJ_ATTR *const cart_label = &obj_buffer[__COUNTER__];
+OBJ_ATTR *const flag = &obj_buffer[__COUNTER__];
 
-OBJ_ATTR *type_sprites[14] = {
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
+OBJ_ATTR *const type_sprites[14] = {
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
 };
 
-OBJ_ATTR *up_arrow = &obj_buffer[num_sprites++];
-OBJ_ATTR *down_arrow = &obj_buffer[num_sprites++];
-OBJ_ATTR *toggle_arrow_left = &obj_buffer[num_sprites++];
-OBJ_ATTR *toggle_arrow_right = &obj_buffer[num_sprites++];
-OBJ_ATTR *point_arrow = &obj_buffer[num_sprites++];
+OBJ_ATTR *const up_arrow = &obj_buffer[__COUNTER__];
+OBJ_ATTR *const down_arrow = &obj_buffer[__COUNTER__];
+OBJ_ATTR *const toggle_arrow_left = &obj_buffer[__COUNTER__];
+OBJ_ATTR *const toggle_arrow_right = &obj_buffer[__COUNTER__];
+OBJ_ATTR *const point_arrow = &obj_buffer[__COUNTER__];
 
-OBJ_ATTR *box_select = &obj_buffer[num_sprites++];
+OBJ_ATTR *const box_select = &obj_buffer[__COUNTER__];
 
-OBJ_ATTR *party_sprites[30] = {
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
-    &obj_buffer[num_sprites++],
+OBJ_ATTR *const party_sprites[30] = {
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
+    &obj_buffer[__COUNTER__],
 };
 
-OBJ_ATTR *button_cancel_left = &obj_buffer[num_sprites++];
-OBJ_ATTR *button_cancel_right = &obj_buffer[num_sprites++];
-OBJ_ATTR *button_confirm_left = &obj_buffer[num_sprites++];
-OBJ_ATTR *button_confirm_right = &obj_buffer[num_sprites++];
+OBJ_ATTR *const button_cancel_left = &obj_buffer[__COUNTER__];
+OBJ_ATTR *const button_cancel_right = &obj_buffer[__COUNTER__];
+OBJ_ATTR *const button_confirm_left = &obj_buffer[__COUNTER__];
+OBJ_ATTR *const button_confirm_right = &obj_buffer[__COUNTER__];
 
-OBJ_ATTR *gba_cart = &obj_buffer[num_sprites++];
-OBJ_ATTR *link_frame1 = &obj_buffer[num_sprites++];
-OBJ_ATTR *link_frame2 = &obj_buffer[num_sprites++];
-OBJ_ATTR *link_frame3 = &obj_buffer[num_sprites++];
-OBJ_ATTR *link_blob1 = &obj_buffer[num_sprites++];
-OBJ_ATTR *link_blob2 = &obj_buffer[num_sprites++];
-OBJ_ATTR *link_blob3 = &obj_buffer[num_sprites++];
+OBJ_ATTR *const gba_cart = &obj_buffer[__COUNTER__];
+OBJ_ATTR *const link_frame1 = &obj_buffer[__COUNTER__];
+OBJ_ATTR *const link_frame2 = &obj_buffer[__COUNTER__];
+OBJ_ATTR *const link_frame3 = &obj_buffer[__COUNTER__];
+OBJ_ATTR *const link_blob1 = &obj_buffer[__COUNTER__];
+OBJ_ATTR *const link_blob2 = &obj_buffer[__COUNTER__];
+OBJ_ATTR *const link_blob3 = &obj_buffer[__COUNTER__];
 
-OBJ_ATTR *grabbed_front_sprite = &obj_buffer[num_sprites++];
+OBJ_ATTR *const grabbed_front_sprite = &obj_buffer[__COUNTER__];
+
+const int num_sprites = __COUNTER__;
 
 u32 global_tile_id_end = 0;
 

@@ -9,17 +9,17 @@
 #define FENNEL_SHIFT 4
 
 extern OBJ_ATTR obj_buffer[128];
-extern OBJ_AFFINE *obj_aff_buffer;
-extern int num_sprites;
+extern OBJ_AFFINE *const obj_aff_buffer;
+extern const int num_sprites;
 
 #include "button_yes.h"
-extern OBJ_ATTR *button_yes;
+extern OBJ_ATTR *const button_yes;
 #include "button_no.h"
-extern OBJ_ATTR *button_no;
+extern OBJ_ATTR *const button_no;
 #include "button_edge.h"
 
 #include "types.h"
-extern OBJ_ATTR *type_sprites[14];
+extern OBJ_ATTR *const type_sprites[14];
 
 #include "flag_jpn.h"
 #include "flag_eng.h"
@@ -28,7 +28,7 @@ extern OBJ_ATTR *type_sprites[14];
 #include "flag_ger.h"
 #include "flag_spa.h"
 #include "flag_kor.h"
-extern OBJ_ATTR *flag;
+extern OBJ_ATTR *const flag;
 #include "Label_Green.h"
 #include "Label_Red.h"
 #include "Label_Blue.h"
@@ -36,55 +36,55 @@ extern OBJ_ATTR *flag;
 #include "Label_Gold.h"
 #include "Label_Silver.h"
 #include "Label_Crystal.h"
-extern OBJ_ATTR *cart_label;
+extern OBJ_ATTR *const cart_label;
 #include "GB_Shell.h"
 #include "GBC_Shell.h"
 #include "GBS_Shell.h"
 #include "GBCS_Shell.h"
-extern OBJ_ATTR *cart_shell;
+extern OBJ_ATTR *const cart_shell;
 
 #include "arrows.h"
-extern OBJ_ATTR *up_arrow;
-extern OBJ_ATTR *down_arrow;
-extern OBJ_ATTR *toggle_arrow_left;
-extern OBJ_ATTR *toggle_arrow_right;
-extern OBJ_ATTR *point_arrow;
+extern OBJ_ATTR *const up_arrow;
+extern OBJ_ATTR *const down_arrow;
+extern OBJ_ATTR *const toggle_arrow_left;
+extern OBJ_ATTR *const toggle_arrow_right;
+extern OBJ_ATTR *const point_arrow;
 
 #include "unique_duel_frame_menu_sprites.h"
-extern OBJ_ATTR *party_sprites[30];
+extern OBJ_ATTR *const party_sprites[30];
 #include "box_select.h"
-extern OBJ_ATTR *box_select;
+extern OBJ_ATTR *const box_select;
 #include "button_cancel_left.h"
-extern OBJ_ATTR *button_cancel_left;
-extern OBJ_ATTR *button_cancel_right;
+extern OBJ_ATTR *const button_cancel_left;
+extern OBJ_ATTR *const button_cancel_right;
 #include "button_confirm_left.h"
-extern OBJ_ATTR *button_confirm_left;
-extern OBJ_ATTR *button_confirm_right;
+extern OBJ_ATTR *const button_confirm_left;
+extern OBJ_ATTR *const button_confirm_right;
 
 #include "ptgb_logo_l.h"
-extern OBJ_ATTR *ptgb_logo_l;
+extern OBJ_ATTR *const ptgb_logo_l;
 #include "ptgb_logo_r.h"
-extern OBJ_ATTR *ptgb_logo_r;
+extern OBJ_ATTR *const ptgb_logo_r;
 
 #include "ruby_cart.h"
 #include "sapphire_cart.h"
 #include "fr_cart.h"
 #include "lg_cart.h"
 #include "emerald_cart.h"
-extern OBJ_ATTR *gba_cart;
+extern OBJ_ATTR *const gba_cart;
 
 #include "link_frame1.h"
-extern OBJ_ATTR *link_frame1;
+extern OBJ_ATTR *const link_frame1;
 #include "link_frame2.h"
-extern OBJ_ATTR *link_frame2;
+extern OBJ_ATTR *const link_frame2;
 #include "link_frame3.h"
-extern OBJ_ATTR *link_frame3;
+extern OBJ_ATTR *const link_frame3;
 #include "link_blobs.h"
-extern OBJ_ATTR *link_blob1;
-extern OBJ_ATTR *link_blob2;
-extern OBJ_ATTR *link_blob3;
+extern OBJ_ATTR *const link_blob1;
+extern OBJ_ATTR *const link_blob2;
+extern OBJ_ATTR *const link_blob3;
 
-extern OBJ_ATTR *grabbed_front_sprite;
+extern OBJ_ATTR *const grabbed_front_sprite;
 
 #define BG2VOF_SMALL_TEXTBOX 96
 #define BG2VOF_LARGE_TEXTBOX 0
@@ -142,10 +142,10 @@ extern OBJ_ATTR *grabbed_front_sprite;
 
 extern rom_data curr_GBA_rom;
 
-void load_sprite(OBJ_ATTR *sprite, const unsigned int objTiles[], int objTilesLen,
+void load_sprite(OBJ_ATTR *const sprite, const unsigned int objTiles[], int objTilesLen,
                  u32 &tile_id, u32 pal_bank, int attr0, int attr1, u32 priority);
 
-void load_sprite_compressed(OBJ_ATTR *sprite, const unsigned int objTiles[],
+void load_sprite_compressed(OBJ_ATTR *const sprite, const unsigned int objTiles[],
                  u32 &tile_id, u32 pal_bank, int attr0, int attr1, u32 priority);
 void load_background();
 void set_background_pal(int curr_rom_id, bool dark, bool fade);
