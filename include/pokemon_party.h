@@ -7,8 +7,7 @@
 class Pokemon_Party
 {
 public:
-    Pokemon_Party();
-    PokemonTables table;
+    Pokemon_Party() = default;
     void start_link();
     void continue_link(bool cancel_connection);
     int get_last_error();
@@ -18,7 +17,6 @@ public:
     void set_lang(int nLang);
     int get_lang();
     bool load_gb_rom();
-    GB_ROM curr_gb_rom;
     void show_sprites();
     bool get_contains_mythical();
     void set_mythic_stabilization(bool stabilize);
@@ -26,6 +24,8 @@ public:
     int get_num_pkmn();
     bool get_contains_invalid();
     bool get_contains_missingno();
+
+    GB_ROM curr_gb_rom;
     PokeBox box;
     byte box_data_array[0x462];
 
