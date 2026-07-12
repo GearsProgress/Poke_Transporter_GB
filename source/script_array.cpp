@@ -925,9 +925,14 @@ bool run_conditional(int index)
         }
         return true;
 
-    default:
+    default: {
+        u16 debug_charset[256];
+        load_localized_charset(debug_charset, 3, ENGLISH);
+
         tte_set_pos(0, 0);
-        tte_write("ERROR! No conditional found.");
+
+        ptgb_write_debug(debug_charset, "ERROR! No conditional found.", true);
         return false;
+    }
     }
 }

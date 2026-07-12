@@ -6,6 +6,7 @@
 #include "rom_data.h"
 #include "translated_text.h"
 #include "text_data_table.h"
+#include "text_engine.h"
 
 #define MG_SCRIPT false
 #define S30_SCRIPT true
@@ -880,23 +881,28 @@ void mystery_gift_script::build_script(PokeBox *box)
 
     if (curr_mg_index > MG_SCRIPT_SIZE) // Throw an error if the script is too large
     {
+        u16 debug_charset[256];
+        load_localized_charset(debug_charset, 3, ENGLISH);
         tte_erase_screen();
         int val = (curr_mg_index - MG_SCRIPT_SIZE) - four_align_value;
-        tte_write("MG Script exceeded by ");
-        tte_write(ptgb::to_string(val));
-        tte_write(" bytes");
+        ptgb_write_debug(debug_charset, "MG Script exceeded by ", true);
+        ptgb_write_debug(debug_charset, ptgb::to_string(val), true);
+        ptgb_write_debug(debug_charset, " bytes", true);
         while (true)
         {
         }
     }
 
-    if (curr_section30_index > 0x4096) // Throw an error if the script is too large
+    if (curr_section30_index > 4096) // Throw an error if the script is too large
     {
+        u16 debug_charset[256];
+        load_localized_charset(debug_charset, 3, ENGLISH);
+
         tte_erase_screen();
-        int val = (curr_section30_index - 0x4096) - four_align_value;
-        tte_write("S30 Script exceeded by ");
-        tte_write(ptgb::to_string(val));
-        tte_write(" bytes");
+        int val = (curr_section30_index - 4096) - four_align_value;
+        ptgb_write_debug(debug_charset, "S30 Script exceeded by ", true);
+        ptgb_write_debug(debug_charset, ptgb::to_string(val), true);
+        ptgb_write_debug(debug_charset, " bytes", true);
         while (true)
         {
         }

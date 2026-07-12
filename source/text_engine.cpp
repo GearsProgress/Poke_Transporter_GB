@@ -82,7 +82,6 @@ void init_text_engine()
                    BUILD_FONT,                                  // Custom font
                    NULL                                         // Use default chr4 renderer
     );
-    tte_init_con();
 
     pal_bg_bank[15][INK_WHITE] = CLR_WHITE;              // White
     pal_bg_bank[15][INK_DARK_GREY] = 0b0000110001100010; // Dark Grey

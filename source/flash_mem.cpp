@@ -57,41 +57,33 @@ void initialize_memory_locations()
 
     if (false) // This will print out a section of the FLASH mem for debugging purposes
     {
+        u16 debug_charset[256];
+        load_localized_charset(debug_charset, 3, ENGLISH);
+
         int mem_start = 0xF80;
         int mem_section = 1;
         copy_save_to_ram(memory_section_array[mem_section], &global_memory_buffer[0], 0x1000);
         tte_set_pos(8, 0);
-        tte_write("loc: ");
-        tte_write(ptgb::to_string(static_cast<unsigned>(memory_section_array[mem_section] + mem_start)));
-        tte_write("\n");
+
+        ptgb_write_debug(debug_charset, "loc: ", true);
+        ptgb_write_debug(debug_charset, ptgb::to_string(static_cast<unsigned>(memory_section_array[mem_section] + mem_start)), true);
+        ptgb_write_debug(debug_charset, "\n", true);
         for (int i = mem_start; i < (128 + mem_start); i++)
         {
-            if (i % 2 == 0)
-            {
-                tte_write("#{cx:0xE000}");
-            }
-            else
-            {
-                tte_write("#{cx:0xD000}");
-            }
-            tte_write(ptgb::to_string(global_memory_buffer[i]));
+            ptgb_write_debug(debug_charset, ptgb::to_string(global_memory_buffer[i]), true);
             if (i % 8 == 7)
             {
-                tte_write("\n");
+                ptgb_write_debug(debug_charset, "\n", true);
             }
             else
             {
                 if (global_memory_buffer[i] < 10)
                 {
-                    tte_write("  ");
+                    ptgb_write_debug(debug_charset, "  ", true);
                 }
                 else if (global_memory_buffer[i] < 100)
                 {
-                    tte_write(" ");
-                }
-                else
-                {
-                    tte_write("");
+                    ptgb_write_debug(debug_charset, " ", true);
                 }
             }
         }
@@ -162,17 +154,19 @@ bool read_flag(u16 flag_id)
 {
     if (false)
     {
+        u16 debug_charset[256];
+        load_localized_charset(debug_charset, 3, ENGLISH);
         //tte_set_pos(0, 0);
-        tte_write("#{cx:0xD000}Attempting to read byte ");
-        tte_write(ptgb::to_string((curr_GBA_rom.offset_flags + (flag_id / 8)) % 0xF80));
-        tte_write(" of memory section ");
-        tte_write(ptgb::to_string(1 + ((curr_GBA_rom.offset_flags + (flag_id / 8)) / 0xF80)));
-        tte_write(" for flag ");
-        tte_write(ptgb::to_string(flag_id));
-        tte_write(". Flag is ");
+        ptgb_write_debug(debug_charset, "Attempting to read byte ", true);
+        ptgb_write_debug(debug_charset, ptgb::to_string((curr_GBA_rom.offset_flags + (flag_id / 8)) % 0xF80), true);
+        ptgb_write_debug(debug_charset, " of memory section ", true);
+        ptgb_write_debug(debug_charset, ptgb::to_string(1 + ((curr_GBA_rom.offset_flags + (flag_id / 8)) / 0xF80)), true);
+        ptgb_write_debug(debug_charset, " for flag ", true);
+        ptgb_write_debug(debug_charset, ptgb::to_string(flag_id), true);
+        ptgb_write_debug(debug_charset, ". Flag is ", true);
         copy_save_to_ram(memory_section_array[1 + ((curr_GBA_rom.offset_flags + (flag_id / 8)) / 0xF80)], &global_memory_buffer[0], 0x1000);
         u8 flags = global_memory_buffer[(curr_GBA_rom.offset_flags + (flag_id / 8)) % 0xF80];
-        tte_write(ptgb::to_string((flags >> (flag_id % 8)) & 0b1));
+        ptgb_write_debug(debug_charset, ptgb::to_string((flags >> (flag_id % 8)) & 0b1), true);
         while (true)
         {
         };

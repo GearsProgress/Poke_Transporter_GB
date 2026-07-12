@@ -109,9 +109,6 @@ endif
 ASFLAGS	:=	$(ARCH)
 LDFLAGS	=	-Os $(ARCH) -Wl,-Map,$(notdir $*.map) -Wl,--gc-sections -mthumb -mcpu=arm7tdmi -mtune=arm7tdmi -Wl,-Map,output.map,--cref -nodefaultlibs
 
-# eliminate libsysbase_libsysbase_a-handle_manager.o and its 4KB IWRAM buffer
-LDFLAGS += -Wl,--wrap=__get_handle -Wl,--wrap=_close_r
-
 CFLAGS += -flto
 LDFLAGS += -flto
 

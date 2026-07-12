@@ -1,4 +1,5 @@
 #include <tonc.h>
+#include "text_engine.h"
 #include "libstd_replacements.h"
 #include "script_var.h"
 #include "pokemon_data.h"
@@ -28,7 +29,10 @@ u32 script_var::place_word()
 
 void script_var::set_start()
 {
-    tte_write("set_start error");
+    u16 debug_charset[256];
+    load_localized_charset(debug_charset, 3, ENGLISH);
+
+    ptgb_write_debug(debug_charset, "set_start error", true);
     while (true)
     {
         // This should never run
@@ -37,7 +41,10 @@ void script_var::set_start()
 
 void script_var::fill_refrences(u8 mg_array[])
 {
-    tte_write("fill_refrences error");
+    u16 debug_charset[256];
+    load_localized_charset(debug_charset, 3, ENGLISH);
+
+    ptgb_write_debug(debug_charset, "fill_refrences error", true);
     while (true)
     {
         // This should never run
