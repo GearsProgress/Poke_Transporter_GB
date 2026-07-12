@@ -111,6 +111,7 @@ LDFLAGS	=	-Os $(ARCH) -Wl,-Map,$(notdir $*.map) -Wl,--gc-sections -mthumb -mcpu=
 
 CFLAGS += -flto
 LDFLAGS += -flto
+CXXFLAGS += -flto
 
 ifeq ($(BUILD_TYPE), debug)
 ASFLAGS += -g
