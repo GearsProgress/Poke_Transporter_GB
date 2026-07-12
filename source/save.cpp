@@ -46,7 +46,7 @@ static void write_direct_single_byte_save(uintptr_t, u8);
 u8 current_bank;
 u8 is_macronix;
 
-IWRAM_CODE void init_bank() {
+void init_bank() {
     REG_WAITCNT &= NON_SRAM_MASK;
     REG_WAITCNT |= SRAM_READING_VALID_WAITCYCLES;
     current_bank = NUM_BANKS;
@@ -54,7 +54,7 @@ IWRAM_CODE void init_bank() {
     #if IS_FLASH
     FLASH_ENTER_MAN_CMD
     delay_cycles(ID_TIMEOUT_CYCLES);
-    u8 man_id = *((vu8*)SAVE_POS);
+    u8 man_id = read_direct_single_byte_save(0);
     if((man_id == MACRONIX_MAN_ID) || (man_id == SANYO_MAN_ID) || (man_id == DEFAULT_MAN_ID))
         is_macronix = 1;
     FLASH_EXIT_MAN_CMD
@@ -62,7 +62,7 @@ IWRAM_CODE void init_bank() {
     #endif
 }
 
-IWRAM_CODE uintptr_t bank_check(uintptr_t address) {
+uintptr_t bank_check(uintptr_t address) {
     address %= (NUM_BANKS * BANK_SIZE);
     #if IS_FLASH
     u8 bank = address / BANK_SIZE;
@@ -77,7 +77,7 @@ IWRAM_CODE uintptr_t bank_check(uintptr_t address) {
     return address;
 }
 
-IWRAM_CODE void erase_sector(uintptr_t address) {
+void erase_sector(uintptr_t address) {
     address = bank_check(address);
     address >>= SECTOR_SIZE_BITS;
     address <<= SECTOR_SIZE_BITS;
@@ -105,11 +105,11 @@ IWRAM_CODE void erase_sector(uintptr_t address) {
     }
 }
 
-IWRAM_CODE u8 read_direct_single_byte_save(uintptr_t address) {
+IWRAM_CODE NO_INLINE u8 read_direct_single_byte_save(uintptr_t address) {
     return *(vu8*)(SAVE_POS+address);
 }
 
-IWRAM_CODE void write_direct_single_byte_save(uintptr_t address, u8 data) {
+IWRAM_CODE NO_INLINE void write_direct_single_byte_save(uintptr_t address, u8 data) {
     vu8* save_data = (vu8*)SAVE_POS;
     for(int i = 0; (i < 3) && save_data[address] != data; i++) {
         #if IS_FLASH
@@ -122,46 +122,46 @@ IWRAM_CODE void write_direct_single_byte_save(uintptr_t address, u8 data) {
     }
 }
 
-IWRAM_CODE u8 read_byte_save(uintptr_t address) {
+u8 read_byte_save(uintptr_t address) {
     address = bank_check(address);
     return read_direct_single_byte_save(address);
 }
 
-IWRAM_CODE u16 read_short_save(uintptr_t address) {
+u16 read_short_save(uintptr_t address) {
     u16 data_out = 0;
     copy_save_to_ram(address, (u8*)&data_out, sizeof(u16));
     return data_out;
 }
 
-IWRAM_CODE u32 read_int_save(uintptr_t address) {
+u32 read_int_save(uintptr_t address) {
     u32 data_out = 0;
     copy_save_to_ram(address, (u8*)&data_out, sizeof(u32));
     return data_out;
 }
 
-IWRAM_CODE void write_byte_save(uintptr_t address, u8 data) {
+void write_byte_save(uintptr_t address, u8 data) {
     address = bank_check(address);
     write_direct_single_byte_save(address, data);
 }
 
-IWRAM_CODE void write_short_save(uintptr_t address, u16 data) {
+void write_short_save(uintptr_t address, u16 data) {
     u16 data_in = data;
     copy_ram_to_save((u8*)&data_in, address, sizeof(u16));
 }
 
-IWRAM_CODE void write_int_save(uintptr_t address, u32 data) {
+void write_int_save(uintptr_t address, u32 data) {
     u32 data_in = data;
     copy_ram_to_save((u8*)&data_in, address, sizeof(u32));
 }
 
-IWRAM_CODE size_t sanitize_save_size(uintptr_t address, size_t size) {
+size_t sanitize_save_size(uintptr_t address, size_t size) {
     address %= NUM_BANKS * BANK_SIZE;
     if((address + size) > (NUM_BANKS * BANK_SIZE))
         size = (NUM_BANKS * BANK_SIZE) - address;
     return size;
 }
 
-IWRAM_CODE void copy_save_to_ram(uintptr_t address, u8* destination, size_t size) {
+void copy_save_to_ram(uintptr_t address, u8* destination, size_t size) {
     // Sanitize size
     size = sanitize_save_size(address, size);
 
@@ -183,7 +183,7 @@ IWRAM_CODE void copy_save_to_ram(uintptr_t address, u8* destination, size_t size
     }
 }
 
-IWRAM_CODE void copy_ram_to_save(u8* base_address, uintptr_t save_address, size_t size) {
+void copy_ram_to_save(u8* base_address, uintptr_t save_address, size_t size) {
     // Sanitize size
     size = sanitize_save_size(save_address, size);
 
@@ -205,7 +205,7 @@ IWRAM_CODE void copy_ram_to_save(u8* base_address, uintptr_t save_address, size_
     }
 }
 
-IWRAM_CODE u8 is_save_correct(u8* base_address, uintptr_t save_address, size_t size) {
+u8 is_save_correct(u8* base_address, uintptr_t save_address, size_t size) {
     // Sanitize size
     size = sanitize_save_size(save_address, size);
 
