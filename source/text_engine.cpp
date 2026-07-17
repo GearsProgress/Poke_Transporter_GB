@@ -13,9 +13,6 @@
 #include "background_engine.h"
 #include "pokemon_data.h"
 
-#define TEXT_CBB 0
-#define TEXT_SBB 10
-
 script_obj curr_line;
 uint char_index;
 uint line_char_index;
@@ -73,17 +70,17 @@ void init_text_engine()
     // Load the TTE
     // tte_init_se(3, BG_CBB(TEXT_CBB) | BG_SBB(TEXT_SBB) | BG_PRIO(0), 0, CLR_WHITE, 14, &japanese_smallFont, NULL);
 
-    tte_init_chr4c(3,                                   // BG 3
-                   BG_CBB(TEXT_CBB) | BG_SBB(TEXT_SBB), // Charblock 0; screenblock 10
-                   0xF000,                              // Screen-entry offset
-                   bytes2word(                          // Color attributes:
-                       13,                              // Text color
-                       15,                              // Shadow color
-                       0,                               // Paper
-                       0),                              // Special
-                   CLR_WHITE,                           // White text
-                   BUILD_FONT,                          // Custom font
-                   NULL                                 // Use default chr4 renderer
+    tte_init_chr4c(3,                                           // BG 3
+                   BG_CBB(TILESET_TEXT) | BG_SBB(TILEMAP_TEXT), // Charblock 0; screenblock 10
+                   0xF000,                                      // Screen-entry offset
+                   bytes2word(                                  // Color attributes:
+                       13,                                      // Text color
+                       15,                                      // Shadow color
+                       0,                                       // Paper
+                       0),                                      // Special
+                   CLR_WHITE,                                   // White text
+                   BUILD_FONT,                                  // Custom font
+                   NULL                                         // Use default chr4 renderer
     );
     tte_init_con();
 
@@ -500,7 +497,7 @@ void scroll_text(bool instant, TTC *tc, int left, int top, int right, int bottom
     // The map starts at tile 0 in the top left, increases by 1 as you go down, and then loops back at the top.
     for (int i = 0; i < 30; i++)
     {
-        tonccpy(&tile_mem[TEXT_CBB][0 + (i * 20)], &tile_mem[TEXT_CBB][2 + (i * 20)], 20 * 32);
+        tonccpy(&tile_mem[TILESET_TEXT][0 + (i * 20)], &tile_mem[TILESET_TEXT][2 + (i * 20)], 20 * 32);
     }
 
     // Remove text that went outside of the box and set the position
