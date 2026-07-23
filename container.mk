@@ -1,5 +1,3 @@
-SRCDIR = /ptgb
-
 BUILD_LANGS := $(shell jq -r '.BUILD_LANGS | join (" ")' < $(SRCDIR)/options.json)
 BUILD_TYPES := $(shell jq -r '.BUILD_TYPES | join (" ")' < $(SRCDIR)/options.json)
 BUILD_XLSXS := $(shell jq -r '.BUILD_XLSXS | join (" ")' < $(SRCDIR)/options.json)
@@ -33,6 +31,11 @@ CXXFLAGS += $(CPPFLAGS)
 #---------------------------------------------------------------------------------
 .SUFFIXES:
 #---------------------------------------------------------------------------------
+
+ifeq ($(strip $(DEVKITARM)),)
+$(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
+endif
+
 
 include $(DEVKITARM)/gba_rules
 

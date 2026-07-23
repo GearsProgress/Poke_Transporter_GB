@@ -97,6 +97,7 @@ setup: # Setup all required dependencies
 		printf "\033[1;32mEverything is set up!\033[0m\n"
 	fi
 
+.PHONY: _setup
 _setup:
 	@echo "Checking Docker container's packages..."
 # Python
@@ -116,7 +117,6 @@ _setup:
 # jq
 	$(call check_package,jq,jq)
 
-
 # $1 = command name
 # $2 = package name
 define check_package_host
@@ -126,6 +126,31 @@ define check_package_host
 		exit
 	fi
 endef
+
+.PHONY: setup_no_docker
+# hidden legacy build option
+setup_no_docker:
+	$(call check_package_host,python3,python3)
+	@if [ ! -e "$(SRCDIR)/.venv/bin/activate" ]; then
+		echo "venv not found. Creating venv..."
+		python3 -m venv .venv
+	fi
+	@if [ -z "$$VIRTUAL_ENV" ]; then
+		echo "Activating venv..."
+		source $(SRCDIR)/.venv/bin/activate
+	fi
+
+	@for package in $(PYPACKAGES); do
+		if pip show "$$package" > /dev/null 2>&1; then
+			echo "$$package found."
+		else
+			echo "$$package is not installed. Installing..."
+			pip install "$$package"
+		fi
+	done
+	$(call check_package_host,rgbasm,rgbds)
+
+	@printf "\033[1;32mEverything is set up!\033[0m\n"
 
 .PHONY: configure
 configure: # Specify ROM Language, ROM Type, and Text Source
@@ -225,10 +250,26 @@ configure: # Specify ROM Language, ROM Type, and Text Source
 clean: # Cleans the build directory
 	@echo "Starting Docker container..."
 	@docker start ptgb >/dev/null
-	@docker exec ptgb make -f /ptgb/container.mk -C /ptgb clean
+	@docker exec ptgb make -f /ptgb/container.mk -C /ptgb SRCDIR="/ptgb" clean
+
+.PHONY: clean_no_docker
+# hidden legacy build option
+clean_no_docker:
+	@echo "Cleaning..."
+	make -f $(SRCDIR)/container.mk clean SRCDIR="$(SRCDIR)"
 
 .PHONY: build
 build: # Builds the ROM
 	@echo "Starting Docker container..."
 	@docker start ptgb >/dev/null
-	@docker exec ptgb make -f /ptgb/container.mk -C /ptgb all
+	@docker exec ptgb make -f /ptgb/container.mk -C /ptgb SRCDIR="/ptgb" all
+
+.PHONY: clean_no_docker
+# hidden legacy build option
+build_no_docker:
+	@if [ -z "$$VIRTUAL_ENV" ]; then
+		echo "Activating venv..."
+		source $(SRCDIR)/.venv/bin/activate
+	fi
+	@echo "Building..."
+	make -f $(SRCDIR)/container.mk all SRCDIR="$(SRCDIR)"
