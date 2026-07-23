@@ -17,3 +17,4 @@ tools/payload-generator/payload-generator
 tools/make-file-container/make-file-container
 loader/data
 options.json
+loader/data/
