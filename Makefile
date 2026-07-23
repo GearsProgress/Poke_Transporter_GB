@@ -170,9 +170,9 @@ configure: # Specify BUILD_LANG, BUILD_TYPE, and BUILD_XLSX
 		while IFS= read -r item; do
 			menu_args="$$menu_args $$i $$item"
 			i=$$((i + 1))
-		done <<EOF
-	$$(jq -r ".$${array_key}[]" "$$json")
-	EOF
+		done <<-EOF
+			$$(jq -r ".$${array_key}[]" "$$json")
+		EOF
 		choice=$$(dialog --stdout \
 			--menu "$$title" 0 0 15 \
 			$$menu_args)
