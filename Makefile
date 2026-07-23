@@ -128,7 +128,7 @@ define check_package_host
 endef
 
 .PHONY: configure
-configure: # Specify BUILD_LANG, BUILD_TYPE, and BUILD_XLSX
+configure: # Specify ROM Language, ROM Type, and Text Source
 	$(call check_package_host,dialog,dialog)
 	$(call check_package_host,jq,jq)
 	
