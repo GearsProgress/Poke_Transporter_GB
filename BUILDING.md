@@ -29,6 +29,9 @@
 - Clone the repository and enter its directory:
 `git clone https://github.com/Striaton-Lab-Team/Poke_Transporter_GB.git`
 
+- Update all submodules:
+`git submodule update --init --recursive`
+
 - Continue with [Building](#building-1)
 ## Building
 1. View available targets with `make help`:
