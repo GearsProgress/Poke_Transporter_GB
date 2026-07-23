@@ -246,7 +246,7 @@ $(GENERATE_STAMP): compress_lz10.sh | data to_compress generated_dir
 	@find tools/text_helper/build -name "*.containerdef" -print0 | xargs -0 -n1 tools/make-file-container/make-file-container to_compress
 	@echo "Compressing bin files!" 
 	@echo -n "["
-	@find to_compress -name "*.bin" -print0 | xargs -0 -n1 ./compress_lz10.sh
+	@find to_compress -name "*.bin" -print0 | xargs -0 -n1 $(SRCDIR)/compress_lz10.sh
 	@echo "]"
 	@echo "Compressing finished!"
 	@echo
