@@ -15,4 +15,5 @@ text_errors.txt
 terminal_output.txt
 tools/payload-generator/payload-generator
 tools/make-file-container/make-file-container
+loader/data
 options.json
