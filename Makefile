@@ -27,7 +27,7 @@ define check_package
 			exit
 		elif [ "$$(uname)" = "Darwin" ]; then
 			echo "macOS detected; skipping group check."
-		elif [ "$$(id | grep -c docker)" = 0]; then
+		elif [ "$$(id | grep -c docker)" = 0 ]; then
 			printf "\033[1;31mUser is not in docker group!\033[0m\n"
 			if [ "$$(cat /etc/group | grep -c docker)" = 0 ]; then
 				echo "Creating docker group..."
