@@ -18,7 +18,7 @@
 3. Continue with [Cloning the Repository](#cloning-the-repository).
 ### macOS
 1. Install [Docker Desktop](https://docs.docker.com/desktop/setup/install/mac-install/).
-2. Install `jq`, `dialog`, and `git` through [Homebrew](https://brew.sh/).
+2. Install `gmake`, `jq`, `dialog`, and `git` through [Homebrew](https://brew.sh/).
 3. Continue with [Cloning the Repository](#cloning-the-repository).
 ## Cloning the Repository
 - `cd` to the directory you want to clone the repository:
@@ -34,6 +34,7 @@
 
 - Continue with [Building](#building-1)
 ## Building
+> If you are on macOS, use `gmake` instead of `make`!
 1. View available targets with `make help`:
 ```
 Targets

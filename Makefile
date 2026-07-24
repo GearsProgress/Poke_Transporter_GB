@@ -25,7 +25,9 @@ define check_package
 			printf "\033[1;31mDocker is not installed!\n"
 			printf "Please install Docker through your package manager.\033[0m\n"
 			exit
-		elif [ "$$(id | grep -c docker)" = 0 ]; then
+		elif [ "$$(uname)" = "Darwin" ]; then
+			echo "macOS detected; skipping group check."
+		elif [ "$$(id | grep -c docker)" = 0]; then
 			printf "\033[1;31mUser is not in docker group!\033[0m\n"
 			if [ "$$(cat /etc/group | grep -c docker)" = 0 ]; then
 				echo "Creating docker group..."
@@ -83,11 +85,11 @@ setup: # Setup all required dependencies
 			fi
 			echo "Creating Docker image..."
 			mkdir -p $(SRCDIR)/docker-build && cd $(SRCDIR)/docker-build
-			DOCKER_BUILDKIT=1 docker build -t ptgb-builder:latest -f $(SRCDIR)/Dockerfile $(SRCDIR)/docker-build
+			DOCKER_BUILDKIT=1 docker build --platform linux/amd64 -t ptgb-builder:latest -f $(SRCDIR)/Dockerfile $(SRCDIR)/docker-build
 			rm -rf $(SRCDIR)/docker-build
 			echo
 			echo "Creating Docker container..."
-			docker container create -w /ptgb -v $(SRCDIR):/ptgb --name ptgb -it ptgb-builder:latest
+			docker container create --platform linux/amd64 -w /ptgb -v $(SRCDIR):/ptgb --name ptgb -it ptgb-builder:latest
 			echo "Starting Docker container..."
 			docker start ptgb >/dev/null
 		fi
