@@ -55,7 +55,7 @@ void Select_Menu::clear_options()
     menu_widget_.clear_item_widgets();
 
     vertical_menu_settings settings = menu_widget_.get_settings();
-    settings.height = TILE_HEIGHT * 2; // reset to just the margins
+    settings.height = TILE_HEIGHT * 3; // reset to just the margins
     menu_widget_.set_settings(settings);
 }
 
