@@ -1,10 +1,12 @@
 BUILD_LANGS := $(shell jq -r '.BUILD_LANGS | join (" ")' < $(SRCDIR)/options.json)
 BUILD_TYPES := $(shell jq -r '.BUILD_TYPES | join (" ")' < $(SRCDIR)/options.json)
 BUILD_XLSXS := $(shell jq -r '.BUILD_XLSXS | join (" ")' < $(SRCDIR)/options.json)
+BUILD_SOUNDS := $(shell jq -r '.BUILD_SOUNDS | join (" ")' < $(SRCDIR)/options.json)
 
 BUILD_LANG ?= $(shell jq -r '.selected.lang' < $(SRCDIR)/options.json)
 BUILD_TYPE ?= $(shell jq -r '.selected.type' < $(SRCDIR)/options.json)
 BUILD_XLSX ?= $(shell jq -r '.selected.xlsx' < $(SRCDIR)/options.json)
+BUILD_SOUND ?= $(shell jq -r '.selected.sound' < $(SRCDIR)/options.json)
 
 GIT_SUFFIX := $(shell git describe --tags --long --dirty | sed -E 's/^[^-]+-([0-9]+)-g[0-9a-f]+(-dirty)?$$/\1/')
 GIT_FULL := $(shell git describe --tags --always --dirty 2>/dev/null)
@@ -23,6 +25,7 @@ TYPE_INDEX := $(shell echo $(BUILD_TYPES) | tr ' ' '\n' | nl -v0 | grep -w $(BUI
 CPPFLAGS   += -DPTGB_BUILD_LANGUAGE=$(LANG_INDEX)
 CPPFLAGS   += -DDEBUG_MODE=$(TYPE_INDEX)
 CPPFLAGS   += -DBUILD_INFO=\"$(GIT_FULL)\"
+CPPFLAGS   += -DENABLE_SOUND=$(BUILD_SOUND)
 
 CFLAGS += $(CPPFLAGS)
 CXXFLAGS += $(CPPFLAGS)
@@ -210,14 +213,16 @@ TEXT_GENERATED_OUTPUTS := \
 all:
 	@set -e; \
 	if [ "$(BUILD_XLSX)" = "remote" ]; then \
-		$(MAKE) --no-print-directory -f $(SRCDIR)/container.mk text_generated BUILD_LANG=$(BUILD_LANG) BUILD_TYPE=$(BUILD_TYPE) BUILD_XLSX=$(BUILD_XLSX); \
+		$(MAKE) --no-print-directory -f $(SRCDIR)/container.mk text_generated BUILD_LANG=$(BUILD_LANG) BUILD_TYPE=$(BUILD_TYPE) BUILD_XLSX=$(BUILD_XLSX) BUILD_SOUND=$(BUILD_SOUND); \
 	fi; \
 	before=$$(stat -c %Y $(BUILD_STAMP) 2>/dev/null || echo 0); \
-	$(MAKE) --no-print-directory -f $(SRCDIR)/container.mk $(BUILD_STAMP) BUILD_LANG=$(BUILD_LANG) BUILD_TYPE=$(BUILD_TYPE) BUILD_XLSX=$(BUILD_XLSX); \
+	$(MAKE) --no-print-directory -f $(SRCDIR)/container.mk $(BUILD_STAMP) BUILD_LANG=$(BUILD_LANG) BUILD_TYPE=$(BUILD_TYPE) BUILD_XLSX=$(BUILD_XLSX) BUILD_SOUND=$(BUILD_SOUND); \
 	after=$$(stat -c %Y $(BUILD_STAMP) 2>/dev/null || echo 0); \
 	if [ "$$before" = "$$after" ] && [ "$$after" != "0" ]; then \
 		echo "PTGB build up to date."; \
 	fi
+
+	@echo "CPPFLAGS = $(CPPFLAGS)";
 
 text_generated: to_compress generated_dir data
 	@PTGB_GEN_DIR="$(CURDIR)/$(GENERATED_DIR)" python3 tools/text_helper/main.py $(BUILD_LANG) $(BUILD_TYPE) $(BUILD_XLSX)
@@ -235,7 +240,7 @@ generate_data: $(GENERATE_STAMP)
 
 $(GENERATE_STAMP): compress_lz10.sh | data to_compress generated_dir
 	@if [ "$(BUILD_XLSX)" != "remote" ]; then \
-		$(MAKE) --no-print-directory -f $(SRCDIR)/container.mk text_generated BUILD_LANG=$(BUILD_LANG) BUILD_TYPE=$(BUILD_TYPE) BUILD_XLSX=$(BUILD_XLSX); \
+		$(MAKE) --no-print-directory -f $(SRCDIR)/container.mk text_generated BUILD_LANG=$(BUILD_LANG) BUILD_TYPE=$(BUILD_TYPE) BUILD_XLSX=$(BUILD_XLSX) BUILD_SOUND=$(BUILD_SOUND); \
 	fi
 	@echo "----------------------------------------------------------------"
 	@echo "Building v$(GIT_VERSION) with parameters: $(BUILD_LANG), $(BUILD_TYPE), $(BUILD_XLSX)"

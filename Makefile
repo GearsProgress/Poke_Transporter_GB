@@ -4,6 +4,7 @@ PYPACKAGES := debugpy pandas pypng requests openpyxl
 BUILD_LANGS := japanese english french german italian spanishEU spanishLA korean chineseSI chineseTR portugueseBR
 BUILD_TYPES := release debug
 BUILD_XLSXS := remote local
+BUILD_SOUNDS := true false
 
 .ONESHELL:
 
@@ -171,18 +172,24 @@ configure: # Specify ROM Language, ROM Type, and Text Source
 	set -- $(BUILD_XLSXS)
 	xlsxs=$$(printf '%s\n' "$$@" | jq -R -s 'split("\n")[:-1]')
 
+	set -- $(BUILD_SOUNDS)
+	sounds=$$(printf '%s\n' "$$@" | jq -R -s 'split("\n")[:-1]')
+
 	jq -n \
 		--argjson langs "$$langs" \
 		--argjson types "$$types" \
 		--argjson xlsxs "$$xlsxs" \
+		--argjson sounds "$$sounds" \
 		'{
 			BUILD_LANGS: $$langs,
 			BUILD_TYPES: $$types,
 			BUILD_XLSXS: $$xlsxs,
+			BUILD_SOUNDS: $$sounds,
 			selected: {
 				lang: "",
 				type: "",
-				xlsx: ""
+				xlsx: "",
+				sound: ""
 			}
 		}' > "$(SRCDIR)/options.json"
 
@@ -235,6 +242,9 @@ configure: # Specify ROM Language, ROM Type, and Text Source
 	fi
 	if ! XLSX=$$(menu "Text Source" options.json "BUILD_XLSXS"); then
 		exit 1
+	fi
+	if ! SOUND=$$(menu "Sound Enabled" options.json "BUILD_SOUNDS"); then
+		exit 1
 	fi	
 	clear
 	tmp=$$(mktemp)
@@ -243,7 +253,8 @@ configure: # Specify ROM Language, ROM Type, and Text Source
 		--arg lang "$$LANG" \
 		--arg type "$$TYPE" \
 		--arg xlsx "$$XLSX" \
-		'.selected.lang = $$lang | .selected.type = $$type | .selected.xlsx = $$xlsx' \
+		--arg sound "$$SOUND" \
+		'.selected.lang = $$lang | .selected.type = $$type | .selected.xlsx = $$xlsx | .selected.sound = $$sound' \
 		$(SRCDIR)/options.json > "$tmp" && mv "$tmp" $(SRCDIR)/options.json
 
 	@printf "\033[1;32mBuild configured!\033[0m\n"
