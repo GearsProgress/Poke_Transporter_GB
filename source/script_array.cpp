@@ -629,7 +629,7 @@ bool run_conditional(int index)
     case CMD_START_LINK:
         load_flex_background(FLEXBG_FENNEL, 3);
         link_animation_state(STATE_CONNECTION);
-        //box.reset();
+        box.reset();
         if (g_debug_options.ignore_link_cable)
         {
             // TODO - Make this less hardcoded
