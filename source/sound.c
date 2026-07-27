@@ -2,9 +2,7 @@
 #include "sound.h"
 #include "soundbank_bin.h"
 
-//#define INCLUDE_SOUND
-
-
+#if ENABLE_SOUND
 static void sound_irq_handler(void)
 {
     #ifdef INCLUDE_SOUND
@@ -12,10 +10,11 @@ static void sound_irq_handler(void)
     mmFrame();
     #endif
 }
+#endif
 
 bool sound_init(void)
 {
-    #ifdef INCLUDE_SOUND
+#if ENABLE_SOUND
     irq_add(II_VBLANK, sound_irq_handler);
 
     mm_addr soundbank = (mm_addr)soundbank_bin;
@@ -25,69 +24,76 @@ bool sound_init(void)
     }
 
     mmInitDefault(soundbank, 16);
+#endif
     return true;
     #endif
 }
 
 void play_song(u32 song_index, bool loop)
 {
-    #ifdef INCLUDE_SOUND
+#if ENABLE_SOUND
     mmStart(song_index, loop ? MM_PLAY_LOOP : MM_PLAY_ONCE);
-    #endif
+#endif
 }
 
 bool is_song_playing(void)
 {
-    #ifdef INCLUDE_SOUND
+#if ENABLE_SOUND
     return mmActive();
-    #endif
+#else
+    return false;
+#endif
 }
 
 void stop_song(void)
 {
-    #ifdef INCLUDE_SOUND
+#if ENABLE_SOUND
     mmStop();
-    #endif
+#endif
 }
 
 PTGBSFXHandle play_sound_effect(u32 sound_effect_index)
 {
-    #ifdef INCLUDE_SOUND
+#if ENABLE_SOUND
     return (PTGBSFXHandle)mmEffect(sound_effect_index);
-    #endif
+#else
+    return 0;
+#endif
 }
 
 void stop_sound_effect(PTGBSFXHandle handle)
 {
-    #ifdef INCLUDE_SOUND
+#if ENABLE_SOUND
     mmEffectCancel((mm_sfxhand)handle);
-    #endif
+#endif
 }
 
 void stop_all_sound_effects(void)
 {
-    #ifdef INCLUDE_SOUND
+#if ENABLE_SOUND
     mmEffectCancelAll();
-    #endif
+#endif
 }
 
 void release_sound_effect(PTGBSFXHandle handle)
 {
-    #ifdef INCLUDE_SOUND
+#if ENABLE_SOUND
     mmEffectRelease((mm_sfxhand)handle);
-    #endif
+#endif
 }
 
 void play_jingle(u32 jingle_index)
 {
-    #ifdef INCLUDE_SOUND
+#if ENABLE_SOUND
     mmJingle(jingle_index);
-    #endif
+#endif
 }
 
 bool is_jingle_playing(void)
 {
-    #ifdef INCLUDE_SOUND
+#if ENABLE_SOUND
     return mmActiveSub();
-    #endif
+#else
+    return false;
+#endif
 }
