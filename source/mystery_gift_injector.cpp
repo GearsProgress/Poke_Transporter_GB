@@ -83,7 +83,7 @@ bool inject_mystery(PokeBox* box)
     copy_save_to_ram(memory_section_array[memory_section], &global_memory_buffer[0], 0x1000);
     global_memory_buffer[(curr_GBA_rom.offset_flags + (curr_GBA_rom.all_collected_flag / 8)) % 0xF80] &= ~(1 << (curr_GBA_rom.all_collected_flag % 8)); // Set "collected all" flag to 0
 
-    for (int i = 0; i < MAX_PKMN_IN_BOX; i++)
+    for (int i = 0; i < box->getNumInBox(); i++)
     {
         int curr_flag;
         curr_flag = curr_GBA_rom.pkmn_collected_flag_start + i;

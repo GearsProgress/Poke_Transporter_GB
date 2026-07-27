@@ -254,8 +254,8 @@
 #define CPU_SET_32BIT     0x04000000
 class mystery_gift_script
 {
-    int curr_mg_index;
-    int curr_section30_index;
+    int curr_mg_index = 0;
+    int curr_section30_index = 0;
     u8 *save_section_30;
     u8 mg_script[MG_SCRIPT_SIZE];
     u8 value_buffer[9];
