@@ -87,7 +87,7 @@ static debug_menu_row_widget* define_toggle_row(const u16 *charset, const char* 
 /**
  * @brief This helper function will define the song row, which will let you toggle between any available maxmod song or None at all.
  */
-static debug_menu_row_widget* __attribute__((noinline)) define_song_row(const u16 *charset, const char* labelText)
+[[maybe_unused]] static debug_menu_row_widget* __attribute__((noinline)) define_song_row(const u16 *charset, const char* labelText)
 {
     option_data *song_options = (option_data*)malloc(sizeof(option_data) * (MSL_NSONGS + 1));
     song_options[0] = {
@@ -141,9 +141,10 @@ static void fill_debug_menu_with_main_menu_entries(vertical_menu &menu, u16 *cha
         define_executable_row(charset, "Unlock MystE", dbg_unlock_mystery, 0, nullptr),
         define_executable_row(charset, "Unlock MystG", dbg_unlock_mystery, 1, nullptr),
 #endif
+#if ENABLE_SOUND
         define_song_row(charset, "Song"),
+#endif
         define_toggle_row(charset, "Print Link", dbg_set_byte_val, g_debug_options.print_link_data, &g_debug_options.print_link_data),
-        define_toggle_row(charset, "Print Packets", dbg_set_byte_val, g_debug_options.print_link_packets, &g_debug_options.print_link_packets),
         define_toggle_row(charset, "Instant Text", dbg_set_byte_val, g_debug_options.instant_text_speed, &g_debug_options.instant_text_speed),
         define_toggle_row(charset, "Ign Cart", dbg_set_byte_val, g_debug_options.ignore_game_pak, &g_debug_options.ignore_game_pak),
         define_toggle_row(charset, "Ign Sprites", dbg_set_byte_val, g_debug_options.ignore_game_pak_sprites, &g_debug_options.ignore_game_pak_sprites),
@@ -154,8 +155,7 @@ static void fill_debug_menu_with_main_menu_entries(vertical_menu &menu, u16 *cha
         define_toggle_row(charset, "Show Invalid", dbg_set_byte_val, g_debug_options.dont_hide_invalid_pkmn, &g_debug_options.dont_hide_invalid_pkmn),
         define_toggle_row(charset, "Ign Dex Compl", dbg_set_byte_val, g_debug_options.ignore_dex_completion, &g_debug_options.ignore_dex_completion),
         define_toggle_row(charset, "Force Caught", dbg_set_byte_val, g_debug_options.force_all_caught, &g_debug_options.force_all_caught),
-        define_debug_choice_row(charset, "Write Cbl Data", dbg_set_byte_val, cbl_data_options, CBL_DATA_OPTIONS_COUNT, false, g_debug_options.write_cable_data_to_save, &g_debug_options.write_cable_data_to_save),
-        define_debug_choice_row(charset, "Load Cbl Data", dbg_set_byte_val, cbl_data_options, CBL_DATA_OPTIONS_COUNT, false, g_debug_options.load_cable_data_from_save, &g_debug_options.load_cable_data_from_save),
+        define_toggle_row(charset, "Write Cbl Data", dbg_set_byte_val, g_debug_options.write_cable_data_to_save, &g_debug_options.write_cable_data_to_save),
         define_toggle_row(charset, "Disp CtrlChr", dbg_set_byte_val, g_debug_options.display_control_char, &g_debug_options.display_control_char)
     };
 
