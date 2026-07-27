@@ -26,7 +26,6 @@ bool sound_init(void)
     mmInitDefault(soundbank, 16);
 #endif
     return true;
-    #endif
 }
 
 void play_song(u32 song_index, bool loop)
