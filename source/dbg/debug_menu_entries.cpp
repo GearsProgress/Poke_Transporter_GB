@@ -70,7 +70,7 @@ static debug_menu_row_widget* define_toggle_row(const u16 *charset, const char* 
 /**
  * @brief This helper function will define the song row, which will let you toggle between any available maxmod song or None at all.
  */
-static debug_menu_row_widget* __attribute__((noinline)) define_song_row(const u16 *charset, const char* labelText)
+[[maybe_unused]] static debug_menu_row_widget* __attribute__((noinline)) define_song_row(const u16 *charset, const char* labelText)
 {
     option_data *song_options = (option_data*)malloc(sizeof(option_data) * (MSL_NSONGS + 1));
     song_options[0] = {
@@ -120,7 +120,9 @@ static void fill_debug_menu_with_main_menu_entries(vertical_menu &menu, u16 *cha
 #endif
         define_executable_row(charset, "Info", show_debug_info_screen, 0, nullptr),
         define_executable_row(charset, "Injection", show_debug_menu_section, static_cast<unsigned>(DebugMenuSection::INJECTION), nullptr),
+#if ENABLE_SOUND
         define_song_row(charset, "Song"),
+#endif
         define_toggle_row(charset, "Print Link", dbg_set_boolean_flag, g_debug_options.print_link_data, &g_debug_options.print_link_data),
         define_toggle_row(charset, "Instant Text", dbg_set_boolean_flag, g_debug_options.instant_text_speed, &g_debug_options.instant_text_speed),
         define_toggle_row(charset, "Ign Cart", dbg_set_boolean_flag, g_debug_options.ignore_game_pak, &g_debug_options.ignore_game_pak),
