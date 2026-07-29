@@ -58,7 +58,7 @@ endef
 .PHONY: setup
 setup: # Setup all required dependencies
 	@if [ -f /.dockerenv ] || [ -n "$$GITPOD" ]; then
-		if [ ! "$$(IS_PTGB)" ]; then
+		if [ -z "$$IS_PTGB" ]; then
 			printf "\033[1;31mRunning inside an non-Poké Transporter GB Docker shell!\n"
 			printf "Please run this on the host machine or inside the Poké Transporter GB's Docker shell.\033[0m"
 			exit
@@ -244,7 +244,7 @@ configure: # Specify ROM Language, ROM Type, and Text Source
 		--arg type "$$TYPE" \
 		--arg xlsx "$$XLSX" \
 		'.selected.lang = $$lang | .selected.type = $$type | .selected.xlsx = $$xlsx' \
-		$(SRCDIR)/options.json > "$tmp" && mv "$tmp" $(SRCDIR)/options.json
+		$(SRCDIR)/options.json > "$$tmp" && mv "$$tmp" $(SRCDIR)/options.json
 
 	@printf "\033[1;32mBuild configured!\033[0m\n"
 
@@ -252,7 +252,7 @@ configure: # Specify ROM Language, ROM Type, and Text Source
 clean: # Cleans the build directory
 	@echo "Starting Docker container..."
 	@docker start ptgb >/dev/null
-	@docker exec ptgb make -f /ptgb/container.mk -C /ptgb SRCDIR="/ptgb" clean
+	@docker exec ptgb make -f /ptgb/container.mk -C /ptgb SRCDIR="/ptgb" PTGB_PROJECT_NAME="$(notdir $(SRCDIR))" clean
 
 .PHONY: clean_no_docker
 # hidden legacy build option
@@ -264,7 +264,7 @@ clean_no_docker:
 build: # Builds the ROM
 	@echo "Starting Docker container..."
 	@docker start ptgb >/dev/null
-	@docker exec ptgb make -f /ptgb/container.mk -C /ptgb SRCDIR="/ptgb" all
+	@docker exec ptgb make -f /ptgb/container.mk -C /ptgb SRCDIR="/ptgb" PTGB_PROJECT_NAME="$(notdir $(SRCDIR))" all
 
 .PHONY: clean_no_docker
 # hidden legacy build option

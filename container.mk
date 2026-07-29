@@ -76,8 +76,9 @@ HOST_ENV := env - \
 # the makefile is found
 #
 #---------------------------------------------------------------------------------
-TARGET		:= $(notdir $(CURDIR))_mb
-LOADERNAME  := $(notdir $(CURDIR))_standalone
+PTGB_PROJECT_NAME ?= $(notdir $(CURDIR))
+TARGET		:= $(PTGB_PROJECT_NAME)_mb
+LOADERNAME  := $(PTGB_PROJECT_NAME)_standalone
 BUILD		:= build
 GENERATED_DIR := $(BUILD)/generated
 SOURCES     := source
