@@ -339,7 +339,7 @@ void mystery_gift_script::build_script(PokeBox *box)
     // TODO make it so that the table is added here(?)
     box->setTable(&decompressed_store.tables.data);
     box->convertAll();
-    for (int i = 0; i < MAX_PKMN_IN_BOX; i++) // Add in the Pokemon data
+    for (int i = 0; i < box->getNumInBox(); i++) // Add in the Pokemon data
     {
         Gen3Pokemon *curr_pkmn = box->getGen3Pokemon(i);
         if (curr_pkmn->isValid)
