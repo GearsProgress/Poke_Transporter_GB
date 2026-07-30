@@ -634,7 +634,7 @@ bool run_conditional(int index)
         if (g_debug_options.ignore_link_cable)
         {
             // TODO - Make this less hardcoded
-            // box.loadData(1, ENGLISH, gen1_rb_debug_box_data);
+            box.loadData(1, ENGLISH, gen1_rb_debug_box_data);
         }
         else
         {
