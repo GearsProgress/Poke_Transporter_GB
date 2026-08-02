@@ -62,7 +62,10 @@ struct decompressed_text_data
     // the buffer is specifically chosen to be -at least- the size of PokemonTables
     // to ensure that writing to gen3_charset_eng FROM the PokemonTables instance of the
     // union doesn't overwrite said instance during the copy
-    u8 buffer[sizeof(PokemonTables)];
+    
+    // Increasing the size to 4096 since that is the smallest size allowed by the table reader.
+    //u8 buffer[sizeof(PokemonTables)];
+    u8 buffer[4096];
     u16 gen3_charset[256];
 };
 
