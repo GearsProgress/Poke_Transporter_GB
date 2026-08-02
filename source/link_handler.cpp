@@ -970,6 +970,11 @@ void LinkConnection::waitForEnd()
 
 bool LinkConnection::LinkCommand_InitalizeConnection(bool waitForCompletion)
 {
+  if (g_debug_options.ignore_link_cable)
+  {
+    return true;
+  }
+  
   globalLinkCable.startConnection(INITIAL_CONNECTION);
 
   if (waitForCompletion)
@@ -982,6 +987,11 @@ bool LinkConnection::LinkCommand_InitalizeConnection(bool waitForCompletion)
 
 bool LinkConnection::LinkCommand_ReloadCurrentBox(bool waitForCompletion)
 {
+  if (g_debug_options.ignore_link_cable)
+  {
+    return true;
+  }
+  
   resetLinkPackets();
 
   linkPacketArr[0] = LinkPacket(CMD_ReloadCurrentBox, 0x00, 0x00, 0xC6DC);
@@ -996,6 +1006,11 @@ bool LinkConnection::LinkCommand_ReloadCurrentBox(bool waitForCompletion)
 
 bool LinkConnection::LinkCommand_TransferPokemon(int boxNumber, byte removalArray[], int removalArrayLength, bool waitForCompletion)
 {
+  if (g_debug_options.ignore_link_cable)
+  {
+    return true;
+  }
+
   int maxBoxes = 0;
   if (gen == 1)
   {
@@ -1040,6 +1055,11 @@ bool LinkConnection::LinkCommand_TransferPokemon(int boxNumber, byte removalArra
 
 bool LinkConnection::LinkCommand_SoftReset(bool waitForCompletion)
 {
+  if (g_debug_options.ignore_link_cable)
+  {
+    return true;
+  }
+
   resetLinkPackets();
 
   linkPacketArr[0] = LinkPacket(CMD_SoftReset, 0x00, 0x00, 0xC6DC);
@@ -1054,6 +1074,11 @@ bool LinkConnection::LinkCommand_SoftReset(bool waitForCompletion)
 
 bool LinkConnection::LinkCommand_ModifySRAMAccess(bool enableSRAM, byte SRAMbank, bool waitForCompletion)
 {
+  if (g_debug_options.ignore_link_cable)
+  {
+    return true;
+  }
+  
   if (SRAMbank > 3)
   {
     return false;
@@ -1079,6 +1104,11 @@ bool LinkConnection::LinkCommand_ModifySRAMAccess(bool enableSRAM, byte SRAMbank
 
 bool LinkConnection::LinkCommand_RunSecondaryPayload(byte payload[], int payloadLength, bool waitForCompletion)
 {
+  if (g_debug_options.ignore_link_cable)
+  {
+    return true;
+  }
+  
   resetLinkPackets();
 
   linkPacketArr[0] = LinkPacket(CMD_RunSecondaryPayload, payloadLength + SECONDARY_PAYLOAD_HEADER_SIZE, 0x00, 0xC6DC);
@@ -1094,6 +1124,11 @@ bool LinkConnection::LinkCommand_RunSecondaryPayload(byte payload[], int payload
 
 bool LinkConnection::LinkCommand_ReadMemorySection(u16 dataPointer, byte outArray[], int outArraySize, bool waitForCompletion)
 {
+  if (g_debug_options.ignore_link_cable)
+  {
+    return true;
+  }
+  
   resetLinkPackets();
 
   linkPacketDataStart = dataPointer;
