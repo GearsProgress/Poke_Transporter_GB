@@ -14,7 +14,7 @@ debug_options g_debug_options =
     .dont_hide_invalid_pkmn = (false && DEBUG_MODE),
     .ignore_dex_completion = (false && DEBUG_MODE),
     .force_all_caught = (false && DEBUG_MODE),
-    .write_cable_data_to_save = (u8)WRITE_CABLE_DATA_MODE_CART,
+    .write_cable_data_to_save = (u8)WRITE_CABLE_DATA_MODE_OFF,
     .load_cable_data_from_save = (u8)WRITE_CABLE_DATA_MODE_OFF,
     .display_control_char = (false && DEBUG_MODE)
 };

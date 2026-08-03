@@ -805,8 +805,14 @@ bool run_conditional(int index)
         boxRemovalPayload[arrayIndex] = 0xFF;
         arrayIndex++;
 
-        globalLinkCable.LinkCommand_TransferPokemon(0, 
-            boxRemovalPayload, arrayIndex);
+
+
+        byte removalArray[] = {2, 1, 0, 0xFF};
+        globalLinkCable.LinkCommand_TransferPokemon(2, removalArray, 4, true);
+
+        //globalLinkCable.skipPrint = false;
+        //globalLinkCable.pauseOnPacket = true;
+        //globalLinkCable.LinkCommand_TransferPokemon(0, boxRemovalPayload, arrayIndex);
     }
         return true;
 
