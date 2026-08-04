@@ -230,6 +230,7 @@ enum LinkState
 
     PACKET_EXCHANGE = 0x10,
     STANDARD_PACKET_EXCHANGE,
+    RUNNING_CODE_DELAY,
     SECONDARY_PACKET_EXCHANGE,
     PROCESS_PACKET,
     LOAD_NEXT_PACKET,
@@ -299,7 +300,7 @@ struct LinkPacket
 
     LinkPacket() {};
     LinkPacket(PayloadCommand cmd, byte arg1, byte arg2, u16 addr);
-    void loadSecondaryPayload(byte *payload, int payloadSize);
+    void loadSecondaryPayload(byte *payload, int paylHeoadSize);
 };
 
 class LinkConnection

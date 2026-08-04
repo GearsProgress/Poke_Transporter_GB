@@ -204,6 +204,7 @@ void LinkConnection::exchangeBytes()
   case WRITE_CABLE_DATA_MODE_OFF:
     // Normal transfer :-)
     inData = linkSPI->transfer(outData);
+    PTGB_MGBA_INFO("in: %X, out: %X", inData, outData);
     break;
   case WRITE_CABLE_DATA_MODE_SRAM:
     // Pretend transfer, by loading the bytes from SRAM (where we stored them with writeData() in a previous transfer)
@@ -585,7 +586,26 @@ void LinkConnection::handleStateLogic()
       currOutgoingPacket->recievedData[6],
       currOutgoingPacket->recievedData[7]
       );
-
+      exitState = RUNNING_CODE_DELAY;
+      nextOutData = 0xFF;
+      break;
+    default:
+      nextOutData = 0xFF;
+      break;
+    }
+  }
+    dataOutBuffer[subStateCounter] = inData;
+    break;
+  
+  case RUNNING_CODE_DELAY:
+  {
+    // We are currently processing something, we need to wait for that to finish.
+    if (inData == 0xFE)
+    {
+      nextOutData = 0xFF;
+    }
+    else
+    {
       if (currOutgoingPacket->secondaryPayloadData != nullptr)
       {
         // We get our response after the GB gets the secondary payload, send that first.
@@ -595,13 +615,9 @@ void LinkConnection::handleStateLogic()
       {
         exitState = PROCESS_PACKET;
       }
-    default:
-      nextOutData = 0xFF;
-      break;
     }
   }
-    dataOutBuffer[subStateCounter] = inData;
-    break;
+  break;
 
   case SECONDARY_PACKET_EXCHANGE:
   {
@@ -671,14 +687,6 @@ void LinkConnection::handleStateLogic()
       {
         // We need to wait until the packet is ready to be recieved.
         nextOutData = 0xFF;
-        if (((subStateCounter - SECONDARY_PAYLOAD_HEADER_SIZE - currOutgoingPacket->secondaryPayloadDataSize) & 0x0F) == 0)
-        {
-          PTGB_MGBA_INFO("Secondary waiting: sub=%d want=%X got=%X cmd=%d",
-                         subStateCounter,
-                         currOutgoingPacket->packetID,
-                         inData,
-                         currOutgoingPacket->command);
-        }
       }
       else
       {
@@ -938,14 +946,6 @@ bool LinkConnection::processPacket()
                  currIncomingPacket->recievedData[6],
                  currIncomingPacket->recievedData[7]);
 
-  if (currIncomingPacket->recievedData[0] & 0x80)
-  {
-    PTGB_MGBA_WARN("Packet reports GB command failure: packet=%u cmd=%d firstData=%X",
-                   currIncomingPacket->packetID,
-                   currIncomingPacket->command,
-                   currIncomingPacket->recievedData[0]);
-  }
-
   if (checksum != dataOutBuffer[INP_CHECKSUM_INDEX])
   {
     // The checksum has to match in order for it to be valid, if we've made it this far down the line.
@@ -956,6 +956,15 @@ bool LinkConnection::processPacket()
                    checksum,
                    dataOutBuffer[INP_CHECKSUM_INDEX]);
     return false;
+  }
+
+  if ((currIncomingPacket->command != CMD_ReadDataRequest) && (dataOutBuffer[INP_DATA_INDEX] & 0x80))
+  {
+    PTGB_MGBA_INFO("Packet reports GB command failure: packet=%u cmd=%d encodedFirstData=%X decodedFirstData=%X",
+                   currIncomingPacket->packetID,
+                   currIncomingPacket->command,
+                   dataOutBuffer[INP_DATA_INDEX],
+                   currIncomingPacket->recievedData[0]);
   }
 
   if (currIncomingPacket->command != CMD_ReadDataRequest)
@@ -973,7 +982,7 @@ bool LinkConnection::processPacket()
         currIncomingPacket->recievedData[7] != 0xFF)
     {
       currIncomingPacket->latestError = ECHO_MISMATCH;
-      PTGB_MGBA_WARN("Packet echo mismatch: packet=%u cmd=%d recv=%X %X %X %X %X %X %X %X",
+      PTGB_MGBA_INFO("Packet echo mismatch: packet=%u cmd=%d recv=%X %X %X %X %X %X %X %X",
                      currIncomingPacket->packetID,
                      currIncomingPacket->command,
                      currIncomingPacket->recievedData[0],
