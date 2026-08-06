@@ -251,8 +251,8 @@ enum LinkConnectionError
 
 enum PayloadCommand
 {
-    CMD_NONE = -1,
-    CMD_ReloadCurrentBox,        // no arguments used. Reloads the current box from SRAM. Use this as the first command byte before performing other commands.
+    CMD_NONE = 0x7F,             // Using 0x7F instead of -1, since that ends up being 0xFE.
+    CMD_ReloadCurrentBox = 0,    // no arguments used. Reloads the current box from SRAM. Use this as the first command byte before performing other commands.
     CMD_TransferPokemon,         // 1st argument = secondary payload size, 2nd argument = box that should be transferred from. This command uses a secondary payload. The size of this secondary payload needs to be declared beforehand. Prior to requesting a secondary payload, the program will use the second argument to load a specific box from SRAM. Box numbers are 0-indexed and range from 0x00 (box 1) to 0x0B(box 12). This load procedure currently cannot be skipped. Once the secondary payload arrives, the program will verify its integrity and align the payload. Afterwards, it will use the information within this payload to remove pokémon from the current box. Once all transferred pokémon have been removed, the program will save the current box.
     CMD_SoftReset,               // no arguments used. Instantly soft resets the game.
     CMD_ModifySRAMAccess,        // 1st argument = SRAM dis/enable. set to 0x0A to open access, set to 0x00 to close access. Second argument = SRAM bank. When closing SRAM access, set to 0x00. SRAM remains open until closed by this command or until closed by CMD_TransferPokemon/CMD_ReloadCurrentBox.
@@ -341,7 +341,7 @@ public:
     LinkPacket *currOutgoingPacket;
     LinkPacket *currIncomingPacket;
     LinkPacket dummyPacket = LinkPacket();
-    byte linkPacketArrIndex = 0;
+    byte linkPacketArrIndex = LINK_PACKET_ARRAY_SIZE; // We want to avoid starting at zero, since that is a common value sent back in error.
     u16 linkPacketDataAddr = 0;
     u16 linkPacketDataStart = 0;
     int linkPacketDataSize = 0;
