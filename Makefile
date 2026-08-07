@@ -5,6 +5,11 @@ BUILD_LANGS := japanese english french german italian spanishEU spanishLA korean
 BUILD_TYPES := release debug
 BUILD_XLSXS := remote local
 
+UID := $(shell id -u)
+GID := $(shell id -g)
+export UID
+export GID
+
 .ONESHELL:
 
 default: help
@@ -85,7 +90,7 @@ setup: # Setup all required dependencies
 			fi
 			echo "Creating Docker image..."
 			mkdir -p $(SRCDIR)/docker-build && cd $(SRCDIR)/docker-build
-			DOCKER_BUILDKIT=1 docker build --platform linux/amd64 -t ptgb-builder:latest -f $(SRCDIR)/Dockerfile $(SRCDIR)/docker-build
+			DOCKER_BUILDKIT=1 docker build --platform linux/amd64 -t ptgb-builder:latest --build-arg UID=$$UID --build-arg GID=$$GID -f $(SRCDIR)/Dockerfile $(SRCDIR)/docker-build
 			rm -rf $(SRCDIR)/docker-build
 			echo
 			echo "Creating Docker container..."
