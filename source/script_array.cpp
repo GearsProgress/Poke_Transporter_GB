@@ -815,6 +815,7 @@ bool run_conditional(int index)
     case CMD_START_LINK:
         load_flex_background(FLEXBG_FENNEL, 3);
         link_animation_state(STATE_CONNECTION);
+        party_data.box.reset();
         party_data.start_link();
         reload_textbox_background();
         load_flex_background(FLEXBG_FENNEL, 2);

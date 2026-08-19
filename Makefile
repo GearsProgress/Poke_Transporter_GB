@@ -6,6 +6,7 @@ BUILD_XLSXS := local remote
 BUILD_LANG ?= english
 BUILD_TYPE ?= release
 BUILD_XLSX ?= local
+ENABLE_SOUND ?= 0
 
 ifneq ($(filter $(BUILD_LANG),$(BUILD_LANGS)),)
 else
@@ -39,6 +40,7 @@ TYPE_INDEX := $(shell echo $(BUILD_TYPES) | tr ' ' '\n' | nl -v0 | grep -w $(BUI
 CPPFLAGS   += -DPTGB_BUILD_LANGUAGE=$(LANG_INDEX)
 CPPFLAGS   += -DDEBUG_MODE=$(TYPE_INDEX)
 CPPFLAGS   += -DBUILD_INFO=\"$(GIT_FULL)\"
+CPPFLAGS   += -DENABLE_SOUND=$(ENABLE_SOUND)
 
 CFLAGS += $(CPPFLAGS)
 CXXFLAGS += $(CPPFLAGS)
