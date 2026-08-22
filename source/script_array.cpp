@@ -706,16 +706,26 @@ bool run_conditional(int index)
 
             load_select_sprites(globalLinkCable.currROM);
 
+            obj_unhide(gba_cart, 0);
+            obj_set_pos(gba_cart, 17 * 8, 14 * 8);
+
+            obj_unhide(cart_shell, 0);
+            obj_set_pos(cart_shell, (8 * 8), (11 * 8) + 11);
+
+            obj_unhide(cart_label, 0);
+            obj_set_pos(cart_label, (8 * 8) + 8, (11 * 8) + 11 + 13);
+
+            obj_unhide(gba_flag, 0);
+            obj_set_pos(gba_flag, 23 * 8, 14 * 8);
+
             obj_unhide(gb_flag, 0);
             obj_set_pos(gb_flag, 1.5 * 8, 14 * 8);
+        
+            globalLinkCable.LinkCommand_ReadMemorySection(globalLinkCable.pccsROMptr->wCurrentBoxNum, &globalLinkCable.boxNum, 1);
 
-            globalLinkCable.skipPrint = false;
-            globalLinkCable.pauseOnPacket = true;
-
-            byte boxDataArray[1122];
-
-            globalLinkCable.LinkCommand_ReadMemorySection(0xDA80,
-            boxDataArray, 1122);
+            byte boxDataArray[globalLinkCable.pccsROMptr->box_data_size];
+            globalLinkCable.LinkCommand_ReadMemorySection(globalLinkCable.pccsROMptr->wBoxDataStart,
+            boxDataArray, globalLinkCable.pccsROMptr->box_data_size);
 
             box.loadData(globalLinkCable.gen, globalLinkCable.lang,
             boxDataArray);
@@ -753,6 +763,7 @@ bool run_conditional(int index)
         {
             set_missingno(false);
         }
+        globalLinkCable.LinkCommand_SoftReset();
         return true;
 
     case CMD_LANG_MENU:
@@ -804,7 +815,7 @@ bool run_conditional(int index)
         }
         boxRemovalPayload[arrayIndex] = 0xFF;
         arrayIndex++;
-        globalLinkCable.LinkCommand_TransferPokemon(2, boxRemovalPayload, arrayIndex);
+        globalLinkCable.LinkCommand_TransferPokemon(globalLinkCable.boxNum, boxRemovalPayload, arrayIndex);
     }
         return true;
 

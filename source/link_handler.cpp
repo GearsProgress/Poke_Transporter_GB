@@ -18,11 +18,23 @@
 #include "text_tables.h"
 #include "translated_text.h"
 #include "gb_rom_values/base_gb_rom_struct.h"
+#include "gb_rom_values/gb_rom_values.h"
+#include "gb_rom_values_jpn_lz10_bin.h"
+#include "gb_rom_values_eng_lz10_bin.h"
+#include "gb_rom_values_fre_lz10_bin.h"
+#include "gb_rom_values_ger_lz10_bin.h"
+#include "gb_rom_values_ita_lz10_bin.h"
+#include "gb_rom_values_spa_lz10_bin.h"
+#include "gb_rom_values_kor_lz10_bin.h"
 
 #include "GB_Payloads_chunk0_lz10_bin.h"
 #include "GB_Payloads_chunk1_lz10_bin.h"
 #include "GB_Payloads_chunk2_lz10_bin.h"
 #include "GB_Payloads_chunk3_lz10_bin.h"
+#include "GB_Payloads_chunk4_lz10_bin.h"
+#include "GB_Payloads_chunk5_lz10_bin.h"
+#include "GB_Payloads_chunk6_lz10_bin.h"
+
 #include "GB_Payloads.h"
 
 LinkSPI linkSPIInstance;
@@ -30,7 +42,7 @@ LinkSPI *linkSPI = &linkSPIInstance;
 
 // Here's a compilation check to ensure that the size of these structs match our expectations.
 // Just update it if you changed the struct members. The data-generator process prints their actual sizes.
-static_assert(sizeof(struct GB_ROM) == 136);
+static_assert(sizeof(struct GB_ROM) == 140);
 static_assert(sizeof(struct ROM_DATA) == 160);
 
 LinkConnection globalLinkCable;
@@ -142,8 +154,11 @@ void LinkConnection::loadPayload(GB_PayloadsFiles payload)
       (const u8 *)GB_Payloads_chunk1_lz10_bin,
       (const u8 *)GB_Payloads_chunk2_lz10_bin,
       (const u8 *)GB_Payloads_chunk3_lz10_bin,
+      (const u8 *)GB_Payloads_chunk4_lz10_bin,
+      (const u8 *)GB_Payloads_chunk5_lz10_bin,
+      (const u8 *)GB_Payloads_chunk6_lz10_bin,
   };
-  FileContainerReader reader(chunkList, 4);
+  FileContainerReader reader(chunkList, 7);
   const u32 fileIndex = (u32)payload;
 
   reader.init(decompressionBuffer, sizeof(decompressionBuffer));
@@ -158,6 +173,38 @@ void LinkConnection::loadPayloadByROM(GameBoyROM rom)
 {
   loadPayload(GameBoyROMPayloads[rom]);
   lang = GameBoyROMLanguages[rom];
+  vers = GameBoyROMVersions[rom];
+
+  static GB_ROM gb_rom_values_buffer[7];
+  const u8 *compressed_rom_values;
+
+  switch (lang){
+    case JAPANESE:
+      compressed_rom_values = gb_rom_values_jpn_lz10_bin;
+      break;
+    default:
+    case ENGLISH:
+      compressed_rom_values = gb_rom_values_eng_lz10_bin;
+      break;
+    case FRENCH:
+      compressed_rom_values = gb_rom_values_fre_lz10_bin;
+      break;
+    case ITALIAN:
+      compressed_rom_values = gb_rom_values_ita_lz10_bin;
+      break;
+    case GERMAN:
+      compressed_rom_values = gb_rom_values_ger_lz10_bin;
+      break;
+    case SPANISH:
+      compressed_rom_values = gb_rom_values_spa_lz10_bin;
+      break;
+    case KOREAN:
+      compressed_rom_values = gb_rom_values_kor_lz10_bin;
+      break;
+  }
+
+  LZ77UnCompWram(compressed_rom_values, gb_rom_values_buffer);
+  pccsROMptr = &gb_rom_values_buffer[vers - 1];
 }
 
 void LinkConnection::loadCurrGameFromChecksum()
@@ -204,7 +251,7 @@ void LinkConnection::exchangeBytes()
   case WRITE_CABLE_DATA_MODE_OFF:
     // Normal transfer :-)
     inData = linkSPI->transfer(outData);
-    PTGB_MGBA_INFO("in: %X, out: %X", inData, outData);
+    // PTGB_MGBA_INFO("in: %X, out: %X", inData, outData);
     break;
   case WRITE_CABLE_DATA_MODE_SRAM:
     // Pretend transfer, by loading the bytes from SRAM (where we stored them with writeData() in a previous transfer)
@@ -960,11 +1007,13 @@ bool LinkConnection::processPacket()
 
   if ((currIncomingPacket->command != CMD_ReadDataRequest) && (dataOutBuffer[INP_DATA_INDEX] & 0x80))
   {
+    currIncomingPacket->latestError = ERROR_FLAG;
     PTGB_MGBA_INFO("Packet reports GB command failure: packet=%u cmd=%d encodedFirstData=%X decodedFirstData=%X",
                    currIncomingPacket->packetID,
                    currIncomingPacket->command,
                    dataOutBuffer[INP_DATA_INDEX],
                    currIncomingPacket->recievedData[0]);
+    return false;
   }
 
   if (currIncomingPacket->command != CMD_ReadDataRequest)
@@ -1294,11 +1343,17 @@ bool LinkConnection::LinkCommand_RunSecondaryPayload(byte payload[], int payload
   return true;
 };
 
-bool LinkConnection::LinkCommand_ReadMemorySection(u16 dataPointer, byte outArray[], int outArraySize, bool waitForCompletion)
+bool LinkConnection::LinkCommand_ReadMemorySection(u32 dataPointer, byte outArray[], int outArraySize, bool waitForCompletion)
 {
   if (g_debug_options.ignore_link_cable)
   {
     return true;
+  }
+
+  if (dataPointer > 0xFFFF)
+  {
+    waitForCompletion = true; // We have to wait for completion with the SRAM bank loading, so we can close it
+    LinkCommand_ModifySRAMAccess(true, dataPointer >> 16);
   }
 
   PTGB_MGBA_INFO("Running command: ReadMemorySection");
@@ -1307,13 +1362,20 @@ bool LinkConnection::LinkCommand_ReadMemorySection(u16 dataPointer, byte outArra
 
   linkPacketDataStart = dataPointer;
   linkPacketDataSize = outArraySize;
-  linkPacketDataAddr = dataPointer;
+  linkPacketDataAddr = dataPointer & 0xFFFF;
   outDataArrayPtr = outArray;
 
   for (int i = 0; i < LINK_PACKET_ARRAY_SIZE; i++)
   {
-    linkPacketArr[i] = LinkPacket(CMD_ReadDataRequest, 0x00, 0x00, linkPacketDataAddr);
-    linkPacketDataAddr += 8;
+    if ((i * 8) < linkPacketDataSize)
+    {
+      linkPacketArr[i] = LinkPacket(CMD_ReadDataRequest, 0x00, 0x00, linkPacketDataAddr);
+      linkPacketDataAddr += 8;
+    }
+    else
+    {
+      linkPacketArr[i] = dummyPacket;
+    }
   }
 
   globalLinkCable.startConnection(PACKET_EXCHANGE);
@@ -1321,5 +1383,8 @@ bool LinkConnection::LinkCommand_ReadMemorySection(u16 dataPointer, byte outArra
   {
     waitForEnd();
   }
+
+  LinkCommand_ModifySRAMAccess(false, dataPointer >> 16);
+
   return true;
 }
