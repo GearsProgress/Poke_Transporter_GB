@@ -435,7 +435,7 @@ int main(void)
 
 	set_background_pal(curr_GBA_rom.gamecode, false, true);
 
-	if (!g_debug_options.ignore_mg_e4_flags && (!get_tutorial_flag() || g_debug_options.force_tutorial))
+	if (!get_tutorial_flag() || g_debug_options.force_tutorial)
 	{
 		obj_hide_multi(ptgb_logo_l, 2);
 		text_loop(BTN_TRANSFER);

@@ -6,6 +6,7 @@
 #include "translated_text.h"
 #include "FileContainerReader.h"
 #include "text_tables.h"
+#include "script_array.h"
 
 #define MG_SCRIPT false
 #define S30_SCRIPT true
@@ -339,6 +340,7 @@ void mystery_gift_script::build_script(PokeBox *box)
     // it won't get called automatically because it's part of the union (and neither will the destructor)
     new (&decompressed_store.tables.data) PokemonTables();
 
+    newPkmn = false;
     // TODO make it so that the table is added here(?)
     box->setTable(&decompressed_store.tables.data);
     box->convertAll();

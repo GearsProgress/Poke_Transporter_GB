@@ -17,6 +17,7 @@
 #include <tonc.h>
 
 int last_error;
+bool newPkmn = false;
 PokemonTables pokeTable;
 PokeBox box(&pokeTable);
 
@@ -573,7 +574,8 @@ bool run_conditional(int index)
         return get_tutorial_flag() && !g_debug_options.force_tutorial;
 
     case COND_NEW_POKEMON:
-        return box.getHasNewPkmn();
+        //return box.getHasNewPkmn();    
+        return newPkmn;
 
     case COND_IS_HOENN_RS:
         return curr_GBA_rom.is_ruby_sapphire();
