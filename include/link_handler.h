@@ -266,7 +266,9 @@ const u8 GameBoyROMChecksumTable[][4]{
 enum LinkState
 {
     INITIAL_CONNECTION = 0x00,
-    CLOCK,
+    DISCOVERY_RESET,
+    CLOCK_ACQUIRE,
+    CLOCK_CONFIRM,
     SAVE_SUCCESS,
     MENU_OPEN,
     MENU_SUCCESS,
@@ -365,9 +367,9 @@ public:
 
     LinkConnectionError lastError = NO_ERROR;
 
-    uint8_t inData;
-    uint8_t outData;
-    uint8_t nextOutData;
+    uint8_t inData = 0xFF;
+    uint8_t outData = 0xFF;
+    uint8_t nextOutData = 0xFF;
 
     int globalStateCounter = 0; // The counter for the total number of bytes sent
     int subStateCounter = 0;    // The counter for the total number of bytes sent in this substate

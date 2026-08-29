@@ -40,6 +40,12 @@
 LinkSPI linkSPIInstance;
 LinkSPI *linkSPI = &linkSPIInstance;
 
+#define INITIAL_LINK_TIMER (0x4000 / 60)
+#define DISCOVERY_TIMER_MIN 4
+#define DISCOVERY_TIMER_PHASE_MASK 0x0F
+#define DISCOVERY_TIMEOUT_TRANSFERS 2048
+#define DISCOVERY_CONFIRM_TIMEOUT_TRANSFERS 180
+
 // Here's a compilation check to ensure that the size of these structs match our expectations.
 // Just update it if you changed the struct members. The data-generator process prints their actual sizes.
 static_assert(sizeof(struct GB_ROM) == 140);
@@ -287,7 +293,22 @@ void LinkConnection::startConnection(LinkState startState)
   switch (startState)
   {
   case INITIAL_CONNECTION:
-    REG_TM3D = -0x4000 / 60;
+    // Start searching and make sure the first byte sent requests the external clock
+    irq_disable(II_TIMER3);
+    REG_TM3CNT = 0;
+    REG_IF = (1 << II_TIMER3);
+    linkSPI->activate(LinkSPI::Mode::MASTER_256KBPS);
+
+    inData = 0xFF;
+    outData = 0x01;
+    nextOutData = 0x01;
+    globalStateCounter = 0;
+    subStateCounter = 0;
+    subStateChanged = false;
+    enterState = CLOCK_ACQUIRE;
+    exitState = CLOCK_ACQUIRE;
+
+    REG_TM3D = -DISCOVERY_TIMER_MIN;
     REG_TM3CNT = TM_FREQ_1024 | TM_ENABLE;
     break;
   case PACKET_EXCHANGE:
@@ -299,7 +320,10 @@ void LinkConnection::startConnection(LinkState startState)
     break;
   }
 
-  enterState = startState;
+  if (startState != INITIAL_CONNECTION)
+  {
+    enterState = startState;
+  }
   irq_enable(II_TIMER3);
 }
 
@@ -420,15 +444,62 @@ void LinkConnection::handleStateLogic()
   switch (enterState)
   {
   case INITIAL_CONNECTION:
-    nextOutData = 0xFF;
-    exitState = CLOCK;
+    nextOutData = 0x01;
+    exitState = DISCOVERY_RESET;
     break;
 
-  case CLOCK:
+  case DISCOVERY_RESET:
+    // Reset and try a different timer phase
+    REG_TM3CNT = 0;
+    REG_IF = (1 << II_TIMER3);
+    linkSPI->activate(LinkSPI::Mode::MASTER_256KBPS);
+    outData = 0x01;
+    nextOutData = 0x01;
+    REG_TM3D = -(DISCOVERY_TIMER_MIN +
+                 (globalStateCounter & DISCOVERY_TIMER_PHASE_MASK));
+    REG_TM3CNT = TM_FREQ_1024 | TM_ENABLE;
+    exitState = CLOCK_ACQUIRE;
+    break;
+
+  case CLOCK_ACQUIRE:
+    nextOutData = 0x01;
+
+    if (inData == 0x02)
+    {
+      // Receiving 0x02 while sending 0x01 means the other Game Boy offered
+      // external-clock mode and should now have selected the GBA as master.
+      REG_TM3D = -INITIAL_LINK_TIMER;
+      exitState = CLOCK_CONFIRM;
+    }
+    else if (inData == 0xFE)
+    {
+      // Keep compatibility with an already-established connection where the
+      // role-selection byte was completed before discovery began.
+      REG_TM3D = -INITIAL_LINK_TIMER;
+      exitState = SAVE_SUCCESS;
+      nextOutData = 0x01;
+    }
+    else if (subStateCounter >= DISCOVERY_TIMEOUT_TRANSFERS)
+    {
+      exitState = DISCOVERY_RESET;
+    }
+    else
+    {
+      REG_TM3D = -(DISCOVERY_TIMER_MIN +
+                   (subStateCounter & DISCOVERY_TIMER_PHASE_MASK));
+    }
+    break;
+
+  case CLOCK_CONFIRM:
     if (inData == 0xFE)
     {
       exitState = SAVE_SUCCESS;
-      nextOutData = 0x00;
+      nextOutData = 0x01;
+    }
+    else if (subStateCounter >= DISCOVERY_CONFIRM_TIMEOUT_TRANSFERS)
+    {
+      exitState = DISCOVERY_RESET;
+      nextOutData = 0x01;
     }
     else
     {
@@ -437,12 +508,17 @@ void LinkConnection::handleStateLogic()
     break;
 
   case SAVE_SUCCESS:
-    if (inData == 0x60 || inData == 0x61)
+    nextOutData = 0x01;
+
+    if (inData == 0x02)
+    {
+      // Don't exit if we already set the GB as the follower
+    }
+    else if (inData == 0x60 || inData == 0x61)
     {
       exitState = MENU_OPEN;
       nextOutData = inData;
     }
-    // nextOutData defaults to 0x00
     break;
 
   case MENU_OPEN:
