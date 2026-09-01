@@ -52,7 +52,9 @@ enum GameBoyROM
     SILVER_SP,
     SILVER_KOR,
     CRYSTAL_JP,
-    CRYSTAL_EN,
+    CRYSTAL_EN_v0,
+    CRYSTAL_EN_v1,
+    CRYSTAL_EN_vA,
     CRYSTAL_FR,
     CRYSTAL_IT,
     CRYSTAL_DE,
@@ -105,7 +107,9 @@ const GB_PayloadsFiles GameBoyROMPayloads[] =
         GB_PayloadsFiles::SPECIFICPAYLOADGEN2_SP_S,    // SILVER_SP
         GB_PayloadsFiles::SPECIFICPAYLOADGEN2_KOR_S,   // SILVER_KOR
         GB_PayloadsFiles::SPECIFICPAYLOADGEN2_JP_C,    // CRYSTAL_JP
-        GB_PayloadsFiles::SPECIFICPAYLOADGEN2_EN_C,    // CRYSTAL_EN
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN2_EN_C,    // CRYSTAL_EN_v0
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN2_EN_C11,  // CRYSTAL_EN_v1
+        GB_PayloadsFiles::SPECIFICPAYLOADGEN2_EN_CAU,  // CRYSTAL_EN_vA
         GB_PayloadsFiles::SPECIFICPAYLOADGEN2_FR_C,    // CRYSTAL_FR
         GB_PayloadsFiles::SPECIFICPAYLOADGEN2_IT_C,    // CRYSTAL_IT
         GB_PayloadsFiles::SPECIFICPAYLOADGEN2_DE_C,    // CRYSTAL_DE
@@ -155,7 +159,9 @@ const Language GameBoyROMLanguages[] =
         SPANISH,  // SILVER_SP
         KOREAN,   // SILVER_KOR
         JAPANESE, // CRYSTAL_JP
-        ENGLISH,  // CRYSTAL_EN
+        ENGLISH,  // CRYSTAL_EN_v0
+        ENGLISH,  // CRYSTAL_EN_v1
+        ENGLISH,  // CRYSTAL_EN_vA
         FRENCH,   // CRYSTAL_FR
         ITALIAN,  // CRYSTAL_IT
         GERMAN,   // CRYSTAL_DE
@@ -206,7 +212,9 @@ const Version GameBoyROMVersions[] =
             SILVER,  // SILVER_SP
             SILVER,  // SILVER_KOR
             CRYSTAL, // CRYSTAL_JP
-            CRYSTAL, // CRYSTAL_EN
+            CRYSTAL, // CRYSTAL_EN_v0
+            CRYSTAL, // CRYSTAL_EN_v1
+            CRYSTAL, // CRYSTAL_EN_vA
             CRYSTAL, // CRYSTAL_FR
             CRYSTAL, // CRYSTAL_IT
             CRYSTAL, // CRYSTAL_DE
@@ -256,7 +264,9 @@ const u8 GameBoyROMChecksumTable[][4]{
     {0x1C, 0x06, 0x4B, SILVER_SP},
     {0xE7, 0x98, 0x5B, SILVER_KOR},
     {0x22, 0x9A, 0x40, CRYSTAL_JP},
-    {0x26, 0x18, 0xD2, CRYSTAL_EN},
+    {0x27, 0x12, 0x9F, CRYSTAL_EN_v0},
+    {0x26, 0x18, 0xD2, CRYSTAL_EN_v1},
+    {0x17, 0xAF, 0x7C, CRYSTAL_EN_vA},
     {0x26, 0xF2, 0xE2, CRYSTAL_FR},
     {0x23, 0xDB, 0xBA, CRYSTAL_IT},
     {0x28, 0x49, 0x82, CRYSTAL_DE},
