@@ -108,11 +108,21 @@ extern OBJ_ATTR *grabbed_front_sprite;
 #define LINK_CABLE_PAL 13
 #define PULLED_SPRITE_PAL 14
 
-#define FLEXBG_OPENING 0
-#define FLEXBG_FENNEL 1
-#define FLEXBG_DEX 2
-#define FLEXBG_MAIN_MENU 3
-#define FLEXBG_BOX 4
+enum FlexBackground
+{
+    FBG_None = -1,
+    FBG_Opening,
+    FBG_Fennel,
+    FBG_Dex,
+    FBG_Main_Menu,
+    FBG_Box_Green,
+    FBG_Box_Red,
+    FBG_Box_Blue,
+    FBG_Box_Yellow,
+    FBG_Box_Gold,
+    FBG_Box_Silver,
+    FBG_Box_Crystal,
+};
 
 //
 // VRAM usage is heavily optimized so the rest of it can be used
@@ -152,7 +162,7 @@ void load_sprite_compressed(OBJ_ATTR *sprite, const unsigned int objTiles[],
 void load_background();
 void set_background_pal(int curr_rom_id, bool dark, bool fade);
 void load_textbox_background();
-void load_flex_background(int background_id, int layer);
+void load_flex_background(FlexBackground background_id, int layer);
 void load_eternal_sprites();
 void load_temp_box_sprites(PokeBox* box);
 void load_type_sprites(const u8* pkmn_type_table, int pkmn_index, int dex_offset, bool is_caught);

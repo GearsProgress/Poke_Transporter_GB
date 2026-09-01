@@ -40,6 +40,8 @@ tools/gb-payload-generator/build/specificPayloadGen2/specificPayloadGen2_sp_s.bi
 tools/gb-payload-generator/build/specificPayloadGen2/specificPayloadGen2_kor_s.bin
 tools/gb-payload-generator/build/specificPayloadGen2/specificPayloadGen2_jp_c.bin
 tools/gb-payload-generator/build/specificPayloadGen2/specificPayloadGen2_en_c.bin
+tools/gb-payload-generator/build/specificPayloadGen2/specificPayloadGen2_en_c11.bin
+tools/gb-payload-generator/build/specificPayloadGen2/specificPayloadGen2_en_cAU.bin
 tools/gb-payload-generator/build/specificPayloadGen2/specificPayloadGen2_fr_c.bin
 tools/gb-payload-generator/build/specificPayloadGen2/specificPayloadGen2_it_c.bin
 tools/gb-payload-generator/build/specificPayloadGen2/specificPayloadGen2_de_c.bin

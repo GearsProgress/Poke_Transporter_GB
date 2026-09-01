@@ -130,7 +130,7 @@ extern debug_options g_debug_options;
 #define POKEMON_INDEX_TO_SKIP 5
 
 // not sure if we want these in the debug menu.
-#define DEBUG_GAME RUBY_ID
+#define DEBUG_GAME EMERALD_ID
 #define DEBUG_VERS VERS_1_0
 #define DEBUG_LANG LANG_ENG
 

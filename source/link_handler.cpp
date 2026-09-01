@@ -210,14 +210,15 @@ void LinkConnection::loadPayloadByROM(GameBoyROM rom)
   }
 
   LZ77UnCompWram(compressed_rom_values, gb_rom_values_buffer);
-  pccsROMptr = &gb_rom_values_buffer[vers - 1];
+  pccsROMptr = &gb_rom_values_buffer[vers];
 }
 
 void LinkConnection::loadCurrGameFromChecksum()
 {
-  if (((dataOutBuffer[0] + dataOutBuffer[1]) & 0x7F) != dataOutBuffer[3])
+  if (((dataOutBuffer[0] + dataOutBuffer[1]) & 0x7F) != dataOutBuffer[2])
   {
     currROM = GB_ROM_ERROR;
+    return;
   };
 
   int start = RED_JP_v0;
