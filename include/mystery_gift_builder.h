@@ -2,11 +2,11 @@
 #define MYSTERY_GIFT_BUILDER_H
 
 #include <tonc.h>
-#include "pokemon_party.h"
 #include "dbg/debug_mode.h"
 #include "ptgb_save_data_manager.h"
 #include "script_var.h"
 #include "pokemon_data.h"
+#include "PokeBox.h"
 
 #define VIR_ADDRESS 0x08000000
 #define MG_SCRIPT_SIZE 0x3E8

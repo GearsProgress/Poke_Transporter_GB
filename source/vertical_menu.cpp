@@ -3,6 +3,7 @@
 #include "global_frame_controller.h"
 #include "text_engine.h"
 #include "translated_text.h"
+#include "text_tables.h"
 
 #define TILE_HEIGHT 8
 #define TILE_WIDTH 8
@@ -34,13 +35,7 @@ static unsigned get_viewport_end_index(unsigned viewport_start_index, unsigned n
 }
 
 vertical_menu::vertical_menu(const vertical_menu_settings &settings)
-    : settings_(settings)
-    , state_changed_handler_(nullptr)
-    , run_cycle_handler_(nullptr)
-    , focused_index_(settings.initial_focus_index)
-    , viewport_start_index_(0)
-    , items_()
-    , is_focused_(true)
+    : settings_(settings), state_changed_handler_(nullptr), run_cycle_handler_(nullptr), focused_index_(settings.initial_focus_index), viewport_start_index_(0), items_(), is_focused_(true)
 {
 }
 
@@ -55,7 +50,7 @@ void vertical_menu::show()
 
     update_viewport();
 
-    if(state_changed_handler_)
+    if (state_changed_handler_)
     {
         state_changed_handler_->on_show();
     }
@@ -65,9 +60,9 @@ void vertical_menu::show()
     handle_selection_change(focused_index_, settings_.x, settings_.y + settings_.margin_top + (render_index * settings_.item_height));
 }
 
-i_item_widget* vertical_menu::get_item_widget_at(unsigned index) const
+i_item_widget *vertical_menu::get_item_widget_at(unsigned index) const
 {
-    if(index >= items_.size())
+    if (index >= items_.size())
     {
         return nullptr;
     }
@@ -76,7 +71,7 @@ i_item_widget* vertical_menu::get_item_widget_at(unsigned index) const
 
 void vertical_menu::hide()
 {
-    if(state_changed_handler_)
+    if (state_changed_handler_)
     {
         state_changed_handler_->on_hide();
     }
@@ -86,7 +81,7 @@ void vertical_menu::hide()
     reload_textbox_background();
 }
 
-const vertical_menu_settings& vertical_menu::get_settings() const
+const vertical_menu_settings &vertical_menu::get_settings() const
 {
     return settings_;
 }
@@ -127,9 +122,9 @@ void vertical_menu::clear_item_widgets()
 void vertical_menu::set_focused(bool is_focused)
 {
     is_focused_ = is_focused;
-    if(state_changed_handler_ && settings_.should_hide_state_changed_handler_on_not_focused)
+    if (state_changed_handler_ && settings_.should_hide_state_changed_handler_on_not_focused)
     {
-        if(is_focused_)
+        if (is_focused_)
         {
             state_changed_handler_->on_show();
         }
@@ -147,40 +142,40 @@ MenuInputHandleState vertical_menu::handle_input()
     bool viewport_changed = false;
 
     // If no items or not focused, there's nothing to handle.
-    if(items_.size() <= 1 || !is_focused_)
+    if (items_.size() <= 1 || !is_focused_)
     {
         return MenuInputHandleState::NOT_HANDLED;
     }
 
-    // the focused item widget gets the first chance to handle input, 
+    // the focused item widget gets the first chance to handle input,
     // since it might have some special behavior for certain keys.
     result = items_[focused_index_]->handle_input();
-    if(result == MenuInputHandleState::HANDLED_UPDATE_VIEWPORT)
+    if (result == MenuInputHandleState::HANDLED_UPDATE_VIEWPORT)
     {
         // the child widget is requesting that we update the viewport.
-        //  so we do that here and then degrade the result to HANDLED, 
+        //  so we do that here and then degrade the result to HANDLED,
         // since we've already done the viewport update that the child widget requested.
         update_viewport();
         result = MenuInputHandleState::HANDLED; // degrade to HANDLED after updating the viewport
     }
-    if(result != MenuInputHandleState::NOT_HANDLED)
+    if (result != MenuInputHandleState::NOT_HANDLED)
     {
         return result;
     }
 
     // if the user presses B, and the current settings allow it,
     // we will return the CANCELLED state, which the caller can use to know that they should exit the menu.
-    if(settings_.allow_cancel && key_hit(KEY_B))
+    if (settings_.allow_cancel && key_hit(KEY_B))
     {
         return MenuInputHandleState::CANCELLED;
     }
 
-    if(key_hit(KEY_DOWN))
+    if (key_hit(KEY_DOWN))
     {
         const unsigned num_visible_items = get_num_visible_items(settings_.height, settings_.margin_top, settings_.margin_bottom, settings_.item_height);
         const unsigned current_viewport_end_index = get_viewport_end_index(viewport_start_index_, num_visible_items, items_.size());
         ++focused_index_;
-        if(focused_index_ == current_viewport_end_index)
+        if (focused_index_ == current_viewport_end_index)
         {
             ++viewport_start_index_;
             viewport_changed = true;
@@ -192,10 +187,10 @@ MenuInputHandleState vertical_menu::handle_input()
         }
         did_navigate = true;
     }
-    else if(key_hit(KEY_UP))
+    else if (key_hit(KEY_UP))
     {
         --focused_index_;
-        if(focused_index_ < 0)
+        if (focused_index_ < 0)
         {
             const unsigned num_visible_items = get_num_visible_items(settings_.height, settings_.margin_top, settings_.margin_bottom, settings_.item_height);
             const unsigned current_viewport_end_index = get_viewport_end_index(viewport_start_index_, num_visible_items, items_.size());
@@ -209,10 +204,10 @@ MenuInputHandleState vertical_menu::handle_input()
     }
 
     // if we did navigate, we need to update the viewport and state changed handler.
-    if(did_navigate)
+    if (did_navigate)
     {
         const unsigned render_index = focused_index_ - viewport_start_index_;
-        if(viewport_changed)
+        if (viewport_changed)
         {
             update_viewport();
         }
@@ -226,13 +221,18 @@ MenuInputHandleState vertical_menu::handle_input()
 void vertical_menu::update_viewport()
 {
     uint8_t decompression_buffer[2048];
-    text_data_table text_table(decompression_buffer);
+    const u8 **textTableChunkList;
+    u32 textTableNumChunks;
+    u32 textTableChunkSize;
+
+    get_text_table_chunks(settings_.text_table_index, &textTableChunkList, &textTableNumChunks, &textTableChunkSize);
+    FileContainerReader text_table(textTableChunkList, textTableNumChunks, textTableChunkSize);
 
     clear_viewport();
 
-    if(settings_.text_table_index != INT32_MAX)
+    if (settings_.text_table_index != INT32_MAX)
     {
-        text_table.decompress(get_compressed_text_table(settings_.text_table_index));
+        text_table.init(decompression_buffer, sizeof(decompression_buffer));
     }
 
     const unsigned num_visible_items = get_num_visible_items(settings_.height, settings_.margin_top, settings_.margin_bottom, settings_.item_height);
@@ -256,31 +256,31 @@ unsigned vertical_menu::run()
 {
     MenuInputHandleState input_result;
 
-    while(true)
-    {
-        key_poll(); // Reset the buttons
+    VBlankIntrWait(); // Reset the buttons
 
+    while (true)
+    {
         input_result = handle_input();
 
-        switch(input_result)
+        switch (input_result)
         {
-            case MenuInputHandleState::CHOICE_MADE:
-                return focused_index_;
-            case MenuInputHandleState::CANCELLED:
-                return UINT32_MAX;
-            default:
-                break;
+        case MenuInputHandleState::CHOICE_MADE:
+            return focused_index_;
+        case MenuInputHandleState::CANCELLED:
+            return UINT32_MAX;
+        default:
+            break;
         }
 
         // if any global elements need to be updated
         // on every cycle (animations, for example)
         // the run_cycle_handler can be used for that.
-        if(run_cycle_handler_)
+        if (run_cycle_handler_)
         {
             run_cycle_handler_->on_run_cycle();
         }
 
-        global_next_frame();
+        VBlankIntrWait();
     }
     // should never happen
     return UINT32_MAX;
@@ -298,7 +298,7 @@ void vertical_menu::set_run_cycle_handler(i_run_cycle_handler *handler)
 
 void vertical_menu::handle_selection_change(unsigned new_index, unsigned x, unsigned y)
 {
-    if(state_changed_handler_)
+    if (state_changed_handler_)
     {
         state_changed_handler_->on_selection_changed(new_index, x, y);
     }
@@ -313,25 +313,29 @@ simple_item_renderer::~simple_item_renderer()
 {
 }
 
-const simple_item_widget_data& simple_item_renderer::get_data() const
+const simple_item_widget_data &simple_item_renderer::get_data() const
 {
     return data_;
 }
 
-void simple_item_renderer::render_item(text_data_table &text_table, unsigned x, unsigned y, bool is_focused)
+void simple_item_renderer::render_item(FileContainerReader &text_table, unsigned x, unsigned y, bool is_focused)
 {
+    // text_helper/main.py restricts each line to 1024 bytes.
+    u8 lineBuffer[1024];
+
+    text_table.readFile(data_.text.text_table_index, lineBuffer);
     tte_set_pos(x + data_.text.margin_left, y + data_.text.margin_top);
-    ptgb_write_simple(text_table.get_text_entry(data_.text.text_table_index), true);
+    ptgb_write_simple(lineBuffer, true);
 }
 
 MenuInputHandleState simple_item_renderer::handle_input()
 {
-    if(!key_hit(KEY_A))
+    if (!key_hit(KEY_A))
     {
         return MenuInputHandleState::NOT_HANDLED;
     }
 
-    if(data_.on_execute_callback)
+    if (data_.on_execute_callback)
     {
         data_.on_execute_callback(this);
         return MenuInputHandleState::HANDLED;

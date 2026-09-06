@@ -2,9 +2,9 @@
 #define SPRITE_DATA_H
 
 #include <tonc.h>
-#include "pokemon_party.h"
 #include "rom_data.h"
 #include "box_menu.h"
+#include "link_handler.h"
 
 #define FENNEL_SHIFT 4
 
@@ -28,7 +28,8 @@ extern OBJ_ATTR *type_sprites[14];
 #include "flag_ger.h"
 #include "flag_spa.h"
 #include "flag_kor.h"
-extern OBJ_ATTR *flag;
+extern OBJ_ATTR *gb_flag;
+extern OBJ_ATTR *gba_flag;
 #include "Label_Green.h"
 #include "Label_Red.h"
 #include "Label_Blue.h"
@@ -36,6 +37,7 @@ extern OBJ_ATTR *flag;
 #include "Label_Gold.h"
 #include "Label_Silver.h"
 #include "Label_Crystal.h"
+#include "Label_Unknown.h"
 extern OBJ_ATTR *cart_label;
 #include "GB_Shell.h"
 #include "GBC_Shell.h"
@@ -106,11 +108,21 @@ extern OBJ_ATTR *grabbed_front_sprite;
 #define LINK_CABLE_PAL 13
 #define PULLED_SPRITE_PAL 14
 
-#define FLEXBG_OPENING 0
-#define FLEXBG_FENNEL 1
-#define FLEXBG_DEX 2
-#define FLEXBG_MAIN_MENU 3
-#define FLEXBG_BOX 4
+enum FlexBackground
+{
+    FBG_None = -1,
+    FBG_Opening,
+    FBG_Fennel,
+    FBG_Dex,
+    FBG_Main_Menu,
+    FBG_Box_Green,
+    FBG_Box_Red,
+    FBG_Box_Blue,
+    FBG_Box_Yellow,
+    FBG_Box_Gold,
+    FBG_Box_Silver,
+    FBG_Box_Crystal,
+};
 
 //
 // VRAM usage is heavily optimized so the rest of it can be used
@@ -150,14 +162,14 @@ void load_sprite_compressed(OBJ_ATTR *sprite, const unsigned int objTiles[],
 void load_background();
 void set_background_pal(int curr_rom_id, bool dark, bool fade);
 void load_textbox_background();
-void load_flex_background(int background_id, int layer);
+void load_flex_background(FlexBackground background_id, int layer);
 void load_eternal_sprites();
 void load_temp_box_sprites(PokeBox* box);
 void load_type_sprites(const u8* pkmn_type_table, int pkmn_index, int dex_offset, bool is_caught);
 void add_menu_box(int options, int startTileX, int startTileY);
 void add_menu_box(int startTileX, int startTileY, int width, int height);
 void reload_textbox_background();
-void load_select_sprites(u8 game_id, u8 lang);
+void load_select_sprites(GameBoyROM currROM);
 void fennel_blink(int frame);
 void fennel_speak(int frame);
 int get_curr_flex_background();

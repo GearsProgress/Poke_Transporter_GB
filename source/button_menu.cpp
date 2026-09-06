@@ -36,7 +36,7 @@ int Button_Menu::button_main()
     int curr_x = 0;
     int curr_y = 0;
 
-    key_poll(); // Reset the buttons
+    VBlankIntrWait(); // Reset the buttons
 
     while (true)
     {
@@ -96,7 +96,7 @@ int Button_Menu::button_main()
             curr_position = get_pos_from_xy(curr_x, curr_y);
             button_vector.at(curr_position).set_highlight(true);
         }
-        global_next_frame();
+        VBlankIntrWait();
     }
     return 0;
 }

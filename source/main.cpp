@@ -4,11 +4,10 @@
 #include "flash_mem.h"
 #include "interrupt.h"
 #include "gb_link.h"
-#include "gameboy_colour.h"
+#include "link_handler.h"
 #include "random.h"
 #include "text_engine.h"
 #include "background_engine.h"
-#include "pokemon_party.h"
 #include "pokemon_data.h"
 #include "script_array.h"
 #include "sprite_data.h"
@@ -27,7 +26,9 @@
 #include "multiboot_upload.h"
 #include "rom_data.h"
 #include "libraries/Pokemon-Gen3-to-Gen-X/include/save.h"
-#include "text_data_table.h"
+#include "FileContainerReader.h"
+#include "translated_text.h"
+#include "text_tables.h"
 #include "custom_malloc.h"
 #include "sound.h"
 
@@ -58,9 +59,8 @@ Button_Menu yes_no_menu(1, 2, 40, 24, false);
 
 void load_graphics()
 {
-
 	//  Load opening background first so it hides everything else
-	load_flex_background(FLEXBG_OPENING, 1);
+	load_flex_background(FBG_Opening, 1);
 	load_background();
 	load_textbox_background();
 	load_eternal_sprites();
@@ -80,13 +80,20 @@ void initialization_script(void)
 	REG_IME = 0;
 	REG_IE = 0;
 
+	irq_init(&isr_master_nest);
+
 	// Sound bank init
-	irq_init(NULL);
-	irq_enable(II_VBLANK);
+	// irq_init(NULL);
+	// irq_enable(II_VBLANK);
 	// This currently crashes when you try to transfer a Pokemon:
 	// sound_init();
 
+	// Link Cable init
+  	irq_add(II_TIMER3, linkCableIRQ);
+
 	// Graphics init
+	irq_add(II_VBLANK, global_next_frame);
+	irq_enable(II_VBLANK);
 	oam_init(obj_buffer, 128);
 	load_graphics();
 
@@ -105,23 +112,28 @@ void initialization_script(void)
 	PTGB_MGBA_INFO("Hello from PTGB!");
 };
 
-void game_load_error(void)
+// attribute noinline is used to make sure it doesn't get inlined and permanently use IWRAM for the decompression_buffer
+void __attribute__((noinline)) game_load_error(void)
 {
+	u8 general_text_buffer[2048];
+	u8 lineBuffer[1024];
+	const u8 **chunkList;
+	u32 numChunks;
+	u32 chunkSize;
+
+	get_text_table_chunks(GENERAL_INDEX, &chunkList, &numChunks, &chunkSize);
+	FileContainerReader text_reader(chunkList, numChunks, chunkSize);
+
+	text_reader.init(general_text_buffer, sizeof(general_text_buffer));
+
 	BG_TEXTBOX = (BG_TEXTBOX & ~BG_PRIO_MASK) | BG_PRIO(1);
+	text_reader.readFile(GENERAL_cart_load_error, lineBuffer);
+	ptgb_write_textbox(lineBuffer, true, false, GENERAL_INDEX, GENERAL_cart_load_error, false);
 
-	{
-		u8 general_text_table_buffer[2048];
-		text_data_table general_text(general_text_table_buffer);
-
-		general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
-		ptgb_write_textbox(general_text.get_text_entry(GENERAL_cart_load_error), true, false,
-						   GENERAL_INDEX, GENERAL_cart_load_error, false);
-	}
-
-	key_poll();
+	// key_poll();
 	do
 	{
-		global_next_frame();
+		VBlankIntrWait();
 	} while (!key_hit(KEY_A) && !key_hit(KEY_SELECT));
 
 	tte_erase_rect(0, 0, H_MAX, V_MAX);
@@ -143,44 +155,32 @@ void game_load_error(void)
 	while (delay_counter < 60)
 	{
 		delay_counter++;
-		global_next_frame();
+		VBlankIntrWait();
 	}
-}
+};
 
-void first_load_message(void)
+// avoid inlining to avoid permanently storing the credits_decompression_buffer in IWRAM
+int __attribute__((noinline)) credits()
 {
-	tte_set_ink(INK_ROM_COLOR);
+	u8 credits_decompression_buffer[2048];
+	u8 lineBuffer[1024];
+	const u8 **chunkList;
+	u32 numChunks;
+	u32 chunkSize;
 
-	{
-		u8 general_text_table_buffer[2048];
-		text_data_table general_text(general_text_table_buffer);
+	get_text_table_chunks(CREDITS_INDEX, &chunkList, &numChunks, &chunkSize);
+	FileContainerReader creditsReader(chunkList, numChunks, chunkSize);
+	u32 curr_credits_num = 0;
 
-		general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
-		ptgb_write_simple(general_text.get_text_entry(GENERAL_intro_first), true);
-	}
-
-	while (!key_hit(KEY_A))
-	{
-		global_next_frame();
-	}
-}
-
-int credits()
-{
-	u8 text_decompression_buffer[2048];
-	text_data_table credits_text_table(text_decompression_buffer);
-	int curr_credits_num = 0;
-
-	credits_text_table.decompress(get_compressed_text_table(CREDITS_INDEX));
+	creditsReader.init(credits_decompression_buffer, sizeof(credits_decompression_buffer));
 	bool update = true;
 
-	global_next_frame();
 	while (true)
 	{
 		if (update)
 		{
-			ptgb_write_textbox(credits_text_table.get_text_entry(curr_credits_num), true, false,
-							   CREDITS_INDEX, curr_credits_num, false);
+			creditsReader.readFile(curr_credits_num, lineBuffer);
+			ptgb_write_textbox(lineBuffer, true, false, CREDITS_INDEX, curr_credits_num, false);
 			update = false;
 		}
 
@@ -196,32 +196,39 @@ int credits()
 			curr_credits_num--;
 			update = true;
 		}
-		if (key_hit(KEY_RIGHT) && curr_credits_num < (credits_text_table.get_number_of_text_entries() - 1))
+		if (key_hit(KEY_RIGHT) && curr_credits_num < (creditsReader.getNumberOfFiles() - 1))
 		{
 			curr_credits_num++;
 			update = true;
 		}
 
-		global_next_frame();
+		VBlankIntrWait();
 	}
 };
 
-int tutorial()
+// avoid inlining to avoid permanently storing the tutorial_decompression_buffer in IWRAM
+int __attribute__((noinline)) tutorial()
 {
-	u8 text_decompression_buffer[2048];
-	text_data_table tutorial_text_table(text_decompression_buffer);
-	int curr_tutorial_num = 0;
 
-	tutorial_text_table.decompress(get_compressed_text_table(TUTORIAL_INDEX));
+	u8 tutorial_decompression_buffer[2048];
+	u8 lineBuffer[1024];
+	const u8 **chunkList;
+	u32 numChunks;
+	u32 chunkSize;
+
+	get_text_table_chunks(TUTORIAL_INDEX, &chunkList, &numChunks, &chunkSize);
+	FileContainerReader tutorialReader(chunkList, numChunks, chunkSize);
+	u32 curr_tutorial_num = 0;
+
+	tutorialReader.init(tutorial_decompression_buffer, sizeof(tutorial_decompression_buffer));
 	bool update = true;
 
-	global_next_frame();
 	while (true)
 	{
 		if (update)
 		{
-			ptgb_write_textbox(tutorial_text_table.get_text_entry(curr_tutorial_num), true, false,
-							   TUTORIAL_INDEX, curr_tutorial_num, false);
+			tutorialReader.readFile(curr_tutorial_num, lineBuffer);
+			ptgb_write_textbox(lineBuffer, true, false, TUTORIAL_INDEX, curr_tutorial_num, false);
 			update = false;
 		}
 
@@ -237,29 +244,34 @@ int tutorial()
 			curr_tutorial_num--;
 			update = true;
 		}
-		if (key_hit(KEY_RIGHT) && curr_tutorial_num < (tutorial_text_table.get_number_of_text_entries() - 1))
+		if (key_hit(KEY_RIGHT) && curr_tutorial_num < (tutorialReader.getNumberOfFiles() - 1))
 		{
 			curr_tutorial_num++;
 			update = true;
 		}
 
-		global_next_frame();
+		VBlankIntrWait();
 	}
 };
 
-int main_menu_loop()
+// attribute noinline is used to avoid permanently storing the general_text_table_buffer in IWRAM
+int __attribute__((noinline)) main_menu_loop()
 {
+	uint8_t general_text_table_buffer[2048];
+	u8 lineBuffer[1024];
 #define NUM_MENU_OPTIONS 4
 	const uint8_t menu_options[NUM_MENU_OPTIONS] = {GENERAL_option_transfer, GENERAL_option_dreamdex, GENERAL_option_credits, GENERAL_option_tutorial};
 	int return_values[NUM_MENU_OPTIONS] = {BTN_TRANSFER, BTN_POKEDEX, BTN_CREDITS, BTN_TUTORIAL};
+	const u8 **chunkList;
+	u32 numChunks;
+	u32 chunkSize;
 
-	uint8_t general_text_table_buffer[2048];
-	text_data_table general_text(general_text_table_buffer);
+	get_text_table_chunks(GENERAL_INDEX, &chunkList, &numChunks, &chunkSize);
+	FileContainerReader text_reader(chunkList, numChunks, chunkSize);
 	bool update = true;
-	const uint8_t *text_entry;
 	u16 test = 0;
 
-	general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
+	text_reader.init(general_text_table_buffer, sizeof(general_text_table_buffer));
 
 	while (true)
 	{
@@ -267,8 +279,8 @@ int main_menu_loop()
 		{
 			for (int i = 0; i < NUM_MENU_OPTIONS; i++)
 			{
-				text_entry = general_text.get_text_entry(menu_options[i]);
-				int string_length = get_string_length(text_entry);
+				text_reader.readFile(menu_options[i], lineBuffer);
+				int string_length = get_string_length(lineBuffer);
 				int x = ((240 - string_length) / 2);
 				tte_set_pos(x, ((i * (16 + 6)) + 70));
 				if (i == curr_selection)
@@ -279,7 +291,7 @@ int main_menu_loop()
 				{
 					tte_set_ink(INK_ROM_COLOR);
 				}
-				ptgb_write_simple(text_entry, true);
+				ptgb_write_simple(lineBuffer, true);
 				test++;
 			}
 		}
@@ -311,8 +323,7 @@ int main_menu_loop()
 		{
 			update = false;
 		}
-
-		global_next_frame();
+		VBlankIntrWait();
 	}
 }
 
@@ -323,7 +334,7 @@ static void show_gears_of_progress()
 	delay_counter = 0;
 	while (delay_counter < (15 * 60))
 	{
-		global_next_frame();
+		VBlankIntrWait();
 		delay_counter++;
 		if (key_hit(KEY_A))
 		{
@@ -338,24 +349,27 @@ static void show_gears_of_progress()
 // this decision was based on the output of build/main.su after adding the -fstack-usage compile flag
 static void __attribute__((noinline)) show_intro()
 {
-	bool start_pressed = false;
 	u8 general_text_table_buffer[2048];
+	u8 lineBuffer[1024];
+	const u8 **chunkList;
+	u32 numChunks;
+	u32 chunkSize;
 
-	text_data_table general_text(general_text_table_buffer);
-	const u8 *text_entry;
+	get_text_table_chunks(GENERAL_INDEX, &chunkList, &numChunks, &chunkSize);
+	FileContainerReader general_text_reader(chunkList, numChunks, chunkSize);
+	bool start_pressed = false;
 
-	general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
-	text_entry = general_text.get_text_entry(GENERAL_intro_legal);
+	general_text_reader.init(general_text_table_buffer, sizeof(general_text_table_buffer));
 
 	tte_set_ink(INK_ROM_COLOR);
-	ptgb_write_textbox(text_entry, true, true,
-					   GENERAL_INDEX, GENERAL_intro_legal, true);
+	general_text_reader.readFile(GENERAL_intro_legal, lineBuffer);
+	ptgb_write_textbox(lineBuffer, true, true, GENERAL_INDEX, GENERAL_intro_legal, true);
 
 	show_gears_of_progress();
 
 	BG_FLEX = BG_FLEX | BG_PRIO(3);
 
-	key_poll(); // Reset the keys
+	// key_poll(); // Reset the keys
 	curr_GBA_rom.load_rom(false);
 
 	obj_set_pos(ptgb_logo_l, 56, 12);
@@ -364,18 +378,17 @@ static void __attribute__((noinline)) show_intro()
 
 	REG_BLDCNT = BLD_BUILD(BLD_BG3, BLD_BG0, 1);
 
-	general_text.decompress(get_compressed_text_table(GENERAL_INDEX));
-	text_entry = general_text.get_text_entry(GENERAL_press_start);
+	general_text_reader.readFile(GENERAL_press_start, lineBuffer);
 
 	tte_set_pos(0, 12 * 8);
 	tte_set_ink(INK_DARK_GREY);
-	ptgb_write_simple(text_entry, true);
+	ptgb_write_simple(lineBuffer, true);
 
 	int fade = 0;
 	while (!start_pressed)
 	{
 		fade = abs(((get_frame_count() / 6) % 24) - 12);
-		global_next_frame();
+		VBlankIntrWait();
 		start_pressed = key_hit(KEY_START) | key_hit(KEY_A);
 		REG_BLDALPHA = BLDA_BUILD(0b10000, fade);
 	}
@@ -391,14 +404,9 @@ int main(void)
 	// Set colors based on current ROM
 	set_background_pal(0, false, false);
 
-	/* First load message doesn't really make sense anymore, since you have to load the ROM first.
-	if (!get_tutorial_flag())
-	{
-		first_load_message();
-	}*/
 	show_intro();
 
-	key_poll();
+	// key_poll();
 	tte_erase_rect(0, 0, H_MAX, V_MAX);
 	REG_BLDALPHA = BLDA_BUILD(0b10000, 0); // Reset fade
 
@@ -413,7 +421,7 @@ int main(void)
 		else
 		{
 			obj_hide_multi(ptgb_logo_l, 2);
-			global_next_frame();
+			VBlankIntrWait();
 			game_load_error();
 			// initialization_script();
 		}
@@ -427,7 +435,7 @@ int main(void)
 
 	set_background_pal(curr_GBA_rom.gamecode, false, true);
 
-	if (!g_debug_options.ignore_mg_e4_flags && (!get_tutorial_flag() || g_debug_options.force_tutorial))
+	if (!get_tutorial_flag() || g_debug_options.force_tutorial)
 	{
 		obj_hide_multi(ptgb_logo_l, 2);
 		text_loop(BTN_TRANSFER);
@@ -445,7 +453,7 @@ int main(void)
 			print_mem_section();
 			curr_GBA_rom.print_rom_info();
 		}
-		load_flex_background(FLEXBG_MAIN_MENU, 2);
+		load_flex_background(FBG_Main_Menu, 2);
 
 		obj_unhide_multi(ptgb_logo_l, 1, 2);
 		obj_set_pos(ptgb_logo_l, 56, 12);
@@ -456,18 +464,18 @@ int main(void)
 		case (BTN_TRANSFER):
 			tte_set_ink(INK_DARK_GREY);
 			obj_hide_multi(ptgb_logo_l, 2);
-			load_flex_background(FLEXBG_FENNEL, 3);
+			load_flex_background(FBG_Fennel, 3);
 			text_loop(SCRIPT_TRANSFER);
 			break;
 		case (BTN_POKEDEX):
 			if (get_tutorial_flag())
 			{
 				obj_hide_multi(ptgb_logo_l, 2);
-				global_next_frame();
-				load_flex_background(FLEXBG_DEX, 2);
+				// global_next_frame();
+				load_flex_background(FBG_Dex, 2);
 				set_background_pal(curr_GBA_rom.gamecode, true, false);
 				pokedex_loop();
-				load_flex_background(FLEXBG_DEX, 3);
+				load_flex_background(FBG_Dex, 3);
 				set_background_pal(curr_GBA_rom.gamecode, false, false);
 			}
 			break;
@@ -490,12 +498,12 @@ int main(void)
 #if ENABLE_DEBUG_MENU
 		case (BTN_DEBUG_MENU):
 			obj_hide_multi(ptgb_logo_l, 2);
-			load_flex_background(FLEXBG_FENNEL, 3);
+			load_flex_background(FBG_Fennel, 3);
 			show_debug_menu();
 			break;
 #endif
 		default:
-			global_next_frame();
+			VBlankIntrWait();
 		}
 	}
 }

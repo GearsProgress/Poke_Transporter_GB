@@ -95,7 +95,7 @@ class debug_menu_row_widget : public i_item_widget
 public:
     debug_menu_row_widget(const debug_menu_row_data &data);
     virtual ~debug_menu_row_widget();
-    void render_item(text_data_table &text_table, unsigned x, unsigned y, bool is_focused) override;
+    void render_item(FileContainerReader &text_table, unsigned x, unsigned y, bool is_focused) override;
     MenuInputHandleState handle_input() override;
 protected:
 private:

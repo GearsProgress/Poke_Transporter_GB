@@ -1,7 +1,6 @@
 #include "select_menu.h"
 #include "sprite_data.h"
 #include "translated_text.h"
-#include "text_data_table.h"
 #include "global_frame_controller.h"
 
 #define TEXT_HEIGHT 10
@@ -76,7 +75,7 @@ int Select_Menu::select_menu_main()
 
     menu_widget_.hide();
 
-    global_next_frame();
+    //global_next_frame();
     return item_value;
 }
 
@@ -91,7 +90,7 @@ void Select_Menu::on_hide()
     vertical_menu_cursor_handler::on_hide();
     obj_hide(cart_shell);
     obj_hide(cart_label);
-    obj_hide(flag);
+    obj_hide(gb_flag);
 }
 
 void Select_Menu::on_selection_changed(unsigned new_index, unsigned x, unsigned y)
@@ -111,7 +110,7 @@ void Select_Menu::on_selection_changed(unsigned new_index, unsigned x, unsigned 
             obj_hide(cart_label);
             break;
         case LANG_MENU:
-            obj_hide(flag);
+            obj_hide(gb_flag);
             break;
         }
     }
@@ -120,13 +119,13 @@ void Select_Menu::on_selection_changed(unsigned new_index, unsigned x, unsigned 
         switch (menu_type)
         {
         case CART_MENU:
-            load_select_sprites(item_value, lang);
+            //load_select_sprites(item_value, lang);
             obj_unhide(cart_shell, 0);
             obj_unhide(cart_label, 0);
             break;
         case LANG_MENU:
-            load_select_sprites(0, item_value);
-            obj_unhide(flag, 0);
+            //load_select_sprites(0, item_value);
+            obj_unhide(gb_flag, 0);
             break;
         }
     }
