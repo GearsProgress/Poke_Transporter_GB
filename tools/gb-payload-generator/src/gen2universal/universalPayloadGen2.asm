@@ -124,14 +124,14 @@ SerialPatchListAligned:
 	ld hl, 0x14E ; locate cartridge checksum
 	ld a, [hli]
 	ld b, [hl]
-	ld hl, PACKET_SEND + 1 ; prepare to send cartridge checksum (0xC6D2)
+	ld hl, 0xC8D0 + 1 ; prepare to send cartridge checksum (0xC6D2)
 	ld [hli], a
 	ld [hl], b
 	inc hl
 	add a, b
 	res 7, a
 	ld [hl], a	; place checksum
-	ld l, LOW(PACKET_RECEIVE)
+	ld l, LOW(0xC8DC)
 	ld c, l
 	xor a
 	ld [hli], a
@@ -141,13 +141,13 @@ SerialPatchListAligned:
 	ld [hl], c
 	inc hl
 	ld [hl], h
-	ld l, LOW(PACKET_SEND) ; send checksum data from this address
+	ld l, LOW(0xC8D0) ; send checksum data from this address
 	ld de, SpecificPayloadAddress ; receive payload at 0xC900
 	ld c, CHECKSUMPACKET_SIZE
 	call .callSerial_ExchangeBytes ; send checksum to PTGB, bc = 0000 on exit
 	ld e, c ; reset de to 0xC900
 	push de
-	dec c ; bc =,00FF
+	dec c ; bc = 00FF
 	call .callSerial_ExchangeBytes ; receive specific payload from PTGB
 	ld e, c ; reset de to 0xC900
 	pop hl

@@ -16,12 +16,12 @@ Main:
 LOAD "Payload", WRAM0[0xC900]
 Payload:
 .loopTransfer
-	ld hl, 0xC6DC ; perfect place to store incoming packets. TODO: on first pass, this will interpret the generic payload as part of an incoming packet. Check if this interferes with anything.
+	ld hl, 0xC8DC ; new place to store incoming packets. We use this location since 0xC6DC is vulnerable to overwrites from SaveBox.
 .searchCounter
 	ld a, [hli]
 	bit 7, a
 	jr nz, .searchCounter ; first byte should be a packet counter, with a value between 0x00-0x7F. Also skips preamble bytes.
-	ld [0xC6DC], a ; Put this at the start of the received data, to ensure we'll be sending it back if we're running a command.
+	ld [0xC8DC], a ; Put this at the start of the received data, to ensure we'll be sending it back if we're running a command.
 	push af ; we'll retrieve this later
 	ld a, [hli] ; load command byte
 	ld b, [hl] ; load argument byte 1
@@ -38,7 +38,7 @@ Payload:
 	ld a, [hli]
 	ld h, [hl]
 	ld l, a
-	ld de, 0xC6D3
+	ld de, 0xC8D3
 	pop bc ; sneaky way to load the counter into the checksum
 	push de
 	ld c, 1
@@ -60,14 +60,14 @@ Payload:
 	add a, h
 	add a, l
 	res 7, a ; ensure that the checksum is never equal to 0xFE
-	inc de
+	inc de ; hl should now point to 0xC8DC, corresponding to the packet counter of the last received packet.
 	pop hl
 	ld [hld], a
 	ld a, c
 	and 0x0F ; extract the lower nybble.
 	ld [hld], a ; 4 LSB get stored here.
 	xor c ; I love xor magic, this stores the higher nybble in a.
-	ld [hld], a ; 4 MSB get stored here, hl now points to 0xC5D0, where the next packet will be sent from.
+	ld [hld], a ; 4 MSB get stored here, hl now points to 0xC8D0, where the next packet will be sent from.
 	ld a, [de] 
 	ld [hl], a ; write counter
 	ld c, 12
@@ -81,7 +81,7 @@ Payload:
 VerifySecondaryPayload: ; checks if payload matches expected size and passes verification.
 	ld c, b
 	ld de, 0xCA00
-	ld hl, 0xC6DC
+	ld hl, 0xC8DC
 	push de
 	call Payload.changeInterruptsAndCommunicate
 	pop hl
