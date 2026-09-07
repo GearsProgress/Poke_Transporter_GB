@@ -438,6 +438,7 @@ int main(void)
 	if (!get_tutorial_flag() || g_debug_options.force_tutorial)
 	{
 		obj_hide_multi(ptgb_logo_l, 2);
+		load_flex_background(FBG_Fennel, 2);
 		text_loop(BTN_TRANSFER);
 		initialize_save_data();
 		// TODO: We should be able to test for a Bootleg rom in here- if the save data isn't written, then it is bootleg.
