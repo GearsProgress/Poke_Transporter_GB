@@ -1,27 +1,17 @@
-;en
-;g s c
-;INCLUDES are added in separate file and provided through -P command line option.
-
-;INCLUDE "include/macros/const.asm"
-;INCLUDE "include/macros/coords.asm"
-;INCLUDE "include/constants/serial_constants.asm"
-;INCLUDE "include/constants/charmap.asm"
-;INCLUDE "include/payload/payload.asm"
-;INCLUDE "include/payload/patches.asm"
-;INCLUDE "include/payload/settings.asm"
+INCLUDE "include/constants/gen2specific.asm"
 
 SECTION "Main", ROM0
 Main:
 	db 0xFD
-LOAD "Payload", WRAM0[0xC900]
+LOAD "Payload", WRAM0[SPECIFICPAYLOAD]
 Payload:
 .loopTransfer
-	ld hl, 0xC8DC ; new place to store incoming packets. We use this location since 0xC6DC is vulnerable to overwrites from SaveBox.
+	ld hl, PACKET_RECEIVE ; new place to store incoming packets. We use this location since 0xC6DC is vulnerable to overwrites from SaveBox.
 .searchCounter
 	ld a, [hli]
 	bit 7, a
 	jr nz, .searchCounter ; first byte should be a packet counter, with a value between 0x00-0x7F. Also skips preamble bytes.
-	ld [0xC8DC], a ; Put this at the start of the received data, to ensure we'll be sending it back if we're running a command.
+	ld [PACKET_RECEIVE], a ; Put this at the start of the received data, to ensure we'll be sending it back if we're running a command.
 	push af ; we'll retrieve this later
 	ld a, [hli] ; load command byte
 	ld b, [hl] ; load argument byte 1
@@ -32,13 +22,13 @@ Payload:
 	ld hl, CommandTable
 	cp a, (CommandTable.end - CommandTable) / 2 ; number of valid commands.
 	jr nc, .skip
-	rst 0x28 ; if command not in table, send data to PTGB instead. Afterwards, request another packet from PTGB.
+	rst JumpTable ; if command not in table, send data to PTGB instead. Afterwards, request another packet from PTGB.
 .skip
 	pop hl ; hl should now point to the pointer that PTGB wants us to read data from.
 	ld a, [hli]
 	ld h, [hl]
 	ld l, a
-	ld de, 0xC8D3
+	ld de, PACKET_SEND + 3
 	pop bc ; sneaky way to load the counter into the checksum
 	push de
 	ld c, 1
@@ -80,8 +70,8 @@ Payload:
 	ret
 VerifySecondaryPayload: ; checks if payload matches expected size and passes verification.
 	ld c, b
-	ld de, 0xCA00
-	ld hl, 0xC8DC
+	ld de, SECONDARYPACKET
+	ld hl, PACKET_RECEIVE
 	push de
 	call Payload.changeInterruptsAndCommunicate
 	pop hl
