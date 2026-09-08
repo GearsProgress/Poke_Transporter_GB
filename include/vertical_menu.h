@@ -3,7 +3,7 @@
 
 #include "typeDefs.h"
 #include "libstd_replacements.h"
-#include "text_data_table.h"
+#include "FileContainerReader.h"
 
 enum class MenuInputHandleState
 {
@@ -41,7 +41,7 @@ class i_item_widget
 {
 public:
     virtual ~i_item_widget();
-    virtual void render_item(text_data_table &text_table, unsigned x, unsigned y, bool is_focused) = 0;
+    virtual void render_item(FileContainerReader &text_table, unsigned x, unsigned y, bool is_focused) = 0;
     virtual MenuInputHandleState handle_input() = 0;
 protected:
 private:
@@ -292,7 +292,7 @@ public:
 
     const simple_item_widget_data& get_data() const;
 
-    void render_item(text_data_table &text_table, unsigned x, unsigned y, bool is_focused) override;
+    void render_item(FileContainerReader &text_table, unsigned x, unsigned y, bool is_focused) override;
     MenuInputHandleState handle_input() override;
 protected:
 private:

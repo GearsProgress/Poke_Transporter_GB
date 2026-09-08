@@ -5,8 +5,10 @@
 #if ENABLE_SOUND
 static void sound_irq_handler(void)
 {
+    #ifdef INCLUDE_SOUND
     mmVBlank();
     mmFrame();
+    #endif
 }
 #endif
 

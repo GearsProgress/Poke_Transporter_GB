@@ -111,7 +111,7 @@ debug_menu_row_widget::~debug_menu_row_widget()
     }
 }
 
-void debug_menu_row_widget::render_item(text_data_table &text_table, unsigned x, unsigned y, bool is_focused)
+void debug_menu_row_widget::render_item(FileContainerReader &text_table, unsigned x, unsigned y, bool is_focused)
 {
     const int label_margin_left = 12;
     const int margin_top = 2;

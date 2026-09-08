@@ -9,9 +9,10 @@
 #include "button_menu.h"
 #include "sprite_data.h"
 #include "fonts.h"
-#include "text_data_table.h"
 #include "background_engine.h"
 #include "pokemon_data.h"
+#include "FileContainerReader.h"
+#include "text_tables.h"
 
 script_obj curr_line;
 uint char_index;
@@ -26,32 +27,18 @@ bool text_exit;
 // Doing it this way does mean that we need to completely restart decompression whenever we switch from dialog entry.
 // but given that it requires user input to do so, I believe it's worth it and not time-critical.
 // attribute noinline was used to make sure the compiler doesn't inline this code back into text_loop()
-static __attribute__((noinline)) const u8 *read_dialogue_text_entry(uint8_t index, u8 *output_buffer)
+static __attribute__((noinline)) const u8 *read_dialogue_text_entry(u32 index, u32 text_section, u8 *output_buffer)
 {
-    u8 text_decompression_buffer[6144];
-    const u8 *text_entry;
+    u8 text_decompression_buffer[4096];
+    const u8 **chunkList;
+    u32 numChunks;
+    u32 chunkSize;
 
-    text_data_table dialogue_table(text_decompression_buffer);
+    get_text_table_chunks(text_section, &chunkList, &numChunks, &chunkSize);
+    FileContainerReader dialogueTable(chunkList, numChunks, chunkSize);
 
-    dialogue_table.decompress(get_compressed_text_table(PTGB_INDEX));
-
-    text_entry = dialogue_table.get_text_entry(index);
-    memcpy(output_buffer, text_entry, dialogue_table.get_text_entry_size(index));
-
-    return output_buffer;
-}
-
-static __attribute__((noinline)) const u8 *read_dialogue_text_entry(uint8_t index, uint8_t text_section, u8 *output_buffer)
-{
-    u8 text_decompression_buffer[6144];
-    const u8 *text_entry;
-
-    text_data_table dialogue_table(text_decompression_buffer);
-
-    dialogue_table.decompress(get_compressed_text_table(text_section));
-
-    text_entry = dialogue_table.get_text_entry(index);
-    memcpy(output_buffer, text_entry, dialogue_table.get_text_entry_size(index));
+    dialogueTable.init(text_decompression_buffer, sizeof(text_decompression_buffer));
+    dialogueTable.readFile(index, output_buffer);
 
     return output_buffer;
 }
@@ -114,7 +101,7 @@ int text_loop(int script)
         break;
     }
 
-    curr_text = (curr_line.has_text()) ? read_dialogue_text_entry(curr_line.get_text_entry_index(), diag_entry_text_buffer) : NULL;
+    curr_text = (curr_line.has_text()) ? read_dialogue_text_entry(curr_line.get_text_entry_index(), PTGB_INDEX, diag_entry_text_buffer) : NULL;
 
     // tte_set_margins(LEFT, TOP, RIGHT, BOTTOM);
     if (script != SCRIPT_DEBUG)
@@ -140,7 +127,7 @@ int text_loop(int script)
                 break;
             }
 
-            curr_text = (curr_line.has_text()) ? read_dialogue_text_entry(curr_line.get_text_entry_index(), diag_entry_text_buffer) : NULL;
+            curr_text = (curr_line.has_text()) ? read_dialogue_text_entry(curr_line.get_text_entry_index(), PTGB_INDEX, diag_entry_text_buffer) : NULL;
             char_index = 0;
 
             if (text_exit)
@@ -165,7 +152,7 @@ int text_loop(int script)
             bool exit = false;
             bool update_text = true;
             bool instant_text = false;
-            key_poll();
+            VBlankIntrWait();
             while (!exit)
             {
                 if (key_hit(KEY_LEFT))
@@ -218,7 +205,7 @@ int text_loop(int script)
                     ptgb_write_debug(debug_charset, ")", true);
                     update_text = false;
                 }
-                global_next_frame();
+                VBlankIntrWait();
             }
 
             line_char_index = 0;
@@ -265,7 +252,7 @@ int text_next_obj_id(script_obj current_line)
 void set_text_exit()
 {
     text_exit = true;
-    key_poll(); // This removes the "A Hit" when exiting the text
+    VBlankIntrWait(); // This removes the "A Hit" when exiting the text
 }
 
 // Implement a version that creates the textbox as well
@@ -276,9 +263,9 @@ int ptgb_write_textbox(const byte *text, bool instant, bool waitForUser,
     erase_textbox_tiles();
     create_textbox(text_section, text_key, eraseMainBox);
     // Set up Fennel if we are in a PTGB dialogue box
-    if (get_curr_flex_background() == FLEXBG_FENNEL && text_section == PTGB_INDEX)
+    if (get_curr_flex_background() == FBG_Fennel && text_section == PTGB_INDEX)
     {
-        load_flex_background(FLEXBG_FENNEL, 2);
+        load_flex_background(FBG_Fennel, 2);
     }
     int out = ptgb_write(text, instant, 9999, text_box_type_tables[text_section][text_key]); // This is kinda silly but it'll work.
     if (waitForUser)
@@ -346,7 +333,7 @@ int ptgb_write(const byte *text, bool instant, int length, int box_type)
                     tc->drawgProc(0x79);
                 }
                 wait_for_user_to_continue(right, bottom);
-                scroll_text(instant, tc, left, top, right, bottom);
+                scroll_text(instant, tc, true, left, top, right, bottom);
                 break;
             case 0xFB:
                 if (g_debug_options.display_control_char)
@@ -398,13 +385,13 @@ int ptgb_write(const byte *text, bool instant, int length, int box_type)
             }
             num += 1;
         }
-        if (get_curr_flex_background() == FLEXBG_FENNEL && !instant)
+        if (get_curr_flex_background() == FBG_Fennel && !instant)
         {
             fennel_speak(((num / 4) % 4) + 1);
         }
         if (!instant)
         {
-            global_next_frame();
+            VBlankIntrWait();
         }
     }
 
@@ -432,7 +419,7 @@ int ptgb_write_debug(const u16 *charset, const char *text, bool instant)
             u16 utf16_char;
             // we need to use this conversion function in order to convert char values >= 0x80
             // correctly to UTF-16 (which is used by the charset)
-            convert_utf8_to_utf16_char((const u8*)(text + i), utf16_char);
+            convert_utf8_to_utf16_char((const u8 *)(text + i), utf16_char);
             // WARNING: the conversion of the text characters from u8 to u16 done here, is incorrect
             // for every character value >= 0x80. The character set uses UTF-16 to represent characters.
             // But the input text is in UTF-8.
@@ -444,7 +431,7 @@ int ptgb_write_debug(const u16 *charset, const char *text, bool instant)
 
 void wait_for_user_to_continue(int right, int bottom)
 {
-    if (get_curr_flex_background() == FLEXBG_FENNEL)
+    if (get_curr_flex_background() == FBG_Fennel)
     {
         if (get_missingno_enabled())
         {
@@ -461,7 +448,7 @@ void wait_for_user_to_continue(int right, int bottom)
     //obj_set_pos(scroll_indicator_gray, right-16, bottom-10);
     //obj_unhide(scroll_indicator_red, 0);
     
-    key_poll();
+    VBlankIntrWait();
     while (!(key_hit(KEY_A) || key_hit(KEY_B)))
     {
         /*
@@ -475,35 +462,48 @@ void wait_for_user_to_continue(int right, int bottom)
             obj_unhide(scroll_indicator_gray, 0);
         }
         */
-        global_next_frame();
+        VBlankIntrWait();
     }
     //obj_hide(scroll_indicator_red);
     //obj_hide(scroll_indicator_gray);
 }
 
-void scroll_text(bool instant, TTC *tc, int left, int top, int right, int bottom)
+void scroll_text(bool instant, TTC *tc, bool scrollUp, int left, int top, int right, int bottom)
 {
+    int direction = scrollUp ? 1 : -1;
+
     for (int i = 1; i <= tc->font->charH; i++)
     {
-        REG_BG3VOFS = i;
-        tte_erase_rect(left, top - tc->font->charH, right, top + i);
-        if (!instant)
+        REG_BG3VOFS = i * direction;
+        tte_erase_rect(left, top - tc->font->charH, right, top + (i * direction));
+        if (!instant) // This is somewhat of a silly way to do this - can be optimized
         {
-            global_next_frame();
+            VBlankIntrWait();
         }
     }
     REG_BG3VOFS = 0;
-
+    
     // The map starts at tile 0 in the top left, increases by 1 as you go down, and then loops back at the top.
-    for (int i = 0; i < 30; i++)
+    if (scrollUp)
     {
-        tonccpy(&tile_mem[TILESET_TEXT][0 + (i * 20)], &tile_mem[TILESET_TEXT][2 + (i * 20)], 20 * 32);
+        for (int i = 0; i < 30; i++)
+        {
+            tonccpy(&tile_mem[TILESET_TEXT][0 + (i * 20)], &tile_mem[TILESET_TEXT][2 + (i * 20)], 20 * 32);
+        }
     }
-
+    else
+    {
+        for (int i = 29; i >= 0; i--)
+        {
+            // Due to the order of tonccpy, we need to store the data in a temporary buffer
+            byte buffer[20 * 32];
+            tonccpy(&buffer, &tile_mem[TILESET_TEXT][0 + (i * 20)], 20 * 32);
+            tonccpy(&tile_mem[TILESET_TEXT][2 + (i * 20)], &buffer, 20 * 32);
+        }
+    }
     // Remove text that went outside of the box and set the position
-    tte_erase_rect(left, top - tc->font->charH, right, top);
-    tte_set_pos(left, bottom - (8 + (2 * tc->font->charH))); // The newline will trigger after this and move it down a line
+    tte_erase_rect(left, scrollUp ? (top - tc->font->charH) : bottom, right, scrollUp ? top : (bottom + tc->font->charH));
 
-    tc->cursorY = bottom - tc->font->charH;
+    tc->cursorY = (scrollUp ? bottom - tc->font->charH : top); // The newline will trigger after this and move it down a line
     tc->cursorX = left;
 }

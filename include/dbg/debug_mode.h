@@ -13,6 +13,15 @@
 #define DEBUG_MODE 0
 #endif
 
+#include "typeDefs.h"
+
+enum WriteCableDataMode
+{
+    WRITE_CABLE_DATA_MODE_OFF = 0,
+    WRITE_CABLE_DATA_MODE_SRAM = 1,
+    WRITE_CABLE_DATA_MODE_CART = 2
+};
+
 /**
  * @brief This structs contains debug options
  * that can be influenced through the debug menu.
@@ -21,6 +30,9 @@ typedef struct debug_options
 {
     /** This option will print the link cable data. Pause the transfer with L, resume with R. Skip printing with DOWN. */
     bool print_link_data;
+
+    /** This option will print the link cable packets. Pause the transfer with L, resume with R. Skip printing with DOWN. */
+    bool print_link_packets;
 
     /**
      * @brief If this option has been set, we won't animate the text, but show the full text immediately.
@@ -84,9 +96,19 @@ typedef struct debug_options
     bool force_all_caught;
 
     /**
-     * @brief If this option is set, we will write the data received over the link cable to the save data at offset 0x0000.
+     * @brief If this option is set, we will write the data received over the link cable to SRAM.
+     * Please make sure to only use this with loader.gba/Poke_Transporter_GB_standalone.gba and
+     * make sure to ignore_game_pak and ignore_game_pak_sprites too!
+     *
+     * Also: you may need to reboot to your flashcart menu to make it update the .sav file.
      */
-    bool write_cable_data_to_save;
+    u8 write_cable_data_to_save;
+
+    /**
+     * @brief If this option is set, we will load the data -written by write_cable_data_to_save- from the SRAM
+     * instead of actually communicating over the link cable.
+     */
+    u8 load_cable_data_from_save;
 
     /**
      * @brief If this option is enabled, we will show control characters in the text.
@@ -95,7 +117,6 @@ typedef struct debug_options
 } debug_options;
 
 extern debug_options g_debug_options;
-
 
 // Options that affect and require payload_builder
 // (and therefore can't be put in the debug menu)
@@ -128,6 +149,6 @@ extern debug_options g_debug_options;
 // Compiling with this option enabled in release builds will cause a static_assert failure.
 // But the && DEBUG_MODE check will already prevent this from being enabled in release builds accidentally,
 // so as long as no-one removes that, it should be fine.
-#define DEBUG_USE_MGBA_PRINT (false && DEBUG_MODE)
+#define DEBUG_USE_MGBA_PRINT (true && DEBUG_MODE)
 
 #endif

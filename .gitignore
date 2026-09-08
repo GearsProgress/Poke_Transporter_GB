@@ -10,6 +10,12 @@ to_compress/
 *.exe
 .vscode/
 .venv/
-tools/payload-generator/payload-generator
+tools/rom-value-generator/payload-generator
 text_errors.txt
 terminal_output.txt
+tools/payload-generator/payload-generator
+tools/make-file-container/make-file-container
+loader/data
+options.json
+loader/data/
+.venv/

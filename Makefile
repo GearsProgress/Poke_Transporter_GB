@@ -1,355 +1,282 @@
+SHELL = /bin/sh
+SRCDIR := $(realpath $(dir $(lastword $(MAKEFILE_LIST))))
+PYPACKAGES := debugpy pandas pypng requests openpyxl
 BUILD_LANGS := japanese english french german italian spanishEU spanishLA korean chineseSI chineseTR portugueseBR
 BUILD_TYPES := release debug
-BUILD_XLSXS := local remote
+BUILD_XLSXS := remote local
 
-# defaults
-BUILD_LANG ?= english
-BUILD_TYPE ?= release
-BUILD_XLSX ?= local
-ENABLE_SOUND ?= 0
+UID := $(shell id -u)
+GID := $(shell id -g)
+export UID
+export GID
 
-ifneq ($(filter $(BUILD_LANG),$(BUILD_LANGS)),)
-else
-    $(error $(BUILD_LANG) is not a valid build language)
-endif
+.ONESHELL:
 
-ifneq ($(filter $(BUILD_TYPE),$(BUILD_TYPES)),)
-else
-    $(error $(BUILD_TYPE) is not a valid build type)
-endif
+default: help
 
-ifneq ($(filter $(BUILD_XLSX),$(BUILD_XLSXS)),)
-else
-    $(error $(BUILD_XLSX) is not a valid xlsx source)
-endif
+.PHONY: help
+help: # Display this help message
+	@tabs 2
+	@printf "\033[1;4mTargets\033[0m\n"	
+# shows help for all targets that follow the format of "target: #", where target includes a-z, A-Z, 0-9, and _ characters
+	@grep -E '^[a-zA-Z0-9_]+: #'  Makefile | while read -r l; do printf "\t\033[1;32m$$(echo $$l | cut -f 1 -d':')\033[00m:$$(echo $$l | cut -f 2- -d'#')\n"; done
 
-GIT_SUFFIX := $(shell git describe --tags --long --dirty | sed -E 's/^[^-]+-([0-9]+)-g[0-9a-f]+(-dirty)?$$/\1/')
-GIT_FULL := $(shell git describe --tags --always --dirty 2>/dev/null)
+# if [ $(id | grep -c docker) = 0 ]; then
+# $1 = command name
+# $2 = package name
+define check_package
+	@if [ "$(2)" = "docker" ]; then
+		if ! command -v $(1) >/dev/null 2>&1; then
+			printf "\033[1;31mDocker is not installed!\n"
+			printf "Please install Docker through your package manager.\033[0m\n"
+			exit
+		elif [ "$$(uname)" = "Darwin" ]; then
+			echo "macOS detected; skipping group check."
+		elif [ "$$(id | grep -c docker)" = 0 ]; then
+			printf "\033[1;31mUser is not in docker group!\033[0m\n"
+			if [ "$$(cat /etc/group | grep -c docker)" = 0 ]; then
+				echo "Creating docker group..."
+				sudo groupadd docker
+			fi
+			echo "Adding user to docker group..."
+			sudo usermod -aG docker $$USER
+			echo
+			printf "\033[1;31mPlease log out and log back in for this to take effect.\033[0m\n"
+			exit
+		else
+			echo "Docker is installed and user is in docker group."
+		fi
+	else
+		if ! command -v $(1) >/dev/null 2>&1; then
+			printf "\033[1;31m$(2) not found. Installing...\033[0m\n"
+			if [ "$(2)" = "rgbds" ]; then
+				mkdir -p rgbds && curl -L https://github.com/gbdev/rgbds/releases/download/v1.0.2+hotfix/rgbds-linux-x86_64.tar.xz | tar -xJ -C rgbds && cd rgbds && ./install.sh && cd .. && rm -rf rgbds
+			else
+				apt update && apt install -y $(1)
+			fi
+		else
+			echo "$(2) found."
+		fi
+	fi
+endef
 
-ifeq ($(GIT_SUFFIX),0)
-GIT_VERSION = $(shell git describe --tags --abbrev=0)
-else
-GIT_VERSION = $(shell git describe --tags --abbrev=0)b
-endif
-
-CMD_GOALS := $(filter-out build,$(MAKECMDGOALS))
-
-LANG_INDEX := $(shell echo $(BUILD_LANGS) | tr ' ' '\n' | nl -v0 | grep -w $(BUILD_LANG) | awk '{print $$1 + 1}')
-TYPE_INDEX := $(shell echo $(BUILD_TYPES) | tr ' ' '\n' | nl -v0 | grep -w $(BUILD_TYPE) | awk '{print $$1}')
-
-CPPFLAGS   += -DPTGB_BUILD_LANGUAGE=$(LANG_INDEX)
-CPPFLAGS   += -DDEBUG_MODE=$(TYPE_INDEX)
-CPPFLAGS   += -DBUILD_INFO=\"$(GIT_FULL)\"
-CPPFLAGS   += -DENABLE_SOUND=$(ENABLE_SOUND)
-
-CFLAGS += $(CPPFLAGS)
-CXXFLAGS += $(CPPFLAGS)
-
-
-#---------------------------------------------------------------------------------
-.SUFFIXES:
-#---------------------------------------------------------------------------------
-
-ifeq ($(strip $(DEVKITARM)),)
-$(error "Please set DEVKITARM in your environment. export DEVKITARM=<path to>devkitARM")
-endif
-
-include $(DEVKITARM)/gba_rules
-
-# The directory this makefile is located in.
-# This is relevant when the second stage of this Makefile is called from the build directory.
-MKFILE_DIR := $(dir $(realpath $(lastword $(MAKEFILE_LIST))))
-
-#---------------------------------------------------------------------------------
-# the LIBGBA path is defined in gba_rules, but we have to define LIBTONC ourselves
-#---------------------------------------------------------------------------------
-LIBTONC := $(DEVKITPRO)/libtonc
-LIBPCCS := $(CURDIR)/PCCS
-
-#---------------------------------------------------------------------------------
-# TARGET is the name of the output
-# BUILD is the directory where object files & intermediate files will be placed
-# SOURCES is a list of directories containing source code
-# INCLUDES is a list of directories containing extra header files
-# DATA is a list of directories containing binary data
-# GRAPHICS is a list of directories containing files to be processed by grit
-#
-# All directories are specified relative to the project directory where
-# the makefile is found
-#
-#---------------------------------------------------------------------------------
-TARGET		:= $(notdir $(CURDIR))_mb
-LOADERNAME  := $(notdir $(CURDIR))_standalone
-BUILD		:= build
-GENERATED_DIR := $(BUILD)/generated
-SOURCES     := source
-INCLUDES    := include PCCS/lib/include
-DATA		:= data
-MUSIC		:= audio
-GRAPHICS	:= graphics graphics/languages/$(BUILD_LANG)
-
-#---------------------------------------------------------------------------------
-# options for code generation
-#---------------------------------------------------------------------------------
-ARCH	:=	-mthumb -mthumb-interwork
-
-CFLAGS	+=	-Wall -O2\
-		-mcpu=arm7tdmi -mtune=arm7tdmi -masm-syntax-unified\
-		$(ARCH) 
-
-CFLAGS	+=	$(INCLUDE) -ffunction-sections -fdata-sections -Os -Wall -mthumb -mcpu=arm7tdmi -mtune=arm7tdmi -fstack-usage
-CXXFLAGS	+=	$(CFLAGS) -g0 -fno-rtti -fno-exceptions -fdata-sections -ffunction-sections -std=c++20 -Wno-volatile -D_GLIBCXX_USE_CXX20_ABI=0 -fstack-usage
-
-ifeq ($(BUILD_TYPE), debug)
-	CFLAGS += -g -DDEBUG
-	CXXFLAGS += -g -DDEBUG
-else ifeq ($(BUILD_TYPE), release)
-
-
-endif
-
-ASFLAGS	:=	$(ARCH)
-LDFLAGS	=	-Os $(ARCH) -Wl,-Map,$(notdir $*.map) -Wl,--gc-sections -mthumb -mcpu=arm7tdmi -mtune=arm7tdmi -Wl,-Map,output.map,--cref -nodefaultlibs
-
-# eliminate libsysbase_libsysbase_a-handle_manager.o and its 4KB IWRAM buffer
-LDFLAGS += -Wl,--wrap=__get_handle -Wl,--wrap=_close_r
-
-CFLAGS += -flto
-LDFLAGS += -flto
-
-ifeq ($(BUILD_TYPE), debug)
-ASFLAGS += -g
-LDFLAGS += -g
-endif
-
-#---------------------------------------------------------------------------------
-# any extra libraries we wish to link with the project
-#---------------------------------------------------------------------------------
-LIBS	:= -lmm -ltonc -lgba -lc -lgcc -lsysbase -lpccs
-
-
-#---------------------------------------------------------------------------------
-# list of directories containing libraries, this must be the top level containing
-# include and lib.
-# the LIBGBA path should remain in this list if you want to use maxmod
-#---------------------------------------------------------------------------------
-LIBDIRS	:=	$(LIBGBA) $(LIBTONC) $(LIBPCCS)
-
-#---------------------------------------------------------------------------------
-# no real need to edit anything past this point unless you need to add additional
-# rules for different file extensions
-#---------------------------------------------------------------------------------
-
-
-ifneq ($(BUILD),$(notdir $(CURDIR)))
-#---------------------------------------------------------------------------------
-
-export OUTPUT	:=	$(CURDIR)/$(TARGET)
-
-SOURCE_DIRS_RECURSIVE := $(shell find $(SOURCES) -type d)
-
-export VPATH	:=	$(CURDIR)/$(GENERATED_DIR) \
-			$(foreach dir,$(SOURCE_DIRS_RECURSIVE),$(CURDIR)/$(dir)) \
-			$(foreach dir,$(DATA),$(CURDIR)/$(dir)) \
-			$(foreach dir,$(GRAPHICS),$(CURDIR)/$(dir))
-
-export DEPSDIR	:=	$(CURDIR)/$(BUILD)
-
-CFILES		:=	$(sort $(notdir $(shell find $(SOURCES) -type f -name "*.c")))
-CPPFILES	:=	$(sort $(notdir $(shell find $(SOURCES) -type f -name "*.cpp")) translated_text.cpp)
-SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
-PNGFILES	:=	$(foreach dir,$(GRAPHICS),$(notdir $(wildcard $(dir)/*.png)))
-
-#---------------------------------------------------------------------------------
-# use CXX for linking C++ projects, CC for standard C
-#---------------------------------------------------------------------------------
-ifeq ($(strip $(CPPFILES)),)
-#---------------------------------------------------------------------------------
-	export LD	:=	$(CC)
-#---------------------------------------------------------------------------------
-else
-#---------------------------------------------------------------------------------
-	export LD	:=	$(CXX)
-#---------------------------------------------------------------------------------
-endif
-#---------------------------------------------------------------------------------
-
-export OFILES_SOURCES := $(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(SFILES:.s=.o)
-
-export OFILES_GRAPHICS := $(PNGFILES:.png=.o)
-
-export OFILES := $(OFILES_SOURCES) $(OFILES_GRAPHICS)
-
-ifneq ($(strip $(MUSIC)),)
-	export AUDIOFILES	:=	$(foreach dir,$(notdir $(wildcard $(MUSIC)/*.*)),$(CURDIR)/$(MUSIC)/$(dir))
-	BINFILES += soundbank.bin
-	OFILES += soundbank.bin.o
-endif
-
-export HFILES := $(addsuffix .h,$(subst .,_,$(BINFILES))) $(PNGFILES:.png=.h)
-
-export INCLUDE	:=	$(foreach dir,$(INCLUDES),-iquote $(CURDIR)/$(dir)) \
-					$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
-					-I$(CURDIR)/$(GENERATED_DIR) \
-					-I$(CURDIR)/$(BUILD) \
-					-I$(CURDIR)/tools/payload-generator/include
-
-export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
-
-.PHONY: all clean
-
-GENERATE_STAMP := $(BUILD)/.generate_data.$(BUILD_LANG).$(BUILD_TYPE).stamp
-BUILD_STAMP := $(BUILD)/.build.$(BUILD_LANG).$(BUILD_TYPE).stamp
-
-PAYLOAD_GEN_INPUTS := $(shell find tools/payload-generator/src tools/payload-generator/include -type f \( -name "*.cpp" -o -name "*.h" -o -name "*.hpp" \))
-TEXT_HELPER_INPUTS := tools/text_helper/main.py $(wildcard tools/text_helper/fonts/*.png) $(wildcard tools/text_helper/text.xlsx)
-TEXT_GENERATED_OUTPUTS := \
-	$(GENERATED_DIR)/translated_text.h \
-	$(GENERATED_DIR)/translated_text.cpp \
-	$(GENERATED_DIR)/fonts.h
-
-all:
-	@set -e; \
-	if [ "$(BUILD_XLSX)" = "remote" ]; then \
-		$(MAKE) --no-print-directory text_generated BUILD_LANG=$(BUILD_LANG) BUILD_TYPE=$(BUILD_TYPE) BUILD_XLSX=$(BUILD_XLSX); \
-	fi; \
-	before=$$(stat -c %Y $(BUILD_STAMP) 2>/dev/null || echo 0); \
-	$(MAKE) --no-print-directory $(BUILD_STAMP) BUILD_LANG=$(BUILD_LANG) BUILD_TYPE=$(BUILD_TYPE) BUILD_XLSX=$(BUILD_XLSX); \
-	after=$$(stat -c %Y $(BUILD_STAMP) 2>/dev/null || echo 0); \
-	if [ "$$before" = "$$after" ] && [ "$$after" != "0" ]; then \
-		echo "PTGB build up to date."; \
+.PHONY: setup
+setup: # Setup all required dependencies
+	@if [ -f /.dockerenv ] || [ -n "$$GITPOD" ]; then
+		if [ -z "$$IS_PTGB" ]; then
+			printf "\033[1;31mRunning inside an non-Poké Transporter GB Docker shell!\n"
+			printf "Please run this on the host machine or inside the Poké Transporter GB's Docker shell.\033[0m"
+			exit
+		else
+			echo "Running in Docker shell; continuing..."
+		fi
+	else
+		echo "Running outside of Docker shell. Checking Docker installation..."
+		$(call check_package,docker,docker)
+		if [ "$$(docker container ls -f "name=ptgb" --format "{{.Names}}")" = "ptgb" ]; then
+			echo "Docker container found and running."
+		elif [ "$$(docker container ls -af "name=ptgb" --format "{{.Names}}")" = "ptgb" ]; then
+			echo "Docker container found; starting..."
+			docker start ptgb >/dev/null
+		else
+			echo "Docker container does not exist."
+			echo "Checking status of docker buildx..."
+			if docker buildx version >/dev/null 2>&1; then
+				echo "buildx installed. Continuing..."
+			else
+				printf "\033[1;31mbuildx is not installed!\n"
+				printf "\033[1;31mPlease install through your package manager.\n"
+				exit
+			fi
+			echo "Creating Docker image..."
+			mkdir -p $(SRCDIR)/docker-build && cd $(SRCDIR)/docker-build
+			DOCKER_BUILDKIT=1 docker build --platform linux/amd64 -t ptgb-builder:latest --build-arg UID=$$UID --build-arg GID=$$GID -f $(SRCDIR)/Dockerfile $(SRCDIR)/docker-build
+			rm -rf $(SRCDIR)/docker-build
+			echo
+			echo "Creating Docker container..."
+			docker container create --platform linux/amd64 -w /ptgb -v $(SRCDIR):/ptgb --name ptgb -it ptgb-builder:latest
+			echo "Starting Docker container..."
+			docker start ptgb >/dev/null
+		fi
+		echo
+		docker exec ptgb make --no-print-directory -C /ptgb _setup
+		echo
+		printf "\033[1;32mEverything is set up!\033[0m\n"
 	fi
 
-text_generated: to_compress generated_dir data
-	@PTGB_GEN_DIR="$(CURDIR)/$(GENERATED_DIR)" python3 tools/text_helper/main.py $(BUILD_LANG) $(BUILD_TYPE) $(BUILD_XLSX)
+.PHONY: _setup
+_setup:
+	@echo "Checking Docker container's packages..."
+# Python
+	$(call check_package,python3,python3)
+	
+	for package in $(PYPACKAGES); do
+		if pip show "$$package" > /dev/null 2>&1; then
+			echo "$$package found."
+		else
+			echo "Installing $$package"
+			pip install --root-user-action=ignore "$$package"
+		fi
+	done
 
-data:
-	@mkdir -p $@
+# rgbds
+	$(call check_package,rgbasm,rgbds)
+# jq
+	$(call check_package,jq,jq)
 
-to_compress:
-	@mkdir -p $@
-
-generated_dir:
-	@mkdir -p $(GENERATED_DIR)
-
-generate_data: $(GENERATE_STAMP)
-
-$(GENERATE_STAMP): $(TEXT_HELPER_INPUTS) $(PAYLOAD_GEN_INPUTS) compress_lz10.sh | data to_compress generated_dir
-	@if [ "$(BUILD_XLSX)" != "remote" ]; then \
-		$(MAKE) --no-print-directory text_generated BUILD_LANG=$(BUILD_LANG) BUILD_TYPE=$(BUILD_TYPE) BUILD_XLSX=$(BUILD_XLSX); \
+# $1 = command name
+# $2 = package name
+define check_package_host
+	@if ! command -v $(1) >/dev/null 2>&1; then
+		printf "\033[1;31m$(2) is not installed!\n"
+		printf "Please install $(2) through your package manager.\033[0m\n"
+		exit
 	fi
-	@echo "----------------------------------------------------------------"
-	@echo "Building v$(GIT_VERSION) with parameters: $(BUILD_LANG), $(BUILD_TYPE), $(BUILD_XLSX)"
-	@echo "----------------------------------------------------------------"
-	@env - \
-		PATH="$(PATH)" \
-		TMPDIR=/tmp TMP=/tmp TEMP=/tmp \
-		SYSTEMROOT="$(SYSTEMROOT)" \
-		CC=cc \
-		CXX=c++ \
-		CFLAGS= \
-		CXXFLAGS= \
-		LDFLAGS= \
-		AR=ar \
-		$(MAKE) -C tools/payload-generator BUILD_LANG=$(BUILD_LANG) BUILD_TYPE=$(BUILD_TYPE)
-	@echo
-	@echo "----------------------------------------------------------------"
-	@echo
-	@tools/payload-generator/payload-generator to_compress
-	@echo "Compressing bin files!" 
-	@echo -n "["
-	@find to_compress -name "*.bin" -print0 | xargs -0 -n1 ./compress_lz10.sh
-	@echo "]"
-	@echo "Compressing finished!"
-	@echo
-	@echo "----------------------------------------------------------------"
-	@echo
-	@touch $@
+endef
 
-#---------------------------------------------------------------------------------
-$(BUILD_STAMP): $(GENERATE_STAMP) | $(BUILD)
-	@$(MAKE) -C PCCS \
-		CC="$(CC)" \
-		CXX="$(CXX)" \
-		CFLAGS="$(CFLAGS)" \
-		CXXFLAGS="$(CXXFLAGS)" \
-		LDFLAGS="$(LDFLAGS)"
-	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
-	@mkdir -p loader/data
-	@cp $(TARGET).gba loader/data/multiboot_rom.bin
-	@$(MAKE) -C loader
-	@cp loader/loader.gba $(LOADERNAME).gba
-	@touch $@
+.PHONY: setup_no_docker
+# hidden legacy build option
+setup_no_docker:
+	$(call check_package_host,python3,python3)
+	@if [ ! -e "$(SRCDIR)/.venv/bin/activate" ]; then
+		echo "venv not found. Creating venv..."
+		python3 -m venv .venv
+	fi
+	@if [ -z "$$VIRTUAL_ENV" ]; then
+		echo "Activating venv..."
+		source $(SRCDIR)/.venv/bin/activate
+	fi
 
-$(BUILD):
-	@mkdir -p $@
+	@for package in $(PYPACKAGES); do
+		if pip show "$$package" > /dev/null 2>&1; then
+			echo "$$package found."
+		else
+			echo "$$package is not installed. Installing..."
+			pip install "$$package"
+		fi
+	done
+	$(call check_package_host,rgbasm,rgbds)
 
-#---------------------------------------------------------------------------------
-clean:
-	@echo clean ...
-	@$(MAKE) -C tools/payload-generator clean
-	@$(MAKE) -C loader clean
-	@$(MAKE) -C PCCS clean
-	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).gba $(LOADERNAME).gba data/ to_compress/
-	@rm -f text_helper/output.json
-	@rm -fr $(BUILD) $(TARGET).elf $(TARGET).gba data/ to_compress/
-	@rm -fr $(GENERATED_DIR)
+	@printf "\033[1;32mEverything is set up!\033[0m\n"
 
+.PHONY: configure
+configure: # Specify ROM Language, ROM Type, and Text Source
+	$(call check_package_host,dialog,dialog)
+	$(call check_package_host,jq,jq)
+	
+# generate default options.json (based on makefile vars) if it doesn't already exist
+	@touch $(SRCDIR)/options.json
 
+	set -- $(BUILD_LANGS)
+	langs=$$(printf '%s\n' "$$@" | jq -R -s 'split("\n")[:-1]')
 
-#---------------------------------------------------------------------------------
-else
+	set -- $(BUILD_TYPES)
+	types=$$(printf '%s\n' "$$@" | jq -R -s 'split("\n")[:-1]')
 
-BINFILES	:=	$(foreach dir,../$(DATA),$(notdir $(wildcard $(dir)/*.*)))
-export OFILES_BIN := $(addsuffix .o,$(BINFILES))
-OFILES := $(OFILES_BIN) $(OFILES)
+	set -- $(BUILD_XLSXS)
+	xlsxs=$$(printf '%s\n' "$$@" | jq -R -s 'split("\n")[:-1]')
 
-#---------------------------------------------------------------------------------
-# main targets
-#---------------------------------------------------------------------------------
+	jq -n \
+		--argjson langs "$$langs" \
+		--argjson types "$$types" \
+		--argjson xlsxs "$$xlsxs" \
+		'{
+			BUILD_LANGS: $$langs,
+			BUILD_TYPES: $$types,
+			BUILD_XLSXS: $$xlsxs,
+			selected: {
+				lang: "",
+				type: "",
+				xlsx: ""
+			}
+		}' > "$(SRCDIR)/options.json"
 
-$(OUTPUT).gba	:	$(OUTPUT).elf
+	menu() {
+		title="$$1"
+		json="$$2"
+		array_key="$$3"
 
-$(OUTPUT).elf	:	$(OFILES)
+		menu_args=""
+		i=1
 
-$(OFILES_SOURCES) : $(HFILES)
+		while IFS= read -r item; do
+			menu_args="$$menu_args $$i $$item"
+			i=$$((i + 1))
+		done <<-EOF
+			$$(jq -r ".$${array_key}[]" "$$json")
+		EOF
+		choice=$$(dialog --stdout \
+			--menu "$$title" 0 0 15 \
+			$$menu_args)
 
-#---------------------------------------------------------------------------------
-# The bin2o rule should be copied and modified
-# for each extension used in the data directories
-#---------------------------------------------------------------------------------
+		status=$$?
 
-#---------------------------------------------------------------------------------
-# rule to build soundbank from music files
-#---------------------------------------------------------------------------------
-soundbank.bin soundbank.h : $(AUDIOFILES)
-#---------------------------------------------------------------------------------
-	@mmutil $^ -osoundbank.bin -hsoundbank.h
+		case $$status in
+			0)
+				jq -r ".$${array_key}[$$((choice - 1))]" "$$json"
+				return 0
+				;;
+			1)
+				printf "\033[1;31mUser canceled dialog.\033[0m\n" >&2
+				return 1
+				;;
+			255)
+				printf "\033[1;31mUser pressed escape.\033[0m\n" >&2
+				return 1
+				;;
+			*)
+				printf "\033[1;31mUnknown error occurred.\033[0m\n" >&2
+				return 1
+				;;
+		esac
+	}
 
-#---------------------------------------------------------------------------------
-# This rule links in binary data with the .bin extension
-#---------------------------------------------------------------------------------
-%.bin.o	%_bin.h :	%.bin
-#---------------------------------------------------------------------------------
-	@echo $(notdir $<)
-	@$(bin2o)
+# prompt user for selections
+	if ! LANG=$$(menu "ROM Language" options.json "BUILD_LANGS"); then
+		exit 1
+	fi
+	if ! TYPE=$$(menu "ROM Type" options.json "BUILD_TYPES"); then
+		exit 1
+	fi
+	if ! XLSX=$$(menu "Text Source" options.json "BUILD_XLSXS"); then
+		exit 1
+	fi	
+	clear
+	tmp=$$(mktemp)
+# store selections in options.json
+	jq \
+		--arg lang "$$LANG" \
+		--arg type "$$TYPE" \
+		--arg xlsx "$$XLSX" \
+		'.selected.lang = $$lang | .selected.type = $$type | .selected.xlsx = $$xlsx' \
+		$(SRCDIR)/options.json > "$$tmp" && mv "$$tmp" $(SRCDIR)/options.json
 
-#---------------------------------------------------------------------------------
-# This rule creates C source files using grit
-# grit takes an image file and a .grit describing how the file is to be processed
-# add additional rules like this for each image extension
-# you use in the graphics folders
-#---------------------------------------------------------------------------------
-%.c %.h: %.png %.grit
-#---------------------------------------------------------------------------------
-	@echo "grit $(notdir $<)"
-	@grit $< -ftc -o$*
+	@printf "\033[1;32mBuild configured!\033[0m\n"
 
-# make likes to delete intermediate files. This prevents it from deleting the
-# files generated by grit after building the GBA ROM.
-.SECONDARY:
+.PHONY: clean
+clean: # Cleans the build directory
+	@echo "Starting Docker container..."
+	@docker start ptgb >/dev/null
+	@docker exec ptgb make -f /ptgb/container.mk -C /ptgb SRCDIR="/ptgb" PTGB_PROJECT_NAME="$(notdir $(SRCDIR))" clean
 
--include $(DEPSDIR)/*.d
-#---------------------------------------------------------------------------------------
-endif
-#---------------------------------------------------------------------------------------
+.PHONY: clean_no_docker
+# hidden legacy build option
+clean_no_docker:
+	@echo "Cleaning..."
+	make -f $(SRCDIR)/container.mk clean SRCDIR="$(SRCDIR)"
+
+.PHONY: build
+build: # Builds the ROM
+	@echo "Starting Docker container..."
+	@docker start ptgb >/dev/null
+	@docker exec ptgb make -f /ptgb/container.mk -C /ptgb SRCDIR="/ptgb" PTGB_PROJECT_NAME="$(notdir $(SRCDIR))" all
+
+.PHONY: clean_no_docker
+# hidden legacy build option
+build_no_docker:
+	@if [ -z "$$VIRTUAL_ENV" ]; then
+		echo "Activating venv..."
+		source $(SRCDIR)/.venv/bin/activate
+	fi
+	@echo "Building..."
+	make -f $(SRCDIR)/container.mk all SRCDIR="$(SRCDIR)"

@@ -10,7 +10,8 @@
 #include "button_handler.h"
 #include "translated_text.h"
 #include "text_engine.h"
-#include "text_data_table.h"
+#include "FileContainerReader.h"
+#include "text_tables.h"
 #include "TYPES_lz10_bin.h"
 
 Dex dex_array[DEX_MAX];
@@ -29,22 +30,17 @@ bool mew_caught;
 bool celebi_caught;
 bool missingno_caught = false;
 
-static void load_text_entry_into_buffer(text_data_table& data_table, u8 *output_buffer, u8 entry_index)
+static void load_general_table_text_entries(u8 *decompression_buffer, u32 decompression_buffer_size, u8 *kanto_buffer, u8 *johto_buffer)
 {
-    const u8 *entry = data_table.get_text_entry(entry_index);
-    const u8 *entry_end = (const u8*)strchr((const char*)entry, 0xFF);
+    const u8 **chunkList;
+    u32 numChunks;
+    u32 chunkSize;
+    get_text_table_chunks(GENERAL_INDEX, &chunkList, &numChunks, &chunkSize);
+    FileContainerReader text_reader(chunkList, numChunks, chunkSize);
+    text_reader.init(decompression_buffer, decompression_buffer_size);
 
-    // copy the text_entry including the 0xFF at the end
-    memcpy(output_buffer, entry, entry_end + 1 - entry);
-}
-
-static void load_general_table_text_entries(u8 *decompression_buffer, u8 *kanto_buffer, u8 *johto_buffer)
-{
-    text_data_table data_table(decompression_buffer);
-    data_table.decompress(get_compressed_text_table(GENERAL_INDEX));
-
-    load_text_entry_into_buffer(data_table, kanto_buffer, GENERAL_kanto_name);
-    load_text_entry_into_buffer(data_table, johto_buffer, GENERAL_johto_name);
+    text_reader.readFile(GENERAL_kanto_name, kanto_buffer);
+    text_reader.readFile(GENERAL_johto_name, johto_buffer);
 }
 
 void pokedex_init()
@@ -91,21 +87,27 @@ void pokedex_init()
 #include "gen_3_charsets_lz10_bin.h"
 #include "libstd_replacements.h"
 
-int pokedex_loop()
+// attribute noinline is used to make sure it doesn't get inlined and permanently use IWRAM for the decompression_buffer
+int __attribute__((noinline)) pokedex_loop()
 {
     u8 TYPES[POKEMON_ARRAY_SIZE][2];
     u8 kanto_name[12];
     u8 johto_name[12];
-    u8 decompression_buffer[3072];
+    u8 decompression_buffer[2048];
     u16 charset[256];
+    u8 name_buffer[16];
+    const u8 **namesChunkList;
+    u32 namesNumChunks;
+    u32 namesChunkSize;
 
     LZ77UnCompWram(TYPES_lz10_bin, (u8*)TYPES);
     LZ77UnCompWram(gen_3_charsets_lz10_bin, (u8*)charset);
 
-    load_general_table_text_entries(decompression_buffer, kanto_name, johto_name);
+    load_general_table_text_entries(decompression_buffer, sizeof(decompression_buffer), kanto_name, johto_name);
 
-    text_data_table PKMN_NAMES(decompression_buffer);
-    PKMN_NAMES.decompress(get_compressed_text_table(PKMN_NAMES_INDEX));
+    get_text_table_chunks(PKMN_NAMES_INDEX, &namesChunkList, &namesNumChunks, &namesChunkSize);
+    FileContainerReader PKMN_NAMES(namesChunkList, namesNumChunks, namesChunkSize);
+    PKMN_NAMES.init(decompression_buffer, sizeof(decompression_buffer));
 
     pokedex_init();
     pokedex_show();
@@ -258,10 +260,11 @@ int pokedex_loop()
                 ptgb_write_simple(temp_string, true);
 
                 tte_set_pos(dex_x_cord + (7 * 8), (i * 8 * 2) + 28);
-                ptgb_write_simple(is_caught(dex_shift + i + 1 + mythic_skip) ? PKMN_NAMES.get_text_entry(dex_shift + i + 1 + mythic_skip) : undiscovered_text, true);
+                PKMN_NAMES.readFile(dex_shift + i + 1 + mythic_skip, name_buffer);
+                ptgb_write_simple(is_caught(dex_shift + i + 1 + mythic_skip) ? name_buffer : undiscovered_text, true);
 
             }
-            global_next_frame(); // This is a bit silly, but it works. Makes the types one frame off from the text, but that's 'fine'
+            //global_next_frame(); // This is a bit silly, but it works. Makes the types one frame off from the text, but that's 'fine'
             // Eventually it could be optimized to move the labels around, but this honestly makes the most sense. Less code but one frame different
             for (int i = 0; i < DEX_MAX; i++)
             {
@@ -269,7 +272,7 @@ int pokedex_loop()
             }
             update = false;
         }
-        global_next_frame();
+        VBlankIntrWait();
     }
 }
 
